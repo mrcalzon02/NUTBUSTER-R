@@ -111,6 +111,8 @@ async function cascadeAnimation(stage,epoch){
  stage.clear.forEach(i=>board.querySelector(`[data-cell="${i}"]`)?.classList.add('clearing'));
  if(!reducedMotion())await sleep(190);
  if(state.page!=='game'||epoch!==state.epoch)return;
+ // New specials can be formed during the clear; paint them before cloning falling tiles.
+ paintCells(stage.afterClear);
  const tasks=[],hidden=[],overlays=[];
  const rect=board.getBoundingClientRect();
  for(const fall of stage.falls){
