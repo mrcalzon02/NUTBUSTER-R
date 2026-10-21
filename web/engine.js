@@ -160,6 +160,49 @@ function expandSpecials(g,initial,targetColor){
  }
  return hit;
 }
+/* Two match-created specials have bespoke pair effects. They remain distinct from
+   ordinary special chains and are deterministic on both desktop and Android. */
+function specialComboHits(g,a,b,found){
+ const left=g.cells[a]?.special,right=g.cells[b]?.special;
+ if(!left||!right)return null;
+ const w=g.cfg.width,hit=new Set([...found.hit,a,b]);
+ const isLine=kind=>kind==='line'||kind==='line-h'||kind==='line-v';
+ const add=i=>{if(g.cells[i])hit.add(i);};
+ const row=y=>g.cells.forEach((c,i)=>{if(c&&Math.floor(i/w)===y)add(i);});
+ const column=x=>g.cells.forEach((c,i)=>{if(c&&i%w===x)add(i);});
+ const area=(at,radius)=>g.cells.forEach((c,i)=>{
+  if(c&&Math.abs(Math.floor(i/w)-Math.floor(at/w))<=radius&&Math.abs(i%w-at%w)<=radius)add(i);
+ });
+ let combo='paired-specials';
+ if(left==='rainbow'&&right==='rainbow'){
+  g.cells.forEach((c,i)=>{if(c)add(i);});combo='double-rainbow';
+ }else if(left==='rainbow'||right==='rainbow'){
+  const other=left==='rainbow'?b:a;
+  const kind=g.cells[other].special,color=g.cells[other].type;
+  g.cells.forEach((c,i)=>{
+   if(!c||c.type!==color)return;
+   add(i);
+   if(isLine(kind))kind==='line-v'?column(i%w):row(Math.floor(i/w));
+   else if(kind==='blast')area(i,1);
+  });
+  combo=isLine(kind)?'rainbow-rockets':kind==='blast'?'rainbow-bombs':'rainbow-pair';
+ }else if(left==='blast'&&right==='blast'){
+  area(a,2);area(b,2);combo='double-bomb';
+ }else if((left==='blast'&&isLine(right))||(right==='blast'&&isLine(left))){
+  const center=left==='blast'?a:b;
+  const y=Math.floor(center/w),x=center%w;
+  for(let d=-1;d<=1;d++){row(y+d);column(x+d);}
+  combo='bomb-rockets';
+ }else if(isLine(left)&&isLine(right)){
+  row(Math.floor(a/w));column(b%w);combo='cross-rockets';
+ }else {
+  area(a,1);area(b,1);
+ }
+ const overrides={};
+ if(left==='rainbow')overrides[a]=g.cells[b].type;
+ if(right==='rainbow')overrides[b]=g.cells[a].type;
+ return {hit:expandSpecials(g,hit,overrides),groups:found.groups,combo};
+}
 function newSpecial(groups){
  const five=groups.find(a=>a.length>=5);
  if(five)return {at:five[Math.floor(five.length/2)],kind:'rainbow'};
@@ -207,17 +250,17 @@ function swap(g,a,b){
  const ca=g.cells[a],cb=g.cells[b],pa={type:ca.type,special:ca.special},pb={type:cb.type,special:cb.special};
  ca.type=pb.type;ca.special=pb.special;cb.type=pa.type;cb.special=pa.special;
  let found=matches(g);
+ let combination=null;
  if(ca.special||cb.special){
-   const source=ca.special?a:b,special=g.cells[source].special,other=source===a?b:a;
+  combination=specialComboHits(g,a,b,found);
+  if(combination)found=combination;
+  else {
+   const source=ca.special?a:b,other=source===a?b:a;
    const hit=new Set([...found.hit,source,other]);
-   const sources=[a,b].filter(i=>g.cells[i].special);
    const overrides={};
-   for(const i of sources)if(g.cells[i].special==='rainbow')overrides[i]=g.cells[i===a?b:a].type;
-   if(sources.length===2&&sources.every(i=>g.cells[i].special==='rainbow')){
-     g.cells.forEach((c,i)=>{if(c)hit.add(i);});
-   }
-   // Trigger the row/column/blast/rainbow combination and chain into other specials.
+   if(g.cells[source].special==='rainbow')overrides[source]=g.cells[other].type;
    found={hit:expandSpecials(g,hit,overrides),groups:found.groups};
+  }
  }
  if(!found.hit.size){
   // Non-matching adjacent swaps are intentional moves. Keep the new board and deduct a turn.
@@ -227,7 +270,7 @@ function swap(g,a,b){
   g.history.push({loops:0,removed:0,cracked:0,score:g.score});
   return {valid:true,loops:0,removed:0,cracked:0,won:false,lost:g.lost,swap:[a,b],stages};
  }
- g.moves--;return {...collapse(g,found),swap:[a,b]};
+ g.moves--;return {...collapse(g,found),swap:[a,b],specialCombo:combination?.combo||null};
 }
 function booster(g,type,index){
  if(g.won)return {valid:false,reason:'finished'};
@@ -276,5 +319,5 @@ function booster(g,type,index){
   won:g.won,lost:g.lost,stages:[stage,...r.stages],objectives:objectiveState(g)};
 }
 function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,special:c.special}:null)};}
-const api={TYPES,BOOSTERS,BOOSTER_META,makeLevel,create,matches,adjacent,hasMove,shuffle,repairMove,objectiveState,expandSpecials,swap,booster,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
+const api={TYPES,BOOSTERS,BOOSTER_META,makeLevel,create,matches,adjacent,hasMove,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,swap,booster,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
 })(typeof window!=='undefined'?window:globalThis);
