@@ -16,7 +16,8 @@ const screen={classList:classes(),addEventListener:(k,f)=>{if(k==='click')clickH
  if(s.includes('data-progress'))return refs.progress;return null;},
  querySelectorAll:s=>s==='.nut-visual'?boardCells.filter(Boolean).map(x=>x.visual):[]
 };
-const document={getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:()=>[],createElement:()=>({style:{},innerHTML:'',remove(){}})};
+const currencyLinks=Array.from({length:2},()=>({dataset:{nav:'shop'},addEventListener(type,fn){if(type==='click')this.tap=fn;}}));
+const document={getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:selector=>selector==='[data-nav]'?currencyLinks:[],createElement:()=>({style:{},innerHTML:'',remove(){}})};
 const window={NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:M,addEventListener:()=>{},matchMedia:()=>({matches:true})};
 const localStorage={getItem:()=>null,setItem:()=>{}};
 require('node:vm').runInNewContext(js,{window,document,localStorage,setTimeout:()=>0,clearTimeout:()=>{},requestAnimationFrame:f=>f(),console});
@@ -34,7 +35,11 @@ function findSwap(g,wantMatch){for(let a=0;a<g.cells.length;a++)for(let b of [a+
 async function settle(){for(let i=0;i<125;i++)await Promise.resolve();}
 async function run(){
  assert.ok(!html.includes('Everything is free'));
- app.nav('shop');assert.ok(html.includes('BUY PACKAGE'));assert.ok(!html.includes('TOTAL DUE'));
+ const initialRenders=renders;currencyLinks[0].tap();
+ assert.equal(state().page,'shop');assert.equal(renders,initialRenders+1,'First counter tap navigates to the shop');
+ currencyLinks[1].tap();assert.equal(renders,initialRenders+1,'Other counter must not rerender the open shop');
+ app.nav('shop');assert.equal(renders,initialRenders+1,'Same-page navigation must not rebuild DOM');
+ assert.ok(html.includes('BUY PACKAGE'));assert.ok(!html.includes('TOTAL DUE'));
  click({action:'claim',item:'0'});assert.equal(state().page,'checkout');assert.ok(!html.includes('TOTAL DUE'));
  click({action:'checkout-review'});assert.ok(html.includes('TOTAL DUE'));assert.ok(html.includes('$0.00'));
  let coins=app.getSave().coins;click({action:'checkout-complete'});
