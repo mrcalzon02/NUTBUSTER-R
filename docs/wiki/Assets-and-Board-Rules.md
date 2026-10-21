@@ -6,11 +6,11 @@
 
 ## Board compositing
 
-1. Board topology: 8×9 Boolean mask, void cells remove input, border and gravity support.
+1. Board topology: variable Boolean mask. Levels 1–10 use 4×5, 11–30 5×6, 31–70 6×7, 71–140 7×8, and 141–500 8×9. Void cells remove input, border and gravity support.
 2. Bottom: alternating opaque caramel backing (tile sizing remains responsive).
 3. Shape boundaries: four-neighbor edge mask (N/E/S/W); use four independent outside edge quads to avoid 47 expensive full tiles.
 4. Convex/concave corners: corner overlays chosen by four cardinal neighbors plus diagonal neighbors. The original caramel border source is the art style anchor.
 5. Mechanics: blockers use overlay layers, never replace the nut piece itself unless the mechanic explicitly occupies the cell.
-6. Top: match effects, selection, hint and animations.
+6. Top: match effects, selection, hint and animations. Keep the button grid mounted; independently move nut sprites using recorded pre-clear, post-clear, and post-gravity frames. Never substitute a full board rerender for gravity.
 
-Void areas interrupt gravity by design. A column can contain multiple independent falling segments. Cross/portal mechanics are reserved for later gates; current levels do not implement cross-cell teleports.
+Every adjacent swap consumes a move even if no match occurs. Void areas interrupt gravity by design. A column can contain multiple independent falling segments. Cross/portal mechanics are reserved for later gates; current levels do not implement cross-cell teleports.
