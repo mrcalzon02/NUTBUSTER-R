@@ -42,6 +42,7 @@ jobs:
           node tests/audio.test.js
           node tests/package.test.js
           node tests/update-contract.test.js
+          node tests/android-emulator-smoke-contract.test.js
           node tests/authored-art-compact-ui.test.js
           node tests/gameplay-layout.test.js
           node tests/irregular-board-refill.test.js
@@ -173,14 +174,23 @@ jobs:
   emulator-smoke:
     needs: android-debug
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: Nutbuster-Android-debug-${{ github.run_id }}
           path: validation
-      - name: Install and launch on Android 26 emulator
+      - name: Diagnose Android emulator hardware acceleration
+        shell: bash
+        run: |
+          if [[ -e /dev/kvm ]]; then
+            sudo chmod 666 /dev/kvm
+            ls -l /dev/kvm
+          else
+            echo "::warning::KVM not available on runner; cold emulator boot may be slow."
+          fi
+      - name: Install and launch on Android 26 emulator (bounded evidence checks)
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 26
@@ -188,22 +198,20 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          emulator-boot-timeout: 600
-          script: |
-            set -eu
-            adb install -r validation/release/NUTBUSTER-Android-debug.apk
-            adb shell am start -W -n io.github.mrcalzon02.nutbuster/.MainActivity
-            sleep 5
-            adb shell dumpsys activity activities | grep -E 'io.github.mrcalzon02.nutbuster.*MainActivity'
-            adb shell screencap -p /sdcard/nutbuster-launch.png
-            adb pull /sdcard/nutbuster-launch.png validation/nutbuster-android26.png
-            adb logcat -d -s AndroidRuntime:E | tee validation/nutbuster-crashlog.txt
-            if grep -F 'FATAL EXCEPTION' validation/nutbuster-crashlog.txt; then exit 1; fi
-      - uses: actions/upload-artifact@v4
+          emulator-boot-timeout: 300
+          script: bash scripts/android-emulator-smoke.sh
+      - name: Upload Android 26 smoke diagnostics, even on failure
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Nutbuster-Emulator-Evidence-${{ github.run_id }}
-          path: validation/nutbuster-android26.png
+          path: |
+            validation/nutbuster-android26.png
+            validation/android26-launch.txt
+            validation/android26-activity.txt
+            validation/android26-pid.txt
+            validation/android26-crashlog.txt
+            validation/android26-smoke-steps.txt
           retention-days: 14
           if-no-files-found: ignore
 
