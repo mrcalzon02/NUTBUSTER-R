@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ./tools/build_desktop_launchers.sh
+          bash tools/build_desktop_launchers.sh
           test -s release/NUTBUSTER-Windows-x64.exe
           test -s release/NUTBUSTER-Linux-x64
           mkdir -p release/metadata
