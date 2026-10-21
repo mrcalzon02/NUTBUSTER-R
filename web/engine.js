@@ -4,6 +4,8 @@
 const TYPES=['peanut','walnut','almond','cashew','hazelnut','pistachio'];
 const DESIGN=typeof module!=='undefined'&&module.exports?require('./level-design.js'):root.NutLevelDesign;
 if(!DESIGN)throw new Error('NUTBUSTER level book must load before match-three engine');
+const FEATURES=typeof module!=='undefined'&&module.exports?require('./board-features.js'):root.NutBoardFeatures;
+if(!FEATURES)throw new Error('Board features must load before the engine');
 const BOOSTERS=['hammer','row','column','cross','blast','color','shuffle','extra','drill','unlock'];
 const BOOSTER_META=Object.freeze({
  hammer:{label:'Hammer',targeted:true,tip:'Break every layer of one stubborn cell'},
@@ -76,6 +78,7 @@ function makeLevel(number){
   const blocker=cfg.locks?'locks':cfg.chests?'chests':'ice';
   cfg.objectives=[build('collect',Math.min(9,collect)),build(blocker,design.objectiveTarget||null)];
  }else cfg.objectives=[build(kind,design.objectiveTarget)];
+ cfg.features=FEATURES.make(n,cfg.mask,cfg.width,cfg.height);
  return cfg;
 }
 function create(level=1,seed=level*7919){
@@ -253,6 +256,24 @@ function repairMove(g){
  }
  return shuffle(g);
 }
+function advanceBoardFeatures(g,result){
+ if(result.won)return result;
+ const stages=FEATURES.advance(g,g.turns+1,()=>snapshot(g).cells);
+ if(!stages.length)return result;
+ result.stages.push(...stages);
+ const found=matches(g);
+ if(found.hit.size){
+  const settled=collapse(g,found);
+  result.stages.push(...settled.stages);
+  result.loops+=settled.loops;result.removed+=settled.removed;result.cracked+=settled.cracked;
+  result.won=settled.won;result.lost=settled.lost;
+ }else if(!g.lost&&!hasMove(g)){
+  if(!repairMove(g))throw new Error('Cannot repair transport deadlock');
+  result.stages.push({kind:'repair',cells:snapshot(g).cells});
+ }
+ return result;
+}
+function finishTurn(g,result){return advanceHazards(g,advanceBoardFeatures(g,result));}
 function advanceHazards(g,result){
  g.turns++;
  if(g.won||g.lost||(!g.cfg.jam&&!g.cfg.bombs))return result;
@@ -307,9 +328,9 @@ function swap(g,a,b){
   if(!g.lost&&!hasMove(g)){if(!repairMove(g))throw new Error('No legal moves after non-matching swap');
    stages.push({kind:'repair',cells:snapshot(g).cells});}
   g.history.push({loops:0,removed:0,cracked:0,score:g.score});
-  return advanceHazards(g,{valid:true,loops:0,removed:0,cracked:0,won:false,lost:g.lost,swap:[a,b],stages});
+  return finishTurn(g,{valid:true,loops:0,removed:0,cracked:0,won:false,lost:g.lost,swap:[a,b],stages});
  }
- g.moves--;return advanceHazards(g,{...collapse(g,found),swap:[a,b],specialCombo:combination?.combo||null});
+ g.moves--;return finishTurn(g,{...collapse(g,found),swap:[a,b],specialCombo:combination?.combo||null});
 }
 function booster(g,type,index){
  if(g.won)return {valid:false,reason:'finished'};
@@ -363,5 +384,5 @@ function booster(g,type,index){
   won:g.won,lost:g.lost,stages:[stage,...r.stages],objectives:objectiveState(g)};
 }
 function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,turns:g.turns,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,jam:c.jam,fuse:c.fuse,special:c.special}:null)};}
-const api={TYPES,BOOSTERS,BOOSTER_META,makeLevel,create,matches,adjacent,hasMove,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceHazards,swap,booster,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
+const api={TYPES,BOOSTERS,BOOSTER_META,makeLevel,create,matches,adjacent,hasMove,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
 })(typeof window!=='undefined'?window:globalThis);
