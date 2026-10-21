@@ -5,7 +5,7 @@ const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);H.ensure(saved);
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null};let toastHandle;
+let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadZone:'yard'};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});}
 function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch(_){}}
 function safeNum(n){return Number.isFinite(n)?Math.min(999999999,Math.max(0,Math.trunc(n))):0;}
@@ -282,32 +282,61 @@ function rewards(){const tiers=P.challengeRewards(saved),next=P.nextUnlock(saved
 function homestead(){
  const h=H.ensure(saved),status=H.stats(saved),selection=state.homesteadSelection;
  const equipped=H.AVATARS.find(a=>a.id===h.avatar)||H.AVATARS[0];
+ const house=H.HOUSES.find(a=>a.id===h.house)||H.HOUSES[0];
+ const pet=H.PETS.find(a=>a.id===h.pet)||H.PETS[0];
+ const zone=H.ZONES.find(z=>z.id===state.homesteadZone&&H.zoneUnlocked(saved,z.id))||H.ZONES[0];
  const placedIds=new Set(Object.values(h.placed));
- const plots=Array.from({length:H.SLOTS},(_,i)=>{
-  const id=h.placed[i],item=H.DECOR.find(d=>d.id===id),occupied=!!item;
-  return `<button class="homestead-plot ${occupied?'filled':''} ${selection?'target':''}" data-action="homestead-slot" data-slot="${i}" aria-label="Plot ${i+1}: ${item?item.name:'empty'}; ${selection?'place selected item':'tap to remove displayed item'}"><strong>${item?item.icon:'＋'}</strong><small>${item?item.name:'PLOT '+(i+1)}</small></button>`;
+ const zoneButtons=H.ZONES.map(z=>{
+  const open=H.zoneUnlocked(saved,z.id),selected=zone.id===z.id;
+  return `<button class="homestead-zone ${selected?'selected':''} ${open?'':'locked'}" data-action="homestead-zone" data-zone="${z.id}" aria-pressed="${selected}" aria-label="${z.name}; ${open?'open':'clear level '+z.level+' to unlock'}">${z.icon} ${z.name}<small>${open?z.count+' plots':'LV '+z.level}</small></button>`;
+ }).join('');
+ const plots=Array.from({length:zone.count},(_,i)=>{
+  const slot=zone.start+i,id=h.placed[slot],item=H.DECOR.find(d=>d.id===id),occupied=!!item;
+  return `<button class="homestead-plot ${occupied?'filled':''} ${selection?'target':''}" data-action="homestead-slot" data-slot="${slot}" aria-label="${zone.name} plot ${i+1}: ${item?item.name:'empty'}; ${selection?'place selected item':'tap to remove displayed item'}"><strong>${item?item.icon:'＋'}</strong><small>${item?item.name:'PLOT '+(i+1)}</small></button>`;
  }).join('');
  const wardrobe=H.AVATARS.map(a=>{
   const has=H.avatarOwned(saved,a.id),active=h.avatar===a.id;
   return `<button class="homestead-avatar ${has?'':'locked'} ${active?'selected':''}" data-action="homestead-avatar" data-id="${a.id}" ${has?'':'disabled'} aria-label="${a.name}, ${has?'owned':'locked'}"><strong>${a.icon}</strong><b>${a.name}</b><small>${active?'EQUIPPED':has?'WEAR':a.premium?'PREMIUM':'LV '+a.level}</small></button>`;
  }).join('');
+ const pets=H.PETS.map(a=>{
+  const has=H.petOwned(saved,a.id),active=h.pet===a.id;
+  return `<button class="homestead-avatar ${has?'':'locked'} ${active?'selected':''}" data-action="homestead-pet" data-id="${a.id}" ${has?'':'disabled'} aria-label="${a.name}, ${has?'available':'locked'}"><strong>${a.icon}</strong><b>${a.name}</b><small>${active?'FOLLOWING':has?'CHOOSE':'LV '+a.level}</small></button>`;
+ }).join('');
+ const buildings=H.HOUSES.map(a=>{
+  const built=h.houses[a.id]===true,active=h.house===a.id,unlocked=a.level===0||!!saved.stars?.[a.level];
+  return `<button class="homestead-collectible ${active?'selected':''} ${unlocked?'':'locked'}" data-action="homestead-build" data-id="${a.id}" aria-label="${a.name}; ${built?'built':unlocked?'cost '+a.cost+' Golden Nuts':'clear level '+a.level}"><strong>${a.icon}</strong><b>${a.name}</b><small>${active?'ACTIVE':built?'SWITCH':unlocked?a.cost.toLocaleString()+' NUTS':'LV '+a.level}</small></button>`;
+ }).join('');
  const collection=[...H.DECOR].sort((a,b)=>Number(H.owned(saved,b.id))-Number(H.owned(saved,a.id))).map(item=>{
   const has=H.owned(saved,item.id),used=placedIds.has(item.id),active=selection===item.id;
-  return `<button class="homestead-collectible ${has?'':'locked'} ${active?'selected':''}" data-action="homestead-select" data-id="${item.id}" ${has?'':'disabled'} aria-label="${item.name}: ${has?used?'displayed':'owned':'locked'}"><strong>${item.icon}</strong><b>${item.name}</b><small>${has?used?'DISPLAYED':active?'SELECTED':'PLACE':item.premium?'PREMIUM':'LV '+item.level}</small></button>`;
+  const gate=item.set?'SET PRIZE':item.premium?'PREMIUM':'LV '+item.level;
+  return `<button class="homestead-collectible ${has?'':'locked'} ${active?'selected':''}" data-action="homestead-select" data-id="${item.id}" ${has?'':'disabled'} aria-label="${item.name}: ${has?used?'displayed':'owned':'locked'}"><strong>${item.icon}</strong><b>${item.name}</b><small>${has?used?'DISPLAYED':active?'SELECTED':'PLACE':gate}</small></button>`;
+ }).join('');
+ const collections=status.collections.map(set=>{
+  const prize=H.DECOR.find(d=>d.id===set.reward);
+  return `<div class="homestead-set ${set.complete?'completed':''}"><span>${set.icon}</span><div><b>${set.name}</b><small>${set.have}/${set.total} · ${set.complete?'UNLOCKED '+(prize?.name||'reward'):'REWARD: '+(prize?.name||'secret')}</small></div></div>`;
  }).join('');
  const cabinet=H.ACHIEVEMENTS.map(a=>{
   const earned=status.achievements.some(item=>item.id===a.id);
-  return `<div class="homestead-award ${earned?'':'locked'}" title="${a.name}: ${a.kind==='score'?'Best score':a.kind==='wins'?'Levels cleared':a.kind==='threeStars'?'Three-star finishes':'Stars earned'} ${a.need}"><span class="emoji">${a.icon}</span><span>${a.name}<br><small>${earned?'EARNED':'LOCKED'}</small></span></div>`;
+  const kind={score:'Best score',wins:'Levels cleared',threeStars:'Three-star finishes',stars:'Stars earned',sets:'Completed sets',pets:'Unlocked companions',zones:'Estate grounds'}[a.kind];
+  return `<div class="homestead-award ${earned?'':'locked'}" title="${a.name}: ${kind} ${a.need}"><span class="emoji">${a.icon}</span><span>${a.name}<small>${earned?' · EARNED':' · '+kind+' '+a.need}</small></span></div>`;
  }).join('');
  const royal=h.purchases['royal-estate']===true;
- return `<div class="homestead-top"><div><h1>🏡 NUTVALE HOMESTEAD</h1><small>${status.tier} · ${equipped.icon} ${equipped.name}</small></div><button class="btn ghost" data-action="invite">↗ INVITE</button><button class="btn ghost" data-nav="campaign">LEVELS →</button></div>
- <div class="homestead-stats"><span>🏆 ${status.wins}/500 cleared</span><span>⭐ ${status.stars} stars</span><span>📈 ${status.bestScore.toLocaleString()} best${status.bestLevel?' · L'+status.bestLevel:''}</span><span>🎖 ${status.achievements.length}/${H.ACHIEVEMENTS.length} awards</span></div>
+ return `<div class="homestead-top"><div><h1>🏡 NUTVALE HOMESTEAD</h1><small>${status.tier} · ${equipped.icon} ${equipped.name}</small></div><div class="homestead-actions"><button class="btn ghost" data-action="homestead-plate">↗ PRESTIGE PLATE</button><button class="btn ghost" data-nav="campaign">LEVELS →</button></div></div>
+ <div class="homestead-stats"><span>🏆 ${status.wins}/500 cleared</span><span>⭐ ${status.stars} stars</span><span>🎖 ${status.achievements.length}/${H.ACHIEVEMENTS.length} awards</span><span>🧩 ${status.setCount}/${H.SETS.length} sets</span><span>📈 ${status.bestScore.toLocaleString()} best</span></div>
  <div class="homestead-layout">
- <div><div class="homestead-yard"><div class="homestead-house"><span class="house">🏠</span><span>YOUR LITTLE CORNER OF NUTVALE<small>A property portfolio of one. For now.</small></span></div><div class="homestead-plots">${plots}</div><p class="homestead-instructions">${selection?'SELECT A PLOT TO PLACE · TAP ITEM TO CANCEL':'SELECT A COLLECTIBLE, THEN A PLOT · TAP OCCUPIED PLOT TO STORE'}</p></div>
+ <div><div class="homestead-zone-list">${zoneButtons}</div>
+ <div class="homestead-yard zone-${zone.id}" data-estate-zone="${zone.id}"><div class="homestead-scenery" aria-hidden="true"><span>${zone.icon}</span><small>${zone.description}</small></div>
+ <div class="homestead-house"><span class="house">${house.icon}</span><span>${house.name.toUpperCase()}<small>${zone.name} · ${zone.count} display plots</small></span><span class="homestead-visitor" role="img" aria-label="Companion: ${pet.name}">${pet.icon}</span></div>
+ <div class="homestead-plots">${plots}</div><p class="homestead-instructions">${selection?'SELECT A PLOT TO PLACE · TAP ITEM TO CANCEL':'SELECT A COLLECTIBLE, THEN A PLOT · TAP OCCUPIED PLOT TO STORE'}</p></div>
  <div class="homestead-premium"><div><b>👑 ROYAL MANOR KIT</b><p>Platinum portrait, fountain, and diamond throne · <strong>Was $499.99</strong></p></div><button class="btn green" data-action="homestead-offer" ${royal?'disabled':''}>${royal?'OWNED':'BUY NOW'}</button></div></div>
- <div class="homestead-side"><div class="homestead-section"><h2>YOUR AVATAR · ${equipped.name}</h2><div class="homestead-scroll">${wardrobe}</div></div>
+ <div class="homestead-side">
+ <div class="homestead-section"><h2>PROPERTY UPGRADES · 🌰 ${saved.coins.toLocaleString()}</h2><div class="homestead-scroll">${buildings}</div></div>
+ <div class="homestead-section"><h2>AVATAR · ${equipped.name}</h2><div class="homestead-scroll">${wardrobe}</div></div>
+ <div class="homestead-section"><h2>COMPANION · ${pet.name}</h2><div class="homestead-scroll">${pets}</div></div>
  <div class="homestead-section"><h2>COLLECTION · ${status.decorOwned}/${H.DECOR.length} OWNED</h2><div class="homestead-scroll">${collection}</div></div>
- <div class="homestead-section"><h2>TROPHY CABINET · ${status.achievements.length} EARNED</h2><div class="homestead-awards">${cabinet}</div></div></div></div>`;
+ <div class="homestead-section"><h2>CURATED COLLECTIONS · ${status.setCount}/${H.SETS.length}</h2><div class="homestead-sets">${collections}</div></div>
+ <div class="homestead-section"><h2>TROPHY CABINET · ${status.achievements.length} EARNED</h2><div class="homestead-awards">${cabinet}</div></div>
+ </div></div>`;
 }
 function settings(){const lev=saved.levels||{voice:.9,music:.28,reactions:.38};return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings"><p class="muted">Separate levels for the announcer, music and compulsory little grunts.</p>${[['voice','Announcer'],['music','Music'],['reactions','Click grunts']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}<div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button></div><div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button></div></div>`;}
 function render(){counters();screen.classList?.toggle('campaign-map-active',state.page==='campaign');
@@ -336,7 +365,10 @@ function concludeMove(result){
    H.recordWin(saved,g.level,g.score);
   state.levelReward=prize.unlock.length?'NEW POWER: '+prize.unlock.map(id=>E.BOOSTER_META[id].label).join(', '):Object.keys(prize.contents).length?'STAGE PRIZE: '+boosterSummary(prize.contents):'';
    if(firstTime){const items=H.DECOR.filter(item=>item.level===g.level).map(item=>item.name),avatars=H.AVATARS.filter(item=>item.level===g.level).map(item=>item.name);
-    if(items.length||avatars.length)state.levelReward+=(state.levelReward?' · ':'')+'HOMESTEAD UNLOCK: '+[...items,...avatars].join(', ');}
+    if(items.length||avatars.length)state.levelReward+=(state.levelReward?' · ':'')+'HOMESTEAD UNLOCK: '+[...items,...avatars].join(', ');
+     const zone=H.ZONES.find(z=>z.level===g.level&&z.level>0),house=H.HOUSES.find(x=>x.level===g.level&&x.level>0),pet=H.PETS.find(x=>x.level===g.level&&x.level>0);
+     if(zone||house||pet)state.levelReward+=(state.levelReward?' · ':'')+'NEW ESTATE FEATURES: '+[zone?.name,house?.name,pet?.name].filter(Boolean).join(', ');
+    }
 
   gain(500,10);persist();announce('UNBELIEVABLE PERFORMANCE! YOUR NUTS ARE LEGENDARY!','win');}
  else if(result.lost)announce('OOOH... THAT WAS CLOSE.','close');
@@ -371,6 +403,28 @@ function action(a,button){
   return;
  }
  if(a==='homestead-offer'){beginCheckout(8,'homestead');return;}
+  if(a==='homestead-zone'){
+   const zone=H.ZONES.find(z=>z.id===button.dataset.zone);
+   if(!zone)return;
+   if(!H.zoneUnlocked(saved,zone.id)){notice('CLEAR LEVEL '+zone.level+' TO OPEN '+zone.name.toUpperCase());return;}
+   state.homesteadZone=zone.id;render();return;
+  }
+  if(a==='homestead-pet'){if(H.equipPet(saved,button.dataset.id)){persist();render();}return;}
+  if(a==='homestead-build'){
+   const result=H.buildHouse(saved,button.dataset.id);
+   if(!result.valid){
+    notice(result.reason==='level'?'CLEAR LEVEL '+result.level+' TO BUILD':result.reason==='coins'?'NEED '+result.short.toLocaleString()+' MORE GOLDEN NUTS':'BUILDING UNAVAILABLE');return;
+   }
+   persist();render();return;
+  }
+  if(a==='homestead-plate'){
+   const share=window.NutbusterInvite?.sharePrestige;
+   if(!share){notice('PRESTIGE SHARING UNAVAILABLE');return;}
+   Promise.resolve(share(H.prestigePlate(saved))).then(status=>{
+    if(status==='copied')notice('PRESTIGE PLATE COPIED');
+    else if(status==='select')notice('COPY YOUR PRESTIGE PLATE');
+   }).catch(()=>notice('COULD NOT SHARE PRESTIGE PLATE'));return;
+  }
   if(a==='homestead-select'){const id=button.dataset.id;if(!H.owned(saved,id))return;state.homesteadSelection=state.homesteadSelection===id?null:id;render();return;}
   if(a==='homestead-avatar'){if(H.equip(saved,button.dataset.id)){persist();render();}return;}
   if(a==='homestead-slot'){const slot=Number(button.dataset.slot),id=state.homesteadSelection;
