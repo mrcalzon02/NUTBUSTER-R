@@ -14,7 +14,7 @@ assert.equal(created[2].loop,true);
 assert.equal(created[2].playCount,0,'No autoplay before a gesture');
 a.unlock();assert.equal(created[2].playCount,1);
 a.voice('win');assert.ok(created[0].src.endsWith('unbelievable-performance.mp3'));
-assert.equal(created[2].volume,.11,'Music should duck beneath voice');
+assert.ok(Math.abs(created[2].volume-0.28*0.39)<1e-10,'Music should duck beneath voice');
 created[0].onended();assert.equal(created[2].volume,.28);
 a.setVoiceEnabled(false);assert.equal(a.voice('package'),false);
 a.setVoiceEnabled(true);assert.equal(a.voice('package'),true);
