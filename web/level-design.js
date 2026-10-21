@@ -68,7 +68,7 @@ function profile(level){
    kind==='collect'?'Collect the named nut color; aim moves at your objective.':
    kind==='dual'?'Both counters must be completed, not just your score.':
    'Make matches and build cascades to reach the score goal.'
-  ),kind,formation,lesson:!!lesson,
+  ),kind:lesson?.kind||kind,formation,lesson:!!lesson,
   objectiveTarget:lesson?.target||null,
   ice:lesson?.ice??null,locks:lesson?.locks??null,chests:lesson?.chests??null,
   moveAdjustment
