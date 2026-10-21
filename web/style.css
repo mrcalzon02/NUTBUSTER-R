@@ -16,8 +16,8 @@
 .map-canvas{width:var(--map-w);height:var(--map-h);position:relative;isolation:isolate;flex:none}
 .map-background{display:block;position:absolute;inset:0;width:100%;height:100%;user-select:none;pointer-events:none}
 .map-node,.chapter-marker{position:absolute;z-index:1;transform:translate(-50%,-50%);white-space:nowrap;text-shadow:0 1px 1px #231a13}
-.map-node{display:flex;align-items:center;justify-content:center;width:20px;height:20px;padding:0;border-radius:100%;border:2px solid #e9c373;background:linear-gradient(155deg,#ffe188,#b17326);box-shadow:0 1px 3px #271606a9;color:#2a1a12;font-size:9px;font-weight:950;line-height:1}
-.map-node.milestone{width:31px;height:31px;border:3px solid #fff2a5;font-size:10px;background:linear-gradient(#ffc762,#da601c)}
+.map-node{display:flex;align-items:center;justify-content:center;width:27px;height:27px;padding:0;border-radius:100%;border:2px solid #e9c373;background:linear-gradient(155deg,#ffe188,#b17326);box-shadow:0 1px 3px #271606a9;color:#2a1a12;font-size:11px;font-weight:950;line-height:1}
+.map-node.milestone{width:35px;height:35px;border:3px solid #fff2a5;font-size:11px;background:linear-gradient(#ffc762,#da601c)}
 .map-node.complete{background:linear-gradient(#aeff8f,#40932e);border-color:#e7ffe2}
 .map-node.future{background:linear-gradient(#aaa6bd,#53476b);border-color:#e1dce7;color:#fff}
 .map-node.current{background:linear-gradient(#fffb86,#fdb73a);outline:3px solid #45f4ff;outline-offset:1px;z-index:3}
@@ -33,7 +33,7 @@
 
 /* Icon badges are independent overlays, never part of the painted background. */
 .map-node:is(.challenge,.treasure,.booster,.finale,.hard){z-index:2}
-.map-node:is(.challenge,.treasure,.booster,.finale,.hard)::after{content:"";position:absolute;right:-12px;top:-11px;width:16px;height:16px;background-size:contain;background-position:center;background-repeat:no-repeat;filter:drop-shadow(0 1px 2px #271425)}
+.map-node:is(.challenge,.treasure,.booster,.finale,.hard)::after{content:"";position:absolute;right:-13px;top:-12px;width:19px;height:19px;background-size:contain;background-position:center;background-repeat:no-repeat;filter:drop-shadow(0 1px 2px #271425)}
 .map-node.challenge::after{background-image:url("art/additions/ui/trophy.png")}
 .map-node.treasure::after{background-image:url("art/additions/economy/locked-chest.png")}
 .map-node.booster::after{background-image:url("art/additions/economy/booster-pack.png")}
