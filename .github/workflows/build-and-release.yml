@@ -67,10 +67,12 @@ jobs:
             sleep 1
           done
           curl -fsS http://127.0.0.1:43823/__nutbuster_ping | grep -qx NUTBUSTER_OFFLINE_V1
-          curl -fsS http://127.0.0.1:43823/index.html -o "$RUNNER_TEMP/nutbuster-index.html"
+          curl -fsSL http://127.0.0.1:43823/ -o "$RUNNER_TEMP/nutbuster-index.html"
           grep -Fq 'NUTBUSTER' "$RUNNER_TEMP/nutbuster-index.html"
           curl -fsS http://127.0.0.1:43823/audio/grunt-1.mp3 -o "$RUNNER_TEMP/grunt.mp3"
           test -s "$RUNNER_TEMP/grunt.mp3"
+          curl -fsSL http://127.0.0.1:43823/art/maps/chapter-5-moonlit-golden-palace.webp -o "$RUNNER_TEMP/chapter-5.webp"
+          test -s "$RUNNER_TEMP/chapter-5.webp"
       - uses: actions/upload-artifact@v4
         with:
           name: Nutbuster-Desktop-${{ github.run_id }}
