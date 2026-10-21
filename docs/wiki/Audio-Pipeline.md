@@ -7,7 +7,7 @@ The user-designated Drive audio folder is [Sounds / NUTBUSTER](https://drive.goo
 - `web/audio.js` owns three separate HTML5 Audio channels: looped music (at 28%), voiced announcer (at 90%, ducks music to 11%), and occasional grunts (at 38%).
 - Music and voice can be switched independently, with controls on Home and during gameplay; preferences are stored locally.
 - Audio starts only following a user gesture. Failed/blocked media playback is handled gracefully without stopping the puzzle.
-- Trigger mapping: game start `nutbuster-soft`, level victory `unbelievable-performance`, last-move failure `that-was-close`, 2+ cascades `magnificent-nuts`, 4+ cascades `they-just-keep-coming`, normal matches rotate grunt reactions; shop packages `enormous-package`, VIP `premium-nuts-for-everyone`, daily reward and life refill `satisfaction-guaranteed`, treasure chest `nutbuster-exclamation`, pig smashing `oh-my`.
+- Trigger mapping: game start `nutbuster-soft`, level victory `unbelievable-performance`, last-move failure `that-was-close`, 2+ cascades `magnificent-nuts`, 4+ cascades `they-just-keep-coming`, 6+ cascades `nutbuster-exclamation`, 5+ clears `ooh-thats-a-big-one`, normal matches rotate grunt reactions; shop packages `enormous-package`, VIP `premium-nuts-for-everyone`, daily reward and life refill `satisfaction-guaranteed`, treasure chest `nutbuster-exclamation`, pig smashing `oh-my`.
 - Captions remain visible independently of audible playback. Game audio does **not** use device text-to-speech, stream third-party music, or send user interactions externally.
 
 ## Music compatibility and size

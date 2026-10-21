@@ -40,7 +40,7 @@ function start(n){if(saved.hearts<=0){saved.hearts=5;notice('FREE AUTO-REFILL: W
 function finish(result){if(!result.valid){notice(result.reason==='no-match'?'That swap makes no match.':'Choose a neighboring tile.');return;}
  if(result.won){const g=state.game;const stars=g.moves>10?3:g.moves>3?2:1;saved.stars[g.level]=Math.max(stars,saved.stars[g.level]||0);saved.unlocked=Math.max(saved.unlocked,Math.min(30,g.level+1));saved.completed++;gain(500,10);persist();announce('UNBELIEVABLE PERFORMANCE! YOUR NUTS ARE LEGENDARY!','win');}
  else if(result.lost)announce('OOOH... THAT WAS CLOSE. TAKE MORE MOVES. THEY ARE FREE!','close');
- else if(result.loops>=4)announce('THEY JUST KEEP COMING!','cascade');else if(result.loops>=2)announce('MAGNIFICENT NUTS!','magnificent');else {state.announcer='NICE ONE!';window.NutAudio?.grunt();}render();}
+ else if(result.loops>=6)announce('NUTBUSTERRRR!','nutbuster');else if(result.loops>=4)announce('THEY JUST KEEP COMING!','cascade');else if(result.loops>=2)announce('MAGNIFICENT NUTS!','magnificent');else if(result.removed>=5)announce('OOOH, THAT IS A BIG ONE!','big-one');else {state.announcer='NICE ONE!';window.NutAudio?.grunt();}render();}
 function doSwap(a,b){const r=E.swap(state.game,a,b);state.selected=-1;finish(r);}
 function cell(i){if(!state.game||state.game.won)return;if(state.tool){const tool=state.tool;state.tool=null;const result=E.booster(state.game,tool,i);finish(result);return;}
  if(state.selected<0){state.selected=i;render();return;}if(state.selected===i){state.selected=-1;render();return;}doSwap(state.selected,i);}
