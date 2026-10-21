@@ -6,19 +6,22 @@ const BOOSTERS=['hammer','row','shuffle','extra'];
 function rng(seed){let x=(seed>>>0)||0x9e3779b9;return function(){x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296;};}
 function shape(level,x,y,w,h){
  const cx=(w-1)/2, cy=(h-1)/2;
+ if(w<=4)return true; // Intro grids must support three-nut matches.
  switch((level-1)%8){
  case 0:return true;
  case 1:return Math.abs(x-cx)<=Math.floor(1+Math.abs(y-cy)*0.67); // hourglass
  case 2:return (x>=1&&x<=w-2)||(y===2||y===h-3); // narrow spine with wings
  case 3:return !(x>=2&&x<=w-3&&y>=2&&y<=h-3); // ring
  case 4:return x<=2 || x>=w-3 || y===Math.floor(h/2); // dual chambers, connecting bridge
- case 5:return y<3?x>=2&&x<=w-3:y>=h-3?x>=1&&x<=w-2:true;
+ case 5:return y<3?Math.abs(x-cx)<=1:y>=h-3?x>=1&&x<=w-2:true;
  case 6:return !(x<2&&y<2)&&!(x>w-3&&y>h-3)&&!(x<2&&y>h-3);
  default:return Math.abs(x-cx)+Math.abs(y-cy)<=Math.floor((w+h)*0.38);
  }
 }
 function makeLevel(number){
- const n=Math.max(1,Math.min(500,Math.trunc(number)||1));const w=8,h=9;
+ const n=Math.max(1,Math.min(500,Math.trunc(number)||1));
+ // 8x9 is the late-game maximum, not the beginner board.
+ const w=n<=10?4:n<=30?5:n<=70?6:n<=140?7:8, h=w+1;
  const mask=[]; for(let y=0;y<h;y++)for(let x=0;x<w;x++)mask.push(shape(n,x,y,w,h));
  const chapter=Math.floor((n-1)/100),past200=Math.max(0,n-200);
  // Difficulty grows progressively for 200 levels, then deliberately exceeds the normal ceiling.
@@ -56,19 +59,41 @@ function shuffle(g){const ids=g.cells.map((v,i)=>v?i:-1).filter(i=>i>=0);for(let
  for(let tries=0;tries<50;tries++){for(const i of ids)g.cells[i].type=Math.floor(g.rand()*TYPES.length);if(matches(g).hit.size===0&&hasMove(g))return true;}
  return false;
 }
-function gravity(g){const w=g.cfg.width,h=g.cfg.height; // Each void separates columns into independent vertical sections.
- for(let x=0;x<w;x++){let y=h-1;while(y>=0){while(y>=0&&!g.cells[y*w+x])y--;if(y<0)break;let bottom=y;while(y>=0&&g.cells[y*w+x])y--;let top=y+1;const survivors=[];for(let yy=bottom;yy>=top;yy--){const c=g.cells[yy*w+x];if(c.type!==null)survivors.push({type:c.type,special:c.special});}
- for(let yy=bottom,n=0;yy>=top;yy--,n++){const c=g.cells[yy*w+x],s=survivors[n];c.type=s?s.type:Math.floor(g.rand()*TYPES.length);c.special=s?s.special:null;}
+function gravity(g,falls=[]){const w=g.cfg.width,h=g.cfg.height; // Void cells separate independent column segments.
+ for(let x=0;x<w;x++){let y=h-1;while(y>=0){while(y>=0&&!g.cells[y*w+x])y--;if(y<0)break;const bottom=y;while(y>=0&&g.cells[y*w+x])y--;const top=y+1,survivors=[];
+  for(let yy=bottom;yy>=top;yy--){const c=g.cells[yy*w+x];if(c.type!==null)survivors.push({type:c.type,special:c.special,from:yy*w+x});}
+  const fresh=bottom-top+1-survivors.length;
+  for(let yy=bottom,n=0;yy>=top;yy--,n++){const i=yy*w+x,c=g.cells[i],s=survivors[n];
+   c.type=s?s.type:Math.floor(g.rand()*TYPES.length);c.special=s?s.special:null;
+   if(s){if(s.from!==i)falls.push({from:s.from,to:i,type:s.type,special:s.special});}
+   else falls.push({from:-1,to:i,startRow:yy-fresh,type:c.type,special:null});
+  }
  }}
 }
-function collapse(g,first){let loops=0,removed=0,cracked=0;let found=first||matches(g);while(found.hit.size&&loops<60){loops++;let bonus=0;
- const ids=[...found.hit];const specialSpot=found.groups.find(group=>group.length>=4);const sp=specialSpot?specialSpot[Math.floor(specialSpot.length/2)]:-1;
- for(const i of ids){const c=g.cells[i];if(!c)continue;if(c.ice>0){c.ice--;cracked++;}else if(c.lock>0){c.lock--;cracked++;}else if(c.chest>0){c.chest--;cracked++;}else{c.type=null;removed++;} }
- if(sp>=0&&g.cells[sp]&&g.cells[sp].type===null){g.cells[sp].type=Math.floor(g.rand()*TYPES.length);g.cells[sp].special=found.groups.some(k=>k.length>=5)?'rainbow':'line';bonus+=100;}
- g.score+=(ids.length*60+bonus)*Math.min(loops,6);gravity(g);found=matches(g);
+function collapse(g,first){let loops=0,removed=0,cracked=0;const stages=[];let found=first||matches(g);
+ while(found.hit.size&&loops<60){loops++;let bonus=0;
+  const before=snapshot(g).cells,ids=[...found.hit],specialSpot=found.groups.find(group=>group.length>=4);
+  const sp=specialSpot?specialSpot[Math.floor(specialSpot.length/2)]:-1;
+  for(const i of ids){const c=g.cells[i];if(!c)continue;if(c.ice>0){c.ice--;cracked++;}else if(c.lock>0){c.lock--;cracked++;}else if(c.chest>0){c.chest--;cracked++;}else{c.type=null;c.special=null;removed++;}}
+  if(sp>=0&&g.cells[sp]&&g.cells[sp].type===null){g.cells[sp].type=Math.floor(g.rand()*TYPES.length);g.cells[sp].special=found.groups.some(k=>k.length>=5)?'rainbow':'line';bonus+=100;}
+  g.score+=(ids.length*60+bonus)*Math.min(loops,6);
+  const falls=[];gravity(g,falls);stages.push({kind:'cascade',before,clear:ids,falls,cells:snapshot(g).cells});
+  found=matches(g);
  }
- g.combos=loops;g.won=g.score>=g.cfg.goal;g.lost=g.moves<=0&&!g.won;if(!g.won&&!g.lost&&!hasMove(g))shuffle(g);
- g.history.push({loops,removed,cracked,score:g.score});return {valid:true,loops,removed,cracked,won:g.won,lost:g.lost};
+ g.combos=loops;g.won=g.score>=g.cfg.goal;g.lost=g.moves<=0&&!g.won;
+ if(!g.won&&!g.lost&&!hasMove(g)){repairMove(g);stages.push({kind:'repair',cells:snapshot(g).cells});}
+ g.history.push({loops,removed,cracked,score:g.score});return {valid:true,loops,removed,cracked,won:g.won,lost:g.lost,stages};
+}
+function repairMove(g){
+ // Deadlock recovery exchanges only two existing nut identities before considering a full shuffle.
+ const ids=g.cells.map((v,i)=>v?i:-1).filter(i=>i>=0);
+ for(let a=0;a<ids.length;a++)for(let b=a+1;b<ids.length;b++){
+  const left=g.cells[ids[a]],right=g.cells[ids[b]];if(left.type===right.type)continue;
+  const t=left.type;left.type=right.type;right.type=t;
+  if(matches(g).hit.size===0&&hasMove(g))return true;
+  right.type=left.type;left.type=t;
+ }
+ return shuffle(g);
 }
 function swap(g,a,b){
  if(g.won||g.lost)return {valid:false,reason:'finished'};
@@ -89,15 +114,17 @@ function swap(g,a,b){
    found={hit,groups:[]};
  }
  if(!found.hit.size){ca.type=pa.type;ca.special=pa.special;cb.type=pb.type;cb.special=pb.special;return {valid:false,reason:'no-match'};}
- g.moves--;return collapse(g,found);
+ g.moves--;return {...collapse(g,found),swap:[a,b]};
 }
 function booster(g,type,index){if(g.won)return {valid:false,reason:'finished'};if(!BOOSTERS.includes(type))return {valid:false,reason:'unknown'};
  if(type==='extra'){g.moves+=5;g.lost=false;g.boosterUsed++;return {valid:true,type};}
  if(type==='shuffle'){shuffle(g);g.boosterUsed++;return {valid:true,type};}
  if(index<0||index>=g.cells.length||!g.cells[index])return {valid:false,reason:'target'};
  const ids=type==='hammer'?[index]:g.cells.map((v,i)=>v&&Math.floor(i/g.cfg.width)===Math.floor(index/g.cfg.width)?i:-1).filter(i=>i>=0);
- for(const i of ids){let c=g.cells[i];if(c.ice)c.ice--;else if(c.lock)c.lock--;else if(c.chest)c.chest--;else c.type=null;}
- g.boosterUsed++;g.score+=ids.length*35;gravity(g);const r=collapse(g);return {...r,type};
+ const before=snapshot(g).cells;
+ for(const i of ids){let c=g.cells[i];if(c.ice)c.ice--;else if(c.lock)c.lock--;else if(c.chest)c.chest--;else {c.type=null;c.special=null;}}
+ g.boosterUsed++;g.score+=ids.length*35;const falls=[];gravity(g,falls);const afterGravity=snapshot(g).cells,r=collapse(g);
+ return {...r,type,stages:[{kind:'cascade',before,clear:ids,falls,cells:afterGravity},...r.stages]};
 }
 function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,special:c.special}:null)};}
 const api={TYPES,BOOSTERS,makeLevel,create,matches,adjacent,hasMove,shuffle,swap,booster,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
