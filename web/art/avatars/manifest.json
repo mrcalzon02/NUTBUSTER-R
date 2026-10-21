@@ -1,0 +1,339 @@
+{
+  "version": 1,
+  "avatarIdentity": "human auburn-haired heroine; never a squirrel",
+  "imageCount": 60,
+  "source": "Generated Nutvale Avatar Atlas",
+  "format": "image/webp",
+  "categoryCounts": {
+    "progression": 40,
+    "seasonal": 20
+  },
+  "art": [
+    {
+      "id": "tier-01",
+      "category": "progression",
+      "file": "progression/tier-01.webp"
+    },
+    {
+      "id": "tier-02",
+      "category": "progression",
+      "file": "progression/tier-02.webp"
+    },
+    {
+      "id": "tier-03",
+      "category": "progression",
+      "file": "progression/tier-03.webp"
+    },
+    {
+      "id": "tier-04",
+      "category": "progression",
+      "file": "progression/tier-04.webp"
+    },
+    {
+      "id": "tier-05",
+      "category": "progression",
+      "file": "progression/tier-05.webp"
+    },
+    {
+      "id": "tier-06",
+      "category": "progression",
+      "file": "progression/tier-06.webp"
+    },
+    {
+      "id": "tier-07",
+      "category": "progression",
+      "file": "progression/tier-07.webp"
+    },
+    {
+      "id": "tier-08",
+      "category": "progression",
+      "file": "progression/tier-08.webp"
+    },
+    {
+      "id": "tier-09",
+      "category": "progression",
+      "file": "progression/tier-09.webp"
+    },
+    {
+      "id": "tier-10",
+      "category": "progression",
+      "file": "progression/tier-10.webp"
+    },
+    {
+      "id": "tier-11",
+      "category": "progression",
+      "file": "progression/tier-11.webp"
+    },
+    {
+      "id": "tier-12",
+      "category": "progression",
+      "file": "progression/tier-12.webp"
+    },
+    {
+      "id": "tier-13",
+      "category": "progression",
+      "file": "progression/tier-13.webp"
+    },
+    {
+      "id": "tier-14",
+      "category": "progression",
+      "file": "progression/tier-14.webp"
+    },
+    {
+      "id": "tier-15",
+      "category": "progression",
+      "file": "progression/tier-15.webp"
+    },
+    {
+      "id": "tier-16",
+      "category": "progression",
+      "file": "progression/tier-16.webp"
+    },
+    {
+      "id": "tier-17",
+      "category": "progression",
+      "file": "progression/tier-17.webp"
+    },
+    {
+      "id": "tier-18",
+      "category": "progression",
+      "file": "progression/tier-18.webp"
+    },
+    {
+      "id": "tier-19",
+      "category": "progression",
+      "file": "progression/tier-19.webp"
+    },
+    {
+      "id": "tier-20",
+      "category": "progression",
+      "file": "progression/tier-20.webp"
+    },
+    {
+      "id": "tier-21",
+      "category": "progression",
+      "file": "progression/tier-21.webp"
+    },
+    {
+      "id": "tier-22",
+      "category": "progression",
+      "file": "progression/tier-22.webp"
+    },
+    {
+      "id": "tier-23",
+      "category": "progression",
+      "file": "progression/tier-23.webp"
+    },
+    {
+      "id": "tier-24",
+      "category": "progression",
+      "file": "progression/tier-24.webp"
+    },
+    {
+      "id": "tier-25",
+      "category": "progression",
+      "file": "progression/tier-25.webp"
+    },
+    {
+      "id": "tier-26",
+      "category": "progression",
+      "file": "progression/tier-26.webp"
+    },
+    {
+      "id": "tier-27",
+      "category": "progression",
+      "file": "progression/tier-27.webp"
+    },
+    {
+      "id": "tier-28",
+      "category": "progression",
+      "file": "progression/tier-28.webp"
+    },
+    {
+      "id": "tier-29",
+      "category": "progression",
+      "file": "progression/tier-29.webp"
+    },
+    {
+      "id": "tier-30",
+      "category": "progression",
+      "file": "progression/tier-30.webp"
+    },
+    {
+      "id": "tier-31",
+      "category": "progression",
+      "file": "progression/tier-31.webp"
+    },
+    {
+      "id": "tier-32",
+      "category": "progression",
+      "file": "progression/tier-32.webp"
+    },
+    {
+      "id": "tier-33",
+      "category": "progression",
+      "file": "progression/tier-33.webp"
+    },
+    {
+      "id": "tier-34",
+      "category": "progression",
+      "file": "progression/tier-34.webp"
+    },
+    {
+      "id": "tier-35",
+      "category": "progression",
+      "file": "progression/tier-35.webp"
+    },
+    {
+      "id": "tier-36",
+      "category": "progression",
+      "file": "progression/tier-36.webp"
+    },
+    {
+      "id": "tier-37",
+      "category": "progression",
+      "file": "progression/tier-37.webp"
+    },
+    {
+      "id": "tier-38",
+      "category": "progression",
+      "file": "progression/tier-38.webp"
+    },
+    {
+      "id": "tier-39",
+      "category": "progression",
+      "file": "progression/tier-39.webp"
+    },
+    {
+      "id": "tier-40",
+      "category": "progression",
+      "file": "progression/tier-40.webp"
+    },
+    {
+      "id": "spring-blossom",
+      "category": "seasonal",
+      "file": "seasonal/spring-blossom.webp"
+    },
+    {
+      "id": "rainfall-picnic",
+      "category": "seasonal",
+      "file": "seasonal/rainfall-picnic.webp"
+    },
+    {
+      "id": "midsummer-gala",
+      "category": "seasonal",
+      "file": "seasonal/midsummer-gala.webp"
+    },
+    {
+      "id": "sunharvest",
+      "category": "seasonal",
+      "file": "seasonal/sunharvest.webp"
+    },
+    {
+      "id": "autumn-masquerade",
+      "category": "seasonal",
+      "file": "seasonal/autumn-masquerade.webp"
+    },
+    {
+      "id": "harvest-festival",
+      "category": "seasonal",
+      "file": "seasonal/harvest-festival.webp"
+    },
+    {
+      "id": "moonlantern-night",
+      "category": "seasonal",
+      "file": "seasonal/moonlantern-night.webp"
+    },
+    {
+      "id": "first-snow",
+      "category": "seasonal",
+      "file": "seasonal/first-snow.webp"
+    },
+    {
+      "id": "evergreen-yule",
+      "category": "seasonal",
+      "file": "seasonal/evergreen-yule.webp"
+    },
+    {
+      "id": "new-year-regent",
+      "category": "seasonal",
+      "file": "seasonal/new-year-regent.webp"
+    },
+    {
+      "id": "heartsbloom-ball",
+      "category": "seasonal",
+      "file": "seasonal/heartsbloom-ball.webp"
+    },
+    {
+      "id": "clover-day",
+      "category": "seasonal",
+      "file": "seasonal/clover-day.webp"
+    },
+    {
+      "id": "rainbow-fair",
+      "category": "seasonal",
+      "file": "seasonal/rainbow-fair.webp"
+    },
+    {
+      "id": "rose-court",
+      "category": "seasonal",
+      "file": "seasonal/rose-court.webp"
+    },
+    {
+      "id": "beesong-picnic",
+      "category": "seasonal",
+      "file": "seasonal/beesong-picnic.webp"
+    },
+    {
+      "id": "starfall-eve",
+      "category": "seasonal",
+      "file": "seasonal/starfall-eve.webp"
+    },
+    {
+      "id": "applecrown-feast",
+      "category": "seasonal",
+      "file": "seasonal/applecrown-feast.webp"
+    },
+    {
+      "id": "gilded-harvest",
+      "category": "seasonal",
+      "file": "seasonal/gilded-harvest.webp"
+    },
+    {
+      "id": "frostlight-masque",
+      "category": "seasonal",
+      "file": "seasonal/frostlight-masque.webp"
+    },
+    {
+      "id": "dawnspring-return",
+      "category": "seasonal",
+      "file": "seasonal/dawnspring-return.webp"
+    }
+  ],
+  "uncommittedCatalog": {
+    "gothCount": 20,
+    "ids": [
+      "midnight-ribbons",
+      "candy-coffin",
+      "velvet-static",
+      "doom-doll",
+      "black-parade-picnic",
+      "bubblegum-hex",
+      "razor-mascara",
+      "broken-carousel",
+      "thorn-prom",
+      "neon-mourning",
+      "funeral-confetti",
+      "hot-pink-heresy",
+      "lace-riot",
+      "starlight-sulk",
+      "mall-goth-majesty",
+      "kawaii-catastrophe",
+      "crimson-heartbreak",
+      "monochrome-menace",
+      "pastel-panic",
+      "raven-regent"
+    ],
+    "driveFolderUrl": "https://drive.google.com/drive/folders/1jaBjecIJChhAQ-A7LJzWWTQibosW7U0u"
+  }
+}
