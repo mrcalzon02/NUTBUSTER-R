@@ -28,5 +28,18 @@ async function share(){
  }
  return await copy()?'copied':'select';
 }
-root.NutbusterInvite={url:URL,message:MESSAGE,share,copy};
+// Share only a player-generated, local prestige summary. No identifiers or analytics.
+async function sharePrestige(plate){
+ if(typeof plate!=='string'||plate.length>2000)return 'unavailable';
+ if(root.navigator?.share){
+  try{await root.navigator.share({title:'My Nutvale Homestead',text:plate});return 'shared';}
+  catch(error){if(error?.name==='AbortError')return 'cancelled';}
+ }
+ try{
+  if(root.navigator?.clipboard?.writeText){await root.navigator.clipboard.writeText(plate);return 'copied';}
+ }catch(_){}
+ if(typeof root.prompt==='function'){root.prompt('Copy your Nutvale prestige plate:',plate);return 'select';}
+ return 'unavailable';
+}
+root.NutbusterInvite={url:URL,message:MESSAGE,share,copy,sharePrestige};
 })(window);
