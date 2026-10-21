@@ -3,12 +3,12 @@ const files=[];const document={body:{appendChild(x){files.push(x);}},createEleme
 let tick=[];const window={document,innerWidth:360,innerHeight:720,setTimeout(fn){tick.push(fn);}};
 vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../web/fx.js'),'utf8'),{window});
 assert.equal(window.NutFX.emit('burst'),true);assert.equal(files.length,1);
-assert.match(files[0].src,/match-burst\\.png$/);
+assert.ok(files[0].src.endsWith('match-burst.png'));
 assert.equal(window.NutFX.emit('invalid-effect'),false);
 assert.equal(window.NutFX.emit('chest-open',{getBoundingClientRect(){return {left:20,top:40,width:200,height:200};}}),true);
 assert.equal(files[1].style.left,'120px');assert.equal(files[1].style.top,'140px');
 for(const fn of tick)fn();assert.ok(files.every(x=>x.removed));
-const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');assert.match(game,/NutFX\\?\\.emit/);
-const index=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');assert.match(index,/src="fx\\.js"/);
+const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');assert.ok(game.includes('NutFX?.emit'));
+const index=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');assert.ok(index.includes('src="fx.js"'));
 for(const file of Object.values(window.NutFX.assets))assert.ok(fs.existsSync(path.join(__dirname,'../web',file)),file);
 console.log('PASS: FX sprites exist; match and reward bursts emitted and cleaned up with local assets');
