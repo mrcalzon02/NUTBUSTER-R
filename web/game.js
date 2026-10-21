@@ -51,22 +51,42 @@ function art(category,name,emoji,cls='art'){return `<span class="${cls}"><img cl
 function piece(type){if(type===null||type===undefined)return '';const name=E.TYPES[type];
  return `<img class="piece" src="art/primary/nuts/${name}.png" alt="" draggable="false" onload="this.classList.add('loaded')" onerror="this.style.display='none';this.nextElementSibling.style.visibility='visible'"><span class="fallback" aria-hidden="true">${icons[type]}</span>`;
 }
-function nutVisual(c){return `<span class="nut-visual">${piece(c.type)}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':'⚡'}</span>`:''}</span>`;}
+function nutVisual(c){return `<span class="nut-visual">${piece(c.type)}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}</span>`;}
 function blockerVisual(c){return c.ice?`<span class="overlay ice">❄${c.ice>1?'²':''}</span>`:c.lock?'<span class="overlay chain">🔒</span>':c.chest?'<span class="overlay chest">📦</span>':'';}
 function nutKey(c){return c.type+':'+(c.special||'');}
 function blockKey(c){return c.ice+':'+c.lock+':'+c.chest;}
 function cellMarkup(c,i,w){if(!c)return '<div class="cell void" aria-hidden="true"></div>';
  return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${E.TYPES[c.type]} row ${Math.floor(i/w)+1} column ${i%w+1}">${nutVisual(c)}${blockerVisual(c)}</button>`;
 }
+function objectiveDisplay(g){
+ const status=E.objectiveState(g);
+ return status.map(o=>o.label+' '+Math.min(o.value,o.target)+'/'+o.target).join(' · ');
+}
+function objectivePercent(g){
+ const status=E.objectiveState(g);
+ return Math.round(100*status.reduce((sum,o)=>sum+Math.min(1,o.value/o.target),0)/status.length);
+}
+const toolGlyphs={hammer:'🔨',row:'➡️',column:'⬇️',cross:'✚',blast:'💥',color:'🌈',shuffle:'🔀',extra:'➕',drill:'🪛',unlock:'🗝️'};
+function toolButtons(){
+ return E.BOOSTERS.map(tool=>{
+  const d=E.BOOSTER_META[tool];
+  const image=tool==='hammer'?art('powerups','hammer','🔨','booster-art'):
+   tool==='row'?art('powerups','row-clear','➡️','booster-art'):
+   tool==='shuffle'?art('powerups','rainbow','🔀','booster-art'):
+   tool==='extra'?art('powerups','nut-burst','➕','booster-art'):
+   `<span class="booster-glyph" aria-hidden="true">${toolGlyphs[tool]}</span>`;
+  return `<button data-tool="${tool}" title="${d.tip}" aria-label="${d.label}: ${d.tip}">${image}<span>${d.label.toUpperCase()}</span></button>`;
+ }).join('');
+}
 function game(){const g=state.game;if(!g)return '<p>Choose a level from the campaign map.</p>';
- const ratio=Math.max(0,Math.min(100,Math.round(g.score/g.cfg.goal*100)));
+ const ratio=objectivePercent(g);
  return `<div class="topline game-topline"><button class="btn ghost" data-nav="campaign">← LEVELS</button><h2>LEVEL ${g.level} · ${g.cfg.title}</h2></div>
- <div class="game-stat"><div class="stat"><small>Score</small><b data-stat="score">${g.score.toLocaleString()}</b></div><div class="stat"><small>Moves</small><b data-stat="moves">${g.moves}</b></div><div class="stat"><small>Goal</small><b>${g.cfg.goal.toLocaleString()}</b></div></div>
+ <div class="game-stat"><div class="stat"><small>Score</small><b data-stat="score">${g.score.toLocaleString()}</b></div><div class="stat"><small>Moves</small><b data-stat="moves">${g.moves}</b></div><div class="stat objective-stat"><small>Objective</small><b data-objective>${objectiveDisplay(g)}</b></div></div>
  <div class="progress"><div data-progress style="width:${ratio}%"></div></div>
  <div class="board-wrap"><div class="board" style="--cols:${g.cfg.width}" role="group" aria-label="Nutbuster match-three board">${g.cells.map((c,i)=>cellMarkup(c,i,g.cfg.width)).join('')}</div></div>
  <div class="announcer" id="announcer">🎙 ${state.announcer||'SHOW ME THOSE NUTS!'}</div>
- <div class="boosters"><button data-tool="hammer" title="Crack one target">${art('powerups','hammer','🔨','booster-art')}<span>HAMMER</span></button><button data-tool="row" title="Clear row">${art('powerups','row-clear','🚀','booster-art')}<span>ROW BLAST</span></button><button data-tool="shuffle" title="Shuffle board">${art('powerups','rainbow','🔀','booster-art')}<span>SHUFFLE</span></button><button data-tool="extra" title="Five extra moves">${art('powerups','nut-burst','➕','booster-art')}<span>+5 MOVES</span></button></div>
- <div class="tip">Swap adjacent nuts, even if they do not match. Every swap spends a move.</div>
+ <div class="boosters" role="group" aria-label="Tactical boosters">${toolButtons()}</div>
+ <div class="tip">Swap any neighbors. Tap a booster, then its target. Each power attacks a different obstacle or objective.</div>
  <div class="actions game-actions"><button class="btn secondary" data-action="restart">RESTART</button><button class="btn secondary" data-nav="shop">NUT EMPORIUM</button><button class="btn ghost" data-action="sound">${state.sound?'🔊 Voice On':'🔇 Voice Off'}</button><button class="btn ghost" data-action="music">${state.music?'♫ Music On':'♫ Music Off'}</button></div>`;
 }
 function paintCells(cells){
@@ -81,9 +101,10 @@ function paintCells(cells){
  }
 }
 function paintStats(){if(state.page!=='game'||!state.game)return;const g=state.game;
- const score=screen.querySelector('[data-stat="score"]'),moves=screen.querySelector('[data-stat="moves"]'),progress=screen.querySelector('[data-progress]');
+ const score=screen.querySelector('[data-stat="score"]'),moves=screen.querySelector('[data-stat="moves"]'),progress=screen.querySelector('[data-progress]'),objective=screen.querySelector('[data-objective]');
  if(score)score.textContent=g.score.toLocaleString();if(moves)moves.textContent=g.moves;
- if(progress)progress.style.width=Math.max(0,Math.min(100,Math.round(100*g.score/g.cfg.goal)))+'%';
+ if(objective)objective.textContent=objectiveDisplay(g);
+ if(progress)progress.style.width=objectivePercent(g)+'%';
 }
 function selectCell(i){const old=screen.querySelector('.cell.selected');if(old)old.classList.remove('selected');
  state.selected=i;if(i>=0)screen.querySelector(`[data-cell="${i}"]`)?.classList.add('selected');
@@ -156,7 +177,7 @@ function outcome(){const g=state.game,won=state.outcome==='win',stars=g.moves>10
  return `<div class="outcome-screen"><div class="outcome-symbol">${won?'🏆':'💔'}</div><h1>${won?'LEVEL COMPLETE!':'OUT OF MOVES!'}</h1>
  <p>${won?'YOUR NUTS ARE LEGENDARY!':'A devastating development for the premium nut economy.'}</p>
  <div class="outcome-stars">${won?'★'.repeat(stars)+'☆'.repeat(3-stars):'☆ ☆ ☆'}</div>
- <div class="outcome-numbers"><span>Level <b>${g.level}</b></span><span>Score <b>${g.score.toLocaleString()}</b></span><span>Goal <b>${g.cfg.goal.toLocaleString()}</b></span></div>
+ <div class="outcome-numbers"><span>Level <b>${g.level}</b></span><span>Score <b>${g.score.toLocaleString()}</b></span><span>Objective <b>${objectiveDisplay(g)}</b></span></div>
  <div class="actions">${won?`<button class="btn green" data-action="play" data-level="${Math.min(500,g.level+1)}">NEXT LEVEL →</button>`:`<button class="btn green" data-action="continue-level">CONTINUE · +5 MOVES</button><button class="btn secondary" data-action="restart">RETRY LEVEL</button>`}
  <button class="btn secondary" data-nav="campaign">LEVEL MAP</button></div>
  ${won?'<p class="muted">Reward: 500 Golden Nuts + 10 Gems</p>':'<p class="muted">Need a little help? The Continue offer has a surprise at checkout.</p>'}</div>`;
@@ -260,9 +281,12 @@ screen.addEventListener('click',e=>{window.NutAudio?.unlock();window.NutAudio?.g
  const target=e.target.closest('button');if(!target||state.animating)return;
  if(target.dataset.cell!==undefined){cell(Number(target.dataset.cell));return;}
  if(target.dataset.tool){const tool=target.dataset.tool;if(!state.game||state.page!=='game')return;
-  if(tool==='extra'||tool==='shuffle'){const res=E.booster(state.game,tool,-1);
-   if(!res.valid){notice('Booster unavailable.');return;}
-   state.tool=null;updateTools();if(tool==='shuffle')paintCells(E.snapshot(state.game).cells);paintStats();announce('UNLIMITED SATISFACTION!','oh-my');
+  if(!E.BOOSTER_META[tool].targeted){
+   const res=E.booster(state.game,tool,-1);
+   if(!res.valid){notice(res.reason==='no-locks'?'No locks to unlock!':'Booster unavailable.');return;}
+   state.tool=null;updateTools();
+   if(res.stages?.length)void applyMove(res);else {paintCells(E.snapshot(state.game).cells);paintStats();}
+   announce('UNLIMITED SATISFACTION!','oh-my');
   }else{state.tool=state.tool===tool?null:tool;selectCell(-1);updateTools();}return;}
  if(target.dataset.chapter){state.chapter=Number(target.dataset.chapter);render();return;}
  if(target.dataset.action)action(target.dataset.action,target);else if(target.dataset.nav)nav(target.dataset.nav);
