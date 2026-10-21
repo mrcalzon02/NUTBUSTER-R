@@ -22,3 +22,9 @@
 ## Nutvale Homestead phase 2
 
 Run `node tests/homestead.test.js`, `node tests/homestead-expansion.test.js` and `node tests/homestead-ui.test.js`. Gates: 44 stable plot indices, four level-gated expansions, one-time Golden Nut house costs, no accidental purchase from a locked stage, persisted companions, collectible set prizes, score provenance and opt-in prestige-plate sharing. All device-dependent layout and actual Android/desktop release artifacts remain separate verification gates.
+
+## Nutvale illustrated residence / renovation gates
+
+Use `node tests/homestead-house-tiers.test.js` to verify 40 actual WebP headers and correct manifest order; use `node tests/homestead-renovations.test.js` to exercise 1,000 distinct ranks across all 40 houses, campaign gate validity, earned Golden Nut debits, no charges on denied or completed upgrades, stable saves and achievement awards. The UI harness `node tests/homestead-ui.test.js` covers purchasing decorations, building tiers, renovations, visible artwork flair, $0 checkout behavior and reload persistence.
+
+The 1,000 cosmetic overlays are not 1,000 different painted images. Production release still requires device-scale visual review and on-device/desktop package validation. No real-money SDK, forced timer or online verification is introduced.
