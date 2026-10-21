@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "source_folder_url": "https://drive.google.com/drive/folders/1IwvPgWwzabBliPODifPDdT61WqJhfmxu",
+  "deployment": "files packaged locally; no Drive calls at runtime",
+  "files": [
+    {
+      "source_name": "GRUNT1.mp3",
+      "filename": "grunt-1.mp3",
+      "drive_file_id": "1ilc8ZrsOkvT4gzNpd7bFTo9YtMhuPni_",
+      "kind": "reaction",
+      "size_bytes": 14782,
+      "sha256": "41842adad5998b0ff03711a7a41205cf197e9a9a4cce28dd125a8de88e555073",
+      "duration_seconds": 1.045,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "Grunt2.mp3",
+      "filename": "grunt-2.mp3",
+      "drive_file_id": "1N1Nu8hbARJwXwA93RllgEPuOJmTdRsp5",
+      "kind": "reaction",
+      "size_bytes": 13455,
+      "sha256": "8b5bbc35a899e96458fc2bbc2f9998051187107757eb1f513e10a301f84a11dd",
+      "duration_seconds": 0.784,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "GRUNT3.mp3",
+      "filename": "grunt-3.mp3",
+      "drive_file_id": "18W8y65AekLL25ObufvOUDxgNHk9LLRnZ",
+      "kind": "reaction",
+      "size_bytes": 13793,
+      "sha256": "729118dc479defaa1f07f19b953aa9cd31ee8fd4b697ba7d28582f63b72c3fcb",
+      "duration_seconds": 0.784,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "GRUNT4.mp3",
+      "filename": "grunt-4.mp3",
+      "drive_file_id": "1HRHYjnTGvjWkBPBPdAkVrP1mbeXQYgA2",
+      "kind": "reaction",
+      "size_bytes": 13663,
+      "sha256": "5afd574fd69438ecaddff4fa3c436c195c08fa10e2f3bb2d6594b72221323690",
+      "duration_seconds": 0.784,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "Magnificent nuts.mp3",
+      "filename": "magnificent-nuts.mp3",
+      "drive_file_id": "1HWb0nil1qdN2WohgN8qp5o1J7dCDip60",
+      "kind": "announcer",
+      "size_bytes": 35779,
+      "sha256": "c8db478d050e33e78e6cb16dceb20bec413547cbdbe69e520d5d87e3659b549b",
+      "duration_seconds": 2.038,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "OHNMY.mp3",
+      "filename": "oh-my.mp3",
+      "drive_file_id": "1gK5NTNI3BmLaQqoyClWNg9Kdtc6bTsVe",
+      "kind": "announcer",
+      "size_bytes": 18095,
+      "sha256": "c8a589ada7ac73ee259204ff6652c05654ffcb02c045135b4e55c2193c8768bf",
+      "duration_seconds": 1.045,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "That was close.mp3",
+      "filename": "that-was-close.mp3",
+      "drive_file_id": "1oucR9H2GN-eYrpWMGPgyzAQmLMVuUNkh",
+      "kind": "announcer",
+      "size_bytes": 38498,
+      "sha256": "3f5dda666d848ef13659bbb0e1128c86267d396805908de8ecd026de8a164a9d",
+      "duration_seconds": 2.038,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "Unbelievable performance.mp3",
+      "filename": "unbelievable-performance.mp3",
+      "drive_file_id": "1MNtlq0e7H40T0PNucaw2EhZzqJNkO73-",
+      "kind": "announcer",
+      "size_bytes": 38259,
+      "sha256": "9e94bd5d5089fc97f764547cea442ac22cf05515f1beb2f146fb423f39c1fab6",
+      "duration_seconds": 2.038,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "NUTBUSTER!.mp3",
+      "filename": "nutbuster-exclamation.mp3",
+      "drive_file_id": "1WceIb9HOsIJBscmqHy1SdU4pKKJHDw-O",
+      "kind": "announcer",
+      "size_bytes": 40703,
+      "sha256": "030308a7fa79673e181a6075e2b88e8703431d0cbb65fadf9915d534d69e18b5",
+      "duration_seconds": 1.776,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "They just keep coming.mp3",
+      "filename": "they-just-keep-coming.mp3",
+      "drive_file_id": "10X4dBmVoZz4AicfiUdTHXJZZsvKQGC6H",
+      "kind": "announcer",
+      "size_bytes": 33120,
+      "sha256": "a7bcb6f39d47ceb6c061fb907e4af13fd04a22dfacbeb93228fbb6d3f950f6b7",
+      "duration_seconds": 1.776,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "oohthatsabigone.mp3",
+      "filename": "ooh-thats-a-big-one.mp3",
+      "drive_file_id": "1LrWPrUVOkUhiqWvDK5-nCcKbvex5nyri",
+      "kind": "announcer",
+      "size_bytes": 29658,
+      "sha256": "d2395f6ed653fc2f98446971e45d23b7265a125cea2720d290261701fb1f788c",
+      "duration_seconds": 1.541,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "That's an enormous package.mp3",
+      "filename": "enormous-package.mp3",
+      "drive_file_id": "1wj3NOEAamHaDVVU3ZYuc0c5Oxz-n8kYG",
+      "kind": "announcer",
+      "size_bytes": 43869,
+      "sha256": "961806f2a06978268316bb7a95bee60e744b2fab496e9a4b23ebb1e2a99124ff",
+      "duration_seconds": 2.299,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "Premium nuts for everyone.mp3",
+      "filename": "premium-nuts-for-everyone.mp3",
+      "drive_file_id": "1N9xiMpva-Pa5X4kQJxZ3Ru2IprbTKu7b",
+      "kind": "announcer",
+      "size_bytes": 48359,
+      "sha256": "8d4d41e70c077d9b457beb3d12f378371db36fac6184338dca5e0814f8b8b8a4",
+      "duration_seconds": 2.534,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "Satisfaction guaranteed.mp3",
+      "filename": "satisfaction-guaranteed.mp3",
+      "drive_file_id": "1s2w8XmRE_v82QK9aEETF5l43rY59XtbK",
+      "kind": "announcer",
+      "size_bytes": 48985,
+      "sha256": "317ae800d65a43a1f9dfecce08637b8cc41d361d9c12d0b5b35b9f5d29d4e70b",
+      "duration_seconds": 2.534,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "Nutbuster.mp3",
+      "filename": "nutbuster-soft.mp3",
+      "drive_file_id": "1LAuL08yU74eCwZn2f4isBaWsgHe8dRpn",
+      "kind": "announcer",
+      "size_bytes": 19875,
+      "sha256": "19ee7f1fe03deb3454ac10bd1dc3f98e4cb0cd1664d5fdfc5bac6b7a68fa8e70",
+      "duration_seconds": 1.045,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "Bubbly Whistle.mp3",
+      "filename": "bubbly-whistle.mp3",
+      "drive_file_id": "1vvXyFzGW8mAN8oOhtNOhMq63lfIDCehs",
+      "kind": "music",
+      "size_bytes": 1008526,
+      "sha256": "2b0e94522e36151a5c7b35ce94cf1c9842081b46538c186ae3abb7e1b101a451",
+      "duration_seconds": 144.039,
+      "transcoded_from_source": true
+    }
+  ]
+}

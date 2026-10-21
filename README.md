@@ -18,6 +18,10 @@ Open `web/index.html` in a modern browser or run `python3 -m http.server 8000 --
 
 The source includes Gradle wrapper configuration but **not** a generated wrapper JAR. Use a local Gradle 9.6.1 installation to bootstrap a wrapper with `gradle wrapper` if desired. No automated CI workflow is configured.
 
+## Audio library
+
+The owner-supplied [Drive Sounds / NUTBUSTER](https://drive.google.com/drive/folders/1IwvPgWwzabBliPODifPDdT61WqJhfmxu) folder has been imported as 15 voice/reaction clips plus one optimized MP3 music loop. The original full-resolution music remains in Drive; all runtime audio is local under `web/audio/`. Music and announcer audio use independent controls, and gameplay captions remain visible with sound off. `node tests/audio.test.js` validates 16 SHA-256 digests and simulated playback. See `docs/wiki/Audio-Pipeline.md`.
+
 ## Art asset import
 
 To generate the full art pack, copy five original sheet PNGs into `assets/source/` retaining filenames, then run `python -m pip install Pillow` and `python tools/prepare_assets.py`. The build automatically includes any `web/art/primary/` files. Without them, puzzle pieces degrade to readable fallback symbols rather than crashing. **The original full-resolution sources and 84 generated assets are included in the accompanying starter ZIP. The GitHub repository also includes 34 compact 96-pixel variants** from those primary sheets so the core game renders the actual art immediately. Import the full-res PNGs and regenerate when production-ready.

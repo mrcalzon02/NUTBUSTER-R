@@ -5,7 +5,7 @@ const wallet={textContent:''},gems={textContent:''},toast={textContent:'',classL
 const elems={screen,wallet,gems,toast};
 const document={getElementById:id=>elems[id]||null,querySelectorAll:()=>[],querySelector:()=>null};
 let store={};const localStorage={getItem:key=>store[key],setItem:(key,val)=>{store[key]=val;}};
-const window={NutEngine:E,addEventListener:()=>{}};
+const audioCalls=[],window={NutEngine:E,addEventListener:()=>{},NutAudio:{unlock:()=>audioCalls.push('unlock'),voice:(key)=>audioCalls.push('voice:'+key),grunt:()=>audioCalls.push('grunt'),setMusicEnabled:(v)=>audioCalls.push('music:'+v),setVoiceEnabled:(v)=>audioCalls.push('voice-enabled:'+v)}};
 const context={window,document,localStorage,console,setTimeout:()=>1,clearTimeout:()=>{}};
 vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../web/game.js'),'utf8'),context);
 assert.match(html,/WELCOME TO NUTBUSTER/);window.NutbusterApp.start(1);
@@ -14,6 +14,9 @@ window.NutbusterApp.nav('shop');assert.match(html,/GIGANTIC NUT PACKAGE/);
 const button={dataset:{action:'claim',item:'0'}};
 handlers.click({target:{closest:()=>button}});
 assert.equal(window.NutbusterApp.getSave().coins,50250);assert.equal(window.NutbusterApp.getSave().gems,275);
+assert.ok(audioCalls.includes('voice:package'),'Premium claim must trigger recorded announcer');
+handlers.click({target:{closest:()=>({dataset:{action:'music'}})}});
+assert.equal(window.NutbusterApp.getSave().music,false);assert.ok(audioCalls.includes('music:false'));
 window.NutbusterApp.nav('rewards');assert.match(html,/I AM MY OWN FRIEND/);
 handlers.click({target:{closest:()=>({dataset:{action:'friend'}})}});
 assert.equal(window.NutbusterApp.getSave().coins,51250);
