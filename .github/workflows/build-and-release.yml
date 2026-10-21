@@ -238,25 +238,23 @@ jobs:
         with:
           name: Nutbuster-Desktop-${{ github.run_id }}
           path: release/desktop
-      - name: Enforce existing ReverieVR publisher identity
+      - name: Validate Nutbuster-owned publisher signing secrets
         id: signing
         shell: bash
         run: |
           set -euo pipefail
           if [[ -z "$PHONE_TEST_KEYSTORE_BASE64" || -z "$PHONE_TEST_STORE_PASSWORD" || -z "$PHONE_TEST_KEY_ALIAS" || -z "$PHONE_TEST_KEY_PASSWORD" ]]; then
-            echo '::notice::ReverieVR secrets belong to the ReverieVR repo; using its verified GitHub Actions signing handoff.'
-            echo 'ready=false' >> "$GITHUB_OUTPUT"
-            exit 0
+            echo '::error::NUTBUSTER signing secrets missing. Run scripts/setup-nutbuster-signing.sh with an authorized gh login.'
+            exit 1
           fi
           printf '%s' "$PHONE_TEST_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/nutbuster-publisher.p12"
           chmod 600 "$RUNNER_TEMP/nutbuster-publisher.p12"
           keytool -list -keystore "$RUNNER_TEMP/nutbuster-publisher.p12" -storepass "$PHONE_TEST_STORE_PASSWORD" -alias "$PHONE_TEST_KEY_ALIAS" >/dev/null
-          keytool -exportcert -keystore "$RUNNER_TEMP/nutbuster-publisher.p12" -storepass "$PHONE_TEST_STORE_PASSWORD" -alias "$PHONE_TEST_KEY_ALIAS" -file "$RUNNER_TEMP/reverie-certificate.der" >/dev/null
-          SHA="$(sha256sum "$RUNNER_TEMP/reverie-certificate.der" | cut -d' ' -f1)"
-          [[ "$SHA" =~ ^[0-9a-f]{64}$ ]]
-          printf 'sha=%s\npath=%s\nready=true\n' "$SHA" "$RUNNER_TEMP/nutbuster-publisher.p12" >> "$GITHUB_OUTPUT"
+          keytool -exportcert -keystore "$RUNNER_TEMP/nutbuster-publisher.p12" -storepass "$PHONE_TEST_STORE_PASSWORD" -alias "$PHONE_TEST_KEY_ALIAS" -file "$RUNNER_TEMP/nutbuster-certificate.der" >/dev/null
+          SHA="$(sha256sum "$RUNNER_TEMP/nutbuster-certificate.der" | cut -d' ' -f1)"
+          [[ "$SHA" =~ ^[0-9a-f]{64}$ ]] || { echo '::error::Invalid Nutbuster publisher fingerprint'; exit 1; }
+          printf 'sha=%s\npath=%s\n' "$SHA" "$RUNNER_TEMP/nutbuster-publisher.p12" >> "$GITHUB_OUTPUT"
       - name: Install Android SDK
-        if: steps.signing.outputs.ready == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -264,7 +262,6 @@ jobs:
           if [[ ! -x "$SDKMANAGER" ]]; then SDKMANAGER="$(command -v sdkmanager)"; fi
           "$SDKMANAGER" 'platforms;android-36' 'build-tools;36.0.0'
       - name: Build permanently signed release APK
-        if: steps.signing.outputs.ready == 'true'
         id: signed
         shell: bash
         env:
@@ -295,7 +292,6 @@ jobs:
           sha256sum -c release/publish/SHA256SUMS.txt
           printf 'Source revision: %s\nAndroid versionCode: %s\nCertificate SHA-256: %s\n' "$GITHUB_SHA" "$CODE" "$SIGNER" > release/publish/BUILD-EVIDENCE.txt
       - name: Publish signed APK and desktop downloads after remote verification
-        if: steps.signing.outputs.ready == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -308,8 +304,8 @@ jobs:
           cp release/desktop/NUTBUSTER-Linux-x64 release/publish/
           python3 scripts/generate_update_manifest.py "$TAG" '${{ steps.signed.outputs.code }}' '${{ steps.signing.outputs.sha }}'
           (cd release/publish && sha256sum NUTBUSTER-* > SHA256SUMS.txt)
-          NOTES="$(printf 'NUTBUSTER testing release.\n\nAndroid versionCode: %s\nSource revision: %s\nPersistent ReverieVR signer SHA-256: %s\n\nThe Android APK replaces previous NUTBUSTER signed builds without deleting local progress.\n' '${{ steps.signed.outputs.code }}' "$GITHUB_SHA" '${{ steps.signing.outputs.sha }}')"
-          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes "$NOTES"
+          NOTES="$(printf 'NUTBUSTER testing release.\n\nAndroid versionCode: %s\nSource revision: %s\nNUTBUSTER publisher signer SHA-256: %s\n\nPre-release signing identity changed; older test APKs may require removal before installing this version.\n' '${{ steps.signed.outputs.code }}' "$GITHUB_SHA" '${{ steps.signing.outputs.sha }}')"
+          gh release create "$TAG" --draft --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes "$NOTES"
           gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/NUTBUSTER-update.json release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
           # GitHub computes SHA-256 for release assets. Refuse to publish until its digest matches our local artifact.
           remote="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG")"
@@ -328,7 +324,6 @@ jobs:
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,url | tee release/publish/release-proof.json
           python3 -c 'import json; assert not json.load(open("release/publish/release-proof.json"))["isDraft"]'
       - uses: actions/upload-artifact@v4
-        if: steps.signing.outputs.ready == 'true'
         with:
           name: Nutbuster-signed-release-evidence-${{ github.run_id }}
           path: |
@@ -337,84 +332,3 @@ jobs:
             release/publish/release-proof.json
           retention-days: 30
           if-no-files-found: error
-      - name: Import pre-signed ReverieVR handoff and publish NUTBUSTER release
-        if: steps.signing.outputs.ready == 'false'
-        shell: bash
-        env:
-          TRUSTED_CERT: 464dc2d100c3bb14deac1da680d29418cc22e60e1857852cb54541f7d7787f7c
-        run: |
-          set -euo pipefail
-          BRIDGE_TAG="nutbuster-signer-$GITHUB_SHA"
-          echo "Requesting already signed and verified NUTBUSTER source: $GITHUB_SHA"
-          FOUND=false
-          for attempt in $(seq 1 48); do
-            if gh release view "$BRIDGE_TAG" --repo mrcalzon02/ReverieVR >/dev/null 2>&1; then
-              FOUND=true
-              break
-            fi
-            echo "Waiting for the ReverieVR existing-certificate signer handoff, attempt $attempt"
-            sleep 15
-          done
-          if [[ "$FOUND" != true ]]; then
-            echo "::error::ReverieVR has not produced a signed APK for this exact NUTBUSTER commit."
-            exit 1
-          fi
-          mkdir -p release/publish
-          gh release download "$BRIDGE_TAG" --repo mrcalzon02/ReverieVR --dir release/publish
-          cd release/publish
-          test -s NUTBUSTER-Android-phone-test.apk
-          test -s BUILD-EVIDENCE.txt
-          sha256sum -c SHA256SUMS.txt
-          grep -Fx "Source SHA: $GITHUB_SHA" BUILD-EVIDENCE.txt
-          grep -Fx "Certificate SHA-256: $TRUSTED_CERT" BUILD-EVIDENCE.txt
-          CODE="$(sed -n 's/^Version code: //p' BUILD-EVIDENCE.txt)"
-          [[ "$CODE" =~ ^[0-9]{1,10}$ ]]
-          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
-          if [[ ! -x "$SDKMANAGER" ]]; then SDKMANAGER="$(command -v sdkmanager)"; fi
-          "$SDKMANAGER" 'platforms;android-36' 'build-tools;36.0.0'
-          SDK="$ANDROID_SDK_ROOT/build-tools/36.0.0"
-          "$SDK/apksigner" verify --verbose --print-certs NUTBUSTER-Android-phone-test.apk | tee apk-signing-proof.txt
-          grep -Fi "Signer #1 certificate SHA-256 digest: $TRUSTED_CERT" apk-signing-proof.txt
-          "$SDK/aapt" dump badging NUTBUSTER-Android-phone-test.apk | tee badging-proof.txt
-          grep -F "package: name='io.github.mrcalzon02.nutbuster' versionCode='$CODE'" badging-proof.txt
-          unzip -Z -1 NUTBUSTER-Android-phone-test.apk | grep -Fx assets/art/maps/chapter-5-moonlit-golden-palace.webp
-          unzip -Z -1 NUTBUSTER-Android-phone-test.apk | grep -Fx assets/audio/grunt-1.mp3
-          cd ../..
-          cp release/desktop/NUTBUSTER-Windows-x64.exe release/publish/
-          cp release/desktop/NUTBUSTER-Linux-x64 release/publish/
-          TAG="nutbuster-phone-test-$GITHUB_RUN_NUMBER-$GITHUB_RUN_ATTEMPT"
-          python3 scripts/generate_update_manifest.py "$TAG" "$CODE" "$TRUSTED_CERT"
-          (cd release/publish && sha256sum NUTBUSTER-Android-phone-test.apk NUTBUSTER-Windows-x64.exe NUTBUSTER-Linux-x64 NUTBUSTER-update.json BUILD-EVIDENCE.txt > SHA256SUMS.txt && sha256sum -c SHA256SUMS.txt)
-          TAG="nutbuster-phone-test-$GITHUB_RUN_NUMBER-$GITHUB_RUN_ATTEMPT"
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "::error::Release already exists; refusing duplicate or destructive replacement."
-            exit 1
-          fi
-          printf 'NUTBUSTER testing release.\n\nAndroid versionCode: %s\nSource revision: %s\nPersistent ReverieVR signer SHA-256: %s\n\nThis APK was signed within ReverieVR Actions using its existing publisher secrets. Verified certificate continuity, package identity, and SHA-256 before import. Android in-app update channel is enabled.\n' "$CODE" "$GITHUB_SHA" "$TRUSTED_CERT" > release/publish/RELEASE-NOTES.txt
-          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes-file release/publish/RELEASE-NOTES.txt
-          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/NUTBUSTER-update.json release/publish/BUILD-EVIDENCE.txt release/publish/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY"
-          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" > "$RUNNER_TEMP/release-check.json"
-          python3 - <<'PY'
-          import hashlib,json,os,pathlib
-          data=json.load(open(os.environ['RUNNER_TEMP']+'/release-check.json'))
-          assets={a['name']:a for a in data['assets']}
-          for name in ['NUTBUSTER-Android-phone-test.apk','NUTBUSTER-Windows-x64.exe','NUTBUSTER-Linux-x64','NUTBUSTER-update.json','BUILD-EVIDENCE.txt','SHA256SUMS.txt']:
-              p=pathlib.Path('release/publish')/name
-              a=assets.get(name)
-              if not a or a.get('size')!=p.stat().st_size or a.get('digest')!='sha256:'+hashlib.sha256(p.read_bytes()).hexdigest():
-                  raise SystemExit('NUTBUSTER GitHub release digest read-back failed: '+name)
-          print('All 6 NUTBUSTER remote release artifacts verified')
-          PY
-          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false
-          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json url,isDraft | tee release/publish/release-proof.json
-          python3 -c 'import json; assert not json.load(open("release/publish/release-proof.json"))["isDraft"]'
-      - uses: actions/upload-artifact@v4
-        if: steps.signing.outputs.ready == 'false'
-        with:
-          name: Nutbuster-reverie-signed-import-proof-${{ github.run_id }}
-          path: |
-            release/publish/BUILD-EVIDENCE.txt
-            release/publish/SHA256SUMS.txt
-            release/publish/release-proof.json
-          retention-days: 30
-          if-no-files-found: ignore
