@@ -5,7 +5,7 @@ const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);H.ensure(saved);A.ensure(saved);
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadZone:'yard',homesteadPreview:null};let toastHandle;
+let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});}
 function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch(_){}}
 function safeNum(n){return Number.isFinite(n)?Math.min(999999999,Math.max(0,Math.trunc(n))):0;}
@@ -36,6 +36,7 @@ function nav(page){
  // Replacing #screen.innerHTML for a no-op navigation reloads sprites and visibly flashes on Android.
  if(state.page===page)return;
  state.epoch++;state.animating=false;state.page=page;state.selected=-1;state.tool=null;
+ if(page==='homestead'){state.homesteadEditing=false;state.homesteadSelection=null;}
  if(page==='campaign'&&state.game)state.chapter=M.chapterOf(state.game.level).id;
  render();}
 
@@ -344,7 +345,7 @@ function rewards(){const tiers=P.challengeRewards(saved),next=P.nextUnlock(saved
  <div class="reward-lines"><div class="panel">${art('economy','piggy-bank','🐷')}<b>PIGGY BANK</b><p class="muted">Your vault is bursting. Premium extraction available.</p><button class="btn green" data-action="pig">SMASH PIG</button></div><div class="panel">${art('economy','treasure','🧰')}<b>3-HOUR TREASURE CHEST</b><p class="muted">${mins===0?'Timer complete!':mins+' minutes remaining. Instant unlock available.'}</p><button class="btn green" data-action="chest">${mins===0?'OPEN CHEST':'OPEN INSTANTLY'}</button></div><div class="panel">${art('economy','gift','💌')}<b>FRIEND REFERRAL</b><p class="muted">Invite a friend. Or nominate yourself.</p><button class="btn green" data-action="friend">I AM MY OWN FRIEND</button></div><div class="panel">${art('economy','vip-crown','🎟️')}<b>ELITE PREMIUM SEASON PASS</b><p class="muted">Premium track, supreme track, and downright suspicious track.</p><button class="btn green" data-action="pass">UNLOCK PREMIUM</button></div><div class="panel"><span class="art">📅</span><b>DAILY LOGIN STREAK</b><p class="muted">Streak: ${saved.streak} · Missed days are forgiven.</p><button class="btn green" data-action="daily">CLAIM TODAY</button></div><div class="panel"><span class="art">🎰</span><b>CHOICE LOOT BOX</b><p class="muted">The odds have never been so promising.</p><button class="btn green" data-action="loot">GIVE ME THE GOOD ONE</button></div></div><p class="tip">Premium rewards refresh whenever you need another hit of excitement.</p>`;}
 
 function homestead(){
- const h=H.ensure(saved),status=H.stats(saved),selection=state.homesteadSelection;
+ const h=H.ensure(saved),status=H.stats(saved),edit=state.homesteadEditing,selection=edit?state.homesteadSelection:null;
  const equipped=H.AVATARS.find(a=>a.id===h.avatar)||H.AVATARS[0];
  const costume=A.current(saved),costumeTotals=A.summary(saved);
  const costumeCard=c=>{
@@ -383,6 +384,7 @@ function homestead(){
  }).join('');
  const plots=Array.from({length:zone.count},(_,i)=>{
   const slot=zone.start+i,id=h.placed[slot],item=H.DECOR.find(d=>d.id===id),occupied=!!item;
+  if(!edit)return `<div class="homestead-plot homestead-display-plot ${occupied?'filled':'empty'}" ${occupied?'role="img" aria-label="'+item.name+'"':'aria-hidden="true"'}>${item?'<strong>'+item.icon+'</strong>':''}</div>`;
   return `<button class="homestead-plot ${occupied?'filled':''} ${selection?'target':''}" data-action="homestead-slot" data-slot="${slot}" aria-label="${zone.name} plot ${i+1}: ${item?item.name:'empty'}; ${selection?'place selected item':'tap to remove displayed item'}"><strong>${item?item.icon:'＋'}</strong><small>${item?item.name:'PLOT '+(i+1)}</small></button>`;
  }).join('');
  const titles=H.AVATARS.map(a=>{
@@ -401,11 +403,11 @@ function homestead(){
  ${nextTier?`<button class="btn green" data-action="homestead-tier-upgrade">UPGRADE TO TIER ${nextTier.tier} · ${nextTier.cost.toLocaleString()} 🌰</button>`:'<span class="pill">MAXIMUM PREMIUM RESIDENCE ACHIEVED</span>'}</div>
  <div class="homestead-tier-progress" role="progressbar" aria-valuenow="${h.maxTier}" aria-valuemin="1" aria-valuemax="40" aria-label="Highest building tier"><span style="width:${(h.maxTier/40*100).toFixed(1)}%"></span></div>
  <small class="homestead-tier-hint">BUILT ${h.maxTier}/40 · DISPLAYING TIER ${h.tier}${nextTier?' · NEXT REQUIRES LEVEL '+nextTier.level:' · CAMPAIGN COMPLETE'}</small><div class="homestead-renovations"><h3>RENOVATIONS · ${H.renovationSummary(saved,preview.tier).houseTotal}/25 THIS HOUSE</h3>${renovations}</div>`;
- const collection=[...H.DECOR].sort((a,b)=>Number(H.owned(saved,b.id))-Number(H.owned(saved,a.id))).map(item=>{
+ const collection=edit?[...H.DECOR].sort((a,b)=>Number(H.owned(saved,b.id))-Number(H.owned(saved,a.id))).map(item=>{
   const has=H.owned(saved,item.id),used=placedIds.has(item.id),active=selection===item.id;
   const gate=item.set?'SET PRIZE':item.premium?'PREMIUM':'LV '+item.level;
   return `<button class="homestead-collectible ${has?'':'locked'} ${active?'selected':''}" data-action="homestead-select" data-id="${item.id}" ${has?'':'disabled'} aria-label="${item.name}: ${has?used?'displayed':'owned':'locked'}"><strong>${item.icon}</strong><b>${item.name}</b><small>${has?used?'DISPLAYED':active?'SELECTED':'PLACE':gate}</small></button>`;
- }).join('');
+ }).join(''):'';
  const collections=status.collections.map(set=>{
   const prize=H.DECOR.find(d=>d.id===set.reward);
   return `<div class="homestead-set ${set.complete?'completed':''}"><span>${set.icon}</span><div><b>${set.name}</b><small>${set.have}/${set.total} · ${set.complete?'UNLOCKED '+(prize?.name||'reward'):'REWARD: '+(prize?.name||'secret')}</small></div></div>`;
@@ -419,10 +421,11 @@ function homestead(){
  return `<div class="homestead-top"><div><h1>🏡 NUTVALE HOMESTEAD</h1><small>${status.tier} · 👩🏻‍🦰 ${costume.name} · ${equipped.name}</small></div><div class="homestead-actions"><button class="btn ghost" data-action="homestead-plate">↗ PRESTIGE PLATE</button><button class="btn ghost" data-action="invite">↗ INVITE</button><button class="btn ghost" data-nav="campaign">LEVELS →</button></div></div>
  <div class="homestead-stats"><span>🏆 ${status.wins}/500 cleared</span><span>⭐ ${status.stars} stars</span><span>🎖 ${status.achievements.length}/${H.ACHIEVEMENTS.length} awards</span><span>🧩 ${status.setCount}/${H.SETS.length} sets</span><span>📈 ${status.bestScore.toLocaleString()} best</span><span>🛠 ${status.renovations}/1000 renovated</span><span>👗 ${costumeTotals.unlocked}/60 outfits</span></div>
  <div class="homestead-layout">
- <div><div class="homestead-zone-list">${zoneButtons}</div>
- <div class="homestead-yard zone-${zone.id}" data-estate-zone="${zone.id}"><div class="homestead-scenery" aria-hidden="true"><span>${zone.icon}</span><small>${zone.description}</small></div>
+ <div class="homestead-yard-column"><div class="homestead-zone-list">${zoneButtons}</div>
+ <div class="homestead-yard zone-${zone.id}" data-estate-zone="${zone.id}"><div class="homestead-yard-heading"><b>${zone.icon} ${zone.name}</b><button class="btn ${edit?'secondary':'ghost'}" data-action="homestead-edit" aria-pressed="${edit}">${edit?'✓ DONE EDITING':'✎ EDIT BACKYARD'}</button></div><div class="homestead-scenery" aria-hidden="true"><span>${zone.icon}</span><small>${zone.description}</small></div>
  <div class="homestead-house"><span class="house homestead-house-art"><img src="${actualTier.art}" alt="${actualTier.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.hidden=false"><span hidden>${house.icon}</span><span class="homestead-flair homestead-flair-yard" aria-hidden="true">${residenceFlair(actualTier.tier)}</span></span><span>${actualTier.name.toUpperCase()}<small>HOUSE TIER ${actualTier.tier}/40 · ${zone.name}</small></span><span class="nutvale-estate-avatar" role="img" aria-label="Your human avatar: ${costume.name}"><span aria-hidden="true">👩🏻‍🦰</span><img src="${costume.art}" alt="" loading="lazy" onerror="this.hidden=true"></span><span class="homestead-visitor" role="img" aria-label="Companion: ${pet.name}">${pet.icon}</span></div>
- <div class="homestead-plots">${plots}</div><p class="homestead-instructions">${selection?'SELECT A PLOT TO PLACE · TAP ITEM TO CANCEL':'SELECT A COLLECTIBLE, THEN A PLOT · TAP OCCUPIED PLOT TO STORE'}</p></div>
+ <div class="homestead-plots ${edit?'editing':'viewing'}">${plots}</div>${edit?`<p class="homestead-instructions">${selection?'SELECT A PLOT TO PLACE · TAP ITEM TO CANCEL':'CHOOSE AN ITEM BELOW, THEN A PLOT · TAP OCCUPIED PLOT TO STORE'}</p>`:''} </div>
+ ${edit?`<div class="homestead-section homestead-editor"><div class="homestead-editor-head"><b>PLACEABLE ITEMS · ${status.decorOwned}/${H.DECOR.length} OWNED</b><small>${selection?'TAP A PLOT':'CHOOSE AN ITEM'}</small></div><div class="homestead-scroll homestead-collection-scroll" role="group" aria-label="Placeable backyard decorations">${collection}</div></div>`:''}
  <div class="homestead-premium"><div><b>👑 ROYAL MANOR KIT</b><p>Platinum portrait, fountain, and diamond throne · <strong>Was $499.99</strong></p></div><button class="btn green" data-action="homestead-offer" ${royal?'disabled':''}>${royal?'OWNED':'BUY NOW'}</button></div></div>
  <div class="homestead-side">
  <div class="homestead-section"><h2>RESIDENCE · 🌰 ${saved.coins.toLocaleString()} · ${h.maxTier}/40 BUILT</h2>${residence}</div>
@@ -433,10 +436,15 @@ function homestead(){
   <h3 class="nutvale-avatar-subtitle">SEASONAL ARCHIVE · ${costumeTotals.seasonal}/20</h3><div class="nutvale-outfit-list">${seasonalOutfits}</div>
   <div class="nutvale-avatar-titles"><small>PRESTIGE TITLE · ${equipped.name}</small><div class="homestead-scroll">${titles}</div></div></div>
  <div class="homestead-section"><h2>COMPANION · ${pet.name}</h2><div class="homestead-scroll">${pets}</div></div>
- <div class="homestead-section"><h2>COLLECTION · ${status.decorOwned}/${H.DECOR.length} OWNED</h2><div class="homestead-scroll">${collection}</div></div>
  <div class="homestead-section"><h2>CURATED COLLECTIONS · ${status.setCount}/${H.SETS.length}</h2><div class="homestead-sets">${collections}</div></div>
  <div class="homestead-section"><h2>TROPHY CABINET · ${status.achievements.length} EARNED</h2><div class="homestead-awards">${cabinet}</div></div>
  </div></div>`;
+}
+function renderHomesteadEditor(){
+ const scrollX=screen.querySelector?.('.homestead-collection-scroll')?.scrollLeft||0;
+ render();
+ const scroller=screen.querySelector?.('.homestead-collection-scroll');
+ if(scroller)scroller.scrollLeft=scrollX;
 }
 function settings(){const lev=saved.levels||{voice:.9,music:.28,reactions:.38};return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings"><p class="muted">Separate levels for the announcer, music and compulsory little grunts.</p>${[['voice','Announcer'],['music','Music'],['reactions','Click grunts']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}<div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button></div><div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button></div></div>`;}
 function render(){counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
@@ -512,6 +520,7 @@ function action(a,button){
   }).catch(()=>notice('Could not open the share menu.'));
   return;
  }
+ if(a==='homestead-edit'){state.homesteadEditing=!state.homesteadEditing;state.homesteadSelection=null;render();return;}
  if(a==='homestead-offer'){beginCheckout(8,'homestead');return;}
   if(a==='homestead-tier-browse'){
    const current=H.tierByNumber(state.homesteadPreview)||H.tierByNumber(H.ensure(saved).tier);
@@ -566,12 +575,12 @@ function action(a,button){
     else if(status==='select')notice('COPY YOUR PRESTIGE PLATE');
    }).catch(()=>notice('COULD NOT SHARE PRESTIGE PLATE'));return;
   }
-  if(a==='homestead-select'){const id=button.dataset.id;if(!H.owned(saved,id))return;state.homesteadSelection=state.homesteadSelection===id?null:id;render();return;}
+  if(a==='homestead-select'){if(!state.homesteadEditing)return;const id=button.dataset.id;if(!H.owned(saved,id))return;state.homesteadSelection=state.homesteadSelection===id?null:id;renderHomesteadEditor();return;}
   if(a==='homestead-outfit'){if(A.equip(saved,button.dataset.id)){persist();render();}else notice('CLEAR THE REQUIRED LEVEL TO UNLOCK THIS OUTFIT');return;}
   if(a==='homestead-avatar'){if(H.equip(saved,button.dataset.id)){persist();render();}return;}
-  if(a==='homestead-slot'){const slot=Number(button.dataset.slot),id=state.homesteadSelection;
+  if(a==='homestead-slot'){if(!state.homesteadEditing)return;const slot=Number(button.dataset.slot),id=state.homesteadSelection;
    const ok=id?H.place(saved,id,slot):H.remove(saved,slot);
-   if(ok){persist();if(id)state.homesteadSelection=null;render();}else notice(id?'ITEM UNAVAILABLE':'SELECT AN ITEM FIRST');return;}
+   if(ok){persist();if(id)state.homesteadSelection=null;renderHomesteadEditor();}else notice(id?'ITEM UNAVAILABLE':'SELECT AN ITEM FIRST');return;}
   if(a==='challenge-claim'){
   const tier=Number(button.dataset.tier),reward=P.claimChallenge(saved,tier);
   if(!reward.valid){notice(reward.reason==='claimed'?'ALREADY REDEEMED':'FINISH MORE CHALLENGE LEVELS');return;}
@@ -594,6 +603,7 @@ function action(a,button){
   announce('THAT IS AN ENORMOUS PACKAGE!','package');
   state.page=(dest==='outcome'||dest==='game')?'game':dest==='home'?'home':dest==='homestead'?'homestead':'shop';
   if(state.page==='game'&&(!state.game||state.game.won))state.page='campaign';
+  if(state.page==='homestead'){state.homesteadEditing=false;state.homesteadSelection=null;}
   render();window.NutFX?.emit('coin-shower');return;
  }
  if(a==='continue-level'){beginCheckout(7,'outcome');return;}
