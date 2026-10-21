@@ -5,7 +5,7 @@ const screen={addEventListener:(event,fn)=>handlers[event]=fn,set innerHTML(s){h
 const wallet={textContent:''},gems={textContent:''},toast={textContent:'',classList:{add(){},remove(){}}};
 const document={getElementById:id=>({screen,wallet,gems,toast}[id]||null),querySelectorAll:()=>[],querySelector:()=>null};
 const storage={};const localStorage={getItem:k=>storage[k],setItem:(k,v)=>storage[k]=v};
-const window={NutEngine:E,NutProgress:require('../web/progression.js'),NutCampaignMaps:M,NutBoardFeatures:require('../web/board-features.js'),addEventListener:()=>{},NutAudio:{unlock(){},grunt(){},voice(){},setVoiceEnabled(){},setMusicEnabled(){}}};
+const window={NutEngine:E,NutProgress:require('../web/progression.js'),NutHomestead:require('../web/homestead.js'),NutCampaignMaps:M,NutBoardFeatures:require('../web/board-features.js'),addEventListener:()=>{},NutAudio:{unlock(){},grunt(){},voice(){},setVoiceEnabled(){},setMusicEnabled(){}}};
 vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../web/game.js'),'utf8'),{window,document,localStorage,setTimeout(){},clearTimeout(){},console});
 const app=window.NutbusterApp;
 app.nav('campaign');
