@@ -2,7 +2,7 @@
 const E=require('../web/engine.js');
 let table=[];
 for(let chapter=1;chapter<=5;chapter++){
- let totalMoves=0,totalMovesAvailable=0,totalCells=0,conveyor=0,portal=0,minOpenings=Infinity,minimumMoves=Infinity;
+ let totalMoves=0,totalMovesAvailable=0,totalCells=0,conveyor=0,portal=0,wind=0,minOpenings=Infinity,minimumMoves=Infinity;
  for(let level=(chapter-1)*100+1;level<=chapter*100;level++){
   const g=E.create(level,level*127+17),w=g.cfg.width;let openings=0;
   for(let a=0;a<g.cells.length;a++)for(const b of [a+1,a+w]){
@@ -14,12 +14,12 @@ for(let chapter=1;chapter<=5;chapter++){
   }
   if(openings<1)throw Error('No opening scoring swaps at '+level);
   totalMoves+=g.moves;totalMovesAvailable+=openings;totalCells+=g.cells.filter(Boolean).length;
-  conveyor+=g.cfg.features.conveyors.length>0;portal+=g.cfg.features.portals.length>0;
+  conveyor+=g.cfg.features.conveyors.length>0;portal+=g.cfg.features.portals.length>0;wind+=g.cfg.features.wind.length>0;
   minOpenings=Math.min(minOpenings,openings);minimumMoves=Math.min(minimumMoves,g.moves);
  }
  table.push({chapter,levels:100,averageMoves:+(totalMoves/100).toFixed(1),
   averageOpenings:+(totalMovesAvailable/100).toFixed(1),averageCells:+(totalCells/100).toFixed(1),
-  minOpenings,minimumMoves,conveyorStages:conveyor,portalStages:portal});
+  minOpenings,minimumMoves,conveyorStages:conveyor,portalStages:portal,windStages:wind});
 }
 if(!(table[0].averageMoves>table[1].averageMoves&&table[1].averageMoves>table[4].averageMoves))
  throw Error('The planned move-budget difficulty ramp has regressed');

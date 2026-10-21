@@ -38,7 +38,12 @@ const LESSONS=Object.freeze({
  125:{name:'Conveyor Initiation',kind:'collect',hint:'A conveyor rotates nuts after every second turn; blockers stay in place.'},
  126:{name:'Production Rotation',kind:'ice',hint:'Try a Row Rocket before the belt rearranges your nuts.'},
  164:{name:'Portal Puzzles',kind:'collect',hint:'Portal cells exchange nuts every three turns.'},
- 165:{name:'Through the Nut Gate',kind:'locks',hint:'Portals transport nuts; the chain locks stay attached to their cells.'}
+ 165:{name:'Through the Nut Gate',kind:'locks',hint:'Portals transport nuts; the chain locks stay attached to their cells.'},
+ 301:{name:'Windmill Welcome',kind:'collect',hint:'Wind tunnels move nuts vertically every second turn. Arrows show the next gust.'},
+ 302:{name:'The Returning Gale',kind:'ice',hint:'Wind reverses after each gust. Ice stays in place while nuts ride the air.'},
+ 320:{name:'The Crosswind Challenge',kind:'dual',hint:'A gust can set up a cascade or spoil your carefully planned matches.'},
+ 401:{name:'The Royal Tempest',kind:'collect',hint:'The Golden Palace has two wind lanes, gusting every turn.'},
+ 402:{name:'Two Winds, No Mercy',kind:'dual',hint:'Two reversing wind lanes combine with conveyors, portals and blockers.'}
 });
 const FORMATIONS=['scatter','row','column','cluster','cross'];
 function profile(level){

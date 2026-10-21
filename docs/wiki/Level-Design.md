@@ -25,3 +25,7 @@ Conveyors begin at level **125**; portals begin at **164**. A conveyor cycles nu
 ## Repeatable balancing evidence
 
 Every GitHub Actions test job uploads `Nutbuster-difficulty-audit-<run ID>` containing the full-campaign structural statistics and 400 seeded trials across the first 200 levels from a basic non-booster matching bot. **Bot victories are not human win rates**; a greedy algorithm can miss intended puzzle strategies. The report supports identifying suspicious level blocks before human testing. Keep changes to fair early levels evidence-based and reserve intentionally harsh multi-mechanic pressure for levels 201–500.
+
+## Autumn and Palace wind tunnels
+
+Autumn Windmill Vale (levels 301–400) adds one fixed vertical wind tunnel to each eligible stage, first taught at level 301. Every second player turn it cycles the existing nut types and special powers up or down within the same contiguous column segment. The direction reverses after every gust and is marked on the board before the turn. Moonlit Golden Palace (401–500) adds up to two lanes, gusting every turn. Wind does not move ice, locks, treasure chests, peanut butter, bombs, or the void mask. New matches after a gust resolve with the regular cascade animation. Level lessons 301/302/320/401/402 teach the escalation. All effect paths remain deterministic and test-gated.

@@ -74,8 +74,11 @@ function featureVisual(features,i){
  if(!features)return '';
  const belt=features.conveyors?.find(c=>c.indices.includes(i));
  const portal=features.portals?.find(c=>c.indices.includes(i));
+ const wind=features.wind?.find(c=>c.indices.includes(i));
+ const dir=wind?window.NutBoardFeatures.nextWindDirection(wind,state.game.turns):null;
  return (belt?`<span class="board-feature conveyor" aria-hidden="true">${belt.direction==='right'?'›':'‹'}</span>`:'')+
- (portal?'<span class="board-feature portal" aria-hidden="true">◎</span>':'');
+  (portal?'<span class="board-feature portal" aria-hidden="true">◎</span>':'')+
+ (wind?`<span class="board-feature wind" data-wind-direction="${dir}" aria-hidden="true">${dir==='up'?'↑':'↓'}</span>`:'');
 }
 function nutKey(c){return c.type+':'+(c.special||'');}
 function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.jam||0)+':'+(c.fuse||0);}
@@ -131,6 +134,16 @@ function paintStats(){if(state.page!=='game'||!state.game)return;const g=state.g
  if(score)score.textContent=g.score.toLocaleString();if(moves)moves.textContent=g.moves;
  if(objective)objective.textContent=objectiveDisplay(g);
  if(progress)progress.style.width=objectivePercent(g)+'%';
+ // Keep upcoming gust arrows current without rebuilding tiles or changing nuts.
+ for(const mark of screen.querySelectorAll('.board-feature.wind')){
+  const cell=mark.closest?.('[data-cell]');
+  const i=Number(cell?.dataset?.cell);
+  const lane=g.cfg.features.wind.find(l=>l.indices.includes(i));
+  if(!lane)continue;
+  const dir=window.NutBoardFeatures.nextWindDirection(lane,g.turns);
+  mark.textContent=dir==='up'?'↑':'↓';
+  mark.dataset.windDirection=dir;
+ }
 }
 function selectCell(i){const old=screen.querySelector('.cell.selected');if(old)old.classList.remove('selected');
  state.selected=i;if(i>=0)screen.querySelector(`[data-cell="${i}"]`)?.classList.add('selected');
