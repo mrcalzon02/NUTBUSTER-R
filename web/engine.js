@@ -41,8 +41,14 @@ function makeLevel(number){
  const mask=[]; for(let y=0;y<h;y++)for(let x=0;x<w;x++)mask.push(shape(n,x,y,w,h));
  const chapter=Math.floor((n-1)/100),past200=Math.max(0,n-200);
  // Difficulty grows progressively for 200 levels, then deliberately exceeds the normal ceiling.
- const moves=Math.max(9,32-Math.floor(n/12)-Math.floor(past200/39)+design.moveAdjustment);
- const goal=Math.round(700+18*n+Math.pow(past200/12,1.35)*55);
+ // Three chapter-one levels were outliers in the reproducible non-booster bot
+ // sample. Give them breathing room while human completion data is gathered.
+ const teachingGrace=(n===70||n===72||n===98)?3:0;
+ const moves=Math.max(9,32-Math.floor(n/12)-Math.floor(past200/39)+design.moveAdjustment+teachingGrace);
+ // Chapter 2 approaches the maximum *fair* target at level 200, rather than
+ // accidentally becoming easier after the Meadow's late lock/chest stages.
+ const factoryRamp=n>100&&n<=200?(n-101)/170:0;
+ const goal=Math.round((700+18*n+Math.pow(past200/12,1.35)*55)*(1+factoryRamp));
  const cfg={number:n,chapter:chapter+1,width:w,height:h,mask,moves,goal,
   ice:design.ice??(n>=3?Math.min(20,1+Math.floor(n/16)):0),
   locks:design.locks??(n>=28?Math.min(14,1+Math.floor((n-28)/24)):0),
@@ -62,8 +68,9 @@ function makeLevel(number){
  cfg.bombs=Math.min(cfg.bombs,Math.floor(usable*.12));
  // Level-book objectives replace the old modulo-ten wheel. Every target must be
  // physically satisfiable by its starting board, even without a purchased booster.
- const pressure=Math.floor((n-1)/55);
- const collect=Math.min(11,4+pressure+Math.floor((n%10)/4));
+ const factoryObjectiveRamp=n>100&&n<=200?Math.floor((n-101)/25):0;
+ const pressure=Math.floor((n-1)/55)+factoryObjectiveRamp;
+ const collect=Math.min(n<=100?11:15,4+pressure+Math.floor((n%10)/4));
  const build=(kind,target)=>{
   if(kind==='ice')return {kind:'ice',target:Math.max(1,Math.min(cfg.ice*2,target||Math.min(cfg.ice*2,2+pressure)))};
   if(kind==='locks')return {kind:'locks',target:Math.max(1,Math.min(cfg.locks,target||Math.min(cfg.locks,1+pressure)))};
