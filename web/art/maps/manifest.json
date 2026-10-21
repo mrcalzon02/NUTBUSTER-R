@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "base_dimensions": [
+    941,
+    1672
+  ],
+  "mode": "portrait-fullscreen-background",
+  "nodes": "programmatic",
+  "assets": [
+    {
+      "id": "overview",
+      "path": "art/maps/campaign-overview.webp",
+      "source_filename": "enchanted_path_to_the_moonlit_palace.png",
+      "source_sha256": "ae6c4ade012184a0174c2f2592d0e6c65150fcd837f75e1b1bb2d013116c822e",
+      "sha256": "68d48137f0ccfe2ac82adad3b7ae9a32b30ba1c476b83c90f2681303d75b5d63",
+      "bytes": 780106,
+      "width": 941,
+      "height": 1672,
+      "encoding": "WebP q93"
+    },
+    {
+      "id": "chapter1",
+      "path": "art/maps/chapter-1-nutwood-meadows.webp",
+      "source_filename": "whimsical_acorn_valley_adventure_map.png",
+      "source_sha256": "58c872c1123127320aff05df17e69f69f20f833e4cc5cb8aa3a472b51e72ecff",
+      "sha256": "2eda1c3cc0a0684ac15859d2d1e2b4f673b98126b34fd074674d9ec7e2846a9c",
+      "bytes": 650514,
+      "width": 941,
+      "height": 1672,
+      "encoding": "WebP q93"
+    },
+    {
+      "id": "chapter2",
+      "path": "art/maps/chapter-2-peanut-butter-factory.webp",
+      "source_filename": "whimsical_peanut_butter_factory_world.png",
+      "source_sha256": "e6699be90b0c3db4aa2d0989cb8e6a7011dc112ecf98460aa4276a83a3ce88fc",
+      "sha256": "6c00f141ddbde0e59a3bb068b0a65e5e89f69f27c412e0649768c962f1e1f3b1",
+      "bytes": 632316,
+      "width": 941,
+      "height": 1672,
+      "encoding": "WebP q93"
+    },
+    {
+      "id": "chapter3",
+      "path": "art/maps/chapter-3-squirrel-hoard-highlands.webp",
+      "source_filename": "snowy_squirrel_highlands_adventure_map.png",
+      "source_sha256": "7716b77cff280e424d07e3aaf3422563f80f88d1e19b0f884c3077107bb70807",
+      "sha256": "e8a38904dde0d4170b29b54d36549344ab1f3ce111155044b71929939f9be071",
+      "bytes": 677848,
+      "width": 941,
+      "height": 1672,
+      "encoding": "WebP q93"
+    },
+    {
+      "id": "chapter4",
+      "path": "art/maps/chapter-4-autumn-windmill-vale.webp",
+      "source_filename": "autumn_valley_windmill_adventure.png",
+      "source_sha256": "d605e4068492027133de09ec57f3f6ec453fd0e3e7b94a21082ba32eeca4c904",
+      "sha256": "aa857f5d78edede691eeae1ae08e9d86287819f9e497b7b9cdfde36a6da0600d",
+      "bytes": 716578,
+      "width": 941,
+      "height": 1672,
+      "encoding": "WebP q93"
+    },
+    {
+      "id": "chapter5",
+      "path": "art/maps/chapter-5-moonlit-golden-palace.webp",
+      "source_filename": "moonlit_palace_in_the_clouds.png",
+      "source_sha256": "129a07a3568b22af2dcd1d30137ca39470f8cd894648df72f4a5a73db3f1f35b",
+      "sha256": "a18dad39b4e071be4e6ed1b165b1a29d30eed99015e6d2992a447c7bc3912296",
+      "bytes": 685328,
+      "width": 941,
+      "height": 1672,
+      "encoding": "WebP q93"
+    }
+  ]
+}

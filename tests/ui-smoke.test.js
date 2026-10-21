@@ -5,7 +5,7 @@ const wallet={textContent:''},gems={textContent:''},toast={textContent:'',classL
 const elems={screen,wallet,gems,toast};
 const document={getElementById:id=>elems[id]||null,querySelectorAll:()=>[],querySelector:()=>null};
 let store={};const localStorage={getItem:key=>store[key],setItem:(key,val)=>{store[key]=val;}};
-const audioCalls=[],window={NutEngine:E,addEventListener:()=>{},NutAudio:{unlock:()=>audioCalls.push('unlock'),voice:(key)=>audioCalls.push('voice:'+key),grunt:()=>audioCalls.push('grunt'),setMusicEnabled:(v)=>audioCalls.push('music:'+v),setVoiceEnabled:(v)=>audioCalls.push('voice-enabled:'+v)}};
+const audioCalls=[],window={NutEngine:E,NutCampaignMaps:require('../web/campaign-maps.js'),addEventListener:()=>{},NutAudio:{unlock:()=>audioCalls.push('unlock'),voice:(key)=>audioCalls.push('voice:'+key),grunt:()=>audioCalls.push('grunt'),setMusicEnabled:(v)=>audioCalls.push('music:'+v),setVoiceEnabled:(v)=>audioCalls.push('voice-enabled:'+v)}};
 const context={window,document,localStorage,console,setTimeout:()=>1,clearTimeout:()=>{}};
 vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../web/game.js'),'utf8'),context);
 assert.match(html,/WELCOME TO NUTBUSTER/);window.NutbusterApp.start(1);
@@ -20,5 +20,5 @@ assert.equal(window.NutbusterApp.getSave().music,false);assert.ok(audioCalls.inc
 window.NutbusterApp.nav('rewards');assert.match(html,/I AM MY OWN FRIEND/);
 handlers.click({target:{closest:()=>({dataset:{action:'friend'}})}});
 assert.equal(window.NutbusterApp.getSave().coins,51250);
-window.NutbusterApp.nav('campaign');assert.equal((html.match(/data-level=/g)||[]).length,30);
+window.NutbusterApp.nav('campaign');assert.equal((html.match(/data-chapter=/g)||[]).length,5);
 console.log('PASS: home, level board, shop claim, free friend reward, level map menu smoke tests');

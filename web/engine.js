@@ -18,9 +18,17 @@ function shape(level,x,y,w,h){
  }
 }
 function makeLevel(number){
- const n=Math.max(1,Math.min(30,Math.trunc(number)||1));const w=8,h=9;
+ const n=Math.max(1,Math.min(500,Math.trunc(number)||1));const w=8,h=9;
  const mask=[]; for(let y=0;y<h;y++)for(let x=0;x<w;x++)mask.push(shape(n,x,y,w,h));
- return {number:n,width:w,height:h,mask,moves:Math.max(17,27-Math.floor(n/4)),goal:800+n*340,ice:n>=3?Math.min(11,1+Math.floor(n/3)):0,locks:n>=6?Math.min(7,Math.floor(n/5)):0,chests:n>=10?Math.min(4,Math.floor(n/9)):0,title:['Nut Grove','Peanut Butter Factory','Squirrel Hoard','Coconut Island','Golden Palace'][Math.floor((n-1)/6)]};
+ const chapter=Math.floor((n-1)/100),past200=Math.max(0,n-200);
+ // Difficulty grows progressively for 200 levels, then deliberately exceeds the normal ceiling.
+ const moves=Math.max(9,32-Math.floor(n/12)-Math.floor(past200/39));
+ const goal=Math.round(700+18*n+Math.pow(past200/12,1.35)*55);
+ return {number:n,chapter:chapter+1,width:w,height:h,mask,moves,goal,
+  ice:n>=3?Math.min(20,1+Math.floor(n/16)):0,
+  locks:n>=28?Math.min(14,1+Math.floor((n-28)/24)):0,
+  chests:n>=68?Math.min(10,1+Math.floor((n-68)/36)):0,
+  title:['Nutwood Meadows','Peanut Butter Factory','Squirrel Hoard Highlands','Autumn Windmill Vale','Moonlit Golden Palace'][chapter]};
 }
 function create(level=1,seed=level*7919){
  const cfg=makeLevel(level);let rand=rng(seed);const a=cfg.mask.map(v=>v?{type:0,ice:0,lock:0,chest:0,special:null}:null);

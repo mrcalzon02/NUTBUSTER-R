@@ -32,6 +32,8 @@ jobs:
           node tests/audio.test.js
           node tests/package.test.js
           node tests/update-contract.test.js
+          node tests/campaign-maps.test.js
+          node tests/campaign-ui.test.js
 
   desktop:
     needs: tests
@@ -114,6 +116,8 @@ jobs:
           unzip -Z -1 "$APK" | grep -Fx assets/game.js
           unzip -Z -1 "$APK" | grep -Fx assets/audio/grunt-1.mp3
           unzip -Z -1 "$APK" | grep -Fx assets/art/primary/nuts/peanut.png
+          unzip -Z -1 "$APK" | grep -Fx assets/art/maps/campaign-overview.webp
+          unzip -Z -1 "$APK" | grep -Fx assets/art/maps/chapter-5-moonlit-golden-palace.webp
           mkdir -p release
           cp "$APK" release/NUTBUSTER-Android-debug.apk
           sha256sum release/NUTBUSTER-Android-debug.apk > release/NUTBUSTER-Android-debug.sha256
@@ -252,6 +256,7 @@ jobs:
           "$SDK/aapt" dump badging "$APK" | tee "$RUNNER_TEMP/badging.txt"
           grep -F "package: name='io.github.mrcalzon02.nutbuster' versionCode='$CODE'" "$RUNNER_TEMP/badging.txt"
           unzip -Z -1 "$APK" | grep -Fx assets/audio/they-just-keep-coming.mp3
+          unzip -Z -1 "$APK" | grep -Fx assets/art/maps/chapter-1-nutwood-meadows.webp
           mkdir -p release/publish
           cp "$APK" release/publish/NUTBUSTER-Android-phone-test.apk
           sha256sum release/publish/NUTBUSTER-Android-phone-test.apk > release/publish/SHA256SUMS.txt
