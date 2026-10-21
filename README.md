@@ -27,6 +27,8 @@ Progress, avatar selection, homestead inventory, and earned prestige are stored 
 
 Later social profiles/prestige plates may use privacy-reviewed **read-only, self-contained share links** hosted by a static page rather than a player database. See `docs/wiki/Social-and-Prestige-Sharing.md`.
 
+**Post-1.0 only:** Google Play App Bundle publishing, a compliant Play-specific update channel, optional Play Games achievements and cloud saves, Facebook/social exports, and possible online homestead visiting are staged in [`docs/wiki/Post-1.0-Platform-Roadmap.md`](docs/wiki/Post-1.0-Platform-Roadmap.md). The existing consent-based GitHub updater, Android package/signing, and Windows/Linux release paths remain unchanged throughout 1.0 development; this plan does not authorize external SDKs or require player accounts.
+
 ## Audio library
 
 The owner-supplied [Drive Sounds / NUTBUSTER](https://drive.google.com/drive/folders/1IwvPgWwzabBliPODifPDdT61WqJhfmxu) folder has been imported as 15 voice/reaction clips plus one optimized MP3 music loop. The original full-resolution music remains in Drive; all runtime audio is local under `web/audio/`. Music and announcer audio use independent controls, and gameplay captions remain visible with sound off. `node tests/audio.test.js` validates 16 SHA-256 digests and simulated playback. See `docs/wiki/Audio-Pipeline.md`.
