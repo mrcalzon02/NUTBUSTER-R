@@ -233,3 +233,12 @@
  #app.playing .game-active .boosters .booster-icon{width:22px;height:22px;min-height:22px}
  #app.playing .game-active .board-wrap{height:min(calc(100dvh - 270px),calc(var(--board-vw) - 14px),var(--board-max-h))}
 }
+
+/* Reclaim the padding left behind by the former 68px navigation and protect notches. */
+.bottom{height:calc(48px + env(safe-area-inset-bottom))}
+#app.playing .bottom{height:calc(40px + env(safe-area-inset-bottom))}
+#app:not(.playing) #screen:not(.campaign-map-active){padding-bottom:calc(56px + env(safe-area-inset-bottom))}
+#screen.campaign-map-active{padding-bottom:calc(52px + env(safe-area-inset-bottom))}
+.map-viewport{height:calc(100dvh - 69px - 48px - 80px - env(safe-area-inset-bottom))}
+#toast{bottom:calc(62px + env(safe-area-inset-bottom))}
+#app.playing #toast{bottom:calc(54px + env(safe-area-inset-bottom))}
