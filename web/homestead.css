@@ -93,3 +93,33 @@
 .homestead-tier-hint{display:block;color:#e8c3a0;font-size:10px;margin-top:4px;text-align:center}
 @media(max-width:400px){.homestead-house-art{flex-basis:98px}.homestead-house-art img{height:102px}.homestead-house{min-height:108px}.homestead-preview{min-height:160px}.homestead-preview img{max-height:174px}.homestead-residence-actions .btn{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.homestead-tier-progress span{transition:none}}
+
+/* Five modular 1–5 rank renovations per house; 40 houses = 1,000 optional upgrades. */
+.homestead-renovations{border-top:1px solid #866953;margin-top:9px;padding-top:7px}
+.homestead-renovations h3{font-size:12px;margin:0 0 6px;color:#ffe0a5;letter-spacing:.03em}
+.homestead-renovation-row{display:grid;grid-template-columns:minmax(0,1fr) 56px minmax(95px,auto);align-items:center;column-gap:5px;min-height:41px;padding:3px 0;border-bottom:1px solid #70566055}
+.homestead-renovation-row:last-child{border-bottom:0}
+.homestead-renovation-name{font-size:11px;font-weight:750;color:#ffe6c0;min-width:0}
+.homestead-renovation-pips{display:flex;gap:3px;align-items:center;justify-content:center}
+.homestead-renovation-pips i{display:block;width:8px;height:8px;background:#48394b;border:1px solid #937e6b;border-radius:50%}
+.homestead-renovation-pips i.done{background:#ffda74;border-color:#f9eaad;box-shadow:0 0 5px #eebd65a8}
+.homestead-renovation-row .btn{padding:5px 7px;min-height:33px;font-size:10px;justify-self:end;white-space:nowrap}
+.homestead-renovation-row small{font-size:10px;font-weight:800;color:#f6d88b;justify-self:end}
+.homestead-renovation-locked{font-size:11px;color:#f3c6a7;display:block;padding:7px 0}
+.homestead-flair{position:absolute;inset:0;pointer-events:none}
+.homestead-preview .homestead-flair{z-index:1}
+.homestead-flair span{position:absolute;display:inline-flex;align-items:center;gap:2px;justify-content:center;min-width:23px;min-height:22px;border-radius:20px;padding:1px 4px;font-size:clamp(15px,3vw,21px);background:linear-gradient(120deg,#f5d081d8,#75482ab8);border:1px solid #ffe4a6;box-shadow:0 2px 8px #1b271c88}
+.homestead-flair sup{font-size:9px;color:#271929;font-weight:950;line-height:1}
+.homestead-flair-roof{top:7px;left:calc(50% - 20px)}
+.homestead-flair-porch{bottom:9px;left:calc(50% - 20px)}
+.homestead-flair-windows{top:27%;right:5%}
+.homestead-flair-garden{bottom:20%;left:4%}
+.homestead-flair-heraldry{top:20%;left:3%}
+.homestead-flair .rank-4,.homestead-flair .rank-5{background:linear-gradient(130deg,#ffedbd,#dda33e);box-shadow:0 2px 9px #e5b648}
+.homestead-house-art{position:relative}
+.homestead-flair-yard span{font-size:11px;min-width:15px;min-height:15px;padding:0 2px}
+.homestead-flair-yard sup{font-size:7px}
+.homestead-flair-yard .homestead-flair-roof{top:0;left:50%}
+.homestead-flair-yard .homestead-flair-porch{bottom:0;left:50%}
+@media(max-width:380px){.homestead-renovation-row{grid-template-columns:minmax(0,1fr) 53px minmax(82px,auto)}.homestead-renovation-row .btn{font-size:9px;padding:4px}.homestead-renovation-name{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.homestead-flair *{animation:none!important}}
