@@ -39,7 +39,7 @@ function campaign(){
  const buttons=points.map(p=>{
   const stars=saved.stars[p.level]||0,open=p.level<=saved.unlocked;
   const status=stars?'complete':p.level===currentLevel?'current':open?'open':'future';
-  return `<button class="map-node ${status} ${p.milestone?'milestone':''}" style="left:${(p.x*100).toFixed(3)}%;top:${(p.y*100).toFixed(3)}%" data-action="play" data-level="${p.level}" ${p.level===currentLevel?'data-current="true"':''} aria-label="${p.title}; ${stars?'completed '+stars+' stars':open?'available':'play early for free'}" title="${p.title} · ${stars?'★'.repeat(stars):'Play free'}">${p.milestone?p.level:p.local}</button>`;
+  return `<button class="map-node ${status} ${p.kind} ${p.milestone?'milestone':''}" style="left:${(p.x*100).toFixed(3)}%;top:${(p.y*100).toFixed(3)}%" data-action="play" data-level="${p.level}" ${p.level===currentLevel?'data-current="true"':''} aria-label="${p.title}; ${stars?'completed '+stars+' stars':open?'available':'play early for free'}" title="${p.title} · ${stars?'★'.repeat(stars):'Play free'}">${p.milestone?p.level:p.local}</button>`;
  }).join('');
  return `<div class="map-titlebar"><button class="btn ghost" data-action="world-map">← REGIONS</button><h2>${chapter.name} · ${chapter.start}–${chapter.end}</h2><div class="map-zoom"><button class="btn ghost" data-action="map-zoom" data-zoom="-.2" aria-label="Zoom map out">−</button><button class="btn ghost" data-action="map-zoom" data-zoom=".2" aria-label="Zoom map in">＋</button></div></div>
  <div class="map-viewport" data-map-scroll><div class="map-canvas" style="--map-w:${Math.round(M.WIDTH*state.mapZoom)}px;--map-h:${Math.round(M.HEIGHT*state.mapZoom)}px">

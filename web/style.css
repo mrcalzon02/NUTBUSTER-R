@@ -30,3 +30,13 @@
 @media(max-width:400px){.map-titlebar h2{font-size:12px}.map-titlebar .btn{font-size:10px;padding:5px}}
 
 .map-zoom{display:flex;gap:4px}.map-zoom button{min-width:28px}
+
+/* Icon badges are independent overlays, never part of the painted background. */
+.map-node:is(.challenge,.treasure,.booster,.finale,.hard){z-index:2}
+.map-node:is(.challenge,.treasure,.booster,.finale,.hard)::after{content:"";position:absolute;right:-12px;top:-11px;width:16px;height:16px;background-size:contain;background-position:center;background-repeat:no-repeat;filter:drop-shadow(0 1px 2px #271425)}
+.map-node.challenge::after{background-image:url("art/additions/ui/trophy.png")}
+.map-node.treasure::after{background-image:url("art/additions/economy/locked-chest.png")}
+.map-node.booster::after{background-image:url("art/additions/economy/booster-pack.png")}
+.map-node.hard::after{background-image:url("art/additions/ui/trophy.png")}
+.map-node.finale{border-color:#f6f39c;background:linear-gradient(#f8ee97,#b76b2c)}
+.map-node.finale::after{background-image:url("art/additions/ui/vip-crown.png")}

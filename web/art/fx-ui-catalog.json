@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "role": "current-use icon and FX routing registry",
+  "primary_art": "art/primary",
+  "derived_icon_manifest": "art/additions/manifest.json",
+  "icons": {
+    "chapter-map": "art/additions/ui/campaign-map.png",
+    "settings": "art/additions/ui/settings.png",
+    "treasure": "art/additions/economy/locked-chest.png",
+    "booster": "art/additions/economy/booster-pack.png",
+    "finale": "art/additions/ui/vip-crown.png",
+    "hard": "art/additions/ui/trophy.png",
+    "life": "art/additions/economy/energy-heart.png",
+    "daily": "art/additions/economy/daily-calendar.png",
+    "premium": "art/additions/economy/premium-ticket.png",
+    "burst": "art/additions/effects/match-burst.png",
+    "shell-crack": "art/additions/effects/shell-fragments.png",
+    "ice-shatter": "art/additions/effects/ice-shatter.png",
+    "chain-break": "art/additions/effects/chain-break.png",
+    "supernova": "art/additions/effects/shell-supernova.png",
+    "rainbow": "art/additions/effects/rainbow-pulse.png",
+    "chest-open": "art/additions/effects/chest-pop.png",
+    "coin-shower": "art/additions/effects/coin-shower.png"
+  },
+  "upcoming_batches": [
+    "moment-to-moment",
+    "power-up",
+    "economy",
+    "map-ui"
+  ],
+  "notes": "Independent animation atlases to be generated and committed under a future revision; existing sprites listed here are already available."
+}

@@ -33,6 +33,7 @@ jobs:
           node tests/package.test.js
           node tests/update-contract.test.js
           node tests/campaign-maps.test.js
+          node tests/asset-catalog.test.js
           node tests/campaign-ui.test.js
 
   desktop:

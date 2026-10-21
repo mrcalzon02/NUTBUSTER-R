@@ -8,6 +8,10 @@ for(const c of M.CHAPTERS){
  assert.equal(c.start,(c.id-1)*100+1);
  const positions=M.nodes(c.id);
  assert.equal(positions.length,100);
+ assert.equal(positions.filter(p=>p.kind==='finale').length,1);
+ assert.ok(positions.some(p=>p.kind==='challenge'));
+ assert.ok(positions.some(p=>p.kind==='treasure'));
+ assert.ok(positions.some(p=>p.kind==='booster'));
  assert.equal(positions[0].level,c.start);
  assert.equal(positions[99].level,c.end);
  const bg=path.join(__dirname,'../web',c.image);
