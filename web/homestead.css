@@ -123,3 +123,31 @@
 .homestead-flair-yard .homestead-flair-porch{bottom:0;left:50%}
 @media(max-width:380px){.homestead-renovation-row{grid-template-columns:minmax(0,1fr) 53px minmax(82px,auto)}.homestead-renovation-row .btn{font-size:9px;padding:4px}.homestead-renovation-name{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.homestead-flair *{animation:none!important}}
+
+/* Human avatar wardrobe — painted WebP costumes, compact scrolls and non-squirrel fallback. */
+.nutvale-avatar-showcase{display:flex;align-items:center;gap:10px;padding:7px;border:1px solid #95765c;background:linear-gradient(125deg,#675b56,#393140);border-radius:10px;margin-bottom:7px;min-width:0}
+.nutvale-avatar-portrait{height:148px;width:118px;flex:0 0 118px;position:relative;display:grid;place-items:center;border-radius:9px;background:radial-gradient(circle at 50% 40%,#f7e9c5,#b6b08f);overflow:hidden;color:#6f452a;font-size:44px}
+.nutvale-avatar-portrait img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.nutvale-avatar-status{min-width:0}
+.nutvale-avatar-status b{color:#ffdcaa;font-size:15px;display:block}
+.nutvale-avatar-status small{display:block;color:#e5ccb1;font-size:10px;margin-top:5px;line-height:1.35}
+.nutvale-avatar-subtitle{color:#f1d8a8;font-size:12px;margin:6px 0 4px}
+.nutvale-outfit-list{display:grid;grid-auto-flow:column;grid-auto-columns:103px;gap:6px;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;padding:2px 2px 7px}
+.nutvale-outfit{display:flex;flex-direction:column;align-items:center;justify-content:start;gap:2px;min-height:148px;max-width:103px;padding:4px;border-radius:9px;background:#533d4d;border:1px solid #9b795e;color:#fbe8c9;text-align:center}
+.nutvale-outfit-thumb{display:grid;place-items:center;position:relative;width:92px;height:99px;background:radial-gradient(circle,#f7ebc7,#ab987a);border-radius:7px;overflow:hidden;font-size:27px}
+.nutvale-outfit-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.nutvale-outfit b{font-size:10px;line-height:1.15;max-width:100%;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.nutvale-outfit small{font-size:9px;color:#e9d2b5;line-height:1.2}
+.nutvale-outfit.locked{opacity:.5;filter:grayscale(.75)}
+.nutvale-outfit.selected{background:#8a603d;border:2px solid #ffe39a}
+.nutvale-outfit:focus-visible,.nutvale-legacy-title:focus-visible{outline:3px solid #99edff;outline-offset:1px}
+.nutvale-avatar-titles{border-top:1px solid #785e59;padding-top:7px;margin-top:8px}
+.nutvale-avatar-titles>small{display:block;color:#dbc6ad;font-size:10px;margin-bottom:4px}
+.nutvale-legacy-title{display:flex;flex:0 0 104px;flex-direction:column;justify-content:center;min-height:43px;background:#4f3a4d;border:1px solid #96785c;border-radius:8px;padding:5px;color:#ffe7c2;font-size:10px;text-align:center}
+.nutvale-legacy-title small{display:block;font-size:9px;color:#d8c3b1}
+.nutvale-legacy-title.selected{background:#79573c;border-color:#ffe09d}
+.nutvale-legacy-title.locked{opacity:.46}
+.nutvale-estate-avatar{height:92px;max-width:76px;min-width:57px;flex:0 1 76px;display:grid;place-items:center;position:relative;overflow:hidden;border-radius:8px;background:#eccd999e;font-size:27px}
+.nutvale-estate-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+@media(max-width:400px){.nutvale-avatar-portrait{height:120px;width:88px;flex-basis:88px}.nutvale-outfit-list{grid-auto-columns:94px}.nutvale-outfit-thumb{width:83px;height:92px}.nutvale-estate-avatar{height:77px;min-width:46px;max-width:56px}}
+@media(prefers-reduced-motion:reduce){.nutvale-outfit,.nutvale-avatar-showcase{transition:none!important}}
