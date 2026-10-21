@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const H=require('../web/homestead.js');
 const save={unlocked:500,stars:{1:3,5:2,10:3,25:1,100:2},coins:250,gems:25,boosterInventory:{hammer:3}};
 H.ensure(save);
-assert.equal(H.DECOR.length,57);assert.equal(H.AVATARS.length,8);assert.equal(H.ACHIEVEMENTS.length,15);
+assert.equal(H.DECOR.length,57);assert.equal(H.AVATARS.length,8);assert.equal(H.ACHIEVEMENTS.length,19);
 assert.equal(H.stats(save).wins,5,'Unlocked level alone must not count');
 assert.equal(H.stats(save).stars,11);
 assert.equal(H.owned(save,'acorn'),true);assert.equal(H.owned(save,'final-monument'),false);
