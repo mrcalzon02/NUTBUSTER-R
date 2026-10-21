@@ -1,7 +1,7 @@
 /* Fixed board infrastructure: move nut identities and specials, not blockers or holes. */
 (function(root){'use strict';
 function make(level,mask,width,height){
- const conveyors=[],portals=[],n=Math.trunc(level);
+ const conveyors=[],portals=[],wind=[],n=Math.trunc(level);
  if(n>=125&&(n>=201||n===125||n===126||n%3!==0)){
   const runs=[];
   for(let y=0;y<height;y++){
@@ -30,7 +30,45 @@ function make(level,mask,width,height){
   }
   if(pair)portals.push({indices:pair,every:n>=301?2:3});
  }
- return {conveyors,portals};
+ // Autumn Windmill Vale introduces reversing vertical gust lanes. They cycle
+ // EXISTING nut identities, never moving blockers, cells, or hazards.
+ if(n>=301){
+  const lanes=[];
+  for(let x=0;x<width;x++){
+   let start=-1;
+   for(let y=0;y<=height;y++){
+    const active=y<height&&mask[y*width+x];
+    if(active&&start<0)start=y;
+    if(!active&&start>=0){
+     if(y-start>=3){
+      const indices=Array.from({length:y-start},(_,i)=>(start+i)*width+x);
+      const center=Math.abs(x-(width-1)/2);
+      lanes.push({indices,priority:indices.length*100-center*10});
+     }
+     start=-1;
+    }
+   }
+  }
+  lanes.sort((a,b)=>b.priority-a.priority||a.indices[0]-b.indices[0]);
+  const pickedColumns=new Set(),count=n>=401?2:1;
+  for(const candidate of lanes){
+   if(wind.length>=count)break;
+   const column=candidate.indices[0]%width;
+   if(pickedColumns.has(column))continue;
+   pickedColumns.add(column);
+   wind.push({indices:candidate.indices,every:n>=401?1:2});
+  }
+ }
+ return {conveyors,portals,wind};
+}
+// Wind direction changes after each gust, not randomly on each render.
+function windDirection(lane,turn){
+ const cycle=Math.floor(turn/lane.every);
+ return cycle%2?'up':'down';
+}
+function nextWindDirection(lane,currentTurn){
+ const next=(Math.floor(currentTurn/lane.every)+1)*lane.every;
+ return windDirection(lane,next);
 }
 function advance(g,turn,snapshot){
  const features=g.cfg.features||{},stages=[];
@@ -51,9 +89,17 @@ function advance(g,turn,snapshot){
   const [a,b]=portal.indices;
   apply('portal',[move(a,b),move(b,a)]);
  }
+ for(const lane of features.wind||[]){
+  if(turn%lane.every)continue;
+  const ids=lane.indices,dir=windDirection(lane,turn);
+  // Vertical wrap is intentional: the gust is an enclosed rotating wind tunnel.
+  apply('wind',ids.map((from,i)=>move(from,ids[
+   dir==='down'?(i+1)%ids.length:(i+ids.length-1)%ids.length
+  ])));
+ }
  return stages;
 }
-const api={make,advance};
+const api={make,advance,windDirection,nextWindDirection};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutBoardFeatures=api;
 })(typeof window!=='undefined'?window:globalThis);
