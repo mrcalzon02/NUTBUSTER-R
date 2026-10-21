@@ -137,7 +137,7 @@ function ensure(save){
  const built={cottage:true};
  for(const house of HOUSES.slice(1))if(h.houses[house.id]===true&&cleared(save,house.level))built[house.id]=true;
  h.houses=built;
- if(!houses[h.house]||!h.houses[h.house])h.house='cottage';
+ if(!Object.prototype.hasOwnProperty.call(houses,h.house)||h.houses[h.house]!==true)h.house='cottage';
  if(!pets[h.pet]||!petOwned(save,h.pet))h.pet='squirrel';
  const prior=h.placed;h.placed={};const used=new Set();
  for(let i=0;i<TOTAL_PLOTS;i++){
@@ -195,17 +195,18 @@ function buildHouse(save,id){
  ensure(save);const house=houses[id];
  if(!Object.prototype.hasOwnProperty.call(houses,id)||!house)return {valid:false,reason:'unknown'};
  if(!cleared(save,house.level))return {valid:false,reason:'level',level:house.level};
- if(!save.homestead.houses[id]){
+ const newlyBuilt=save.homestead.houses[id]!==true;
+ if(newlyBuilt){
   const balance=num(save.coins);
   if(balance<house.cost)return {valid:false,reason:'coins',short:house.cost-balance};
   save.coins=balance-house.cost;save.homestead.houses[id]=true;
  }
- save.homestead.house=id;return {valid:true,spent:house.cost};
+ save.homestead.house=id;return {valid:true,spent:newlyBuilt?house.cost:0};
 }
 function prestigePlate(save){
  const status=stats(save),h=save.homestead||{};
  const avatar=avatars[h.avatar]&&avatarOwned(save,h.avatar)?avatars[h.avatar]:AVATARS[0];
- const house=houses[h.house]&&h.houses?.[h.house]===true?houses[h.house]:HOUSES[0];
+ const house=Object.prototype.hasOwnProperty.call(houses,h.house)&&h.houses?.[h.house]===true?houses[h.house]:HOUSES[0];
  const pet=pets[h.pet]&&petOwned(save,h.pet)?pets[h.pet]:PETS[0];
  return [
   '🏡 NUTVALE HOMESTEAD · NUTBUSTER',
