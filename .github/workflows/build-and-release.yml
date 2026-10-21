@@ -30,6 +30,7 @@ jobs:
           node tests/engine.test.js
           node tests/booster-objectives.test.js
           node tests/level-design.test.js
+          node tests/special-combos.test.js
           node tests/progression.test.js
           node tests/ui-smoke.test.js
           node tests/audio.test.js
