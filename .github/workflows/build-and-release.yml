@@ -34,6 +34,7 @@ jobs:
           node tests/hazards.test.js
           node tests/board-features.test.js
           node tools/difficulty-audit.js > "$RUNNER_TEMP/nutbuster-difficulty-audit.json"
+          node tools/greedy-playtest.js > "$RUNNER_TEMP/nutbuster-greedy-playtest.json"
           node tests/progression.test.js
           node tests/ui-smoke.test.js
           node tests/audio.test.js
@@ -43,6 +44,17 @@ jobs:
           node tests/asset-catalog.test.js
           node tests/fx.test.js
           node tests/campaign-ui.test.js
+
+      - name: Retain structural and automated player-proxy reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nutbuster-difficulty-audit-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/nutbuster-difficulty-audit.json
+            ${{ runner.temp }}/nutbuster-greedy-playtest.json
+          retention-days: 30
+          if-no-files-found: ignore
 
   desktop:
     needs: tests
