@@ -2,6 +2,8 @@
 (function(root){
 'use strict';
 const TYPES=['peanut','walnut','almond','cashew','hazelnut','pistachio'];
+const DESIGN=typeof module!=='undefined'&&module.exports?require('./level-design.js'):root.NutLevelDesign;
+if(!DESIGN)throw new Error('NUTBUSTER level book must load before match-three engine');
 const BOOSTERS=['hammer','row','column','cross','blast','color','shuffle','extra','drill','unlock'];
 const BOOSTER_META=Object.freeze({
  hammer:{label:'Hammer',targeted:true,tip:'Break every layer of one stubborn cell'},
@@ -31,33 +33,36 @@ function shape(level,x,y,w,h){
  }
 }
 function makeLevel(number){
- const n=Math.max(1,Math.min(500,Math.trunc(number)||1));
+ const n=Math.max(1,Math.min(500,Math.trunc(number)||1)),design=DESIGN.profile(n);
  // 8x9 is the late-game maximum, not the beginner board.
  const w=n<=10?4:n<=30?5:n<=70?6:n<=140?7:8, h=w+1;
  const mask=[]; for(let y=0;y<h;y++)for(let x=0;x<w;x++)mask.push(shape(n,x,y,w,h));
  const chapter=Math.floor((n-1)/100),past200=Math.max(0,n-200);
  // Difficulty grows progressively for 200 levels, then deliberately exceeds the normal ceiling.
- const moves=Math.max(9,32-Math.floor(n/12)-Math.floor(past200/39));
+ const moves=Math.max(9,32-Math.floor(n/12)-Math.floor(past200/39)+design.moveAdjustment);
  const goal=Math.round(700+18*n+Math.pow(past200/12,1.35)*55);
  const cfg={number:n,chapter:chapter+1,width:w,height:h,mask,moves,goal,
-  ice:n>=3?Math.min(20,1+Math.floor(n/16)):0,
-  locks:n>=28?Math.min(14,1+Math.floor((n-28)/24)):0,
-  chests:n>=68?Math.min(10,1+Math.floor((n-68)/36)):0,
-  title:['Nutwood Meadows','Peanut Butter Factory','Squirrel Hoard Highlands','Autumn Windmill Vale','Moonlit Golden Palace'][chapter]};
- const tier=Math.floor(n/55),slot=n%10;
- // Each objective must have a different tactical solution. Layer targets count
- // individual breaks, not cells removed. Multi-target finales appear after level 80.
- let primary={kind:'score',target:goal};
- if(n>5&&slot<=2&&cfg.ice)primary={kind:'ice',target:Math.min(cfg.ice*2,2+tier)};
- else if(n>=28&&slot<=4&&cfg.locks)primary={kind:'locks',target:Math.min(cfg.locks,1+tier)};
- else if(n>=68&&slot<=5&&cfg.chests)primary={kind:'chests',target:Math.min(cfg.chests*2,2+tier)};
- else if(n>12&&slot<=8)primary={kind:'collect',color:n%TYPES.length,target:Math.min(11,4+tier)};
- cfg.objectives=[primary];
- if(n>=80&&slot===9){
-  const blocker=cfg.chests?{kind:'chests',target:Math.min(3+tier,cfg.chests*2)}:
-   cfg.locks?{kind:'locks',target:Math.min(2+tier,cfg.locks)}:{kind:'ice',target:Math.min(3+tier,cfg.ice*2)};
-  cfg.objectives=[{kind:'collect',color:n%TYPES.length,target:Math.min(8,3+tier)},blocker];
- }
+  ice:design.ice??(n>=3?Math.min(20,1+Math.floor(n/16)):0),
+  locks:design.locks??(n>=28?Math.min(14,1+Math.floor((n-28)/24)):0),
+  chests:design.chests??(n>=68?Math.min(10,1+Math.floor((n-68)/36)):0),
+  title:DESIGN.CHAPTERS[chapter],stageTitle:design.name,hint:design.hint,design};
+ // Level-book objectives replace the old modulo-ten wheel. Every target must be
+ // physically satisfiable by its starting board, even without a purchased booster.
+ const pressure=Math.floor((n-1)/55);
+ const collect=Math.min(11,4+pressure+Math.floor((n%10)/4));
+ const build=(kind,target)=>{
+  if(kind==='ice')return {kind:'ice',target:Math.max(1,Math.min(cfg.ice*2,target||Math.min(cfg.ice*2,2+pressure)))};
+  if(kind==='locks')return {kind:'locks',target:Math.max(1,Math.min(cfg.locks,target||Math.min(cfg.locks,1+pressure)))};
+  if(kind==='chests')return {kind:'chests',target:Math.max(1,Math.min(cfg.chests*2,target||Math.min(cfg.chests*2,2+pressure)))};
+  if(kind==='collect')return {kind:'collect',color:n%TYPES.length,target:target||collect};
+  return {kind:'score',target:goal};
+ };
+ const available=(kind)=>kind==='ice'?cfg.ice>0:kind==='locks'?cfg.locks>0:kind==='chests'?cfg.chests>0:true;
+ const kind=design.kind==='dual'?'dual':available(design.kind)?design.kind:'score';
+ if(kind==='dual'){
+  const blocker=cfg.locks?'locks':cfg.chests?'chests':'ice';
+  cfg.objectives=[build('collect',Math.min(9,collect)),build(blocker,design.objectiveTarget||null)];
+ }else cfg.objectives=[build(kind,design.objectiveTarget)];
  return cfg;
 }
 function create(level=1,seed=level*7919){
@@ -67,7 +72,27 @@ function create(level=1,seed=level*7919){
   const i=y*cfg.width+x;if(!a[i])continue;let opts=TYPES.map((_,i)=>i).filter(t=>!(x>=2&&a[i-1]&&a[i-2]&&a[i-1].type===t&&a[i-2].type===t)&&!(y>=2&&a[i-cfg.width]&&a[i-2*cfg.width]&&a[i-cfg.width].type===t&&a[i-2*cfg.width].type===t));a[i].type=opts[Math.floor(rand()*opts.length)];
  }
  const candidates=a.map((v,i)=>v?i:-1).filter(i=>i>=0);
- function plant(count,key){for(let t=0;t<count;t++){let free=candidates.filter(i=>a[i]&&a[i].ice===0&&a[i].lock===0&&a[i].chest===0);if(!free.length)break;a[free[Math.floor(rand()*free.length)]][key]=key==='chest'?2:key==='ice'?2:1;}}
+ function plant(count,key){
+  for(let t=0;t<count;t++){
+   const free=candidates.filter(i=>a[i]&&a[i].ice===0&&a[i].lock===0&&a[i].chest===0);
+   if(!free.length)break;
+   // Dedicated lesson layouts visibly demonstrate line/column/cross/area tools.
+   // The rest of the campaign keeps seeded random distribution.
+   let chosen=free[Math.floor(rand()*free.length)];
+   if(cfg.design.lesson&&cfg.design.formation!=='scatter'){
+    const cy=Math.floor(cfg.height/2),cx=Math.floor(cfg.width/2);
+    const priority=i=>{
+     const x=i%cfg.width,y=Math.floor(i/cfg.width),dx=Math.abs(x-cx),dy=Math.abs(y-cy);
+     if(cfg.design.formation==='row')return dy*20+dx;
+     if(cfg.design.formation==='column')return dx*20+dy;
+     if(cfg.design.formation==='cross')return Math.min(dx,dy)*20+dx+dy;
+     return (dx+dy)*20+dx*2+dy;
+    };
+    chosen=free.sort((a,b)=>priority(a)-priority(b)||a-b)[0];
+   }
+   a[chosen][key]=key==='chest'?2:key==='ice'?2:1;
+  }
+ }
  plant(cfg.ice,'ice');plant(cfg.locks,'lock');plant(cfg.chests,'chest');
  if(!hasMove(g))shuffle(g);return g;
 }
