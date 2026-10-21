@@ -6,11 +6,12 @@
 
 **Platform:** Android API 26 minimum, API 36 target (ReverieVR compatibility), same game built for desktop browser/Electron.
 
-**Pages:** [[Build-and-APK]] | [[Assets-and-Board-Rules]] | [[Level-Design]] | [[Test-Gates]] | [[Anti-Monetization]] | [[Audio-Pipeline]]
+**Pages:** [[Build-and-APK]] | [[Assets-and-Board-Rules]] | [[Level-Design]] | [[Test-Gates]] | [[Anti-Monetization]] | [[Audio-Pipeline]] | [[Nutvale-Homestead]]
 
 ## Starting status
 
 - Game core plus working menu/store/rewards UI added.
+- Nutvale Homestead added: 12-place estate with avatar wardrobe, earned collectibles, score records, trophy cabinet, premium cosmetic parody order, and local save migration.
 - Android native wrapper added, not yet device-built.
 - Desktop browser/Electron launch described, not yet packaged installer.
 - All 16 Nutbuster MP3 clips from Google Drive are included as local packaged audio and are cataloged by source ID and SHA-256. Music/announcer controls work independently.
