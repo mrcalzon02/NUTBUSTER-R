@@ -66,9 +66,12 @@ function piece(type){if(type===null||type===undefined)return '';const name=E.TYP
  return `<img class="piece" src="art/primary/nuts/${name}.png" alt="" draggable="false" onload="this.classList.add('loaded')" onerror="this.style.display='none';this.nextElementSibling.style.visibility='visible'"><span class="fallback" aria-hidden="true">${icons[type]}</span>`;
 }
 function nutVisual(c){return `<span class="nut-visual">${piece(c.type)}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}</span>`;}
-function blockerVisual(c){return c.ice?`<span class="overlay ice">❄${c.ice>1?'²':''}</span>`:c.lock?'<span class="overlay chain">🔒</span>':c.chest?'<span class="overlay chest">📦</span>':'';}
+function blockerVisual(c){
+ const layer=c.ice?`<span class="overlay ice">❄${c.ice>1?'²':''}</span>`:c.lock?'<span class="overlay chain">🔒</span>':c.chest?'<span class="overlay chest">📦</span>':'';
+ return layer+(c.jam?'<span class="hazard jam" aria-label="Sticky peanut butter">🍯</span>':'')+(c.fuse?`<span class="hazard fuse" aria-label="Timed acorn, ${c.fuse} moves">💣${c.fuse}</span>`:'');
+}
 function nutKey(c){return c.type+':'+(c.special||'');}
-function blockKey(c){return c.ice+':'+c.lock+':'+c.chest;}
+function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.jam||0)+':'+(c.fuse||0);}
 function cellMarkup(c,i,w){if(!c)return '<div class="cell void" aria-hidden="true"></div>';
  return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${E.TYPES[c.type]} row ${Math.floor(i/w)+1} column ${i%w+1}">${nutVisual(c)}${blockerVisual(c)}</button>`;
 }
@@ -112,7 +115,7 @@ function paintCells(cells){
   const el=board.querySelector(`[data-cell="${i}"]`);if(!el)continue;
   const nk=nutKey(c),bk=blockKey(c);
   if(el.dataset.nutKey!==nk){const vis=el.querySelector('.nut-visual');if(vis)vis.outerHTML=nutVisual(c);el.dataset.nutKey=nk;}
-  if(el.dataset.blockKey!==bk){el.querySelectorAll('.overlay').forEach(node=>node.remove());el.insertAdjacentHTML('beforeend',blockerVisual(c));el.dataset.blockKey=bk;}
+  if(el.dataset.blockKey!==bk){el.querySelectorAll('.overlay, .hazard').forEach(node=>node.remove());el.insertAdjacentHTML('beforeend',blockerVisual(c));el.dataset.blockKey=bk;}
   el.setAttribute('aria-label',`${c.type===null?'empty':E.TYPES[c.type]} row ${Math.floor(i/g.cfg.width)+1} column ${i%g.cfg.width+1}`);
  }
 }
@@ -143,7 +146,7 @@ async function swapAnimation(pair,epoch){
 }
 async function cascadeAnimation(stage,epoch){
  if(state.page!=='game'||epoch!==state.epoch)return;
- if(stage.kind==='repair'){paintCells(stage.cells);return;}
+ if(stage.kind==='repair'||stage.kind==='hazard'){paintCells(stage.cells);return;}
  const board=screen.querySelector('.board');if(!board)return;
  stage.clear.forEach(i=>board.querySelector(`[data-cell="${i}"]`)?.classList.add('clearing'));
  if(!reducedMotion())await sleep(190);
@@ -239,6 +242,7 @@ function start(n){state.epoch++;state.animating=false;
  state.announcer='PREPARE TO BUST SOME NUTS!';render();window.NutAudio?.voice('nutbuster-soft');
 }
 function concludeMove(result){
+ if(result.hazards?.expired?.length)notice('TIMED ACORN DETONATED · 2 MOVES LOST PER ACORN');
  if(result.won){const g=state.game,stars=g.moves>10?3:g.moves>3?2:1;
   const firstTime=!saved.stars[g.level];
   saved.stars[g.level]=Math.max(stars,saved.stars[g.level]||0);saved.unlocked=Math.max(saved.unlocked,Math.min(500,g.level+1));saved.completed++;
