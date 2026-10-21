@@ -33,6 +33,16 @@ const HOUSE_TIERS=Object.freeze(TIER_NAMES.map((name,index)=>{
  return Object.freeze({tier,name,level:tier===1?0:tier===40?500:Math.round((tier-1)*500/40),cost:tier===1?0:Math.round((400+140*tier)/50)*50,art:'art/homestead/tier-'+String(tier).padStart(2,'0')+'.webp'});
 }));
 const LEGACY_TIER=Object.freeze({cottage:1,lodge:3,manor:9,estate:21,palace:33});
+const RENOVATION_STEPS=5;
+const RENOVATIONS=Object.freeze([
+ {id:'roof',name:'Roofcraft',icon:'🏠',detail:'Trim, finials and gilded roof fittings'},
+ {id:'porch',name:'Porchworks',icon:'🏛️',detail:'Steps, entrance and stonework'},
+ {id:'windows',name:'Windowlight',icon:'✨',detail:'Lanterns and glowing stained glass'},
+ {id:'garden',name:'Garden Splendor',icon:'🌷',detail:'Flower beds, planters and ivy'},
+ {id:'heraldry',name:'Royal Heraldry',icon:'🚩',detail:'Estate flags, seals and banners'}
+]);
+const RENOVATION_IDS=Object.freeze(RENOVATIONS.map(x=>x.id));
+const RENOVATION_TOTAL=HOUSE_TIERS.length*RENOVATIONS.length*RENOVATION_STEPS;
 const PETS=Object.freeze([
  {id:'squirrel',name:'Resident Squirrel',icon:'🐿️',level:0},
  {id:'hedgehog',name:'Garden Hedgehog',icon:'🦔',level:10},
@@ -134,7 +144,11 @@ const ACHIEVEMENTS=Object.freeze([
  {id:'three-sets',name:'A Curated Obsession',icon:'🎨',kind:'sets',need:3},
  {id:'all-sets',name:'Certified Collector',icon:'🗃️',kind:'sets',need:5},
  {id:'four-pets',name:'A Proper Menagerie',icon:'🐾',kind:'pets',need:4},
- {id:'full-estate',name:'Landlord Supreme',icon:'🏰',kind:'zones',need:5}
+ {id:'full-estate',name:'Landlord Supreme',icon:'🏰',kind:'zones',need:5},
+ {id:'renovator',name:'First Renovation',icon:'🔨',kind:'renovations',need:1},
+ {id:'hundred-renovations',name:'The Committee Approves',icon:'🧱',kind:'renovations',need:100},
+ {id:'five-hundred-renovations',name:'Renovation Industrial Complex',icon:'⚒️',kind:'renovations',need:500},
+ {id:'thousand-renovations',name:'A Thousand Tiny Improvements',icon:'🏆',kind:'renovations',need:1000}
 ]);
 const decors=Object.fromEntries(DECOR.map(x=>[x.id,x]));
 const avatars=Object.fromEntries(AVATARS.map(x=>[x.id,x]));
@@ -161,6 +175,21 @@ function ensure(save){
  }
  if(!Number.isInteger(h.tier)||h.tier<1||h.tier>h.maxTier)
   h.tier=Math.min(h.maxTier,LEGACY_TIER[h.house]||1);
+ // Store only purchased ranks; normalize hostile and outdated save entries.
+ // Never grant currency, revoke legitimate ownership, or touch campaign records.
+ const previousRenovations=h.renovations&&typeof h.renovations==='object'&&!Array.isArray(h.renovations)?h.renovations:{};
+ const normalized={};
+ for(let tier=1;tier<=h.maxTier;tier++){
+  const previous=Object.prototype.hasOwnProperty.call(previousRenovations,tier)?previousRenovations[tier]:null;
+  if(!previous||typeof previous!=='object'||Array.isArray(previous))continue;
+  const entries={};
+  for(const id of RENOVATION_IDS){
+   const rank=previous[id];
+   if(Number.isInteger(rank)&&rank>0&&rank<=RENOVATION_STEPS)entries[id]=rank;
+  }
+  if(Object.keys(entries).length)normalized[tier]=entries;
+ }
+ h.renovations=normalized;
  const prior=h.placed;h.placed={};const used=new Set();
  for(let i=0;i<TOTAL_PLOTS;i++){
   const id=prior[i];
@@ -198,9 +227,10 @@ function stats(save){
  const collections=setProgress(save),setCount=collections.filter(x=>x.complete).length;
  const petCount=PETS.filter(p=>petOwned(save,p.id)).length;
  const zones=ZONES.filter(z=>zoneUnlocked(save,z.id)).length;
- const achievements=ACHIEVEMENTS.filter(a=>({wins,stars,threeStars,score:bestScore,sets:setCount,pets:petCount,zones})[a.kind]>=a.need);
+ const renovations=renovationSummary(save).total;
+ const achievements=ACHIEVEMENTS.filter(a=>({wins,stars,threeStars,score:bestScore,sets:setCount,pets:petCount,zones,renovations})[a.kind]>=a.need);
  const tier=wins>=500?'Legendary Nutlord':wins>=400?'Royal Magnate':wins>=200?'Estate Baron':wins>=100?'Nutwood Noble':wins>=50?'Acorn Entrepreneur':wins>=10?'Respectable Landowner':'New Property Owner';
- return {wins,stars,threeStars,bestScore,bestLevel,scoreTotal,achievements,tier,houseTier:save.homestead?.tier||1,highestTier:save.homestead?.maxTier||1,decorOwned:DECOR.filter(d=>owned(save,d.id)).length,setCount,collections,petCount,zones};
+ return {wins,stars,threeStars,bestScore,bestLevel,scoreTotal,achievements,tier,houseTier:save.homestead?.tier||1,highestTier:save.homestead?.maxTier||1,renovations,renovationCapacity:RENOVATION_TOTAL,decorOwned:DECOR.filter(d=>owned(save,d.id)).length,setCount,collections,petCount,zones};
 }
 function place(save,id,slot){
  ensure(save);const n=Number(slot);
@@ -246,6 +276,47 @@ function upgradeTier(save){
  h.maxTier=next.tier;h.tier=next.tier;
  return {valid:true,tier:next.tier,spent:next.cost,art:next.art};
 }
+function renovationRanks(save,tier){
+ const h=save.homestead;
+ const entry=h?.renovations&&Object.prototype.hasOwnProperty.call(h.renovations,tier)?h.renovations[tier]:null;
+ const ranks={};
+ for(const id of RENOVATION_IDS)ranks[id]=Number.isInteger(entry?.[id])&&entry[id]>0&&entry[id]<=RENOVATION_STEPS?entry[id]:0;
+ return ranks;
+}
+function renovationSummary(save,tier){
+ let total=0,houseTotal=0;
+ const upto=Math.min(40,Math.max(1,Number(save.homestead?.maxTier)||1));
+ for(let index=1;index<=upto;index++){
+  const ranks=renovationRanks(save,index);
+  const count=Object.values(ranks).reduce((a,b)=>a+b,0);
+  total+=count;
+  if(index===tier)houseTotal=count;
+ }
+ return {total,houseTotal,maximum:RENOVATION_TOTAL,perHouse:RENOVATIONS.length*RENOVATION_STEPS};
+}
+function renovationOffer(save,tier,id){
+ const house=tierByNumber(tier);
+ if(!house||!RENOVATION_IDS.includes(id))return {valid:false,reason:'unknown'};
+ if(!Number.isInteger(save.homestead?.maxTier)||tier>save.homestead.maxTier)return {valid:false,reason:'house'};
+ const rank=renovationRanks(save,tier)[id],nextRank=rank+1;
+ if(nextRank>RENOVATION_STEPS)return {valid:false,reason:'complete',rank};
+ const level=Math.min(500,house.level+(nextRank-1)*2);
+ const cost=Math.round((30+10*tier+35*nextRank)/10)*10;
+ return {valid:true,id,tier,rank:nextRank,level,cost};
+}
+function upgradeRenovation(save,tier,id){
+ ensure(save);
+ const offer=renovationOffer(save,tier,id);
+ if(!offer.valid)return offer;
+ if(!cleared(save,offer.level))return {...offer,valid:false,reason:'level'};
+ const coins=num(save.coins);
+ if(coins<offer.cost)return {...offer,valid:false,reason:'coins',short:offer.cost-coins};
+ const renovations=save.homestead.renovations;
+ if(!Object.prototype.hasOwnProperty.call(renovations,tier))renovations[tier]={};
+ renovations[tier][id]=offer.rank;
+ save.coins=coins-offer.cost;
+ return {...offer,valid:true,spent:offer.cost};
+}
 function prestigePlate(save){
  const status=stats(save),h=save.homestead||{};
  const avatar=avatars[h.avatar]&&avatarOwned(save,h.avatar)?avatars[h.avatar]:AVATARS[0];
@@ -257,6 +328,7 @@ function prestigePlate(save){
   avatar.icon+' '+avatar.name+' · '+pet.icon+' '+pet.name,
   '🏆 '+status.wins+'/500 levels · ⭐ '+status.stars+' stars',
   '🎖 '+status.achievements.length+'/'+ACHIEVEMENTS.length+' awards · 🧩 '+status.setCount+'/'+SETS.length+' sets',
+  '🛠️ '+status.renovations+'/'+RENOVATION_TOTAL+' renovations completed',
   '📈 Personal best: '+status.bestScore.toLocaleString('en-US'),
   'Get NUTBUSTER: https://github.com/mrcalzon02/NUTBUSTER-R/releases'
  ].join('\n');
@@ -267,7 +339,7 @@ function recordWin(save,level,score){
  const old=num(save.homestead.highScores[level]),now=num(score);
  if(now<=old)return false;save.homestead.highScores[level]=now;return true;
 }
-const api={SLOTS,TOTAL_PLOTS,ZONES,HOUSES,HOUSE_TIERS,PETS,SETS,DECOR,AVATARS,ACHIEVEMENTS,ensure,owned,avatarOwned,petOwned,zoneForSlot,zoneUnlocked,setProgress,stats,place,remove,equip,equipPet,buildHouse,tierByNumber,chooseTier,upgradeTier,prestigePlate,purchase,recordWin};
+const api={SLOTS,TOTAL_PLOTS,ZONES,HOUSES,HOUSE_TIERS,RENOVATIONS,RENOVATION_STEPS,RENOVATION_TOTAL,PETS,SETS,DECOR,AVATARS,ACHIEVEMENTS,ensure,owned,avatarOwned,petOwned,zoneForSlot,zoneUnlocked,setProgress,stats,place,remove,equip,equipPet,buildHouse,tierByNumber,chooseTier,upgradeTier,renovationRanks,renovationSummary,renovationOffer,upgradeRenovation,prestigePlate,purchase,recordWin};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutHomestead=api;
 })(typeof window!=='undefined'?window:globalThis);
