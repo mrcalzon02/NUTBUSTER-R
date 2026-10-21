@@ -38,7 +38,7 @@ function nodes(chapterId){
    x:seg.a[0]+(seg.b[0]-seg.a[0])*t,y:seg.a[1]+(seg.b[1]-seg.a[1])*t,
    milestone:(index===0||index===99||(index+1)%20===0),
    kind:index===99?'finale':(index+1)%20===0?'challenge':(index+1)%15===0?'treasure':(index+1)%12===0?'booster':(index+1)%10===0?'hard':'standard',
-   title:`Level ${chapter.start+index} · ${chapter.name}`};
+   title:`Level ${chapter.start+index} · ${LESSON_BOOK.profile(chapter.start+index).name}`};
  });
 }
 const api={WIDTH,HEIGHT,CHAPTERS,OVERVIEW,chapterOf,nodes};
