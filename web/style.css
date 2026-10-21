@@ -150,3 +150,10 @@
 @keyframes nut-fuse-pulse{to{box-shadow:0 0 2px #f4503677;transform:scale(.96)}}
 @media(prefers-reduced-motion:reduce){.cell .hazard.fuse{animation:none}}
 .level-hint{margin:0 auto 8px;padding:5px 9px;max-width:545px;border:1px solid #ab7b50;border-radius:8px;background:#3c2341;color:#ffe4bb;font-size:11px;line-height:1.25;text-align:center}
+
+/* Conveyor arrows/portal rings remain fixed beneath the moving nut payloads. */
+.board-feature{position:absolute;pointer-events:none;z-index:0;display:grid;place-items:center;font-weight:1000}
+.board-feature.conveyor{inset:auto 1px 1px auto;min-width:18px;height:17px;border-radius:4px;background:#6b4d28a8;color:#ffeb9a;font-size:19px}
+.board-feature.portal{top:0;left:1px;border-radius:50%;width:20px;height:20px;background:#4b268faa;color:#9eeeff;font-size:19px;box-shadow:0 0 9px #5ccaeab5}
+.transport-nut{position:absolute;z-index:9;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.transport-nut .nut-visual{position:relative;width:100%;height:100%;display:grid;place-items:center}

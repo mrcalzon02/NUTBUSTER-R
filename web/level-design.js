@@ -34,7 +34,11 @@ const LESSONS=Object.freeze({
  110:{name:'Sticky Situation',kind:'jam',jam:3,target:3,formation:'cluster',hint:'Peanut butter spreads. Clear sticky layers before they multiply.'},
  111:{name:'The Butter Trap',kind:'jam',jam:4,target:4,formation:'cluster',hint:'A Shell Bomb or Hammer can remove concentrated peanut butter quickly.'},
  210:{name:'Ticking Acorns',kind:'collect',bombs:2,formation:'scatter',hint:'Timed acorns detonate after several moves unless you clear their cells.'},
- 211:{name:'Five Seconds to Nuts',kind:'collect',bombs:3,formation:'cross',hint:'Precision tools defuse countdown acorns before they steal your moves.'}
+ 211:{name:'Five Seconds to Nuts',kind:'collect',bombs:3,formation:'cross',hint:'Precision tools defuse countdown acorns before they steal your moves.'},
+ 125:{name:'Conveyor Initiation',kind:'collect',hint:'A conveyor rotates nuts after every second turn; blockers stay in place.'},
+ 126:{name:'Production Rotation',kind:'ice',hint:'Try a Row Rocket before the belt rearranges your nuts.'},
+ 164:{name:'Portal Puzzles',kind:'collect',hint:'Portal cells exchange nuts every three turns.'},
+ 165:{name:'Through the Nut Gate',kind:'locks',hint:'Portals transport nuts; the chain locks stay attached to their cells.'}
 });
 const FORMATIONS=['scatter','row','column','cluster','cross'];
 function profile(level){

@@ -70,10 +70,17 @@ function blockerVisual(c){
  const layer=c.ice?`<span class="overlay ice">❄${c.ice>1?'²':''}</span>`:c.lock?'<span class="overlay chain">🔒</span>':c.chest?'<span class="overlay chest">📦</span>':'';
  return layer+(c.jam?'<span class="hazard jam" aria-label="Sticky peanut butter">🍯</span>':'')+(c.fuse?`<span class="hazard fuse" aria-label="Timed acorn, ${c.fuse} moves">💣${c.fuse}</span>`:'');
 }
+function featureVisual(features,i){
+ if(!features)return '';
+ const belt=features.conveyors?.find(c=>c.indices.includes(i));
+ const portal=features.portals?.find(c=>c.indices.includes(i));
+ return (belt?`<span class="board-feature conveyor" aria-hidden="true">${belt.direction==='right'?'›':'‹'}</span>`:'')+
+ (portal?'<span class="board-feature portal" aria-hidden="true">◎</span>':'');
+}
 function nutKey(c){return c.type+':'+(c.special||'');}
 function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.jam||0)+':'+(c.fuse||0);}
 function cellMarkup(c,i,w){if(!c)return '<div class="cell void" aria-hidden="true"></div>';
- return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${E.TYPES[c.type]} row ${Math.floor(i/w)+1} column ${i%w+1}">${nutVisual(c)}${blockerVisual(c)}</button>`;
+ return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${E.TYPES[c.type]} row ${Math.floor(i/w)+1} column ${i%w+1}">${featureVisual(state.game.cfg.features,i)}${nutVisual(c)}${blockerVisual(c)}</button>`;
 }
 function objectiveDisplay(g){
  const status=E.objectiveState(g);
@@ -144,9 +151,42 @@ async function swapAnimation(pair,epoch){
  if(epoch===state.epoch){va.style.visibility='hidden';vb.style.visibility='hidden';}
  first.cancel();second.cancel();
 }
+async function transportAnimation(stage,epoch){
+ const board=screen.querySelector('.board');
+ if(!board||reducedMotion()){paintCells(stage.cells);return;}
+ paintCells(stage.before);
+ const origin=board.getBoundingClientRect(),sprites=[],pending=[];
+ for(const transfer of stage.transfers){
+  const from=board.querySelector(`[data-cell="${transfer.from}"]`);
+  const to=board.querySelector(`[data-cell="${transfer.to}"]`);
+  if(!from||!to)continue;
+  const a=from.getBoundingClientRect(),b=to.getBoundingClientRect(),fly=document.createElement('span');
+  fly.className='transport-nut';fly.style.left=(a.left-origin.left)+'px';fly.style.top=(a.top-origin.top)+'px';
+  fly.style.width=a.width+'px';fly.style.height=a.height+'px';
+  fly.innerHTML=nutVisual({type:transfer.type,special:transfer.special});
+  board.appendChild(fly);sprites.push(fly);
+  const dx=b.left-a.left,dy=b.top-a.top;
+  const frames=stage.mode==='portal'?
+   [{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(.45)',offset:.48},
+    {opacity:0,transform:`translate(${dx}px,${dy}px) scale(.45)`,offset:.52},
+    {opacity:1,transform:`translate(${dx}px,${dy}px) scale(1)`}] :
+   [{transform:'translate(0,0)'},{transform:`translate(${dx}px,${dy}px)`}];
+  if(fly.animate)pending.push(fly.animate(frames,{duration:stage.mode==='portal'?450:380,easing:'ease-in-out',fill:'forwards'}).finished.catch(()=>{}));
+ }
+ for(const t of stage.transfers){
+  const vis=board.querySelector(`[data-cell="${t.from}"] .nut-visual`);
+  if(vis)vis.style.visibility='hidden';
+ }
+ if(pending.length)await Promise.all(pending);else await sleep(240);
+ sprites.forEach(el=>el.remove());
+ if(epoch!==state.epoch||state.page!=='game')return;
+ paintCells(stage.cells);
+ board.querySelectorAll('.nut-visual').forEach(el=>{el.style.visibility='';});
+}
 async function cascadeAnimation(stage,epoch){
  if(state.page!=='game'||epoch!==state.epoch)return;
  if(stage.kind==='repair'||stage.kind==='hazard'){paintCells(stage.cells);return;}
+ if(stage.kind==='transport'){await transportAnimation(stage,epoch);return;}
  const board=screen.querySelector('.board');if(!board)return;
  stage.clear.forEach(i=>board.querySelector(`[data-cell="${i}"]`)?.classList.add('clearing'));
  if(!reducedMotion())await sleep(190);
