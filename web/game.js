@@ -1,8 +1,9 @@
 (function(){'use strict';
-const E=window.NutEngine, M=window.NutCampaignMaps, screen=document.getElementById('screen');
+const E=window.NutEngine, M=window.NutCampaignMaps, P=window.NutProgress, screen=document.getElementById('screen');
 const icons=['🥜','🌰','🌰','🥜','🌰','🟢'];
 const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,levels:{voice:.9,music:.28,reactions:.38},completed:0};
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
+P.migrate(saved);
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
 let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});}
@@ -10,6 +11,19 @@ function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch(_)
 function safeNum(n){return Number.isFinite(n)?Math.min(999999999,Math.max(0,Math.trunc(n))):0;}
 function gain(coins=0,gems=0){saved.coins=safeNum(saved.coins+coins);saved.gems=safeNum(saved.gems+gems);persist();counters();}
 function counters(){document.getElementById('wallet').textContent=saved.coins.toLocaleString();document.getElementById('gems').textContent=saved.gems.toLocaleString();}
+function boosterSummary(pack){return P.packText(pack,Object.fromEntries(E.BOOSTERS.map(id=>[id,E.BOOSTER_META[id].label])));}
+function inventorySummary(){return P.available(saved).map(id=>E.BOOSTER_META[id].label+' ×'+P.count(saved,id)).join(' · ');}
+function awardPack(kind){const pack=P.actualPack(saved,kind);P.grant(saved,pack);persist();return pack;}
+function refreshBoosters(){screen.querySelectorAll('[data-tool]').forEach(el=>{const id=el.dataset.tool,tag=el.querySelector('[data-stock]');if(tag)tag.textContent=P.unlocked(saved,id)?'×'+P.count(saved,id):'LV '+P.LEVEL_BY_TOOL[id];el.classList.toggle('empty',P.unlocked(saved,id)&&!P.count(saved,id));});}
+function activateBooster(id,index){const meta=E.BOOSTER_META[id];
+ if(!meta)return null;
+ if(!P.unlocked(saved,id)){notice('CLEAR LEVEL '+P.LEVEL_BY_TOOL[id]+' TO UNLOCK '+meta.label.toUpperCase());return null;}
+ if(!P.count(saved,id)){notice('OUT OF '+meta.label.toUpperCase()+' · CHECK YOUR PACKS');return null;}
+ const result=E.booster(state.game,id,index);
+ if(!result.valid){notice(result.reason==='no-locks'?'No chains to unlock.':'Choose a valid target.');return null;}
+ if(!P.spend(saved,id))throw new Error('Inventory desynchronized after power activation');
+ persist();refreshBoosters();return result;
+}
 function notice(message){const n=document.getElementById('toast');n.textContent=message;n.classList.add('show');clearTimeout(toastHandle);toastHandle=setTimeout(()=>n.classList.remove('show'),2300);}
 function announce(txt,clip){state.announcer=txt;const el=document.getElementById('announcer');if(el)el.textContent='🎙 '+txt;if(state.sound&&clip)window.NutAudio?.voice(clip);}
 const $=(selector)=>document.querySelector(selector);
@@ -75,7 +89,8 @@ function toolButtons(){
    tool==='shuffle'?art('powerups','rainbow','🔀','booster-art'):
    tool==='extra'?art('powerups','nut-burst','➕','booster-art'):
    `<span class="booster-glyph" aria-hidden="true">${toolGlyphs[tool]}</span>`;
-  return `<button data-tool="${tool}" title="${d.tip}" aria-label="${d.label}: ${d.tip}">${image}<span>${d.label.toUpperCase()}</span></button>`;
+  const earned=P.unlocked(saved,tool),qty=P.count(saved,tool);
+  return `<button data-tool="${tool}" class="${earned?qty?'ready':'empty':'locked'}" title="${earned?d.tip:'Beat level '+P.LEVEL_BY_TOOL[tool]+' to unlock'}" aria-label="${d.label}: ${earned?qty+' stocked, '+d.tip:'unlocks after level '+P.LEVEL_BY_TOOL[tool]}">${image}<span>${d.label.toUpperCase()}</span><small data-stock>${earned?'×'+qty:'LV '+P.LEVEL_BY_TOOL[tool]}</small></button>`;
  }).join('');
 }
 function game(){const g=state.game;if(!g)return '<p>Choose a level from the campaign map.</p>';
@@ -86,7 +101,7 @@ function game(){const g=state.game;if(!g)return '<p>Choose a level from the camp
  <div class="board-wrap"><div class="board" style="--cols:${g.cfg.width}" role="group" aria-label="Nutbuster match-three board">${g.cells.map((c,i)=>cellMarkup(c,i,g.cfg.width)).join('')}</div></div>
  <div class="announcer" id="announcer">🎙 ${state.announcer||'SHOW ME THOSE NUTS!'}</div>
  <div class="boosters" role="group" aria-label="Tactical boosters">${toolButtons()}</div>
- <div class="tip">Swap any neighbors. Tap a booster, then its target. Each power attacks a different obstacle or objective.</div>
+ <div class="tip">Earn new powers throughout Nutwood Meadows. Every reward and exclusive package restocks the booster vault.</div>
  <div class="actions game-actions"><button class="btn secondary" data-action="restart">RESTART</button><button class="btn secondary" data-nav="shop">NUT EMPORIUM</button><button class="btn ghost" data-action="sound">${state.sound?'🔊 Voice On':'🔇 Voice Off'}</button><button class="btn ghost" data-action="music">${state.music?'♫ Music On':'♫ Music Off'}</button></div>`;
 }
 function paintCells(cells){
@@ -239,7 +254,7 @@ function doSwap(a,b){if(state.animating||state.page!=='game')return;
  void applyMove(r);
 }
 function cell(i){if(!state.game||state.game.won||state.game.lost||state.animating)return;
- if(state.tool){const tool=state.tool;state.tool=null;updateTools();const result=E.booster(state.game,tool,i);void applyMove(result);return;}
+ if(state.tool){const tool=state.tool;state.tool=null;updateTools();const result=activateBooster(tool,i);if(result)void applyMove(result);return;}
  if(state.selected<0){selectCell(i);return;}if(state.selected===i){selectCell(-1);return;}doSwap(state.selected,i);
 }
 function action(a,button){
@@ -281,9 +296,9 @@ screen.addEventListener('click',e=>{window.NutAudio?.unlock();window.NutAudio?.g
  const target=e.target.closest('button');if(!target||state.animating)return;
  if(target.dataset.cell!==undefined){cell(Number(target.dataset.cell));return;}
  if(target.dataset.tool){const tool=target.dataset.tool;if(!state.game||state.page!=='game')return;
+  if(!P.unlocked(saved,tool)||!P.count(saved,tool)){activateBooster(tool,-1);return;}
   if(!E.BOOSTER_META[tool].targeted){
-   const res=E.booster(state.game,tool,-1);
-   if(!res.valid){notice(res.reason==='no-locks'?'No locks to unlock!':'Booster unavailable.');return;}
+   const res=activateBooster(tool,-1);if(!res)return;
    state.tool=null;updateTools();
    if(res.stages?.length)void applyMove(res);else {paintCells(E.snapshot(state.game).cells);paintStats();}
    announce('UNLIMITED SATISFACTION!','oh-my');
