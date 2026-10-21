@@ -39,7 +39,7 @@ function normalizedMap(input){const result={};if(input&&typeof input==='object'&
  return result;
 }
 function hasCleared(save,level){return level===1 || !!(save.stars&&nonnegative(save.stars[level])>0);}
-function unlocked(save,id){return Object.prototype.hasOwnProperty.call(LEVEL_BY_TOOL,id)&&hasCleared(save,LEVEL_BY_TOOL[id]);}
+function unlocked(save,id){return Object.prototype.hasOwnProperty.call(LEVEL_BY_TOOL,id)&&(hasCleared(save,LEVEL_BY_TOOL[id])||save.claimedUnlocks?.[id]===true);}
 function available(save){return LADDER.filter(spec=>unlocked(save,spec.id)).map(spec=>spec.id);}
 function nextUnlock(save){return LADDER.find(spec=>!unlocked(save,spec.id))||null;}
 function migrate(save){
