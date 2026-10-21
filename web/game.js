@@ -1,6 +1,6 @@
 (function(){'use strict';
 const E=window.NutEngine, M=window.NutCampaignMaps, P=window.NutProgress, H=window.NutHomestead, A=window.NutAvatarArt, screen=document.getElementById('screen');
-const icons=['🥜','🌰','🌰','🥜','🌰','🟢'];
+const icons=['🥜','🌰','🌰','🥜','🌰','🟢','🌟'];
 const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,levels:{voice:.9,music:.28,reactions:.38},completed:0};
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);H.ensure(saved);A.ensure(saved);
@@ -71,8 +71,17 @@ function piece(type){if(type===null||type===undefined)return '';const name=E.TYP
 }
 function nutVisual(c){return `<span class="nut-visual">${piece(c.type)}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}</span>`;}
 function blockerVisual(c){
- const layer=c.ice?`<span class="overlay ice">❄${c.ice>1?'²':''}</span>`:c.lock?'<span class="overlay chain">🔒</span>':c.chest?'<span class="overlay chest">📦</span>':'';
+ // Existing original atlas sprites, never gray panels or emoji stand-ins.
+ const sprite=c.ice?'ice-'+Math.min(2,c.ice):c.lock?'chain-'+Math.min(2,c.lock):c.chest?'chest':null;
+ const kind=c.ice?'ice':c.lock?'chain':c.chest?'chest':null;
+ const strength=c.ice||c.lock||c.chest||0;
+ const layer=sprite?`<span class="overlay blocker-art ${kind}" data-strength="${strength}" aria-hidden="true"><img class="blocker-sprite" src="art/primary/blockers/${sprite}.png" alt="" draggable="false"></span>`:'';
  return layer+(c.jam?'<span class="hazard jam" aria-label="Sticky peanut butter">🍯</span>':'')+(c.fuse?`<span class="hazard fuse" aria-label="Timed acorn, ${c.fuse} moves">💣${c.fuse}</span>`:'');
+}
+function cellLabel(c,i,w){
+ const nut=c.type===null?'empty':E.TYPES[c.type];
+ const obstacle=c.ice?' ice '+c.ice+' layers':c.lock?' chain locked':c.chest?' chest '+c.chest+' layers':'';
+ return nut+obstacle+' row '+(Math.floor(i/w)+1)+' column '+(i%w+1);
 }
 function featureVisual(features,i){
  if(!features)return '';
@@ -87,7 +96,7 @@ function featureVisual(features,i){
 function nutKey(c){return c.type+':'+(c.special||'');}
 function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.jam||0)+':'+(c.fuse||0);}
 function cellMarkup(c,i,w){if(!c)return '<div class="cell void" aria-hidden="true"></div>';
- return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${E.TYPES[c.type]} row ${Math.floor(i/w)+1} column ${i%w+1}">${featureVisual(state.game.cfg.features,i)}${nutVisual(c)}${blockerVisual(c)}</button>`;
+ return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${cellLabel(c,i,w)}">${featureVisual(state.game.cfg.features,i)}${nutVisual(c)}${blockerVisual(c)}</button>`;
 }
 function objectiveDisplay(g){
  const status=E.objectiveState(g);
@@ -154,7 +163,7 @@ function paintCells(cells){
   const nk=nutKey(c),bk=blockKey(c);
   if(el.dataset.nutKey!==nk){const vis=el.querySelector('.nut-visual');if(vis)vis.outerHTML=nutVisual(c);el.dataset.nutKey=nk;}
   if(el.dataset.blockKey!==bk){el.querySelectorAll('.overlay, .hazard').forEach(node=>node.remove());el.insertAdjacentHTML('beforeend',blockerVisual(c));el.dataset.blockKey=bk;}
-  el.setAttribute('aria-label',`${c.type===null?'empty':E.TYPES[c.type]} row ${Math.floor(i/g.cfg.width)+1} column ${i%g.cfg.width+1}`);
+  el.setAttribute('aria-label',cellLabel(c,i,g.cfg.width));
  }
 }
 function paintStats(){if(state.page!=='game'||!state.game)return;const g=state.game;
@@ -417,7 +426,7 @@ function start(n){state.epoch++;state.animating=false;
  if(saved.hearts<=0){saved.hearts=5;notice('ENERGY RESTORED!');}
  saved.hearts--;persist();const level=Math.min(500,Math.max(1,Number(n)||1));
  state.game=E.create(level,Math.floor(Math.random()*0xffffffff));state.page='game';state.selected=-1;state.tool=null;state.outcome=null;state.levelReward='';
- state.announcer='PREPARE TO BUST SOME NUTS!';render();window.NutAudio?.voice('nutbuster-soft');
+ state.announcer=state.game.cfg.newNut?'NEW NUT: '+state.game.cfg.newNut.replace('-',' ').toUpperCase()+'!':'PREPARE TO BUST SOME NUTS!';render();window.NutAudio?.voice('nutbuster-soft');
  window.NutbusterUpdates?.autoCheck?.('level');
 }
 function concludeMove(result){
@@ -451,7 +460,8 @@ function concludeMove(result){
  else if(result.removed>=5)announce('OOOH, THAT IS A BIG ONE!','big-one');
  else {announce('NICE ONE!');window.NutAudio?.grunt();}
  paintStats();
- const fx=result.won||result.specialCombo==='double-rainbow'||result.specialCombo==='double-bomb'?'supernova':result.specialCombo?'rainbow':result.cracked?'shell-crack':result.loops>=3?'rainbow':'burst';
+ const iceCracked=(result.stages||[]).some(stage=>stage.before?.some((c,i)=>c&&c.ice>(stage.afterClear?.[i]?.ice??c.ice)));
+ const fx=result.won||result.specialCombo==='double-rainbow'||result.specialCombo==='double-bomb'?'supernova':result.specialCombo?'rainbow':iceCracked?'ice-shatter':result.cracked?'shell-crack':result.loops>=3?'rainbow':'burst';
  if(result.loops)window.NutFX?.emit(fx,screen.querySelector?.('.board-wrap'));
  if(result.won||result.lost){state.outcome=result.won?'win':'loss';state.page='outcome';render();}
 }

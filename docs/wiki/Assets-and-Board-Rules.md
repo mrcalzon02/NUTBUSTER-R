@@ -14,3 +14,9 @@
 6. Top: match effects, selection, hint and animations. Keep the button grid mounted; independently move nut sprites using recorded pre-clear, post-clear, and post-gravity frames. Never substitute a full board rerender for gravity.
 
 Every adjacent swap consumes a move even if no match occurs. Void areas interrupt gravity by design. A column can contain multiple independent falling segments. Cross/portal mechanics are reserved for later gates; current levels do not implement cross-cell teleports.
+
+## Campaign nut introductions and illustrated blockers
+
+Campaign 1, levels 1–100: peanut, walnut, almond (three). Campaign 2, 101–200: introduce cashew (four). Campaign 3, 201–300: introduce hazelnut (five). Campaign 4, 301–400: introduce pistachio (six). Campaign 5, 401–500: introduce the gold acorn (seven), reusing `nuts/gold-acorn.png`. The rainbow nut remains match-created, not an ordinary spawn. The gate applies to initial generation, gravity refills, deadlock repair, and collection objectives.
+
+Ice durability is illustrated with `blockers/ice-2.png` and `blockers/ice-1.png`; chains and chests use `blockers/chain-1.png`, `blockers/chain-2.png`, and `blockers/chest.png`. Their layer remains over the ordinary nut. The existing `effects/ice-shatter.png` renders cracking effects. Screen-reader tile labels describe the blocker and its remaining layers.
