@@ -122,3 +122,22 @@
 .objective-stat b{font-size:clamp(10px,2.6vw,13px);line-height:1.2;overflow-wrap:anywhere}
 .game-stat{grid-template-columns:minmax(0,1fr) minmax(0,.7fr) minmax(0,1.7fr)}
 @media(min-width:700px){.boosters{max-width:720px}.boosters button{flex-basis:91px}}
+
+
+/* Milestone stock badges and compact challenge reward track */
+.boosters button{position:relative}
+.boosters button.locked{filter:saturate(.35);opacity:.65}
+.boosters button.empty{border-color:#8e5876}
+.boosters button [data-stock]{position:absolute;right:2px;top:2px;padding:2px 4px;border-radius:6px;background:#281127e6;color:#ffdf9b;font-size:10px}
+.pack-contents{font-size:11px;color:#ffe3a6;line-height:1.35;overflow-wrap:anywhere}
+.reward-inventory{padding:10px;margin:4px 0 10px}
+.reward-inventory p{margin:5px 0}
+.challenge-rewards{padding:9px;margin:8px 0}
+.challenge-rewards p{margin:5px 0}
+.challenge-tiers{display:flex;gap:7px;overflow-x:auto;padding:5px 1px 8px;scroll-snap-type:x proximity}
+.challenge-tier{flex:0 0 152px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:5px;text-align:center;background:#2f1d32;border:1px solid #bd8857;border-radius:10px;padding:7px;scroll-snap-align:start}
+.challenge-tier b{color:#ffd477}
+.challenge-tier small{font-size:10px;color:#eacaa7;min-height:32px}
+.challenge-tier button{width:100%;min-height:40px;padding:5px;font-size:11px}
+.challenge-tier button:disabled{opacity:.5;cursor:default}
+.earned-power{font-size:14px;color:#aef57b;font-weight:900}
