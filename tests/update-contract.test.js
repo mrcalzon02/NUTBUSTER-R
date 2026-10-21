@@ -22,4 +22,5 @@ assert.match(workflow,/remote SHA-256\/size readback mismatch/);
 assert.match(workflow,/--draft=false/);
 const index=fs.readFileSync(path.join(root,'web/index.html'),'utf8');
 assert.match(index,/src="update.js"/);
+require('./update-and-invite.test.js');
 console.log('PASS: native update channel, owner signing boundary and build contract');
