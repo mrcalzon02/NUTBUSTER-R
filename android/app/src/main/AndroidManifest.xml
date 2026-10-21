@@ -1,10 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Core puzzle play is entirely offline. Network access is used only for an explicit update check. -->
+    <!-- Gameplay and saves are offline. Native update checks may use network; downloads and installs require explicit consent. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <application android:label="NUTBUSTER" android:icon="@drawable/nutbuster_icon"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
-        android:usesCleartextTraffic="false" android:allowBackup="true" android:supportsRtl="true">
+        android:usesCleartextTraffic="false" android:allowBackup="false" android:supportsRtl="true">
         <provider android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.updates" android:exported="false"
             android:grantUriPermissions="true">
