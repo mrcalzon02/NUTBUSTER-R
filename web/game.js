@@ -98,6 +98,7 @@ function game(){const g=state.game;if(!g)return '<p>Choose a level from the camp
  return `<div class="topline game-topline"><button class="btn ghost" data-nav="campaign">← LEVELS</button><h2>LEVEL ${g.level} · ${g.cfg.stageTitle}</h2></div>
  <div class="game-stat"><div class="stat"><small>Score</small><b data-stat="score">${g.score.toLocaleString()}</b></div><div class="stat"><small>Moves</small><b data-stat="moves">${g.moves}</b></div><div class="stat objective-stat"><small>Objective</small><b data-objective>${objectiveDisplay(g)}</b></div></div>
  <div class="progress"><div data-progress style="width:${ratio}%"></div></div>
+ ${g.cfg.design.lesson?`<p class="level-hint" title="Booster lesson">${g.cfg.hint}</p>`:''}
  <div class="board-wrap"><div class="board" style="--cols:${g.cfg.width}" role="group" aria-label="Nutbuster match-three board">${g.cells.map((c,i)=>cellMarkup(c,i,g.cfg.width)).join('')}</div></div>
  <div class="announcer" id="announcer">🎙 ${state.announcer||'SHOW ME THOSE NUTS!'}</div>
  <div class="boosters" role="group" aria-label="Tactical boosters">${toolButtons()}</div>
@@ -245,13 +246,14 @@ function concludeMove(result){
   state.levelReward=prize.unlock.length?'NEW POWER: '+prize.unlock.map(id=>E.BOOSTER_META[id].label).join(', '):Object.keys(prize.contents).length?'STAGE PRIZE: '+boosterSummary(prize.contents):'';
   gain(500,10);persist();announce('UNBELIEVABLE PERFORMANCE! YOUR NUTS ARE LEGENDARY!','win');}
  else if(result.lost)announce('OOOH... THAT WAS CLOSE.','close');
+ else if(result.specialCombo)announce('INCREDIBLE NUT FUSION!','nutbuster');
  else if(result.loops>=6)announce('NUTBUSTERRRR!','nutbuster');
  else if(result.loops>=4)announce('THEY JUST KEEP COMING!','cascade');
  else if(result.loops>=2)announce('MAGNIFICENT NUTS!','magnificent');
  else if(result.removed>=5)announce('OOOH, THAT IS A BIG ONE!','big-one');
  else {announce('NICE ONE!');window.NutAudio?.grunt();}
  paintStats();
- const fx=result.won?'supernova':result.cracked?'shell-crack':result.loops>=3?'rainbow':'burst';
+ const fx=result.won||result.specialCombo==='double-rainbow'||result.specialCombo==='double-bomb'?'supernova':result.specialCombo?'rainbow':result.cracked?'shell-crack':result.loops>=3?'rainbow':'burst';
  if(result.loops)window.NutFX?.emit(fx,screen.querySelector?.('.board-wrap'));
  if(result.won||result.lost){state.outcome=result.won?'win':'loss';state.page='outcome';render();}
 }
