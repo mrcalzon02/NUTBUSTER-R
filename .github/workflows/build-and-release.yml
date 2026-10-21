@@ -308,7 +308,11 @@ jobs:
           gh release create "$TAG" --draft --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes "$NOTES"
           gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/NUTBUSTER-update.json release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
           # GitHub computes SHA-256 for release assets. Refuse to publish until its digest matches our local artifact.
-          remote="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG")"
+          # Draft tags may not exist yet. Resolve the draft ID through gh, which
+          # can find unpublished releases, then read its assets by release ID.
+          RELEASE_ID="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json databaseId --jq .databaseId)"
+          [[ "$RELEASE_ID" =~ ^[0-9]+$ ]] || { echo '::error::Invalid draft release ID'; exit 1; }
+          remote="$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID")"
           REMOTE_JSON="$remote" python3 - <<'PY'
           import hashlib,json,os,pathlib
           release=json.loads(os.environ['REMOTE_JSON'])
