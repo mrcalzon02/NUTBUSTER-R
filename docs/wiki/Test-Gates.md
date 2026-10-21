@@ -17,3 +17,8 @@
 **Current evidence:** The update/share JavaScript contract tests passed in an isolated JS runtime, and changes were committed and read back from GitHub. Native dialog behavior and APK installation still require device testing. **Current evidence:** Engine regression passed in an isolated JavaScript execution (2,500 scoring and 2,500 non-scoring swaps), and UI-flow regression passed with a mocked DOM. Changed files and final test source have been read back from GitHub `main`. On-device visuals, actual APK compilation, platform packaging, and new-release publication still require separate verification; no build or signed release should be inferred from a source commit.
 
 | G9 Power-ups | `tests/booster-objectives.test.js` verifies all 10 player tools, 4 match-created specials, five objective families, void masks and inventory usage |
+
+
+## Nutvale Homestead phase 2
+
+Run `node tests/homestead.test.js`, `node tests/homestead-expansion.test.js` and `node tests/homestead-ui.test.js`. Gates: 44 stable plot indices, four level-gated expansions, one-time Golden Nut house costs, no accidental purchase from a locked stage, persisted companions, collectible set prizes, score provenance and opt-in prestige-plate sharing. All device-dependent layout and actual Android/desktop release artifacts remain separate verification gates.
