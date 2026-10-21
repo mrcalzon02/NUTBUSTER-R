@@ -9,10 +9,14 @@ const audioCalls=[],window={NutEngine:E,NutCampaignMaps:require('../web/campaign
 const context={window,document,localStorage,console,setTimeout:()=>1,clearTimeout:()=>{}};
 vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../web/game.js'),'utf8'),context);
 assert.match(html,/WELCOME TO NUTBUSTER/);window.NutbusterApp.start(1);
-assert.match(html,/LEVEL 1/);assert.equal((html.match(/data-cell=/g)||[]).length,72);
+assert.match(html,/LEVEL 1/);assert.equal((html.match(/data-cell=/g)||[]).length,E.makeLevel(1).mask.filter(Boolean).length,'Grid must track real level geometry');
 window.NutbusterApp.nav('shop');assert.match(html,/GIGANTIC NUT PACKAGE/);
 const button={dataset:{action:'claim',item:'0'}};
 handlers.click({target:{closest:()=>button}});
+assert.equal(window.NutbusterApp.getSave().coins,250,'No currency awarded until checkout completion');
+handlers.click({target:{closest:()=>({dataset:{action:'checkout-review'}})}});
+assert.match(html,/TOTAL DUE/);assert.match(html,/FREE/);
+handlers.click({target:{closest:()=>({dataset:{action:'checkout-complete'}})}});
 assert.equal(window.NutbusterApp.getSave().coins,50250);assert.equal(window.NutbusterApp.getSave().gems,275);
 assert.ok(audioCalls.includes('voice:package'),'Premium claim must trigger recorded announcer');
 handlers.click({target:{closest:()=>({dataset:{action:'music'}})}});
