@@ -1,10 +1,10 @@
-# NUTBUSTER — Completely Free. No, Really.
+# NUTBUSTER — Premium Mobile Monetization Satire
 
-A nut-themed match-three game satirizing hostile mobile monetization: hearts, premium currencies, rewards, VIP membership, chest timers, friend referrals, extra moves, and absurd bundles **actually grant their rewards for free**, indefinitely. No network, account, ad SDK, payment SDK, purchase screen, or subscription system is included.
+NUTBUSTER is an offline-first, nut-themed match-three parody of predatory mobile monetization. The **player-facing fiction** sells exclusive bundles, hearts, gems, VIP status, and absurdly urgent offers as though purchases are inevitable. The joke must not be spoiled in onboarding or ordinary store copy: tapping BUY leads through a fictional offer review to a final checkout whose total is **FREE / $0.00**. All rewards are delivered without real payment. The app must not collect billing information or integrate purchase, advertising, tracking, or subscription SDKs.
 
 ## Current alpha
 
-- Shared deterministic match-three engine, 30 generated irregular levels, legal-swap and cascade logic, limited layered blockers, four free boosters, persistent browser/device progress, functional shop and reward claim buttons.
+- Shared deterministic match-three engine and 500 seeded level configurations, including a 4×5 to 8×9 board progression, non-matching legal swaps, per-nut gravity/cascade traces, blocker layers, four usable boosters, persistent browser/device progress, satirical two-stage checkout, distinct victory/loss screens, and reward claims.
 - Primary art is **the original five owner-generated glossy sprite sheets** from this project's design conversation. The sixth, labeled board reference sheet is supplementary only; it is not a replacement for the original art.
 - 84 cropped sprites generated from primary art by `tools/prepare_assets.py` (source sheets can be downloaded in the separately provided asset archive). Board geometry uses runtime CSS edges until seamless corner patches are verified.
 - Android native wrapper: minSdk **26**, compileSdk **36**, targetSdk **36**, matching verified ReverieVR `app/build.gradle` values as of 2026-10-20.
@@ -30,4 +30,4 @@ See `docs/wiki/Home.md`, `docs/wiki/Build-and-APK.md`, `docs/wiki/Assets-and-Boa
 
 ## Production scope / known limitations
 
-This alpha is a functional vertical slice, not a final content-complete match-three release. The sampled boards are seeded procedural shapes, not 30 bespoke tuned puzzles. Special nut animation/combinations, diverse objective types, sound design/recorded announcer, aesthetic production HUD, and advanced blockers must be implemented and balance-tested. Currency grants and unlocks are local to each installation. The three-hour chest stores a local cooldown, but OPEN RIGHT NOW always grants its reward free. VIP, rewards and currency remain offline.
+This alpha is a functional vertical slice, not a final content-complete match-three release. The boards are seeded procedural shapes, not 500 bespoke tuned puzzles. Special nut combinations, diverse objective types, advanced blockers, and device-specific animation and layout quality still require implementation or balance testing. Currency grants and unlocks are local to each installation. The three-hour chest tracks a local cooldown, while immediate opening remains accessible. VIP and currency remain offline. Final checkout reveals a zero-dollar price; no payment credentials are requested.
