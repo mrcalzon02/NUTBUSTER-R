@@ -151,3 +151,21 @@
 .nutvale-estate-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 @media(max-width:400px){.nutvale-avatar-portrait{height:120px;width:88px;flex-basis:88px}.nutvale-outfit-list{grid-auto-columns:94px}.nutvale-outfit-thumb{width:83px;height:92px}.nutvale-estate-avatar{height:77px;min-width:46px;max-width:56px}}
 @media(prefers-reduced-motion:reduce){.nutvale-outfit,.nutvale-avatar-showcase{transition:none!important}}
+
+/* Backyard is an exhibit until Edit is explicitly opened. The item rail stays beside its plots. */
+.homestead-yard-column{min-width:0}
+.homestead-yard-heading{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:0 0 6px;color:#ffedc2;font-size:12px}
+.homestead-yard-heading b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.homestead-yard-heading .btn{flex:0 0 auto;font-size:11px;min-height:34px;padding:5px 8px}
+.homestead-plots.viewing .homestead-display-plot{background:transparent;border:0;box-shadow:none;pointer-events:none;cursor:default;text-shadow:0 2px 4px #21341b99}
+.homestead-plots.viewing .homestead-display-plot.empty{visibility:hidden}
+.homestead-plots.viewing .homestead-display-plot.filled strong{font-size:clamp(27px,7vw,43px);filter:drop-shadow(0 3px 3px #1b2a1c)}
+.homestead-editor{margin-top:8px;margin-bottom:8px;padding:7px 8px}
+.homestead-editor-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:5px}
+.homestead-editor-head b{font-size:12px;color:#ffe0a5}
+.homestead-editor-head small{font-size:10px;color:#e9d0a7;white-space:nowrap}
+.homestead-collection-scroll{width:100%;max-width:100%;margin:0;scrollbar-width:thin}
+.homestead-editor .homestead-collectible{width:89px;min-height:61px;padding:4px 3px}
+.homestead-editor .homestead-collectible strong{font-size:24px}
+.homestead-editor .homestead-collectible b{font-size:10px}
+@media(max-width:400px){.homestead-yard-heading .btn{min-height:32px;font-size:10px;padding:4px 6px}.homestead-editor .homestead-collectible{width:83px}}
