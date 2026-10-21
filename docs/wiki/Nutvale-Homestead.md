@@ -1,4 +1,4 @@
-# Nutvale Homestead — design and implementation specification v1.0
+# Nutvale Homestead — design and implementation specification v1.1 (expansion phase 2)
 
 ## Intent
 Nutvale Homestead is a playable second progression layer inside the existing offline-first NUTBUSTER match-three satire. Players receive an estate, display earned trophies and cosmetics, change their squirrel persona, and compare their own achievements. No real checkout, ad dependency, tracking, subscription, or server account is permitted. A fictional premium offer must continue through the two-stage review and show the final **FREE / $0.00** price only at its conclusion; never prematurely disclose it in marketing copy.
@@ -15,18 +15,65 @@ Nutvale Homestead is a playable second progression layer inside the existing off
 ## Core loop
 Play campaign → earn stars and a true high score → unlock decorations, avatars and trophies → visit Homestead to place items → inspect cabinet and plan the next milestone → return to the level map.
 
-## Initial content
+## Original phase 1 content
 A 12-plot garden with a fixed cottage; 28 decoration definitions (26 earned, 2 premium), 8 avatars (7 earned, 1 premium), and 11 award definitions. Milestones include 1/5/10/20/25/50/100/200/300/400/500 (other intervening decorations add more granular rewards). Medal cabinet aggregates completed levels, stars, best recorded level score, three-star finishes, and high score records. Completion at level 500 awards the capstone "Legend of Nutvale" monument.
 
 ## Satirical premium exchange
 Advertise the "Exclusive Royal Manor Kit" at a ludicrous fictional price. Show order review using existing checkout route and hide final price there; next screen discounts to FREE $0.00 without accepting payment details. Completing order records royal-estate=true, granting Platinum Royal avatar, Platinum Fountain, and Diamond Throne once. Store/reward claims should never introduce a genuine premium lock or a deadline that destroys collectibles.
 
-## Planned expansion (beyond v1.0)
-- Visually distinct estate grounds and larger unlocked wings for later campaigns, rather than tiny plots forever.
-- Trophy pedestals, collectible sets, thematic architecture, placeable animated pets, and larger static trophy exhibits.
-- Limited-looking event collections with always-available catch-up or archive paths; parody the pressure without inducing actual player loss.
-- Humorous faux rarity, fake prestige rankings explicitly labeled fictional, and eventually a property visitor gallery export requiring no external social API.
-- Additional premium theater: multi-currency exchanges, VIP tier ladders, mock subscriptions, and season-pass fanfare, all still $0 on checkout and never required for fair gameplay.
+## Phase 2 implementation: Nutvale becomes a proper estate
+
+Five geographically distinct grounds are now navigable from one compact screen. All unlock from **actual stars earned at the milestone**, not merely the campaign's unlocked level. A prize or pay-to-win-style cosmetic offer must never fabricate those stars.
+
+| Grounds | Victory gate | Display plots | Stable positions | Visual identity |
+|---|---:|---:|---|---|
+| Cottage Green | Initial | 12 | 0–11 | Green lawn, original cottage |
+| Whispering Orchard | Level 25 | 8 | 12–19 | Fruit grove, warm meadow |
+| Manor Terrace | Level 100 | 8 | 20–27 | Pale stone terrace |
+| Moonnut Lake | Level 250 | 8 | 28–35 | Blue waterfront |
+| Crown Gardens | Level 400 | 8 | 36–43 | Royal gold and purple |
+
+Players select a grounds button and then tap an inventory item followed by a valid plot. Existing decorations may be moved between grounds without duplication; displaced furniture returns to the collection. Attempting a locked plot is rejected by the model itself, not only through a disabled UI control. Migration preserves the exact original 0–11 positions and newly earned valid placements; it rejects fabricated rewards and invalid or duplicate placement entries. Decorative scenic details and companion motion use CSS, with reduced-motion support.
+
+### Buildings and estate investment
+
+| Building | Victory gate | Golden Nuts to construct |
+|---|---:|---:|
+| Acorn Cottage | Initial | 0 |
+| Walnut Lodge | 25 | 2,000 |
+| Nutwood Manor | 100 | 8,000 |
+| Regal Estate | 250 | 20,000 |
+| Nutvale Palace | 400 | 50,000 |
+
+Once built, a house is permanently available in the player's local collection. Switching back to an owned building costs nothing. A fresh construction reduces the existing Golden Nut wallet only once and never consumes gems or real currency. A gate checks actual cleared-level stars before coins. Buildings are aesthetic upgrades; they do not improve puzzle odds or rewrite the record.
+
+### Companions and cosmetics
+
+Eight passive companions are available: Resident Squirrel (starter), Garden Hedgehog (10), Accountant Owl (25), Prizewinning Rabbit (50), Estate Inspector Fox (100), Night Auditor Raccoon (150), Golden-Horned Deer (250), and Overleveraged Dragon (500). They animate within the property display without needing a pet-food timer, breeding resources, or other compulsory attention economy. Companions are permanently available once their level is completed; selecting one persists.
+
+### Collector rewards
+
+The decoration catalog expands to **57 unique items**, including 24 new campaign-earned ornaments and five special set-completion items. Five curated sets form secondary goals: The Homely Collection, The Antique Nut Society, Bragging Rights, Distinguished Gardens, and The Great Nut Odyssey. When all specified components are earned through campaign clears, the set automatically awards its commemorative object. There are 15 achievement definitions, including collection and opened-estate milestones. Non-premium items are not lost when arrangements change; buying the Royal Manor Kit never counts as a campaign completion.
+
+### Prestige plate, invitations and privacy
+
+The prestige plate summarizes the player's achievement tier, chosen house, avatar and companion, completed levels, earned stars, cabinet awards, completed curated sets, and actual recorded personal best. The share/copy button runs through the existing local device-share helper. It sends only the generated text and the public releases link at the user's request. No email, social account, leaderboard server, unique player ID, advertising SDK, contacts permission, cloud save, or upload is required. Historic saves with no level-best records must show zero rather than fabricate score history.
+
+### Future phase gates
+
+1. Replace emoji/scenic gradients with licensed, optimized property art and animated sprite variants. Preserve semantic button hitboxes and fallback rendering.
+2. Add personal profile themes, estate title plates, custom appearance permutations, and a collectible achievement gallery.
+3. Add a local screenshot/image share path for the prestige card without an account dependency; do not claim other people's estates can be visited until a real, consent-based distribution backend exists.
+4. Expand parody cosmetics and false scarcity only where missed collections have accessible archive/catch-up paths; every final checkout must remain $0.
+5. Connect estate trophies to campaign finale cinematics, non-purchasable high-score distinctions, and post-500 prestige routes. Never confuse purchased cosmetics with genuine milestones.
+
+## Release gate additions for phase 2
+
+H. The original 12-slot save persists unchanged and serializes new grounds using stable global indices 12–43; locked grounds cannot accept tampered or premature placement.
+I. Construction is atomic and one-time per building; re-equipping is free, and insufficient Golden Nuts or missing level clears do not change the wallet.
+J. Collection rewards are computed from earned components (not store offers), and companion selection is level-gated.
+K. Prestige plate reports only known local data, supports opt-in share/copy, and does not perform automatic uploads.
+L. The eight-plot expanded-garden screen, all house buttons, pet choices, curated-set progress, and reduced-motion behavior require touch-device visual inspection before signing a production APK.
 
 ## Release gates
 A. Baseline Node engine/progression/board tests remain green.
