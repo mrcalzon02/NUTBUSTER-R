@@ -46,3 +46,64 @@
 .nut-fx.rewards{width:clamp(150px,45vw,360px);height:clamp(150px,45vw,360px);animation-duration:1150ms}
 @keyframes nut-fx-burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.30) rotate(-13deg)}21%{opacity:1}65%{opacity:.95;transform:translate(-50%,-50%) scale(1.2) rotate(7deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.52) rotate(12deg)}}
 @media(prefers-reduced-motion:reduce){.nut-fx{animation:none;opacity:.65;transform:translate(-50%,-50%) scale(.9)}}
+
+/* Compact, stable gameplay chrome: do not waste vertical space around counters. */
+#screen.game-active{padding:6px 8px 82px}
+.game-topline{margin:0 0 5px;gap:5px;min-height:28px}
+.game-topline h2{font-size:clamp(12px,3.8vw,17px);line-height:1.15}
+.game-topline .btn{min-height:29px;padding:3px 7px;font-size:11px}
+.game-active .game-stat{gap:4px;margin:0 0 4px}
+.game-active .stat{padding:2px 4px;border-radius:6px;display:flex;align-items:baseline;justify-content:center;gap:6px;min-height:25px}
+.game-active .stat b{display:inline;font-size:17px;line-height:1.1}
+.game-active .stat small{font-size:9px;letter-spacing:0}
+.game-active .progress{margin:4px 0 7px;height:6px}
+.game-active .board-wrap{width:min(100%,545px);padding:4px;border-width:3px;border-radius:12px}
+.game-active .board{grid-template-columns:repeat(var(--cols,8),minmax(0,1fr));gap:2px;position:relative;isolation:isolate}
+.game-active .cell{border-radius:7px}
+.game-active .announcer{margin:6px auto}
+.game-active .boosters{margin:7px auto;gap:4px}
+.game-active .boosters button{min-height:56px;padding:2px}
+.game-active .boosters .booster-art{width:35px;height:35px}
+.game-active .tip{margin:5px auto;font-size:11px}
+.game-active .game-actions{gap:4px;margin:7px auto}
+.game-active .game-actions .btn{min-height:33px;font-size:11px;padding:5px 7px}
+.nut-visual{display:flex;position:relative;align-items:center;justify-content:center;width:100%;height:100%;pointer-events:none;z-index:0;transform:translateZ(0)}
+.nut-visual .piece{opacity:0;transition:opacity 85ms ease-out}
+.nut-visual .piece.loaded{opacity:1}
+.nut-visual .fallback{display:block;position:absolute}
+.nut-visual .piece.loaded+.fallback{display:none}
+.nut-special{position:absolute;right:0;bottom:0;font-size:clamp(12px,3vw,21px);line-height:1;pointer-events:none;filter:drop-shadow(0 1px 2px #23132b)}
+.cell.clearing .nut-visual{animation:nut-clear 180ms ease-in forwards}
+.cell.clearing .overlay{animation:nut-clear 180ms ease-in forwards}
+@keyframes nut-clear{0%{transform:scale(1);opacity:1}65%{transform:scale(1.12);opacity:.7}100%{transform:scale(.3);opacity:0}}
+.falling-nut{display:flex;position:absolute;align-items:center;justify-content:center;z-index:5;pointer-events:none;will-change:transform}
+.falling-nut .nut-visual{height:100%;width:100%}
+.game-active .ui-icon,.game-active .art-image{visibility:hidden}
+.game-active .ui-icon.loaded,.game-active .art-image.loaded{visibility:visible}
+.offer-price{font-size:20px;font-weight:950;color:#ffd078;margin:7px 0}
+.checkout-screen{width:min(100%,540px);margin:0 auto}
+.checkout-screen .topline{margin-bottom:10px}
+.checkout-sheet{padding:18px}
+.checkout-sheet h1{font-size:20px;margin:0 0 20px;text-align:center;color:#ffe096}
+.checkout-item{display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:1px solid #c7926170}
+.checkout-item b,.checkout-item small{display:block}
+.checkout-item small{font-size:11px;color:#e7c59d;margin-top:5px}
+.checkout-emoji{font-size:42px}
+.checkout-price{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:16px 0;border-bottom:1px solid #b3886180}
+.checkout-total{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px;margin:16px 0;padding:14px 0;border-block:2px solid #e8bf65}
+.checkout-total strong{color:#a5ff89;font-size:38px;line-height:1;font-weight:1000}
+.checkout-total small{text-align:right;grid-column:2;color:#caffb7}
+.checkout-sheet .wide{min-height:50px}
+.outcome-screen{min-height:calc(100dvh - 160px);display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;gap:14px;padding:16px 8px}
+.outcome-symbol{font-size:clamp(58px,20vw,100px);line-height:1}
+.outcome-screen h1{margin:0;font-size:clamp(30px,9vw,46px);line-height:1;color:#ffd472}
+.outcome-screen p{margin:0;max-width:400px}
+.outcome-stars{font-size:40px;color:#ffce4c;letter-spacing:4px}
+.outcome-numbers{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.outcome-numbers span{padding:8px 10px;background:#3e233b;border:1px solid #956b50;border-radius:7px}
+.outcome-numbers b{color:#ffe296}
+.outcome-screen .actions{width:100%}
+@media(prefers-reduced-motion:reduce){
+ .nut-visual .piece{transition:none}
+ .cell.clearing .nut-visual,.cell.clearing .overlay{animation:none}
+}
