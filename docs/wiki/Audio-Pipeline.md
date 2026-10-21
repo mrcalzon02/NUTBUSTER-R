@@ -5,7 +5,7 @@ The user-designated Drive audio folder is [Sounds / NUTBUSTER](https://drive.goo
 ## Playback
 
 - `web/audio.js` owns three separate HTML5 Audio channels: looped music (at 28%), voiced announcer (at 90%, ducks music to 11%), and occasional grunts (at 38%).
-- Every triggered announcer clip varies its playback rate by up to ±4%; every grunt/reaction varies by up to ±6%. Pitch preservation is disabled on those two channels so rate changes alter both tone and duration. Consecutive cues keep at least 1.8% rate separation; the looped music stays at 1.0× for consistent tempo.
+- Every triggered announcer clip varies playback rate by up to ±9%; every grunt/reaction by up to ±11%. Pitch preservation is disabled on both channels so compatible browsers change both tone and duration. Consecutive voice lines differ by at least 6.48 percentage points in playback rate, and consecutive grunts by at least 7.92 points. The selected rate is written to both `defaultPlaybackRate` and `playbackRate` and reapplied at `loadedmetadata`/`playing` if the media engine resets it while loading. Music remains 1.0×.
 - Music and voice can be switched independently, with controls on Home and during gameplay; preferences are stored locally.
 - Audio starts only following a user gesture. Failed/blocked media playback is handled gracefully without stopping the puzzle.
 - Trigger mapping: game start `nutbuster-soft`, level victory `unbelievable-performance`, last-move failure `that-was-close`, 2+ cascades `magnificent-nuts`, 4+ cascades `they-just-keep-coming`, 6+ cascades `nutbuster-exclamation`, 5+ clears `ooh-thats-a-big-one`, normal matches rotate grunt reactions; shop packages `enormous-package`, VIP `premium-nuts-for-everyone`, daily reward and life refill `satisfaction-guaranteed`, treasure chest `nutbuster-exclamation`, pig smashing `oh-my`.
@@ -17,7 +17,7 @@ The user-designated Drive audio folder is [Sounds / NUTBUSTER](https://drive.goo
 
 ## Acceptance gates
 
-Run `node tests/engine.test.js`, `node tests/ui-smoke.test.js`, and `node tests/audio.test.js`. The audio test checks channel isolation, toggles, music ducking, per-trigger rate bounds and pitch shifting, consecutive cue variation, music stability, all cataloged SHA-256 digests and the availability of every one of the 16 files.
+Run `node tests/engine.test.js`, `node tests/ui-smoke.test.js`, and `node tests/audio.test.js`. The audio test checks channel isolation, toggles, music ducking, per-trigger rate bounds, disabled pitch preservation, recovery from simulated Android-style media load resets, consecutive audible-rate variation, music stability, all cataloged SHA-256 digests and the availability of every one of the 16 files.
 
 Device tests still needed: verify playback and volume ducking on an actual Android API 26 device, current Android phone/tablet, and desktop, check audio-focus interruptions, background pause/resume, speaker output, and speech clarity against music. The repository tests do **not** prove Android APK installation or physical playback.
 
