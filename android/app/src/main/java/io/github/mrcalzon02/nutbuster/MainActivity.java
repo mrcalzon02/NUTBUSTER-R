@@ -3,32 +3,49 @@ package io.github.mrcalzon02.nutbuster;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
-import android.view.WindowInsets;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import org.json.JSONObject;
 
-/** Offline-first native shell. No INTERNET permission, advertisements, or store SDK. */
+/** Offline-first native game. Network access is strictly opt-in for signed updates. */
 public final class MainActivity extends Activity {
     private WebView game;
+    private NutUpdateService updater;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        updater = new NutUpdateService(this, this::showUpdateStatus);
         game = new WebView(this);
         game.setWebViewClient(new WebViewClient());
         WebSettings s = game.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
-        s.setAllowFileAccess(true); // packaged local app assets only
+        s.setAllowFileAccess(true); // Only the packaged game is loaded.
         s.setAllowContentAccess(false);
         s.setJavaScriptCanOpenWindowsAutomatically(false);
         s.setSupportMultipleWindows(false);
-        s.setBlockNetworkLoads(true);
+        s.setBlockNetworkLoads(true); // The web game cannot make network requests.
+        game.addJavascriptInterface(new Object() {
+            @JavascriptInterface public void checkForUpdates() { updater.checkForUpdates(); }
+        }, "NUTBUSTER_UPDATE_BRIDGE");
         game.setOverScrollMode(View.OVER_SCROLL_NEVER);
         setContentView(game);
         game.loadUrl("file:///android_asset/index.html");
     }
-    @Override public void onBackPressed() {
-        game.evaluateJavascript("window.NutbusterApp && window.NutbusterApp.nav('campaign')", null);
+    private void showUpdateStatus(String message) {
+        runOnUiThread(() -> {
+            if (game != null) game.evaluateJavascript(
+                "window.NutbusterUpdates && window.NutbusterUpdates.receive(" +
+                JSONObject.quote(message) + ")", null);
+        });
     }
-    @Override protected void onDestroy(){ if(game!=null){game.destroy();game=null;} super.onDestroy(); }
+    @Override public void onBackPressed() {
+        if (game != null) game.evaluateJavascript("window.NutbusterApp && window.NutbusterApp.nav('campaign')", null);
+    }
+    @Override protected void onDestroy() {
+        if (updater != null) updater.close();
+        if (game != null) { game.destroy(); game = null; }
+        super.onDestroy();
+    }
 }

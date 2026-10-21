@@ -8,7 +8,7 @@ A nut-themed match-three game satirizing hostile mobile monetization: hearts, pr
 - Primary art is **the original five owner-generated glossy sprite sheets** from this project's design conversation. The sixth, labeled board reference sheet is supplementary only; it is not a replacement for the original art.
 - 84 cropped sprites generated from primary art by `tools/prepare_assets.py` (source sheets can be downloaded in the separately provided asset archive). Board geometry uses runtime CSS edges until seamless corner patches are verified.
 - Android native wrapper: minSdk **26**, compileSdk **36**, targetSdk **36**, matching verified ReverieVR `app/build.gradle` values as of 2026-10-20.
-- Desktop wrapper: Electron; the **same** `web/` game is playable directly in a desktop browser.
+- Desktop wrapper: a self-contained Go Windows/Linux launcher serving the **same** embedded `web/` game offline in the user’s default browser. An optional Electron shell also exists.
 
 ## Run / test
 
@@ -16,7 +16,7 @@ A nut-themed match-three game satirizing hostile mobile monetization: hearts, pr
 
 Open `web/index.html` in a modern browser or run `python3 -m http.server 8000 --directory web` and visit `http://localhost:8000/`. For a desktop application: `cd desktop && npm install && npm start` (downloads Electron from npm). To make an Android debug APK, install JDK 17, Android SDK 36/build-tools and Gradle 9.6.1; `cd android && gradle :app:assembleDebug`. APK output is `android/app/build/outputs/apk/debug/app-debug.apk`. Verify on an API 26 device and a modern Android emulator.
 
-The source includes Gradle wrapper configuration but **not** a generated wrapper JAR. Use a local Gradle 9.6.1 installation to bootstrap a wrapper with `gradle wrapper` if desired. No automated CI workflow is configured.
+The source includes Gradle wrapper configuration but not the wrapper JAR. Local builds can use installed Gradle 9.6.1; **GitHub Actions now provisions Gradle 9.6.1, SDK 36, JDK 17 and the build requirements automatically**. See `.github/workflows/build-and-release.yml`. Every main-branch push produces debug APK and Windows/Linux desktop artifacts, and attempts an Android API-26 emulator launch test. Signed APK publication requires the exact existing ReverieVR publisher secrets, which must be explicitly shared to this repository; absent secrets, the workflow warns and does not publish a falsely signed release. The native Android app only performs update network checks on user request and verifies the APK release digest, package ID, monotonic version code, and publisher certificate before opening the installer. Debug builds are not in the signed update lineage. The Windows executable opens an offline local web server in the default browser.
 
 ## Audio library
 

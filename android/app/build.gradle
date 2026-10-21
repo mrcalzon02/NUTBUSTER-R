@@ -1,14 +1,61 @@
 plugins { id 'com.android.application' }
+
+// Android API compatibility matches the established ReverieVR phone-test line.
+def buildEpoch = (project.findProperty('nutbusterBuildEpochSeconds') ?: '0').toString().toLong()
+def buildCode = buildEpoch > 1577836800L ? (buildEpoch - 1577836800L).intValue() : 1
+def signerHash = (project.findProperty('nutbusterSignerSha256') ?: '').toString().toLowerCase().replaceAll('[^0-9a-f]', '')
+def signingPath = (project.findProperty('phoneTestKeystorePath') ?: '').toString()
+def storePass = (project.findProperty('phoneTestStorePassword') ?: '').toString()
+def publisherAlias = (project.findProperty('phoneTestKeyAlias') ?: '').toString()
+def publisherKeyPassword = (project.findProperty('phoneTestKeyPassword') ?: '').toString()
+def haveSigning = signingPath && storePass && publisherAlias && publisherKeyPassword && file(signingPath).isFile()
+
 android {
- namespace 'io.github.mrcalzon02.nutbuster'
- compileSdk 36
- defaultConfig {
-   applicationId 'io.github.mrcalzon02.nutbuster'
-   minSdk 26
-   targetSdk 36
-   versionCode 1
-   versionName '0.1.0-alpha'
- }
- sourceSets { main { assets.srcDirs = ['../../../web'] } }
- compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    namespace 'io.github.mrcalzon02.nutbuster'
+    compileSdk 36
+    buildFeatures { buildConfig true }
+    defaultConfig {
+        applicationId 'io.github.mrcalzon02.nutbuster'
+        minSdk 26
+        targetSdk 36
+        versionCode buildCode
+        versionName buildCode > 1 ? '0.1.0-test.' + buildCode : '0.1.0-alpha'
+        buildConfigField 'String', 'DISTRIBUTION_SIGNER_SHA256', '"' + signerHash + '"'
+        buildConfigField 'boolean', 'UPDATE_CHANNEL_ENABLED', (haveSigning && signerHash.matches('[0-9a-f]{64}')).toString()
+    }
+    // android/app -> ../../web. The earlier ../../../web pointed outside the repository.
+    sourceSets { main { assets.srcDirs = ['../../web'] } }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    signingConfigs {
+        if (haveSigning) {
+            phoneTest {
+                storeFile file(signingPath)
+                storePassword storePass
+                keyAlias publisherAlias
+                keyPassword publisherKeyPassword
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            debuggable false
+            if (haveSigning) signingConfig signingConfigs.phoneTest
+        }
+        debug { debuggable true }
+    }
+}
+
+dependencies { implementation 'androidx.core:core:1.13.1' }
+
+// Never accidentally publish a release APK signed with the debug key or without the pinned signer.
+tasks.register('validatePublisherSigning') {
+    doLast {
+        if (!haveSigning || !signerHash.matches('[0-9a-f]{64}')) {
+            throw new GradleException('Persistent ReverieVR publisher keystore and signer fingerprint are required')
+        }
+    }
+}
+tasks.configureEach { task ->
+    if (task.name == 'assembleRelease') task.dependsOn('validatePublisherSigning')
 }

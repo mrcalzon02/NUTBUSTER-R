@@ -1,0 +1,300 @@
+name: NUTBUSTER Android, desktop and signed update release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Never cancel an in-progress signed release with a later source commit.
+concurrency:
+  group: nutbuster-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify engine, interface, media, and release contracts
+        run: |
+          set -euo pipefail
+          node tests/engine.test.js
+          node tests/ui-smoke.test.js
+          node tests/audio.test.js
+          node tests/package.test.js
+          node tests/update-contract.test.js
+
+  desktop:
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Compile self-contained desktop launchers
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./tools/build_desktop_launchers.sh
+          test -s release/NUTBUSTER-Windows-x64.exe
+          test -s release/NUTBUSTER-Linux-x64
+          mkdir -p release/metadata
+          sha256sum release/NUTBUSTER-* > release/metadata/SHA256SUMS.txt
+          printf 'Git SHA: %s\n' "$GITHUB_SHA" > release/metadata/BUILD.txt
+          file release/NUTBUSTER-Windows-x64.exe release/NUTBUSTER-Linux-x64
+      - name: Verify Linux launch actually serves the game
+        shell: bash
+        run: |
+          set -euo pipefail
+          release/NUTBUSTER-Linux-x64 --no-browser > "$RUNNER_TEMP/nutbuster-server.log" 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          for i in {1..30}; do
+            if curl --fail --silent --show-error http://127.0.0.1:43823/__nutbuster_ping 2>/dev/null | grep -qx NUTBUSTER_OFFLINE_V1; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:43823/__nutbuster_ping | grep -qx NUTBUSTER_OFFLINE_V1
+          curl -fsS http://127.0.0.1:43823/index.html | grep -Fq 'NUTBUSTER'
+          curl -fsS http://127.0.0.1:43823/audio/grunt-1.mp3 -o "$RUNNER_TEMP/grunt.mp3"
+          test -s "$RUNNER_TEMP/grunt.mp3"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nutbuster-Desktop-${{ github.run_id }}
+          path: |
+            release/NUTBUSTER-Windows-x64.exe
+            release/NUTBUSTER-Linux-x64
+            release/metadata/
+          retention-days: 30
+          if-no-files-found: error
+
+  android-debug:
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.1'
+      - name: Install Android 36 SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}/cmdline-tools/latest/bin/sdkmanager"
+          if [[ ! -x "$SDKMANAGER" ]]; then SDKMANAGER="$(command -v sdkmanager)"; fi
+          "$SDKMANAGER" 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Build installable debug APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle -p android --no-daemon --stacktrace :app:assembleDebug
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}/build-tools/36.0.0"
+          "$SDK/apksigner" verify --verbose --print-certs "$APK"
+          "$SDK/aapt" dump badging "$APK" | tee android/debug-badging.txt
+          grep -F "package: name='io.github.mrcalzon02.nutbuster'" android/debug-badging.txt
+          unzip -Z -1 "$APK" | grep -Fx assets/index.html
+          unzip -Z -1 "$APK" | grep -Fx assets/game.js
+          unzip -Z -1 "$APK" | grep -Fx assets/audio/grunt-1.mp3
+          unzip -Z -1 "$APK" | grep -Fx assets/art/primary/nuts/peanut.png
+          mkdir -p release
+          cp "$APK" release/NUTBUSTER-Android-debug.apk
+          sha256sum release/NUTBUSTER-Android-debug.apk > release/NUTBUSTER-Android-debug.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nutbuster-Android-debug-${{ github.run_id }}
+          path: |
+            release/NUTBUSTER-Android-debug.apk
+            release/NUTBUSTER-Android-debug.sha256
+            android/debug-badging.txt
+          retention-days: 30
+          if-no-files-found: error
+      - name: Preserve Android build diagnostics if compilation fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nutbuster-Android-diagnostics-${{ github.run_id }}
+          path: |
+            android/app/build/reports/
+            android/app/build/outputs/logs/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  emulator-smoke:
+    needs: android-debug
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Nutbuster-Android-debug-${{ github.run_id }}
+          path: validation
+      - name: Install and launch on Android 26 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 26
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          emulator-boot-timeout: 600
+          script: |
+            set -euo pipefail
+            adb install -r validation/NUTBUSTER-Android-debug.apk
+            adb shell am start -W -n io.github.mrcalzon02.nutbuster/.MainActivity
+            sleep 5
+            adb shell dumpsys activity activities | grep -E 'io.github.mrcalzon02.nutbuster.*MainActivity'
+            adb shell screencap -p /sdcard/nutbuster-launch.png
+            adb pull /sdcard/nutbuster-launch.png validation/nutbuster-android26.png
+            adb logcat -d -s AndroidRuntime:E | tee validation/nutbuster-crashlog.txt
+            if grep -F 'FATAL EXCEPTION' validation/nutbuster-crashlog.txt; then exit 1; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Nutbuster-Emulator-Evidence-${{ github.run_id }}
+          path: validation/nutbuster-android26.png
+          retention-days: 14
+          if-no-files-found: ignore
+
+  publisher-release:
+    if: github.event_name != 'pull_request'
+    needs: [tests, android-debug, desktop, emulator-smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      PHONE_TEST_KEYSTORE_BASE64: ${{ secrets.PHONE_TEST_KEYSTORE_BASE64 }}
+      PHONE_TEST_STORE_PASSWORD: ${{ secrets.PHONE_TEST_STORE_PASSWORD }}
+      PHONE_TEST_KEY_ALIAS: ${{ secrets.PHONE_TEST_KEY_ALIAS }}
+      PHONE_TEST_KEY_PASSWORD: ${{ secrets.PHONE_TEST_KEY_PASSWORD }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.1'
+      - uses: actions/download-artifact@v4
+        with:
+          name: Nutbuster-Desktop-${{ github.run_id }}
+          path: release/desktop
+      - name: Enforce existing ReverieVR publisher identity
+        id: signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$PHONE_TEST_KEYSTORE_BASE64" || -z "$PHONE_TEST_STORE_PASSWORD" || -z "$PHONE_TEST_KEY_ALIAS" || -z "$PHONE_TEST_KEY_PASSWORD" ]]; then
+            echo '::warning::ReverieVR signing secrets are not yet shared into NUTBUSTER-R. Signed publication is blocked; installable debug APK and desktop artifacts remain available.'
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          printf '%s' "$PHONE_TEST_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/nutbuster-publisher.p12"
+          chmod 600 "$RUNNER_TEMP/nutbuster-publisher.p12"
+          keytool -list -keystore "$RUNNER_TEMP/nutbuster-publisher.p12" -storepass "$PHONE_TEST_STORE_PASSWORD" -alias "$PHONE_TEST_KEY_ALIAS" >/dev/null
+          keytool -exportcert -keystore "$RUNNER_TEMP/nutbuster-publisher.p12" -storepass "$PHONE_TEST_STORE_PASSWORD" -alias "$PHONE_TEST_KEY_ALIAS" -file "$RUNNER_TEMP/reverie-certificate.der" >/dev/null
+          SHA="$(sha256sum "$RUNNER_TEMP/reverie-certificate.der" | cut -d' ' -f1)"
+          [[ "$SHA" =~ ^[0-9a-f]{64}$ ]]
+          printf 'sha=%s\npath=%s\nready=true\n' "$SHA" "$RUNNER_TEMP/nutbuster-publisher.p12" >> "$GITHUB_OUTPUT"
+      - name: Install Android SDK
+        if: steps.signing.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}/cmdline-tools/latest/bin/sdkmanager"
+          if [[ ! -x "$SDKMANAGER" ]]; then SDKMANAGER="$(command -v sdkmanager)"; fi
+          "$SDKMANAGER" 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Build permanently signed release APK
+        if: steps.signing.outputs.ready == 'true'
+        id: signed
+        shell: bash
+        env:
+          ORG_GRADLE_PROJECT_phoneTestKeystorePath: ${{ steps.signing.outputs.path }}
+          ORG_GRADLE_PROJECT_phoneTestStorePassword: ${{ secrets.PHONE_TEST_STORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_phoneTestKeyAlias: ${{ secrets.PHONE_TEST_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_phoneTestKeyPassword: ${{ secrets.PHONE_TEST_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          BUILD_EPOCH="$(date -u +%s)"
+          CODE=$(( BUILD_EPOCH - 1577836800 ))
+          (( CODE > 1 && CODE <= 2100000000 ))
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          gradle -p android --no-daemon --stacktrace -PnutbusterBuildEpochSeconds="$BUILD_EPOCH" -PnutbusterSignerSha256="${{ steps.signing.outputs.sha }}" :app:assembleRelease
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          test -s "$APK"
+          SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}/build-tools/36.0.0"
+          "$SDK/apksigner" verify --verbose --print-certs "$APK" | tee "$RUNNER_TEMP/certificate.txt"
+          SIGNER="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/certificate.txt" | head -n 1 | tr '[:upper:]' '[:lower:]')"
+          test "$SIGNER" = "${{ steps.signing.outputs.sha }}"
+          "$SDK/aapt" dump badging "$APK" | tee "$RUNNER_TEMP/badging.txt"
+          grep -F "package: name='io.github.mrcalzon02.nutbuster' versionCode='$CODE'" "$RUNNER_TEMP/badging.txt"
+          unzip -Z -1 "$APK" | grep -Fx assets/audio/they-just-keep-coming.mp3
+          mkdir -p release/publish
+          cp "$APK" release/publish/NUTBUSTER-Android-phone-test.apk
+          sha256sum release/publish/NUTBUSTER-Android-phone-test.apk > release/publish/SHA256SUMS.txt
+          sha256sum -c release/publish/SHA256SUMS.txt
+          printf 'Source revision: %s\nAndroid versionCode: %s\nCertificate SHA-256: %s\n' "$GITHUB_SHA" "$CODE" "$SIGNER" > release/publish/BUILD-EVIDENCE.txt
+      - name: Publish signed APK and desktop downloads after remote verification
+        if: steps.signing.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="nutbuster-phone-test-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::Release tag already exists; refusing to overwrite existing artifacts"
+            exit 1
+          fi
+          cp release/desktop/NUTBUSTER-Windows-x64.exe release/publish/
+          cp release/desktop/NUTBUSTER-Linux-x64 release/publish/
+          (cd release/publish && sha256sum NUTBUSTER-* > SHA256SUMS.txt)
+          NOTES="$(printf 'NUTBUSTER testing release.\n\nAndroid versionCode: %s\nSource revision: %s\nPersistent ReverieVR signer SHA-256: %s\n\nThe Android APK replaces previous NUTBUSTER signed builds without deleting local progress.\n' '${{ steps.signed.outputs.code }}' "$GITHUB_SHA" '${{ steps.signing.outputs.sha }}')"
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes "$NOTES" --draft
+          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
+          # GitHub computes SHA-256 for release assets. Refuse to publish until its digest matches our local artifact.
+          remote="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG")"
+          REMOTE_JSON="$remote" python3 - <<'PY'
+          import hashlib,json,os,pathlib
+          release=json.loads(os.environ['REMOTE_JSON'])
+          expected={p.name:(p.stat().st_size, 'sha256:'+hashlib.sha256(p.read_bytes()).hexdigest()) for p in pathlib.Path('release/publish').iterdir() if p.is_file()}
+          assets={a['name']:a for a in release['assets']}
+          for name,(size,digest) in expected.items():
+              a=assets.get(name)
+              if not a or a.get('size')!=size or a.get('digest')!=digest:
+                  raise SystemExit(f'RELEASE BLOCKED: {name} remote SHA-256/size readback mismatch')
+          print('Remote release asset size and GitHub SHA-256 verified for',len(expected),'files')
+          PY
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,url | tee release/publish/release-proof.json
+          python3 -c 'import json; assert not json.load(open("release/publish/release-proof.json"))["isDraft"]'
+      - uses: actions/upload-artifact@v4
+        if: steps.signing.outputs.ready == 'true'
+        with:
+          name: Nutbuster-signed-release-evidence-${{ github.run_id }}
+          path: |
+            release/publish/BUILD-EVIDENCE.txt
+            release/publish/SHA256SUMS.txt
+            release/publish/release-proof.json
+          retention-days: 30
+          if-no-files-found: error

@@ -1,0 +1,1344 @@
+{
+  "owner_generated_primary_art_priority": "web/art/primary",
+  "role": "supplementary-icons-and-fx",
+  "schema": 1,
+  "sheets": {
+    "economy-icons.png": {
+      "category": "economy",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "layout": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "source_sha256": "cca962d8a07f56633a7a4c688a718f6f6617c352cb38f96a927a8e396c502a27"
+    },
+    "effects.png": {
+      "category": "effects",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "layout": "custom-masks-overlapping-vfx",
+      "source_sha256": "e9f7873bfcf260566bf7013877733dc3e69848086ebf3a9138fe32660dd02ea6"
+    },
+    "menu-icons.png": {
+      "category": "ui",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "layout": [
+        5,
+        5,
+        5,
+        6
+      ],
+      "source_sha256": "a37ce6fe440b8456a5afc57a7c771ccc50deb39ac8d4f30543cdb9e67776c7a2"
+    }
+  },
+  "sprites": {
+    "economy/achievement-medal": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/achievement-medal.png",
+      "sha256": "37bc0464c357d18478250866af5f7f6aadc33b463de33c763d00ad97620de09d",
+      "source": "economy-icons.png",
+      "source_rect": [
+        1158,
+        0,
+        1448,
+        282
+      ],
+      "visible_pixels": [
+        0,
+        18,
+        257,
+        282
+      ]
+    },
+    "economy/acorn-pile": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/acorn-pile.png",
+      "sha256": "ffb6c82db8dc73067b6cd517848f7bacd24ec0a5d1334d4d9649544f953e6ced",
+      "source": "economy-icons.png",
+      "source_rect": [
+        0,
+        0,
+        290,
+        282
+      ],
+      "visible_pixels": [
+        13,
+        70,
+        290,
+        282
+      ]
+    },
+    "economy/booster-pack": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/booster-pack.png",
+      "sha256": "dcff81c015ad1edf8b8874ddb9d729a23bd216f5d7a47e61bc6c42e80525e930",
+      "source": "economy-icons.png",
+      "source_rect": [
+        869,
+        282,
+        1158,
+        548
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        289,
+        266
+      ]
+    },
+    "economy/daily-calendar": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/daily-calendar.png",
+      "sha256": "8a483c86a9ead6d5e08303f76509fe0eb23d495d084e79c3dc94f11e1a70be45",
+      "source": "economy-icons.png",
+      "source_rect": [
+        0,
+        805,
+        290,
+        1086
+      ],
+      "visible_pixels": [
+        15,
+        0,
+        290,
+        262
+      ]
+    },
+    "economy/energy-heart": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/energy-heart.png",
+      "sha256": "b74dd9d52cfb9de1f89693288f982828c7a007ada77584d2e6c299f1172b995b",
+      "source": "economy-icons.png",
+      "source_rect": [
+        0,
+        548,
+        290,
+        805
+      ],
+      "visible_pixels": [
+        26,
+        0,
+        290,
+        257
+      ]
+    },
+    "economy/friends-gift": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/friends-gift.png",
+      "sha256": "1f0cecdfa8b3125255c2fceb368ce40df296f5178e1dc078f4acb7bd81c3f311",
+      "source": "economy-icons.png",
+      "source_rect": [
+        869,
+        805,
+        1158,
+        1086
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        289,
+        252
+      ]
+    },
+    "economy/grand-bundle": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/grand-bundle.png",
+      "sha256": "df8f87cb7ebaa816b2d4b3d7d69c39bad840b46e10c6f19946d883c515221c0a",
+      "source": "economy-icons.png",
+      "source_rect": [
+        1158,
+        805,
+        1448,
+        1086
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        279,
+        263
+      ]
+    },
+    "economy/hourglass": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/hourglass.png",
+      "sha256": "c1614ba9b4980a813d3b3feeb2a16391180b900577df1a6dcced260670196eae",
+      "source": "economy-icons.png",
+      "source_rect": [
+        290,
+        548,
+        579,
+        805
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        289,
+        257
+      ]
+    },
+    "economy/level-badge": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/level-badge.png",
+      "sha256": "1552192999ec60390b0aeaed8f96046fea15723b2b1b0a213dbb3c0572315bd7",
+      "source": "economy-icons.png",
+      "source_rect": [
+        579,
+        805,
+        869,
+        1086
+      ],
+      "visible_pixels": [
+        0,
+        9,
+        290,
+        256
+      ]
+    },
+    "economy/locked-chest": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/locked-chest.png",
+      "sha256": "7033ffc915890d02c381728763715ca5f729c439931df7ed6fc5b6de7f07da40",
+      "source": "economy-icons.png",
+      "source_rect": [
+        290,
+        282,
+        579,
+        548
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        289,
+        266
+      ]
+    },
+    "economy/mystery-gift": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/mystery-gift.png",
+      "sha256": "ad25b930bcc81d5150ea135f940be44ea004029db78ee230d28d34920f6430cc",
+      "source": "economy-icons.png",
+      "source_rect": [
+        290,
+        805,
+        579,
+        1086
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        289,
+        247
+      ]
+    },
+    "economy/open-lootbox": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/open-lootbox.png",
+      "sha256": "9ae99d9f85db661fa17ef93331a1df4048557a11f2d86e9ea1875c783503d8fd",
+      "source": "economy-icons.png",
+      "source_rect": [
+        579,
+        282,
+        869,
+        548
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        290,
+        266
+      ]
+    },
+    "economy/piggy-bank": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/piggy-bank.png",
+      "sha256": "bcfe8e31870c7ddd85b1eaaebea1e06d1c0c8a454406d9c6d66672d59e8c3c36",
+      "source": "economy-icons.png",
+      "source_rect": [
+        1158,
+        282,
+        1448,
+        548
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        275,
+        266
+      ]
+    },
+    "economy/premium-ticket": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/premium-ticket.png",
+      "sha256": "b53315d2cfa619c521d72baf43c9d0d32eb4df3223aeea7ac5fa788dc577476c",
+      "source": "economy-icons.png",
+      "source_rect": [
+        0,
+        282,
+        290,
+        548
+      ],
+      "visible_pixels": [
+        9,
+        0,
+        290,
+        266
+      ]
+    },
+    "economy/prismatic-acorn": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/prismatic-acorn.png",
+      "sha256": "f95fc697abfe9bccc218f94eb38e87931a4d0f593a8ae31866577959827756b7",
+      "source": "economy-icons.png",
+      "source_rect": [
+        290,
+        0,
+        579,
+        282
+      ],
+      "visible_pixels": [
+        0,
+        30,
+        289,
+        282
+      ]
+    },
+    "economy/shell-coins": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/shell-coins.png",
+      "sha256": "9ed2f9f3e6c820c25417288b0a874ac6c4417410e3884827d527fe52ddbf2f0a",
+      "source": "economy-icons.png",
+      "source_rect": [
+        579,
+        0,
+        869,
+        282
+      ],
+      "visible_pixels": [
+        0,
+        65,
+        290,
+        282
+      ]
+    },
+    "economy/squirrel-cash": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/squirrel-cash.png",
+      "sha256": "03bc9bc8e8105f8278b2f2e64995b6ce90e18d7fbb546ab8801fcd8650f50681",
+      "source": "economy-icons.png",
+      "source_rect": [
+        869,
+        0,
+        1158,
+        282
+      ],
+      "visible_pixels": [
+        0,
+        60,
+        289,
+        282
+      ]
+    },
+    "economy/squirrel-pass": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/squirrel-pass.png",
+      "sha256": "2cc32c1232e594a07d5b0c676266ff7d733a0d6c495e6a9d56f167538bd06612",
+      "source": "economy-icons.png",
+      "source_rect": [
+        869,
+        548,
+        1158,
+        805
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        289,
+        257
+      ]
+    },
+    "economy/timed-chest": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/timed-chest.png",
+      "sha256": "2973a0c162f64102c419cdaede9d1c507ed950a2768688374cc6769c16e92e63",
+      "source": "economy-icons.png",
+      "source_rect": [
+        579,
+        548,
+        869,
+        805
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        290,
+        255
+      ]
+    },
+    "economy/vip-shield": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/economy/vip-shield.png",
+      "sha256": "01423ea94f1789b37e7d2fd6ed5ecd9470c57514582f52f988c379e816c84dc6",
+      "source": "economy-icons.png",
+      "source_rect": [
+        1158,
+        548,
+        1448,
+        805
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        275,
+        257
+      ]
+    },
+    "effects/chain-break": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/chain-break.png",
+      "sha256": "2b03faa914f0ef4f23679da4722540bfb86dc8f695c13974809a9a0cc52686e9",
+      "source": "effects.png",
+      "source_rect": [
+        219,
+        352,
+        493,
+        699
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        274,
+        342
+      ]
+    },
+    "effects/chest-pop": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/chest-pop.png",
+      "sha256": "f8443b38c67c85e8469e50d2f9dc71d4b6f3997a96ec2c0b6989975106bac442",
+      "source": "effects.png",
+      "source_rect": [
+        476,
+        368,
+        731,
+        693
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        255,
+        324
+      ]
+    },
+    "effects/coin-shower": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/coin-shower.png",
+      "sha256": "ca16dc14a178ed7c6cbaaabd5d6606037a51243bd056e4956fcf7f2111839598",
+      "source": "effects.png",
+      "source_rect": [
+        960,
+        54,
+        1211,
+        349
+      ],
+      "visible_pixels": [
+        0,
+        29,
+        247,
+        295
+      ]
+    },
+    "effects/confetti": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/confetti.png",
+      "sha256": "80f38b97898d5ad02c6909a74085ff471a20bfb9b9a67488e432c55d7bf16801",
+      "source": "effects.png",
+      "source_rect": [
+        1190,
+        691,
+        1448,
+        1062
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        251,
+        312
+      ]
+    },
+    "effects/focus-ring": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/focus-ring.png",
+      "sha256": "ebe23dd0de0c5dc8bb2ad33e4534915373eb9d0156e711d944b35d360b1e714a",
+      "source": "effects.png",
+      "source_rect": [
+        234,
+        688,
+        492,
+        1053
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        258,
+        311
+      ]
+    },
+    "effects/golden-acorn-glow": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/golden-acorn-glow.png",
+      "sha256": "22c626c218f7071eca4f9aab664f62db62c513d231224bf39eb3e21a55ebacc2",
+      "source": "effects.png",
+      "source_rect": [
+        1206,
+        36,
+        1448,
+        374
+      ],
+      "visible_pixels": [
+        0,
+        66,
+        242,
+        317
+      ]
+    },
+    "effects/horizontal-clear": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        512,
+        256
+      ],
+      "path": "art/additions/effects/horizontal-clear.png",
+      "sha256": "138a84c972ca9b3d93c5cd38da5e33ed2fad38d3642ea48103082d8b59509b58",
+      "source": "effects.png",
+      "source_rect": [
+        666,
+        430,
+        1023,
+        671
+      ],
+      "visible_pixels": [
+        0,
+        5,
+        357,
+        241
+      ]
+    },
+    "effects/ice-shatter": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/ice-shatter.png",
+      "sha256": "780f4b77592bac39b87f64dacda31012bc4c45da4e59757fece92739bd53ff73",
+      "source": "effects.png",
+      "source_rect": [
+        0,
+        351,
+        235,
+        694
+      ],
+      "visible_pixels": [
+        0,
+        51,
+        235,
+        343
+      ]
+    },
+    "effects/match-burst": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/match-burst.png",
+      "sha256": "a1f148edb5a6bba7515980cd670fcdb7e699b65d33bb5e20fa5b20b32b7d478c",
+      "source": "effects.png",
+      "source_rect": [
+        224,
+        56,
+        471,
+        367
+      ],
+      "visible_pixels": [
+        12,
+        54,
+        247,
+        293
+      ]
+    },
+    "effects/rainbow-pulse": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/rainbow-pulse.png",
+      "sha256": "163d7c793f25312d29073ea66285b1078cfb30d60d46d781914473cca0927ea8",
+      "source": "effects.png",
+      "source_rect": [
+        1179,
+        348,
+        1448,
+        695
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        269,
+        347
+      ]
+    },
+    "effects/rocket-impact": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/rocket-impact.png",
+      "sha256": "a383993b623a354ae2e610e37cd02d9defe1ff17c7dc35402da146908234f894",
+      "source": "effects.png",
+      "source_rect": [
+        955,
+        685,
+        1225,
+        1058
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        270,
+        332
+      ]
+    },
+    "effects/royal-boost": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/royal-boost.png",
+      "sha256": "4b8a282606fe4f40b1f268c5f2ff689e7937f4dadf4dfd399a57965b809d7cbc",
+      "source": "effects.png",
+      "source_rect": [
+        722,
+        700,
+        979,
+        1044
+      ],
+      "visible_pixels": [
+        0,
+        13,
+        257,
+        323
+      ]
+    },
+    "effects/shell-fragments": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/shell-fragments.png",
+      "sha256": "693cd3b6f2a24f819088d2e182ebe771f259be64bed50e8c9a71455ab87ddc41",
+      "source": "effects.png",
+      "source_rect": [
+        698,
+        48,
+        968,
+        385
+      ],
+      "visible_pixels": [
+        0,
+        44,
+        270,
+        314
+      ]
+    },
+    "effects/shell-ring": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/shell-ring.png",
+      "sha256": "a401eaaa566cd0b638e8fb321d0353b507f930464534e8dbedf83043700b4138",
+      "source": "effects.png",
+      "source_rect": [
+        0,
+        689,
+        263,
+        1040
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        263,
+        313
+      ]
+    },
+    "effects/shell-supernova": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/shell-supernova.png",
+      "sha256": "dafaa3c18297a943dede9719f97059923fda1aff2817822589b9cec688bec4a7",
+      "source": "effects.png",
+      "source_rect": [
+        418,
+        16,
+        734,
+        383
+      ],
+      "visible_pixels": [
+        0,
+        42,
+        316,
+        361
+      ]
+    },
+    "effects/sparkle-burst": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/sparkle-burst.png",
+      "sha256": "2311a4df3f115fbf14ef5bfb9b1d07d73ca84231c7a11871e2754a3536c9281f",
+      "source": "effects.png",
+      "source_rect": [
+        0,
+        48,
+        241,
+        358
+      ],
+      "visible_pixels": [
+        20,
+        73,
+        241,
+        280
+      ]
+    },
+    "effects/time-boost": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/effects/time-boost.png",
+      "sha256": "e5860ef8494cb179bc0d3edab268f1cd9ef392bef82a0a4a18d270bdebeaa559",
+      "source": "effects.png",
+      "source_rect": [
+        472,
+        683,
+        740,
+        1054
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        268,
+        335
+      ]
+    },
+    "effects/vertical-clear": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        512
+      ],
+      "path": "art/additions/effects/vertical-clear.png",
+      "sha256": "8958d20f413ebdfc473682c047051fd2dda55800218302a538e2ae88a6037abf",
+      "source": "effects.png",
+      "source_rect": [
+        953,
+        306,
+        1210,
+        711
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        257,
+        405
+      ]
+    },
+    "ui/back": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/back.png",
+      "sha256": "b22f201cc0b59ce8857cda1065f7817eceb48a2c39eb20b156d4fb7b34a658ac",
+      "source": "menu-icons.png",
+      "source_rect": [
+        1158,
+        552,
+        1448,
+        790
+      ],
+      "visible_pixels": [
+        17,
+        0,
+        273,
+        238
+      ]
+    },
+    "ui/campaign-map": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/campaign-map.png",
+      "sha256": "ad0e2967f6d960ed2fde0d18271d89f633b257ea0bc79db1839715334ee637e3",
+      "source": "menu-icons.png",
+      "source_rect": [
+        0,
+        285,
+        290,
+        552
+      ],
+      "visible_pixels": [
+        15,
+        0,
+        290,
+        267
+      ]
+    },
+    "ui/gift": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/gift.png",
+      "sha256": "e487649aad71986a8fdaa999cbac76efbe30bede0f53a40479839ee3a537c62c",
+      "source": "menu-icons.png",
+      "source_rect": [
+        579,
+        285,
+        869,
+        552
+      ],
+      "visible_pixels": [
+        0,
+        15,
+        287,
+        267
+      ]
+    },
+    "ui/help": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/help.png",
+      "sha256": "fd9979df6ea232ec4355438578b58d433662d7e1d07fefb3a2723fc5f9e2213c",
+      "source": "menu-icons.png",
+      "source_rect": [
+        483,
+        790,
+        724,
+        1086
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        241,
+        244
+      ]
+    },
+    "ui/home": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/home.png",
+      "sha256": "6f6b44ed086b0ba523252d8352ee5c85cc8c9b7192b410576fd312dbbe60de95",
+      "source": "menu-icons.png",
+      "source_rect": [
+        290,
+        0,
+        579,
+        285
+      ],
+      "visible_pixels": [
+        0,
+        18,
+        289,
+        285
+      ]
+    },
+    "ui/life": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/life.png",
+      "sha256": "83fa9c02c28c40e0f231be83e7802c3ad1a5ca15a29bd8bcbaf194df6429dc42",
+      "source": "menu-icons.png",
+      "source_rect": [
+        1207,
+        790,
+        1448,
+        1086
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        237,
+        238
+      ]
+    },
+    "ui/music-off": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/music-off.png",
+      "sha256": "2a7b868b4a9a2b8faf741a2ead5603acb763e1d18040f7e5fc763ab274ca7cdb",
+      "source": "menu-icons.png",
+      "source_rect": [
+        869,
+        552,
+        1158,
+        790
+      ],
+      "visible_pixels": [
+        5,
+        0,
+        279,
+        238
+      ]
+    },
+    "ui/music-on": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/music-on.png",
+      "sha256": "220fc25787fc1ba5b25f341c5db8168fbfd7810ff21f7ef074d6c772bcf99d93",
+      "source": "menu-icons.png",
+      "source_rect": [
+        579,
+        552,
+        869,
+        790
+      ],
+      "visible_pixels": [
+        13,
+        0,
+        268,
+        238
+      ]
+    },
+    "ui/next": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/next.png",
+      "sha256": "46d25b2a6c1d29c7ebc51cf154c24317239de6e55b148772606b5646d9dfcb75",
+      "source": "menu-icons.png",
+      "source_rect": [
+        0,
+        790,
+        241,
+        1086
+      ],
+      "visible_pixels": [
+        7,
+        23,
+        241,
+        244
+      ]
+    },
+    "ui/pause": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/pause.png",
+      "sha256": "04f5a0cc3cc7810c95fc726aa62a0025f2cefb0d1778a6e09356ea3821b1e64d",
+      "source": "menu-icons.png",
+      "source_rect": [
+        869,
+        0,
+        1158,
+        285
+      ],
+      "visible_pixels": [
+        0,
+        30,
+        289,
+        280
+      ]
+    },
+    "ui/play": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/play.png",
+      "sha256": "04ac3a97b041a42f7a12afec48874212698bff110f3c38b5c98f19922202ebe1",
+      "source": "menu-icons.png",
+      "source_rect": [
+        579,
+        0,
+        869,
+        285
+      ],
+      "visible_pixels": [
+        0,
+        30,
+        290,
+        280
+      ]
+    },
+    "ui/restart": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/restart.png",
+      "sha256": "40d590a111296c7f2c3e6e9746638e85483be6db791434b17005f4c4d16de709",
+      "source": "menu-icons.png",
+      "source_rect": [
+        241,
+        790,
+        483,
+        1086
+      ],
+      "visible_pixels": [
+        0,
+        23,
+        242,
+        244
+      ]
+    },
+    "ui/settings": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/settings.png",
+      "sha256": "57aa31b1536a217b7956f9ae6f41017c0e42f92bb4a943091ae4fa1277bd2914",
+      "source": "menu-icons.png",
+      "source_rect": [
+        1158,
+        0,
+        1448,
+        285
+      ],
+      "visible_pixels": [
+        0,
+        28,
+        278,
+        285
+      ]
+    },
+    "ui/sound-off": {
+      "alpha_mode": "palette-transparent",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/sound-off.png",
+      "sha256": "628b7c210161be4994a3486c067aa59e445468af4c58e110d01a3676fea257cf",
+      "source": "menu-icons.png",
+      "source_rect": [
+        290,
+        552,
+        579,
+        790
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        273,
+        234
+      ]
+    },
+    "ui/sound-on": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/sound-on.png",
+      "sha256": "36c820d9905b51ee665d193860cfc7c1ddd2dad60e1e01d706d9cf761113fb6b",
+      "source": "menu-icons.png",
+      "source_rect": [
+        0,
+        552,
+        290,
+        790
+      ],
+      "visible_pixels": [
+        16,
+        0,
+        290,
+        238
+      ]
+    },
+    "ui/store": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/store.png",
+      "sha256": "90acd31400e11fd7d31b4bd46776af224f3250abc2c63a78bddf121cce6d6caf",
+      "source": "menu-icons.png",
+      "source_rect": [
+        290,
+        285,
+        579,
+        552
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        289,
+        267
+      ]
+    },
+    "ui/timer": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/timer.png",
+      "sha256": "8d688ba91ca3a9bc1bd36401eb6201562fa88dc09d0570fa0840c2f621e6492f",
+      "source": "menu-icons.png",
+      "source_rect": [
+        965,
+        790,
+        1207,
+        1086
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        242,
+        258
+      ]
+    },
+    "ui/title-acorn": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/title-acorn.png",
+      "sha256": "e774e78233d3dca7da58922aa930b71d8e8cbcadf2e9982a2df3c8a598a614a9",
+      "source": "menu-icons.png",
+      "source_rect": [
+        0,
+        0,
+        290,
+        285
+      ],
+      "visible_pixels": [
+        12,
+        11,
+        290,
+        285
+      ]
+    },
+    "ui/treasure": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/treasure.png",
+      "sha256": "c235e7ff5ed378d314987f30aff988937c7a0e5f898ee51d414957e7949277b5",
+      "source": "menu-icons.png",
+      "source_rect": [
+        869,
+        285,
+        1158,
+        552
+      ],
+      "visible_pixels": [
+        14,
+        12,
+        286,
+        267
+      ]
+    },
+    "ui/trophy": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/trophy.png",
+      "sha256": "503a7fb3d1612f56da9bd6ad19b1d9c455ab46bd1997f45583f655f7084e6475",
+      "source": "menu-icons.png",
+      "source_rect": [
+        724,
+        790,
+        965,
+        1086
+      ],
+      "visible_pixels": [
+        0,
+        0,
+        241,
+        273
+      ]
+    },
+    "ui/vip-crown": {
+      "alpha_mode": "RGBA",
+      "output_pixels": [
+        256,
+        256
+      ],
+      "path": "art/additions/ui/vip-crown.png",
+      "sha256": "cf10e887275103f0a55c2932fad4719463fb32f2d3986e20df69dfb6a2bc3801",
+      "source": "menu-icons.png",
+      "source_rect": [
+        1158,
+        285,
+        1448,
+        552
+      ],
+      "visible_pixels": [
+        5,
+        0,
+        278,
+        267
+      ]
+    }
+  }
+}
