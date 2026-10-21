@@ -30,7 +30,11 @@ const LESSONS=Object.freeze({
  78:{name:'The Chest Shaft',kind:'chests',target:5,chests:5,formation:'column',hint:'The Deep Drill can strike several layers in one column.'},
  92:{name:'Locked Vault',kind:'locks',target:5,locks:7,formation:'scatter',hint:'Clear this stage to earn the Master Key.'},
  93:{name:'Unlock the Hoard',kind:'locks',target:6,locks:8,formation:'scatter',hint:'The Master Key removes locks throughout the board.'},
- 100:{name:'The Great Meadow Finale',kind:'dual',hint:'Combine color collection with lock removal to complete the first campaign.'}
+ 100:{name:'The Great Meadow Finale',kind:'dual',hint:'Combine color collection with lock removal to complete the first campaign.'},
+ 110:{name:'Sticky Situation',kind:'jam',jam:3,target:3,formation:'cluster',hint:'Peanut butter spreads. Clear sticky layers before they multiply.'},
+ 111:{name:'The Butter Trap',kind:'jam',jam:4,target:4,formation:'cluster',hint:'A Shell Bomb or Hammer can remove concentrated peanut butter quickly.'},
+ 210:{name:'Ticking Acorns',kind:'collect',bombs:2,formation:'scatter',hint:'Timed acorns detonate after several moves unless you clear their cells.'},
+ 211:{name:'Five Seconds to Nuts',kind:'collect',bombs:3,formation:'cross',hint:'Precision tools defuse countdown acorns before they steal your moves.'}
 });
 const FORMATIONS=['scatter','row','column','cluster','cross'];
 function profile(level){
@@ -52,6 +56,8 @@ function profile(level){
  }else{
   const mix=['score','ice','collect','locks','chests'];
   kind=mix[(n+Math.floor(n/20))%mix.length];
+  if(chapter===2&&local>=10&&(beat%3===1||local%7===0))kind='jam';
+  if(chapter>=3&&local%7===2)kind='jam';
   if(n>200&&n%5===0)kind='dual';
  }
  const formation=lesson?.formation||FORMATIONS[(act+beat+chapter)%FORMATIONS.length];
@@ -62,6 +68,7 @@ function profile(level){
   id:n,chapter,local,act:act+1,beat:beat+1,
   name:lesson?.name||ACTS[act]+' · '+['Trail','Clearing','Crossing','Hollow','Challenge','Switchback','Cache','Scramble','Vault','Finale'][beat],
   hint:lesson?.hint||(
+   kind==='jam'?'Clear sticky peanut butter before it spreads to more tiles.':
    kind==='ice'?'Break the layered frost before your moves run out.':
    kind==='locks'?'Unlock trapped nuts to free the route.':
    kind==='chests'?'Open every required chest layer to claim the hoard.':
@@ -71,6 +78,7 @@ function profile(level){
   ),kind:lesson?.kind||kind,formation,lesson:!!lesson,
   objectiveTarget:lesson?.target||null,
   ice:lesson?.ice??null,locks:lesson?.locks??null,chests:lesson?.chests??null,
+  jam:lesson?.jam??null,bombs:lesson?.bombs??null,
   moveAdjustment
  });
 }
