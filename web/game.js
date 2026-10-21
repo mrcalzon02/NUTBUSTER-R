@@ -166,6 +166,27 @@ function paintCells(cells){
   el.setAttribute('aria-label',cellLabel(c,i,g.cfg.width));
  }
 }
+// Recovery at every completed resolution: temporary animation hiding must never
+// survive into interactive play on narrow/disconnected irregular boards.
+function reconcileBoardNuts(){
+ if(state.page!=='game'||!state.game)return;
+ const board=screen.querySelector('.board');if(!board)return;
+ const cells=E.snapshot(state.game).cells;
+ paintCells(cells);
+ for(let i=0;i<cells.length;i++){
+  const c=cells[i];if(!c)continue;
+  const tile=board.querySelector(`[data-cell="${i}"]`),vis=tile?.querySelector('.nut-visual');
+  if(!vis)continue;
+  vis.style.visibility='';
+  // A late transport/fall frame may leave an old image in a reused fixed tile.
+  const image=vis.querySelector('.piece');
+  const expected=c.type===null?null:'art/primary/nuts/'+E.TYPES[c.type]+'.png';
+  if(expected&&(!image||image.getAttribute('src')!==expected))vis.outerHTML=nutVisual(c);
+  else if(image?.complete&&image.naturalWidth>0)image.classList.add('loaded');
+ }
+ board.querySelectorAll('.clearing').forEach(el=>el.classList.remove('clearing'));
+ board.querySelectorAll('.falling-nut, .transport-nut').forEach(el=>el.remove());
+}
 function paintStats(){if(state.page!=='game'||!state.game)return;const g=state.game;
  const score=screen.querySelector('[data-stat="score"]'),moves=screen.querySelector('[data-stat="moves"]'),progress=screen.querySelector('[data-progress]'),objective=screen.querySelector('[data-objective]');
  if(score)score.textContent=g.score.toLocaleString();if(moves)moves.textContent=g.moves;
@@ -280,7 +301,7 @@ async function applyMove(result){
   for(const stage of result.stages||[]){await cascadeAnimation(stage,epoch);if(epoch!==state.epoch||state.page!=='game')return;}
   paintCells(E.snapshot(state.game).cells);paintStats();
   concludeMove(result);
- }finally{if(epoch===state.epoch)state.animating=false;}
+ }finally{if(epoch===state.epoch){reconcileBoardNuts();state.animating=false;}}
 }
 function outcome(){const g=state.game,won=state.outcome==='win',stars=g.moves>10?3:g.moves>3?2:1;
  return `<div class="outcome-screen"><div class="outcome-symbol">${won?'🏆':'💔'}</div><h1>${won?'LEVEL COMPLETE!':'OUT OF MOVES!'}</h1>

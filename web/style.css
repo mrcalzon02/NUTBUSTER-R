@@ -68,8 +68,9 @@
 .game-active .game-actions{gap:4px;margin:7px auto}
 .game-active .game-actions .btn{min-height:33px;font-size:11px;padding:5px 7px}
 .nut-visual{display:flex;position:relative;align-items:center;justify-content:center;width:100%;height:100%;pointer-events:none;z-index:0;transform:translateZ(0)}
-.nut-visual .piece{opacity:0;transition:opacity 85ms ease-out}
-.nut-visual .piece.loaded{opacity:1}
+.nut-visual .piece{opacity:1;transition:none}
+/* Android can miss an image's inline load callback during rapid cascade replacements.
+   The decoded illustrated sprite must not remain opacity:0 just because that event was missed. */
 .nut-visual .fallback{display:block;position:absolute}
 .nut-visual .piece.loaded+.fallback{display:none}
 .nut-special{position:absolute;right:0;bottom:0;font-size:clamp(12px,3vw,21px);line-height:1;pointer-events:none;filter:drop-shadow(0 1px 2px #23132b)}
