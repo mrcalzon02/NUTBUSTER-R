@@ -97,30 +97,54 @@ function objectivePercent(g){
  const status=E.objectiveState(g);
  return Math.round(100*status.reduce((sum,o)=>sum+Math.min(1,o.value/o.target),0)/status.length);
 }
-const toolGlyphs={hammer:'🔨',row:'➡️',column:'⬇️',cross:'✚',blast:'💥',color:'🌈',shuffle:'🔀',extra:'➕',drill:'🪛',unlock:'🗝️'};
+// Clear, consistent vector symbols replace mismatched power-up sprites and emoji.
+const BOOSTER_ICON_PATHS={
+ hammer:'<path d="M14 5l5 5M9 7l8 8M8 3l4 4-5 5-4-4zM12 12l-8 8"/>',
+ row:'<path d="M2 12h20M7 7l-5 5 5 5M17 7l5 5-5 5"/>',
+ column:'<path d="M12 2v20M7 7l5-5 5 5M7 17l5 5 5-5"/>',
+ cross:'<path d="M12 2v20M2 12h20M8 5l4-3 4 3M8 19l4 3 4-3M5 8l-3 4 3 4M19 8l3 4-3 4"/>',
+ blast:'<circle cx="11" cy="14" r="7"/><path d="M13 7l3-4 4 1 2-2M8 14h.01M15 14h.01"/>',
+ color:'<path d="M12 2a10 10 0 1 0 10 10c0-2-2-3-4-3h-2c-2 0-2-2-2-3a4 4 0 0 0-2-4z"/><circle cx="6.5" cy="12" r="1"/><circle cx="9" cy="7" r="1"/><circle cx="16" cy="16" r="1"/>',
+ shuffle:'<path d="M3 6h4c6 0 4 12 10 12h4M17 14l4 4-4 4M3 18h4c2 0 3-2 4-4M15 7c1-1 2-1 3-1h3M17 2l4 4-4 4"/>',
+ extra:'<circle cx="12" cy="12" r="10"/><path d="M7 12h10M12 7v10"/>',
+ drill:'<path d="M4 7h11l3 3-3 3H4zM18 10h4M8 13v7M5 20h6M3 5v2M11 3v4"/>',
+ unlock:'<circle cx="8" cy="9" r="5"/><path d="M11.5 12.5L21 22m-4-4 3-3m-6 0 3-3"/>'
+};
+function boosterIcon(id){
+ return '<svg class="booster-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+BOOSTER_ICON_PATHS[id]+'</svg>';
+}
 function toolButtons(){
  return E.BOOSTERS.map(tool=>{
-  const d=E.BOOSTER_META[tool];
-  const image=tool==='hammer'?art('powerups','hammer','🔨','booster-art'):
-   tool==='row'?art('powerups','row-clear','➡️','booster-art'):
-   tool==='shuffle'?art('powerups','rainbow','🔀','booster-art'):
-   tool==='extra'?art('powerups','nut-burst','➕','booster-art'):
-   `<span class="booster-glyph" aria-hidden="true">${toolGlyphs[tool]}</span>`;
-  const earned=P.unlocked(saved,tool),qty=P.count(saved,tool);
-  return `<button data-tool="${tool}" class="${earned?qty?'ready':'empty':'locked'}" title="${earned?d.tip:'Beat level '+P.LEVEL_BY_TOOL[tool]+' to unlock'}" aria-label="${d.label}: ${earned?qty+' stocked, '+d.tip:'unlocks after level '+P.LEVEL_BY_TOOL[tool]}">${image}<span>${d.label.toUpperCase()}</span><small data-stock>${earned?'×'+qty:'LV '+P.LEVEL_BY_TOOL[tool]}</small></button>`;
+  const d=E.BOOSTER_META[tool],earned=P.unlocked(saved,tool),qty=P.count(saved,tool);
+  return `<button data-tool="${tool}" class="${earned?qty?'ready':'empty':'locked'}" title="${earned?d.tip:'Beat level '+P.LEVEL_BY_TOOL[tool]+' to unlock'}" aria-label="${d.label}: ${earned?qty+' stocked, '+d.tip:'unlocks after level '+P.LEVEL_BY_TOOL[tool]}">${boosterIcon(tool)}<span class="booster-label">${d.label}</span><small data-stock>${earned?'×'+qty:'LV '+P.LEVEL_BY_TOOL[tool]}</small></button>`;
  }).join('');
 }
-function game(){const g=state.game;if(!g)return '<p>Choose a level from the campaign map.</p>';
+function game(){
+ const g=state.game;if(!g)return '<p>Choose a level from the campaign map.</p>';
  const ratio=objectivePercent(g);
- return `<div class="topline game-topline"><button class="btn ghost" data-nav="campaign">← LEVELS</button><h2>LEVEL ${g.level} · ${g.cfg.stageTitle}</h2></div>
- <div class="game-stat"><div class="stat"><small>Score</small><b data-stat="score">${g.score.toLocaleString()}</b></div><div class="stat"><small>Moves</small><b data-stat="moves">${g.moves}</b></div><div class="stat objective-stat"><small>Objective</small><b data-objective>${objectiveDisplay(g)}</b></div></div>
- <div class="progress"><div data-progress style="width:${ratio}%"></div></div>
- ${g.cfg.design.lesson?`<p class="level-hint" title="Booster lesson">${g.cfg.hint}</p>`:''}
- <div class="board-wrap"><div class="board" style="--cols:${g.cfg.width}" role="group" aria-label="Nutbuster match-three board">${g.cells.map((c,i)=>cellMarkup(c,i,g.cfg.width)).join('')}</div></div>
- <div class="announcer" id="announcer">🎙 ${state.announcer||'SHOW ME THOSE NUTS!'}</div>
- <div class="boosters" role="group" aria-label="Tactical boosters">${toolButtons()}</div>
- <div class="tip">Earn new powers throughout Nutwood Meadows. Every reward and exclusive package restocks the booster vault.</div>
- <div class="actions game-actions"><button class="btn secondary" data-action="restart">RESTART</button><button class="btn secondary" data-nav="shop">NUT EMPORIUM</button><button class="btn ghost" data-action="sound">${state.sound?'🔊 Voice On':'🔇 Voice Off'}</button><button class="btn ghost" data-action="music">${state.music?'♫ Music On':'♫ Music Off'}</button></div>`;
+ const boardHeightPercent=(100*g.cfg.height/g.cfg.width).toFixed(3);
+ const maxBoardHeight=Math.round(545*g.cfg.height/g.cfg.width);
+ return `<section class="play-layout" style="--board-w:${g.cfg.width};--board-h:${g.cfg.height};--board-vw:${boardHeightPercent}vw;--board-max-h:${maxBoardHeight}px">
+  <div class="play-hud">
+   <button class="play-back" data-nav="campaign" aria-label="Return to level map" title="Level map">‹</button>
+   <div class="play-title" title="${g.cfg.stageTitle}"><b>LV ${g.level}</b><span>${g.cfg.stageTitle}</span></div>
+   <div class="play-count" aria-label="Score"><span>SCORE</span><b data-stat="score">${g.score.toLocaleString()}</b></div>
+   <div class="play-count" aria-label="Moves left"><span>MOVES</span><b data-stat="moves">${g.moves}</b></div>
+   <details class="play-menu"><summary aria-label="Game options" title="Game options">⋮</summary><div class="play-menu-panel">
+    <button class="btn secondary" data-action="restart">Restart</button>
+    <button class="btn secondary" data-nav="shop">Shop</button>
+    <button class="btn ghost" data-action="sound">${state.sound?'🔊 Voice On':'🔇 Voice Off'}</button>
+    <button class="btn ghost" data-action="music">${state.music?'♫ Music On':'♫ Music Off'}</button>
+   </div></details>
+  </div>
+  <div class="play-objective"><span class="objective-label">GOAL</span><b data-objective>${objectiveDisplay(g)}</b>
+   ${g.cfg.design.lesson?`<details class="play-hint"><summary title="Level tip" aria-label="Level tip">?</summary><p>${g.cfg.hint}</p></details>`:''}
+   <div class="progress" aria-label="Objective progress"><div data-progress style="width:${ratio}%"></div></div>
+  </div>
+  <div class="board-wrap"><div class="board" style="--cols:${g.cfg.width};--rows:${g.cfg.height}" role="group" aria-label="Nutbuster match-three board">${g.cells.map((c,i)=>cellMarkup(c,i,g.cfg.width)).join('')}</div></div>
+  <div class="announcer" id="announcer" aria-live="off">${state.announcer||'SHOW ME THOSE NUTS!'}</div>
+  <div class="boosters" role="group" aria-label="Tactical boosters">${toolButtons()}</div>
+ </section>`;
 }
 function paintCells(cells){
  if(state.page!=='game')return;
@@ -379,7 +403,7 @@ function homestead(){
  </div></div>`;
 }
 function settings(){const lev=saved.levels||{voice:.9,music:.28,reactions:.38};return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings"><p class="muted">Separate levels for the announcer, music and compulsory little grunts.</p>${[['voice','Announcer'],['music','Music'],['reactions','Click grunts']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}<div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button></div><div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button></div></div>`;}
-function render(){counters();screen.classList?.toggle('campaign-map-active',state.page==='campaign');
+function render(){counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
  screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');
  screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='homestead'?homestead():state.page==='settings'?settings():state.page==='checkout'?checkout():state.page==='outcome'?outcome():rewards();
  window.NutbusterUpdates?.syncStatus?.();
