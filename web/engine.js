@@ -46,6 +46,13 @@ function makeLevel(number){
   locks:design.locks??(n>=28?Math.min(14,1+Math.floor((n-28)/24)):0),
   chests:design.chests??(n>=68?Math.min(10,1+Math.floor((n-68)/36)):0),
   title:DESIGN.CHAPTERS[chapter],stageTitle:design.name,hint:design.hint,design};
+ // Irregular late-game silhouettes have fewer cells than the rectangular grid.
+ // Reserve space for ordinary nuts and guarantee that advertised blocker layers
+ // can actually be placed; otherwise a board can start mathematically unwinnable.
+ const usable=mask.filter(Boolean).length;
+ cfg.ice=Math.min(cfg.ice,Math.floor(usable*.42));
+ cfg.locks=Math.min(cfg.locks,Math.floor(usable*.27));
+ cfg.chests=Math.min(cfg.chests,Math.floor(usable*.20));
  // Level-book objectives replace the old modulo-ten wheel. Every target must be
  // physically satisfiable by its starting board, even without a purchased booster.
  const pressure=Math.floor((n-1)/55);
