@@ -112,3 +112,13 @@
 .art-image{visibility:hidden}
 .art-image.loaded{visibility:visible}
 .icon-fallback,.nut-visual .fallback{visibility:hidden}
+
+
+/* Compact scrollable tactical belt. All ten tools retain genuine 44px+ controls. */
+.boosters{display:flex!important;flex-wrap:nowrap;gap:7px;max-width:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;overscroll-behavior-inline:contain;padding:4px 1px 8px;scrollbar-width:thin}
+.boosters button{flex:0 0 79px;min-height:64px;padding:3px 2px;scroll-snap-align:start;font-size:23px;gap:2px}
+.boosters button span:not(.booster-glyph):not(.booster-art):not(.icon-fallback){font-size:9px;line-height:1.05;white-space:normal}
+.booster-glyph{font-size:29px;line-height:34px;display:flex;align-items:center;justify-content:center;height:38px}
+.objective-stat b{font-size:clamp(10px,2.6vw,13px);line-height:1.2;overflow-wrap:anywhere}
+.game-stat{grid-template-columns:minmax(0,1fr) minmax(0,.7fr) minmax(0,1.7fr)}
+@media(min-width:700px){.boosters{max-width:720px}.boosters button{flex-basis:91px}}
