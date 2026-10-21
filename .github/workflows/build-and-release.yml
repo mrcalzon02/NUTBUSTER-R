@@ -286,7 +286,7 @@ jobs:
           cp release/desktop/NUTBUSTER-Linux-x64 release/publish/
           (cd release/publish && sha256sum NUTBUSTER-* > SHA256SUMS.txt)
           NOTES="$(printf 'NUTBUSTER testing release.\n\nAndroid versionCode: %s\nSource revision: %s\nPersistent ReverieVR signer SHA-256: %s\n\nThe Android APK replaces previous NUTBUSTER signed builds without deleting local progress.\n' '${{ steps.signed.outputs.code }}' "$GITHUB_SHA" '${{ steps.signing.outputs.sha }}')"
-          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes "$NOTES" --draft
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes "$NOTES"
           gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
           # GitHub computes SHA-256 for release assets. Refuse to publish until its digest matches our local artifact.
           remote="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG")"
@@ -314,7 +314,7 @@ jobs:
             release/publish/release-proof.json
           retention-days: 30
           if-no-files-found: error
-- name: Import pre-signed ReverieVR handoff and publish NUTBUSTER release
+      - name: Import pre-signed ReverieVR handoff and publish NUTBUSTER release
         if: steps.signing.outputs.ready == 'false'
         shell: bash
         env:
@@ -366,7 +366,7 @@ jobs:
             exit 1
           fi
           printf 'NUTBUSTER testing release.\n\nAndroid versionCode: %s\nSource revision: %s\nPersistent ReverieVR signer SHA-256: %s\n\nThis APK was signed within ReverieVR Actions using its existing publisher secrets. Verified certificate continuity, package identity, and SHA-256 before import. Android in-app update channel is enabled.\n' "$CODE" "$GITHUB_SHA" "$TRUSTED_CERT" > release/publish/RELEASE-NOTES.txt
-          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes-file release/publish/RELEASE-NOTES.txt
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes-file release/publish/RELEASE-NOTES.txt
           gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/BUILD-EVIDENCE.txt release/publish/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY"
           gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" > "$RUNNER_TEMP/release-check.json"
           python3 - <<'PY'
