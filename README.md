@@ -4,6 +4,7 @@ NUTBUSTER is an offline-first, nut-themed match-three parody of predatory mobile
 
 ## Current alpha
 
+- **Nutvale Homestead:** persistent 12-plot estate editor, 28 decoration collectibles, 8 avatar personas, 11 trophy-cabinet achievements, best-score records, and an absurd Royal Manor cosmetic checkout that reveals a final $0.00 total. The estate shares campaign save data and runs offline on every game wrapper.
 - Shared deterministic match-three engine and 500 seeded level configurations, including a 4×5 to 8×9 board progression, non-matching legal swaps, per-nut gravity/cascade traces, blocker layers, four usable boosters, persistent browser/device progress, satirical two-stage checkout, distinct victory/loss screens, and reward claims.
 - Primary art is **the original five owner-generated glossy sprite sheets** from this project's design conversation. The sixth, labeled board reference sheet is supplementary only; it is not a replacement for the original art.
 - 84 cropped sprites generated from primary art by `tools/prepare_assets.py` (source sheets can be downloaded in the separately provided asset archive). Board geometry uses runtime CSS edges until seamless corner patches are verified.
@@ -12,7 +13,7 @@ NUTBUSTER is an offline-first, nut-themed match-three parody of predatory mobile
 
 ## Run / test
 
-Run `node tests/engine.test.js` for 2,500 deterministic level/seed cases, including 2,500 scoring swaps, 2,500 non-matching swaps, and recorded fall-trace verification. Run `node tests/ui.test.js` for a dependency-free mocked-DOM smoke test of checkout, stable board rendering, match animation plumbing, and dedicated win/loss screens. These checks do not substitute for an actual Android/device rendering test.
+Run `node tests/homestead.test.js` and `node tests/homestead-ui.test.js` for estate persistence, cosmetics, achievement gating, and the two-stage $0.00 premium order. Run `node tests/engine.test.js` for 2,500 deterministic level/seed cases, including 2,500 scoring swaps, 2,500 non-matching swaps, and recorded fall-trace verification. Run `node tests/ui.test.js` for a dependency-free mocked-DOM smoke test of checkout, stable board rendering, match animation plumbing, and dedicated win/loss screens. These checks do not substitute for an actual Android/device rendering test.
 
 Open `web/index.html` in a modern browser or run `python3 -m http.server 8000 --directory web` and visit `http://localhost:8000/`. For a desktop application: `cd desktop && npm install && npm start` (downloads Electron from npm). To make an Android debug APK, install JDK 17, Android SDK 36/build-tools and Gradle 9.6.1; `cd android && gradle :app:assembleDebug`. APK output is `android/app/build/outputs/apk/debug/app-debug.apk`. Verify on an API 26 device and a modern Android emulator.
 
@@ -26,7 +27,7 @@ The owner-supplied [Drive Sounds / NUTBUSTER](https://drive.google.com/drive/fol
 
 To generate the full art pack, copy five original sheet PNGs into `assets/source/` retaining filenames, then run `python -m pip install Pillow` and `python tools/prepare_assets.py`. The build automatically includes any `web/art/primary/` files. Without them, puzzle pieces degrade to readable fallback symbols rather than crashing. **The original full-resolution sources and 84 generated assets are included in the accompanying starter ZIP. The GitHub repository also includes 34 compact 96-pixel variants** from those primary sheets so the core game renders the actual art immediately. Import the full-res PNGs and regenerate when production-ready.
 
-See `docs/wiki/Home.md`, `docs/wiki/Build-and-APK.md`, `docs/wiki/Assets-and-Board-Rules.md`, and `docs/wiki/Test-Gates.md`. These are wiki-ready pages in the main repository; the separate GitHub Wiki git repository requires a separate publication step and is **not** claimed to be updated.
+See `docs/wiki/Home.md`, `docs/wiki/Nutvale-Homestead.md`, `docs/wiki/Build-and-APK.md`, `docs/wiki/Assets-and-Board-Rules.md`, and `docs/wiki/Test-Gates.md`. These are wiki-ready pages in the main repository; the separate GitHub Wiki git repository requires a separate publication step and is **not** claimed to be updated.
 
 ## Production scope / known limitations
 
