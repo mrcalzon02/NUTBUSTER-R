@@ -27,7 +27,11 @@ function activateBooster(id,index){const meta=E.BOOSTER_META[id];
 function notice(message){const n=document.getElementById('toast');n.textContent=message;n.classList.add('show');clearTimeout(toastHandle);toastHandle=setTimeout(()=>n.classList.remove('show'),2300);}
 function announce(txt,clip){state.announcer=txt;const el=document.getElementById('announcer');if(el)el.textContent='🎙 '+txt;if(state.sound&&clip)window.NutAudio?.voice(clip);}
 const $=(selector)=>document.querySelector(selector);
-function nav(page){state.epoch++;state.animating=false;state.page=page;state.selected=-1;state.tool=null;
+function nav(page){
+ // Header currency buttons and bottom tabs may target the page already on screen.
+ // Replacing #screen.innerHTML for a no-op navigation reloads sprites and visibly flashes on Android.
+ if(state.page===page)return;
+ state.epoch++;state.animating=false;state.page=page;state.selected=-1;state.tool=null;
  if(page==='campaign'&&state.game)state.chapter=M.chapterOf(state.game.level).id;
  render();}
 
