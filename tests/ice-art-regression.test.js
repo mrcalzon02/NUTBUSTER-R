@@ -61,4 +61,6 @@ assert.ok(artBlock);
 assert.match(artBlock,/width:86%;/,'painted ice must be inset from rounded clip');
 assert.match(artBlock,/height:86%;/,'bottom face must be inset from cell bottom');
 assert.match(artBlock,/object-fit:contain/,'never crop a transparent blocker');
+assert.match(artBlock,/opacity:\.59/,'ice artwork must be translucent so the nut below remains visible');
+assert.match(style,/\.overlay\.blocker-art\.ice\[data-strength="2"\] \.blocker-sprite\{[^}]*opacity:\.74/,'layer 2 ice remains translucent but thicker');
 console.log('PASS: two decoded original ice PNGs have alpha and clear boundaries; painted cubes inset, never opaque/tile-cropped');
