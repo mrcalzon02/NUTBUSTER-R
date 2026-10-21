@@ -4,6 +4,7 @@
 (function(root){
 'use strict';
 const WIDTH=941,HEIGHT=1672;
+const LESSON_BOOK=typeof module!=='undefined'&&module.exports?require('./level-design.js'):root.NutLevelDesign;
 const CHAPTERS=[
  {id:1,name:'Nutwood Meadows',start:1,end:100,theme:'meadow',image:'art/maps/chapter-1-nutwood-meadows.webp',
   path:[[0.59,0.96],[0.55,0.91],[0.47,0.86],[0.58,0.81],[0.70,0.77],[0.70,0.73],[0.51,0.69],[0.48,0.65],[0.60,0.61],[0.69,0.57],[0.66,0.53],[0.51,0.49],[0.36,0.46],[0.35,0.43],[0.49,0.40],[0.62,0.36],[0.68,0.33],[0.66,0.30],[0.46,0.27],[0.31,0.24],[0.34,0.21],[0.52,0.18],[0.67,0.16],[0.60,0.13],[0.47,0.11],[0.48,0.08]]},
