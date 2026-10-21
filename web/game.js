@@ -321,7 +321,7 @@ function homestead(){
   return `<div class="homestead-award ${earned?'':'locked'}" title="${a.name}: ${kind} ${a.need}"><span class="emoji">${a.icon}</span><span>${a.name}<small>${earned?' · EARNED':' · '+kind+' '+a.need}</small></span></div>`;
  }).join('');
  const royal=h.purchases['royal-estate']===true;
- return `<div class="homestead-top"><div><h1>🏡 NUTVALE HOMESTEAD</h1><small>${status.tier} · ${equipped.icon} ${equipped.name}</small></div><div class="homestead-actions"><button class="btn ghost" data-action="homestead-plate">↗ PRESTIGE PLATE</button><button class="btn ghost" data-nav="campaign">LEVELS →</button></div></div>
+ return `<div class="homestead-top"><div><h1>🏡 NUTVALE HOMESTEAD</h1><small>${status.tier} · ${equipped.icon} ${equipped.name}</small></div><div class="homestead-actions"><button class="btn ghost" data-action="homestead-plate">↗ PRESTIGE PLATE</button><button class="btn ghost" data-action="invite">↗ INVITE</button><button class="btn ghost" data-nav="campaign">LEVELS →</button></div></div>
  <div class="homestead-stats"><span>🏆 ${status.wins}/500 cleared</span><span>⭐ ${status.stars} stars</span><span>🎖 ${status.achievements.length}/${H.ACHIEVEMENTS.length} awards</span><span>🧩 ${status.setCount}/${H.SETS.length} sets</span><span>📈 ${status.bestScore.toLocaleString()} best</span></div>
  <div class="homestead-layout">
  <div><div class="homestead-zone-list">${zoneButtons}</div>
