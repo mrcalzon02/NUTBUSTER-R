@@ -42,6 +42,7 @@ jobs:
           node tests/audio.test.js
           node tests/package.test.js
           node tests/update-contract.test.js
+          python3 tests/test_update_manifest.py
           node tests/campaign-maps.test.js
           node tests/asset-catalog.test.js
           node tests/fx.test.js
@@ -305,10 +306,11 @@ jobs:
           fi
           cp release/desktop/NUTBUSTER-Windows-x64.exe release/publish/
           cp release/desktop/NUTBUSTER-Linux-x64 release/publish/
+          python3 scripts/generate_update_manifest.py "$TAG" '${{ steps.signed.outputs.code }}' '${{ steps.signing.outputs.sha }}'
           (cd release/publish && sha256sum NUTBUSTER-* > SHA256SUMS.txt)
           NOTES="$(printf 'NUTBUSTER testing release.\n\nAndroid versionCode: %s\nSource revision: %s\nPersistent ReverieVR signer SHA-256: %s\n\nThe Android APK replaces previous NUTBUSTER signed builds without deleting local progress.\n' '${{ steps.signed.outputs.code }}' "$GITHUB_SHA" '${{ steps.signing.outputs.sha }}')"
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes "$NOTES"
-          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
+          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/NUTBUSTER-update.json release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
           # GitHub computes SHA-256 for release assets. Refuse to publish until its digest matches our local artifact.
           remote="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG")"
           REMOTE_JSON="$remote" python3 - <<'PY'
@@ -380,7 +382,9 @@ jobs:
           cd ../..
           cp release/desktop/NUTBUSTER-Windows-x64.exe release/publish/
           cp release/desktop/NUTBUSTER-Linux-x64 release/publish/
-          (cd release/publish && sha256sum NUTBUSTER-Android-phone-test.apk NUTBUSTER-Windows-x64.exe NUTBUSTER-Linux-x64 BUILD-EVIDENCE.txt > SHA256SUMS.txt && sha256sum -c SHA256SUMS.txt)
+          TAG="nutbuster-phone-test-$GITHUB_RUN_NUMBER-$GITHUB_RUN_ATTEMPT"
+          python3 scripts/generate_update_manifest.py "$TAG" "$CODE" "$TRUSTED_CERT"
+          (cd release/publish && sha256sum NUTBUSTER-Android-phone-test.apk NUTBUSTER-Windows-x64.exe NUTBUSTER-Linux-x64 NUTBUSTER-update.json BUILD-EVIDENCE.txt > SHA256SUMS.txt && sha256sum -c SHA256SUMS.txt)
           TAG="nutbuster-phone-test-$GITHUB_RUN_NUMBER-$GITHUB_RUN_ATTEMPT"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "::error::Release already exists; refusing duplicate or destructive replacement."
@@ -388,18 +392,18 @@ jobs:
           fi
           printf 'NUTBUSTER testing release.\n\nAndroid versionCode: %s\nSource revision: %s\nPersistent ReverieVR signer SHA-256: %s\n\nThis APK was signed within ReverieVR Actions using its existing publisher secrets. Verified certificate continuity, package identity, and SHA-256 before import. Android in-app update channel is enabled.\n' "$CODE" "$GITHUB_SHA" "$TRUSTED_CERT" > release/publish/RELEASE-NOTES.txt
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes-file release/publish/RELEASE-NOTES.txt
-          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/BUILD-EVIDENCE.txt release/publish/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY"
+          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/NUTBUSTER-update.json release/publish/BUILD-EVIDENCE.txt release/publish/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY"
           gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" > "$RUNNER_TEMP/release-check.json"
           python3 - <<'PY'
           import hashlib,json,os,pathlib
           data=json.load(open(os.environ['RUNNER_TEMP']+'/release-check.json'))
           assets={a['name']:a for a in data['assets']}
-          for name in ['NUTBUSTER-Android-phone-test.apk','NUTBUSTER-Windows-x64.exe','NUTBUSTER-Linux-x64','BUILD-EVIDENCE.txt','SHA256SUMS.txt']:
+          for name in ['NUTBUSTER-Android-phone-test.apk','NUTBUSTER-Windows-x64.exe','NUTBUSTER-Linux-x64','NUTBUSTER-update.json','BUILD-EVIDENCE.txt','SHA256SUMS.txt']:
               p=pathlib.Path('release/publish')/name
               a=assets.get(name)
               if not a or a.get('size')!=p.stat().st_size or a.get('digest')!='sha256:'+hashlib.sha256(p.read_bytes()).hexdigest():
                   raise SystemExit('NUTBUSTER GitHub release digest read-back failed: '+name)
-          print('All 5 NUTBUSTER remote release artifacts verified')
+          print('All 6 NUTBUSTER remote release artifacts verified')
           PY
           gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json url,isDraft | tee release/publish/release-proof.json

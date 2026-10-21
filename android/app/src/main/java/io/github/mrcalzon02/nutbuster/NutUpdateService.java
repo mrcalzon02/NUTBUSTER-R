@@ -32,6 +32,9 @@ final class NutUpdateService implements AutoCloseable {
     private static final String RELEASE_PREFIX =
         "https://github.com/mrcalzon02/NUTBUSTER-R/releases/download/";
     private static final String APK_NAME = "NUTBUSTER-Android-phone-test.apk";
+    // Release-asset discovery avoids the shared anonymous GitHub REST API rate limit.
+    private static final String LATEST_MANIFEST =
+        "https://github.com/mrcalzon02/NUTBUSTER-R/releases/latest/download/NUTBUSTER-update.json";
     private final Activity activity;
     private final Consumer<String> status;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
@@ -92,6 +95,9 @@ final class NutUpdateService implements AutoCloseable {
             return;
         }
         long currentCode = version(installed);
+        Release best = manifestRelease(expectedSigner);
+        if (best == null) {
+        // Older releases lack a manifest: use the legacy GitHub API as fallback.
         HttpURLConnection con = connect(API);
         String raw;
         try (InputStream in = con.getInputStream()) {
@@ -99,7 +105,6 @@ final class NutUpdateService implements AutoCloseable {
             raw = new String(data, java.nio.charset.StandardCharsets.UTF_8);
         } finally { con.disconnect(); }
         JSONArray arr = new JSONArray(raw);
-        Release best = null;
         for (int i = 0; i < arr.length(); i++) {
             JSONObject release = arr.optJSONObject(i);
             if (release == null || release.optBoolean("draft", true) || release.optBoolean("prerelease", false)) continue;
@@ -123,7 +128,8 @@ final class NutUpdateService implements AutoCloseable {
                 if (best == null || code>best.code) best=new Release(url,digest.substring(7),code,size);
             }
         }
-        if (best == null) {
+        }
+        if (best == null || best.code <= currentCode) {
             if (manual) status.accept("Up to date, or no verified newer Nutbuster APK exists.");
             return;
         }
@@ -132,6 +138,39 @@ final class NutUpdateService implements AutoCloseable {
         final Release available = best;
         final long installedCode = currentCode;
         activity.runOnUiThread(() -> showDownloadOffer(available, installedCode, expectedSigner, manual));
+    }
+
+    /** HTTPS-only latest-release discovery; download still requires explicit consent. */
+    private static Release manifestRelease(String expectedSigner) {
+        HttpURLConnection con = null;
+        try {
+            con = connect(LATEST_MANIFEST);
+            String raw;
+            try (InputStream in = con.getInputStream()) {
+                raw = new String(readBounded(in, 32768), java.nio.charset.StandardCharsets.UTF_8);
+            }
+            JSONObject meta = new JSONObject(raw);
+            JSONObject apk = meta.optJSONObject("apk");
+            if (meta.optInt("schema", -1) != 1 || apk == null ||
+                !expectedSigner.equals(meta.optString("signerSha256", ""))) return null;
+            String tag = meta.optString("tag", "");
+            long code = meta.optLong("androidVersionCode", -1L);
+            String url = apk.optString("url", "");
+            String checksum = apk.optString("digest", "").toLowerCase(Locale.US);
+            long size = apk.optLong("size", -1L);
+            if (!tag.matches("nutbuster-phone-test-[0-9]+-[0-9]+") ||
+                code < 1 || code > 2_100_000_000L ||
+                !APK_NAME.equals(apk.optString("name", "")) ||
+                !url.equals(RELEASE_PREFIX + tag + "/" + APK_NAME) ||
+                !checksum.matches("sha256:[0-9a-f]{64}") ||
+                size <= 1024 || size > 100_000_000L) return null;
+            return new Release(url, checksum.substring(7), code, size);
+        } catch (Exception unavailable) {
+            // 404 is expected until the first manifest-bearing release is published.
+            return null;
+        } finally {
+            if (con != null) con.disconnect();
+        }
     }
 
     /** Diagnose HTTP failures without implying a release check was completed. */
@@ -177,7 +216,9 @@ final class NutUpdateService implements AutoCloseable {
                 activity.runOnUiThread(() -> showInstallOffer(apk, release.code));
             } catch (Exception error) {
                 if (apk.exists()) apk.delete();
-                status.accept("Update download/verification failed: " + error.getClass().getSimpleName());
+                status.accept("Update download/verification failed: " +
+                    (error instanceof IllegalStateException && error.getMessage() != null
+                        ? error.getMessage() : error.getClass().getSimpleName()));
             } finally { busy.set(false); }
         });
     }
@@ -245,7 +286,9 @@ final class NutUpdateService implements AutoCloseable {
         con.setConnectTimeout(10000); con.setReadTimeout(25000);
         con.setInstanceFollowRedirects(true);
         con.setRequestProperty("User-Agent", "NUTBUSTER/0.1 UpdateChecker");
-        con.setRequestProperty("Accept", "application/vnd.github+json");
+        // APK and manifest are ordinary release assets, not GitHub API JSON.
+        con.setRequestProperty("Accept", url.equals(API)
+            ? "application/vnd.github+json" : "*/*");
         if (con.getResponseCode()!=200) {
             int code=con.getResponseCode(); con.disconnect();
             throw new IllegalStateException("GitHub HTTP "+code);
