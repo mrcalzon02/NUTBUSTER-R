@@ -1,16 +1,34 @@
 (function(root){'use strict';
-// The game's web UI remains offline; only the native Android shell may reach GitHub.
+// Gameplay and saves remain offline. The signed native updater alone checks GitHub;
+// checking never authorizes a download or install.
+const RELEASES='https://github.com/mrcalzon02/NUTBUSTER-R/releases';
 const updates={
+  lastStatus:'Updates are checked at launch and when starting levels (at most once per hour). Download and installation always require your approval.',
   receive(message){
+    updates.lastStatus=String(message||'');
+    updates.syncStatus();
+  },
+  syncStatus(){
     const el=document.querySelector('[data-update-status]');
-    if(el) el.textContent=message;
+    if(el)el.textContent=updates.lastStatus;
+  },
+  autoCheck(reason){
+    // The Android service enforces cooldown and suppresses repeat prompts.
+    const bridge=root.NUTBUSTER_UPDATE_BRIDGE;
+    if(bridge && typeof bridge.checkForUpdatesAutomatically==='function')
+      bridge.checkForUpdatesAutomatically();
   },
   check(){
-    if(root.NUTBUSTER_UPDATE_BRIDGE && typeof root.NUTBUSTER_UPDATE_BRIDGE.checkForUpdates==='function'){
-      updates.receive('Checking the signed Nutbuster release channel…');
-      root.NUTBUSTER_UPDATE_BRIDGE.checkForUpdates();
-    }else updates.receive('Desktop/browser builds: check the GitHub Releases page for updates.');
+    const bridge=root.NUTBUSTER_UPDATE_BRIDGE;
+    if(bridge && typeof bridge.checkForUpdates==='function'){
+      updates.receive('Checking signed NUTBUSTER releases…');
+      bridge.checkForUpdates();
+    }else{
+      updates.receive('Open GitHub Releases to compare and download a newer desktop/browser version.');
+      if(root.open)root.open(RELEASES,'_blank','noopener,noreferrer');
+    }
   }
 };
 root.NutbusterUpdates=updates;
+updates.autoCheck('boot');
 })(window);
