@@ -12,7 +12,7 @@ NUTBUSTER is an offline-first, nut-themed match-three parody of predatory mobile
 
 ## Run / test
 
-`node tests/engine.test.js` runs 600 deterministic level/seed checks without external dependencies.
+Run `node tests/engine.test.js` for 2,500 deterministic level/seed cases, including 2,500 scoring swaps, 2,500 non-matching swaps, and recorded fall-trace verification. Run `node tests/ui.test.js` for a dependency-free mocked-DOM smoke test of checkout, stable board rendering, match animation plumbing, and dedicated win/loss screens. These checks do not substitute for an actual Android/device rendering test.
 
 Open `web/index.html` in a modern browser or run `python3 -m http.server 8000 --directory web` and visit `http://localhost:8000/`. For a desktop application: `cd desktop && npm install && npm start` (downloads Electron from npm). To make an Android debug APK, install JDK 17, Android SDK 36/build-tools and Gradle 9.6.1; `cd android && gradle :app:assembleDebug`. APK output is `android/app/build/outputs/apk/debug/app-debug.apk`. Verify on an API 26 device and a modern Android emulator.
 
