@@ -34,7 +34,7 @@ function nav(page){state.epoch++;state.animating=false;state.page=page;state.sel
 function banner(title,sub){return `<div class="panel hero"><h1>${title}</h1><p>${sub}</p></div>`;}
 function uiIcon(name,alt=''){return `<img src="art/additions/ui/${name}.png" class="ui-icon" alt="${alt}">`;}
 function home(){return `${banner('WELCOME TO NUTBUSTER','The match-three game with every premium feature ever invented. An offer this irresistible can only end one way.')}
- <div class="space"></div><div class="actions"><button class="btn green" data-action="play" data-level="${Math.min(500,saved.unlocked)}">${uiIcon('play')}PLAY NOW</button><button class="btn secondary" data-nav="campaign">${uiIcon('campaign-map')}LEVEL MAP</button><button class="btn secondary" data-nav="homestead">🏡 NUTVALE HOMESTEAD</button><button class="btn secondary" data-nav="shop">${uiIcon('store')}SHOP</button><button class="btn secondary" data-nav="settings">${uiIcon('settings')}SETTINGS</button><button class="btn ghost" data-action="sound">${state.sound?'🔊 Voice On':'🔇 Voice Off'}</button><button class="btn ghost" data-action="music">${state.music?'♫ Music On':'♫ Music Off'}</button></div>
+ <div class="space"></div><div class="actions"><button class="btn green" data-action="play" data-level="${Math.min(500,saved.unlocked)}">${uiIcon('play')}PLAY NOW</button><button class="btn secondary" data-nav="campaign">${uiIcon('campaign-map')}LEVEL MAP</button><button class="btn secondary" data-nav="homestead">🏡 NUTVALE HOMESTEAD</button><button class="btn secondary" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="shop">${uiIcon('store')}SHOP</button><button class="btn secondary" data-nav="settings">${uiIcon('settings')}SETTINGS</button><button class="btn ghost" data-action="sound">${state.sound?'🔊 Voice On':'🔇 Voice Off'}</button><button class="btn ghost" data-action="music">${state.music?'♫ Music On':'♫ Music Off'}</button></div>
  <h2 class="section">Your entirely unnecessary privileges</h2><div class="tiles-row"><div class="panel mini-card"><span class="icon">❤️</span><b>${saved.hearts}/5 Lives</b><button class="btn ghost" data-action="refill">REFILL NOW</button></div><div class="panel mini-card"><span class="icon">👑</span><b>${saved.vip?'VIP ACTIVE':'VIP STATUS'}</b><button class="btn ghost" data-action="vip">${saved.vip?'VIP BENEFITS':'BECOME VIP'}</button></div><div class="panel mini-card"><span class="icon">🎁</span><b>Daily Loot</b><button class="btn ghost" data-action="daily">CLAIM BONUS</button></div></div>
  <div class="panel center"><b>LIMITED-TIME EXCLUSIVE OFFER</b><p class="muted">Unmissable deals, luxury upgrades, and important-looking countdowns await in the Nut Emporium.</p><button class="btn secondary" data-nav="shop">EXPLORE OFFERS</button></div>`;}
 function campaign(){
@@ -300,7 +300,7 @@ function homestead(){
   return `<div class="homestead-award ${earned?'':'locked'}" title="${a.name}: ${a.kind==='score'?'Best score':a.kind==='wins'?'Levels cleared':a.kind==='threeStars'?'Three-star finishes':'Stars earned'} ${a.need}"><span class="emoji">${a.icon}</span><span>${a.name}<br><small>${earned?'EARNED':'LOCKED'}</small></span></div>`;
  }).join('');
  const royal=h.purchases['royal-estate']===true;
- return `<div class="homestead-top"><div><h1>🏡 NUTVALE HOMESTEAD</h1><small>${status.tier} · ${equipped.icon} ${equipped.name}</small></div><button class="btn ghost" data-nav="campaign">LEVELS →</button></div>
+ return `<div class="homestead-top"><div><h1>🏡 NUTVALE HOMESTEAD</h1><small>${status.tier} · ${equipped.icon} ${equipped.name}</small></div><button class="btn ghost" data-action="invite">↗ INVITE</button><button class="btn ghost" data-nav="campaign">LEVELS →</button></div>
  <div class="homestead-stats"><span>🏆 ${status.wins}/500 cleared</span><span>⭐ ${status.stars} stars</span><span>📈 ${status.bestScore.toLocaleString()} best${status.bestLevel?' · L'+status.bestLevel:''}</span><span>🎖 ${status.achievements.length}/${H.ACHIEVEMENTS.length} awards</span></div>
  <div class="homestead-layout">
  <div><div class="homestead-yard"><div class="homestead-house"><span class="house">🏠</span><span>YOUR LITTLE CORNER OF NUTVALE<small>A property portfolio of one. For now.</small></span></div><div class="homestead-plots">${plots}</div><p class="homestead-instructions">${selection?'SELECT A PLOT TO PLACE · TAP ITEM TO CANCEL':'SELECT A COLLECTIBLE, THEN A PLOT · TAP OCCUPIED PLOT TO STORE'}</p></div>
@@ -309,10 +309,11 @@ function homestead(){
  <div class="homestead-section"><h2>COLLECTION · ${status.decorOwned}/${H.DECOR.length} OWNED</h2><div class="homestead-scroll">${collection}</div></div>
  <div class="homestead-section"><h2>TROPHY CABINET · ${status.achievements.length} EARNED</h2><div class="homestead-awards">${cabinet}</div></div></div></div>`;
 }
-function settings(){const lev=saved.levels||{voice:.9,music:.28,reactions:.38};return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings"><p class="muted">Separate levels for the announcer, music and compulsory little grunts.</p>${[['voice','Announcer'],['music','Music'],['reactions','Click grunts']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}<div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button></div><div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Manually check for signed new releases. Never required to play.</p><button class="btn secondary" onclick="window.NutbusterUpdates.check()">CHECK FOR UPDATES</button></div></div>`;}
+function settings(){const lev=saved.levels||{voice:.9,music:.28,reactions:.38};return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings"><p class="muted">Separate levels for the announcer, music and compulsory little grunts.</p>${[['voice','Announcer'],['music','Music'],['reactions','Click grunts']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}<div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button></div><div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button></div></div>`;}
 function render(){counters();screen.classList?.toggle('campaign-map-active',state.page==='campaign');
  screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');
  screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='homestead'?homestead():state.page==='settings'?settings():state.page==='checkout'?checkout():state.page==='outcome'?outcome():rewards();
+ window.NutbusterUpdates?.syncStatus?.();
  if(state.page==='campaign'&&state.chapter&&typeof screen.querySelector==='function'){
   const center=()=>{const selected=screen.querySelector('[data-current="true"]'),viewport=screen.querySelector('[data-map-scroll]');
    if(selected&&viewport){viewport.scrollLeft=Math.max(0,selected.offsetLeft-viewport.clientWidth/2);viewport.scrollTop=Math.max(0,selected.offsetTop-viewport.clientHeight/2);}};
@@ -324,6 +325,7 @@ function start(n){state.epoch++;state.animating=false;
  saved.hearts--;persist();const level=Math.min(500,Math.max(1,Number(n)||1));
  state.game=E.create(level,Math.floor(Math.random()*0xffffffff));state.page='game';state.selected=-1;state.tool=null;state.outcome=null;state.levelReward='';
  state.announcer='PREPARE TO BUST SOME NUTS!';render();window.NutAudio?.voice('nutbuster-soft');
+ window.NutbusterUpdates?.autoCheck?.('level');
 }
 function concludeMove(result){
  if(result.hazards?.expired?.length)notice('TIMED ACORN DETONATED · 2 MOVES LOST PER ACORN');
@@ -358,6 +360,16 @@ function cell(i){if(!state.game||state.game.won||state.game.lost||state.animatin
  if(state.selected<0){selectCell(i);return;}if(state.selected===i){selectCell(-1);return;}doSwap(state.selected,i);
 }
 function action(a,button){
+ if(a==='check-updates'){window.NutbusterUpdates?.check();return;}
+ if(a==='invite'){
+  const share=window.NutbusterInvite?.share;
+  if(!share){notice('Invitation sharing is unavailable in this build.');return;}
+  Promise.resolve(share()).then(result=>{
+    if(result==='copied')notice('INVITATION LINK COPIED');
+    else if(result==='select')notice('COPY THE INVITATION LINK');
+  }).catch(()=>notice('Could not open the share menu.'));
+  return;
+ }
  if(a==='homestead-offer'){beginCheckout(8,'homestead');return;}
   if(a==='homestead-select'){const id=button.dataset.id;if(!H.owned(saved,id))return;state.homesteadSelection=state.homesteadSelection===id?null:id;render();return;}
   if(a==='homestead-avatar'){if(H.equip(saved,button.dataset.id)){persist();render();}return;}
