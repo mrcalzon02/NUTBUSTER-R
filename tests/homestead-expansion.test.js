@@ -84,5 +84,5 @@ assert.equal(H.stats(max).achievements.some(a=>a.id==='all-sets'),true);
 assert.equal(H.stats(max).achievements.some(a=>a.id==='full-estate'),true);
 assert.equal(H.buildHouse(max,'palace').spent,50000);
 assert.equal(max.coins,50000);
-assert.equal(H.prestigePlate(max).includes('Nutvale Palace'),true);
+assert.equal(H.prestigePlate(max).includes('Tier 33/40'),true,'The original palace maps to the 33rd of 40 visual tiers');
 console.log('PASS Homestead expansion: 5 gated grounds, 44 plots, 5 houses, 8 pets, 5 earned sets, safe migration and deterministic prestige plate');
