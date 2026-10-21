@@ -25,7 +25,7 @@ function activateBooster(id,index){const meta=E.BOOSTER_META[id];
  persist();refreshBoosters();return result;
 }
 function notice(message){const n=document.getElementById('toast');n.textContent=message;n.classList.add('show');clearTimeout(toastHandle);toastHandle=setTimeout(()=>n.classList.remove('show'),2300);}
-function announce(txt,clip){state.announcer=txt;const el=document.getElementById('announcer');if(el)el.textContent='🎙 '+txt;if(state.sound&&clip)window.NutAudio?.voice(clip);}
+function announce(txt,clip){state.announcer=txt;const el=document.getElementById('announcer');if(el)el.textContent=txt;if(state.sound&&clip)window.NutAudio?.voice(clip);}
 const $=(selector)=>document.querySelector(selector);
 function nav(page){
  // Header currency buttons and bottom tabs may target the page already on screen.
@@ -127,17 +127,17 @@ function game(){
  return `<section class="play-layout" style="--board-w:${g.cfg.width};--board-h:${g.cfg.height};--board-vw:${boardHeightPercent}vw;--board-max-h:${maxBoardHeight}px">
   <div class="play-hud">
    <button class="play-back" data-nav="campaign" aria-label="Return to level map" title="Level map">‹</button>
-   <div class="play-title" title="${g.cfg.stageTitle}"><b>LV ${g.level}</b><span>${g.cfg.stageTitle}</span></div>
+   <div class="play-title" title="${g.cfg.stageTitle}" aria-label="LEVEL ${g.level}: ${g.cfg.stageTitle}"><b>LV ${g.level}</b><span>${g.cfg.stageTitle}</span></div>
    <div class="play-count" aria-label="Score"><span>SCORE</span><b data-stat="score">${g.score.toLocaleString()}</b></div>
    <div class="play-count" aria-label="Moves left"><span>MOVES</span><b data-stat="moves">${g.moves}</b></div>
    <details class="play-menu"><summary aria-label="Game options" title="Game options">⋮</summary><div class="play-menu-panel">
     <button class="btn secondary" data-action="restart">Restart</button>
     <button class="btn secondary" data-nav="shop">Shop</button>
-    <button class="btn ghost" data-action="sound">${state.sound?'🔊 Voice On':'🔇 Voice Off'}</button>
-    <button class="btn ghost" data-action="music">${state.music?'♫ Music On':'♫ Music Off'}</button>
+    <button class="btn ghost" data-action="sound">${state.sound?'Voice On':'Voice Off'}</button>
+    <button class="btn ghost" data-action="music">${state.music?'Music On':'Music Off'}</button>
    </div></details>
   </div>
-  <div class="play-objective"><span class="objective-label">GOAL</span><b data-objective>${objectiveDisplay(g)}</b>
+  <div class="play-objective"><span class="objective-label">GOAL</span><b data-objective title="${objectiveDisplay(g)}">${objectiveDisplay(g)}</b>
    ${g.cfg.design.lesson?`<details class="play-hint"><summary title="Level tip" aria-label="Level tip">?</summary><p>${g.cfg.hint}</p></details>`:''}
    <div class="progress" aria-label="Objective progress"><div data-progress style="width:${ratio}%"></div></div>
   </div>
@@ -160,7 +160,7 @@ function paintCells(cells){
 function paintStats(){if(state.page!=='game'||!state.game)return;const g=state.game;
  const score=screen.querySelector('[data-stat="score"]'),moves=screen.querySelector('[data-stat="moves"]'),progress=screen.querySelector('[data-progress]'),objective=screen.querySelector('[data-objective]');
  if(score)score.textContent=g.score.toLocaleString();if(moves)moves.textContent=g.moves;
- if(objective)objective.textContent=objectiveDisplay(g);
+ if(objective){objective.textContent=objectiveDisplay(g);objective.title=objective.textContent;}
  if(progress)progress.style.width=objectivePercent(g)+'%';
  // Keep upcoming gust arrows current without rebuilding tiles or changing nuts.
  for(const mark of screen.querySelectorAll('.board-feature.wind')){
@@ -563,9 +563,9 @@ function action(a,button){
  if(a==='vip'){beginCheckout(4);return;}
  if(a==='refill'){beginCheckout(6);return;}
  if(a==='sound'){state.sound=!state.sound;saved.sound=state.sound;window.NutAudio?.setVoiceEnabled(state.sound);persist();
-   if(state.page==='game'){screen.querySelectorAll('[data-action="sound"]').forEach(b=>b.textContent=state.sound?'🔊 Voice On':'🔇 Voice Off');}else render();return;}
+   if(state.page==='game'){screen.querySelectorAll('[data-action="sound"]').forEach(b=>b.textContent=state.sound?'Voice On':'Voice Off');}else render();return;}
  if(a==='music'){state.music=!state.music;saved.music=state.music;window.NutAudio?.setMusicEnabled(state.music);persist();
-   if(state.page==='game'){screen.querySelectorAll('[data-action="music"]').forEach(b=>b.textContent=state.music?'♫ Music On':'♫ Music Off');}else render();return;}
+   if(state.page==='game'){screen.querySelectorAll('[data-action="music"]').forEach(b=>b.textContent=state.music?'Music On':'Music Off');}else render();return;}
  if(a==='daily'){saved.streak++;const pack=awardPack('daily');gain(500,10);notice('DAILY BONUS: '+boosterSummary(pack));announce('SATISFACTION GUARANTEED!','satisfaction');render();return;}
  if(a==='pig'||a==='chest'||a==='friend'||a==='pass'||a==='loot'){
   if(a==='chest')saved.chestReadyAt=Date.now()+3*60*60*1000;
