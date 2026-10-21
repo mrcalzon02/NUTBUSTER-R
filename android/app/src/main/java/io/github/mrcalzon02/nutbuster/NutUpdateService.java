@@ -65,7 +65,7 @@ final class NutUpdateService implements AutoCloseable {
         worker.execute(() -> {
             try { runCheck(manual); }
             catch (Exception error) {
-                if (manual) status.accept("Update check failed: " + error.getClass().getSimpleName());
+                if (manual) status.accept(explainCheckFailure(error));
             }
             finally { busy.set(false); }
         });
@@ -132,6 +132,23 @@ final class NutUpdateService implements AutoCloseable {
         final Release available = best;
         final long installedCode = currentCode;
         activity.runOnUiThread(() -> showDownloadOffer(available, installedCode, expectedSigner, manual));
+    }
+
+    /** Diagnose HTTP failures without implying a release check was completed. */
+    private static String explainCheckFailure(Exception error) {
+        String detail = error.getMessage();
+        if (detail != null && detail.matches("GitHub HTTP (403|429)"))
+            return "GitHub limited the update check (" + detail + "). Try later or tap VIEW RELEASES.";
+        if (detail != null && detail.matches("GitHub HTTP [0-9]{3}"))
+            return "Update server returned " + detail + ". Try again or tap VIEW RELEASES.";
+        if (detail != null && detail.equals("Oversized release metadata"))
+            return "Update metadata exceeded safety limits. Tap VIEW RELEASES.";
+        if (error instanceof java.io.IOException)
+            return "Update server unreachable. Check your connection or tap VIEW RELEASES.";
+        if (error instanceof org.json.JSONException)
+            return "Update metadata could not be read. Try again or tap VIEW RELEASES.";
+        return "Update check failed: " + error.getClass().getSimpleName() +
+            (detail == null ? "" : " (" + detail.substring(0, Math.min(detail.length(), 100)) + ")");
     }
 
     private void showDownloadOffer(Release release, long installedCode, String signer, boolean manual) {

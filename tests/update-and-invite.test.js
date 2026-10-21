@@ -13,9 +13,9 @@ const main=read('android/app/src/main/java/io/github/mrcalzon02/nutbuster/MainAc
 const manifest=read('android/app/src/main/AndroidManifest.xml');
 const statusEl={textContent:''};
 const doc={querySelector:selector=>selector==='[data-update-status]'?statusEl:null};
-let automatic=0,manual=0,shares=0;
+let automatic=0,manual=0,shares=0,releaseViews=0;
 let android={
- NUTBUSTER_UPDATE_BRIDGE:{checkForUpdatesAutomatically:()=>automatic++,checkForUpdates:()=>manual++},
+ NUTBUSTER_UPDATE_BRIDGE:{checkForUpdatesAutomatically:()=>automatic++,checkForUpdates:()=>manual++,openReleases:()=>releaseViews++},
  NUTBUSTER_SHARE_BRIDGE:{shareInvite:()=>shares++}
 };
 vm.runInNewContext(update,{window:android,document:doc});
@@ -24,6 +24,8 @@ android.NutbusterUpdates.autoCheck('level');
 assert.equal(automatic,2,'Level-start can request a throttled check');
 android.NutbusterUpdates.check();
 assert.equal(manual,1,'Explicit manual check works');
+android.NutbusterUpdates.openReleases();
+assert.equal(releaseViews,1,'Browser fallback requires explicit player action');
 android.NutbusterUpdates.receive('Signed release found');
 assert.equal(statusEl.textContent,'Signed release found');
 vm.runInNewContext(invite,{window:android,document:doc});
@@ -46,6 +48,9 @@ assert.equal(main.includes('Intent.ACTION_SEND'),true);
 assert.equal(main.includes('NUTBUSTER_SHARE_BRIDGE'),true);
 assert.equal(main.includes('checkForUpdatesAutomatically()'),true);
 assert.equal(main.includes('NUTBUSTER_UPDATE_BRIDGE'),true);
+assert.match(main,/openReleases\(\)/);
+assert.match(game,/data-action="open-releases"/);
+assert.match(native,/explainCheckFailure\(error\)/);
 assert.match(manifest,/android:allowBackup="false"/);
 assert.ok(!/READ_CONTACTS|GET_ACCOUNTS|ACCESS_FINE_LOCATION/.test(manifest));
 assert.ok(index.indexOf('invite.js')<index.indexOf('game.js'));

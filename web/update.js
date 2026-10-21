@@ -18,6 +18,11 @@ const updates={
     if(bridge && typeof bridge.checkForUpdatesAutomatically==='function')
       bridge.checkForUpdatesAutomatically();
   },
+  openReleases(){
+    const bridge=root.NUTBUSTER_UPDATE_BRIDGE;
+    if(bridge && typeof bridge.openReleases==='function')bridge.openReleases();
+    else if(root.open)root.open(RELEASES,'_blank','noopener,noreferrer');
+  },
   check(){
     const bridge=root.NUTBUSTER_UPDATE_BRIDGE;
     if(bridge && typeof bridge.checkForUpdates==='function'){
@@ -25,7 +30,7 @@ const updates={
       bridge.checkForUpdates();
     }else{
       updates.receive('Open GitHub Releases to compare and download a newer desktop/browser version.');
-      if(root.open)root.open(RELEASES,'_blank','noopener,noreferrer');
+      updates.openReleases();
     }
   }
 };

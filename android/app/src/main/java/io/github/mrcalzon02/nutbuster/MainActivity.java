@@ -2,6 +2,8 @@ package io.github.mrcalzon02.nutbuster;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.ActivityNotFoundException;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.JavascriptInterface;
@@ -30,6 +32,16 @@ public final class MainActivity extends Activity {
         game.addJavascriptInterface(new Object() {
             @JavascriptInterface public void checkForUpdates() { updater.checkForUpdates(); }
             @JavascriptInterface public void checkForUpdatesAutomatically() { updater.checkForUpdatesAutomatically(); }
+            @JavascriptInterface public void openReleases() {
+                runOnUiThread(() -> {
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("https://github.com/mrcalzon02/NUTBUSTER-R/releases")));
+                    } catch (ActivityNotFoundException unavailable) {
+                        showUpdateStatus("No browser available to open GitHub Releases.");
+                    }
+                });
+            }
         }, "NUTBUSTER_UPDATE_BRIDGE");
         game.addJavascriptInterface(new Object() {
             @JavascriptInterface public void shareInvite() {
