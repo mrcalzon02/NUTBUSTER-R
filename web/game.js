@@ -287,6 +287,22 @@ function homestead(){
  const preview=H.tierByNumber(state.homesteadPreview)||actualTier;
  const nextTier=H.tierByNumber(h.maxTier+1);
  const previewOwned=preview.tier<=h.maxTier;
+ const selectedRenovations=H.renovationRanks(saved,preview.tier);
+ const residenceFlair=tier=>H.RENOVATIONS.map(item=>{
+  const rank=H.renovationRanks(saved,tier)[item.id];
+  return rank?'<span class="homestead-flair-'+item.id+' rank-'+rank+'" title="'+item.name+' '+rank+'/5">'+item.icon+'<sup>'+rank+'</sup></span>':'';
+ }).join('');
+ const renovations=previewOwned?H.RENOVATIONS.map(item=>{
+  const rank=selectedRenovations[item.id],offer=H.renovationOffer(saved,preview.tier,item.id);
+  const complete=!offer.valid&&offer.reason==='complete';
+  const eligible=offer.valid&&(offer.level===0||Number(saved.stars?.[offer.level])>0);
+  return '<div class="homestead-renovation-row"><span class="homestead-renovation-name">'+item.icon+' '+item.name+'</span>'+
+   '<span class="homestead-renovation-pips" aria-label="'+rank+' of 5 completed">'+
+   Array.from({length:H.RENOVATION_STEPS},(_,i)=>'<i class="'+(i<rank?'done':'')+'"></i>').join('')+'</span>'+
+   (complete?'<small>MAXED</small>':'<button class="btn ghost" data-action="homestead-renovate" data-tier="'+preview.tier+'" data-id="'+item.id+'" '+(eligible?'':'disabled')+'>'+
+    (eligible?'UPGRADE · '+offer.cost.toLocaleString()+' 🌰':'LV '+offer.level)+'</button>')+'</div>';
+ }).join(''):'<small class="homestead-renovation-locked">Build this residence before renovating it.</small>';
+
  const pet=H.PETS.find(a=>a.id===h.pet)||H.PETS[0];
  const zone=H.ZONES.find(z=>z.id===state.homesteadZone&&H.zoneUnlocked(saved,z.id))||H.ZONES[0];
  const placedIds=new Set(Object.values(h.placed));
@@ -309,11 +325,11 @@ function homestead(){
  const residence=`<div class="homestead-residence-controls"><button class="btn ghost" data-action="homestead-tier-browse" data-dir="-1" ${preview.tier===1?'disabled':''} aria-label="Previous design">◀</button>
  <div><b>TIER ${preview.tier}/40 · ${preview.name}</b><small>${previewOwned?'BUILT · AVAILABLE':preview.level+' LEVEL CLEAR TO UNLOCK · '+preview.cost.toLocaleString()+' NUTS'}</small></div>
  <button class="btn ghost" data-action="homestead-tier-browse" data-dir="1" ${preview.tier===40?'disabled':''} aria-label="Next design">▶</button></div>
- <div class="homestead-preview"><img src="${preview.art}" alt="${preview.name}, tier ${preview.tier}" loading="lazy"><span class="homestead-preview-tag">${previewOwned?'OWNED':'PREVIEW'}</span></div>
+ <div class="homestead-preview"><img src="${preview.art}" alt="${preview.name}, tier ${preview.tier}" loading="lazy"><div class="homestead-flair" aria-hidden="true">${residenceFlair(preview.tier)}</div><span class="homestead-preview-tag">${previewOwned?'OWNED':'PREVIEW'}</span></div>
  <div class="homestead-residence-actions">${previewOwned&&preview.tier!==h.tier?`<button class="btn secondary" data-action="homestead-tier-equip" data-tier="${preview.tier}">DISPLAY THIS DESIGN</button>`:''}
  ${nextTier?`<button class="btn green" data-action="homestead-tier-upgrade">UPGRADE TO TIER ${nextTier.tier} · ${nextTier.cost.toLocaleString()} 🌰</button>`:'<span class="pill">MAXIMUM PREMIUM RESIDENCE ACHIEVED</span>'}</div>
  <div class="homestead-tier-progress" role="progressbar" aria-valuenow="${h.maxTier}" aria-valuemin="1" aria-valuemax="40" aria-label="Highest building tier"><span style="width:${(h.maxTier/40*100).toFixed(1)}%"></span></div>
- <small class="homestead-tier-hint">BUILT ${h.maxTier}/40 · DISPLAYING TIER ${h.tier}${nextTier?' · NEXT REQUIRES LEVEL '+nextTier.level:' · CAMPAIGN COMPLETE'}</small>`;
+ <small class="homestead-tier-hint">BUILT ${h.maxTier}/40 · DISPLAYING TIER ${h.tier}${nextTier?' · NEXT REQUIRES LEVEL '+nextTier.level:' · CAMPAIGN COMPLETE'}</small><div class="homestead-renovations"><h3>RENOVATIONS · ${H.renovationSummary(saved,preview.tier).houseTotal}/25 THIS HOUSE</h3>${renovations}</div>`;
  const collection=[...H.DECOR].sort((a,b)=>Number(H.owned(saved,b.id))-Number(H.owned(saved,a.id))).map(item=>{
   const has=H.owned(saved,item.id),used=placedIds.has(item.id),active=selection===item.id;
   const gate=item.set?'SET PRIZE':item.premium?'PREMIUM':'LV '+item.level;
@@ -330,11 +346,11 @@ function homestead(){
  }).join('');
  const royal=h.purchases['royal-estate']===true;
  return `<div class="homestead-top"><div><h1>🏡 NUTVALE HOMESTEAD</h1><small>${status.tier} · ${equipped.icon} ${equipped.name}</small></div><div class="homestead-actions"><button class="btn ghost" data-action="homestead-plate">↗ PRESTIGE PLATE</button><button class="btn ghost" data-action="invite">↗ INVITE</button><button class="btn ghost" data-nav="campaign">LEVELS →</button></div></div>
- <div class="homestead-stats"><span>🏆 ${status.wins}/500 cleared</span><span>⭐ ${status.stars} stars</span><span>🎖 ${status.achievements.length}/${H.ACHIEVEMENTS.length} awards</span><span>🧩 ${status.setCount}/${H.SETS.length} sets</span><span>📈 ${status.bestScore.toLocaleString()} best</span></div>
+ <div class="homestead-stats"><span>🏆 ${status.wins}/500 cleared</span><span>⭐ ${status.stars} stars</span><span>🎖 ${status.achievements.length}/${H.ACHIEVEMENTS.length} awards</span><span>🧩 ${status.setCount}/${H.SETS.length} sets</span><span>📈 ${status.bestScore.toLocaleString()} best</span><span>🛠 ${status.renovations}/1000 renovated</span></div>
  <div class="homestead-layout">
  <div><div class="homestead-zone-list">${zoneButtons}</div>
  <div class="homestead-yard zone-${zone.id}" data-estate-zone="${zone.id}"><div class="homestead-scenery" aria-hidden="true"><span>${zone.icon}</span><small>${zone.description}</small></div>
- <div class="homestead-house"><span class="house homestead-house-art"><img src="${actualTier.art}" alt="${actualTier.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.hidden=false"><span hidden>${house.icon}</span></span><span>${actualTier.name.toUpperCase()}<small>HOUSE TIER ${actualTier.tier}/40 · ${zone.name}</small></span><span class="homestead-visitor" role="img" aria-label="Companion: ${pet.name}">${pet.icon}</span></div>
+ <div class="homestead-house"><span class="house homestead-house-art"><img src="${actualTier.art}" alt="${actualTier.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.hidden=false"><span hidden>${house.icon}</span><div class="homestead-flair homestead-flair-yard" aria-hidden="true">${residenceFlair(actualTier.tier)}</div></span><span>${actualTier.name.toUpperCase()}<small>HOUSE TIER ${actualTier.tier}/40 · ${zone.name}</small></span><span class="homestead-visitor" role="img" aria-label="Companion: ${pet.name}">${pet.icon}</span></div>
  <div class="homestead-plots">${plots}</div><p class="homestead-instructions">${selection?'SELECT A PLOT TO PLACE · TAP ITEM TO CANCEL':'SELECT A COLLECTIBLE, THEN A PLOT · TAP OCCUPIED PLOT TO STORE'}</p></div>
  <div class="homestead-premium"><div><b>👑 ROYAL MANOR KIT</b><p>Platinum portrait, fountain, and diamond throne · <strong>Was $499.99</strong></p></div><button class="btn green" data-action="homestead-offer" ${royal?'disabled':''}>${royal?'OWNED':'BUY NOW'}</button></div></div>
  <div class="homestead-side">
@@ -421,6 +437,19 @@ function action(a,button){
    const chosen=Number(button.dataset.tier);
    if(H.chooseTier(saved,chosen)){state.homesteadPreview=chosen;persist();render();}
    else notice('THIS RESIDENCE HAS NOT BEEN BUILT');return;
+  }
+  if(a==='homestead-renovate'){
+   const tier=Number(button.dataset.tier),item=button.dataset.id;
+   const result=H.upgradeRenovation(saved,tier,item);
+   if(!result.valid){
+    const message=result.reason==='level'?'CLEAR LEVEL '+result.level+' TO RENOVATE':
+      result.reason==='coins'?'NEED '+result.short.toLocaleString()+' MORE GOLDEN NUTS':
+      result.reason==='complete'?'RENOVATION TRACK COMPLETE':'RESIDENCE RENOVATION UNAVAILABLE';
+    notice(message);return;
+   }
+   state.homesteadPreview=tier;persist();render();
+   notice('RENOVATION '+result.rank+'/5 COMPLETE · '+result.spent+' GOLDEN NUTS');
+   return;
   }
   if(a==='homestead-tier-upgrade'){
    const result=H.upgradeTier(saved);
