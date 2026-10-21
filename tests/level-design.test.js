@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const E=require('../web/engine.js'),L=require('../web/level-design.js');
 const M=require('../web/campaign-maps.js'),P=require('../web/progression.js');
 assert.equal(L.ACTS.length,10);
-assert.equal(Object.keys(L.LESSONS).length,21);
+assert.equal(Object.keys(L.LESSONS).length,25);
 const family=new Set(),shapes=new Set(),formation=new Set(),tutorial=new Set();
 for(let level=1;level<=500;level++){
  const d=L.profile(level),cfg=E.makeLevel(level),g=E.create(level,level*91+7);
@@ -22,7 +22,8 @@ for(let level=1;level<=500;level++){
   family.add(objective.kind);
   const physical=objective.kind==='ice'?g.cells.reduce((a,c)=>a+(c?.ice||0),0):
    objective.kind==='locks'?g.cells.reduce((a,c)=>a+(c?.lock||0),0):
-   objective.kind==='chests'?g.cells.reduce((a,c)=>a+(c?.chest||0),0):Infinity;
+   objective.kind==='chests'?g.cells.reduce((a,c)=>a+(c?.chest||0),0):
+   objective.kind==='jam'?g.cells.reduce((a,c)=>a+(c?.jam||0),0):Infinity;
   assert.ok(objective.target<=physical,'Initial '+objective.kind+' objective impossible at level '+level);
  }
  assert.equal(cfg.mask.filter(Boolean).length,g.cells.filter(Boolean).length);
