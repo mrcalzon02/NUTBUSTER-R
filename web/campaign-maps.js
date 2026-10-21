@@ -1,6 +1,6 @@
 /* NUTBUSTER campaign geography: scenery is independent of every level marker.
-   Waypoints use fractions of the original 941x1672 image, bottom -> top.
-   Edit a chapter's path here to move all 100 markers without repainting art. */
+   Routes are traced in original 941x1672 image pixels, bottom -> top.
+   Edit ROAD_PIXELS to move stages without repainting the map artwork. */
 (function(root){
 'use strict';
 const WIDTH=941,HEIGHT=1672;
@@ -1099,8 +1099,14 @@ function nodes(chapterId){
   const distance=length*index/99;
   const seg=segments.find(s=>s.end>=distance)||segments[segments.length-1];
   const t=clamp((distance-seg.start)/seg.length,0,1);
+  // Alternate 5px towards either road shoulder. Larger icons stay legible
+  // without stacking directly atop one another on long narrow roads.
+  const shoulder=index%2===0?-5:5;
+  const dx=(seg.b[0]-seg.a[0])*WIDTH/seg.length;
+  const dy=(seg.b[1]-seg.a[1])*HEIGHT/seg.length;
   return {level:chapter.start+index,chapter:chapter.id,local:index+1,road:seg.road,
-   x:seg.a[0]+(seg.b[0]-seg.a[0])*t,y:seg.a[1]+(seg.b[1]-seg.a[1])*t,
+   x:seg.a[0]+(seg.b[0]-seg.a[0])*t-dy*shoulder/WIDTH,
+   y:seg.a[1]+(seg.b[1]-seg.a[1])*t+dx*shoulder/HEIGHT,
    milestone:(index===0||index===99||(index+1)%20===0),
    kind:index===99?'finale':(index+1)%20===0?'challenge':(index+1)%15===0?'treasure':(index+1)%12===0?'booster':(index+1)%10===0?'hard':'standard',
    title:'Level '+(chapter.start+index)+' · '+LESSON_BOOK.profile(chapter.start+index).name};
