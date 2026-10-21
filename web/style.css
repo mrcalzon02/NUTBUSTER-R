@@ -248,6 +248,30 @@
 /* Layer the shipped illustrated blockers over still-mounted nut sprites. */
 .cell .overlay.blocker-art{background:transparent;border:0;text-shadow:none;box-shadow:none;line-height:0;z-index:2}
 .cell .overlay.blocker-art .blocker-sprite{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}
+/* Transparent painted ice must fit INSIDE the clipped tile instead of
+   being sliced by the button's overflow:hidden and rounded edges. */
+.cell .overlay.blocker-art.ice{
+ background:transparent!important;
+ border:0!important;
+ box-shadow:none!important;
+ overflow:visible;
+ isolation:isolate;
+}
+.cell .overlay.blocker-art.ice .blocker-sprite{
+ width:86%;
+ height:86%;
+ flex:none;
+ max-width:86%;
+ max-height:86%;
+ object-fit:contain;
+ image-rendering:auto;
+}
+/* The painted cube remains centered and clear at the smallest board sizes. */
+#app.playing .game-active .cell .overlay.blocker-art.ice .blocker-sprite{
+ width:86%;
+ height:86%;
+}
+
 
 
 /* Original illustrated UI assets stay in use. Zero duplicate decorative banner on the game screen. */
