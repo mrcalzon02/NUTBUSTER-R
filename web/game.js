@@ -5,7 +5,7 @@ const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);H.ensure(saved);
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadZone:'yard'};let toastHandle;
+let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadZone:'yard',homesteadPreview:null};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});}
 function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch(_){}}
 function safeNum(n){return Number.isFinite(n)?Math.min(999999999,Math.max(0,Math.trunc(n))):0;}
@@ -283,6 +283,10 @@ function homestead(){
  const h=H.ensure(saved),status=H.stats(saved),selection=state.homesteadSelection;
  const equipped=H.AVATARS.find(a=>a.id===h.avatar)||H.AVATARS[0];
  const house=H.HOUSES.find(a=>a.id===h.house)||H.HOUSES[0];
+ const actualTier=H.tierByNumber(h.tier)||H.HOUSE_TIERS[0];
+ const preview=H.tierByNumber(state.homesteadPreview)||actualTier;
+ const nextTier=H.tierByNumber(h.maxTier+1);
+ const previewOwned=preview.tier<=h.maxTier;
  const pet=H.PETS.find(a=>a.id===h.pet)||H.PETS[0];
  const zone=H.ZONES.find(z=>z.id===state.homesteadZone&&H.zoneUnlocked(saved,z.id))||H.ZONES[0];
  const placedIds=new Set(Object.values(h.placed));
@@ -302,10 +306,14 @@ function homestead(){
   const has=H.petOwned(saved,a.id),active=h.pet===a.id;
   return `<button class="homestead-avatar ${has?'':'locked'} ${active?'selected':''}" data-action="homestead-pet" data-id="${a.id}" ${has?'':'disabled'} aria-label="${a.name}, ${has?'available':'locked'}"><strong>${a.icon}</strong><b>${a.name}</b><small>${active?'FOLLOWING':has?'CHOOSE':'LV '+a.level}</small></button>`;
  }).join('');
- const buildings=H.HOUSES.map(a=>{
-  const built=h.houses[a.id]===true,active=h.house===a.id,unlocked=a.level===0||!!saved.stars?.[a.level];
-  return `<button class="homestead-collectible ${active?'selected':''} ${unlocked?'':'locked'}" data-action="homestead-build" data-id="${a.id}" aria-label="${a.name}; ${built?'built':unlocked?'cost '+a.cost+' Golden Nuts':'clear level '+a.level}"><strong>${a.icon}</strong><b>${a.name}</b><small>${active?'ACTIVE':built?'SWITCH':unlocked?a.cost.toLocaleString()+' NUTS':'LV '+a.level}</small></button>`;
- }).join('');
+ const residence=`<div class="homestead-residence-controls"><button class="btn ghost" data-action="homestead-tier-browse" data-dir="-1" ${preview.tier===1?'disabled':''} aria-label="Previous design">◀</button>
+ <div><b>TIER ${preview.tier}/40 · ${preview.name}</b><small>${previewOwned?'BUILT · AVAILABLE':preview.level+' LEVEL CLEAR TO UNLOCK · '+preview.cost.toLocaleString()+' NUTS'}</small></div>
+ <button class="btn ghost" data-action="homestead-tier-browse" data-dir="1" ${preview.tier===40?'disabled':''} aria-label="Next design">▶</button></div>
+ <div class="homestead-preview"><img src="${preview.art}" alt="${preview.name}, tier ${preview.tier}" loading="lazy"><span class="homestead-preview-tag">${previewOwned?'OWNED':'PREVIEW'}</span></div>
+ <div class="homestead-residence-actions">${previewOwned&&preview.tier!==h.tier?`<button class="btn secondary" data-action="homestead-tier-equip" data-tier="${preview.tier}">DISPLAY THIS DESIGN</button>`:''}
+ ${nextTier?`<button class="btn green" data-action="homestead-tier-upgrade">UPGRADE TO TIER ${nextTier.tier} · ${nextTier.cost.toLocaleString()} 🌰</button>`:'<span class="pill">MAXIMUM PREMIUM RESIDENCE ACHIEVED</span>'}</div>
+ <div class="homestead-tier-progress" role="progressbar" aria-valuenow="${h.maxTier}" aria-valuemin="1" aria-valuemax="40" aria-label="Highest building tier"><span style="width:${(h.maxTier/40*100).toFixed(1)}%"></span></div>
+ <small class="homestead-tier-hint">BUILT ${h.maxTier}/40 · DISPLAYING TIER ${h.tier}${nextTier?' · NEXT REQUIRES LEVEL '+nextTier.level:' · CAMPAIGN COMPLETE'}</small>`;
  const collection=[...H.DECOR].sort((a,b)=>Number(H.owned(saved,b.id))-Number(H.owned(saved,a.id))).map(item=>{
   const has=H.owned(saved,item.id),used=placedIds.has(item.id),active=selection===item.id;
   const gate=item.set?'SET PRIZE':item.premium?'PREMIUM':'LV '+item.level;
@@ -326,11 +334,11 @@ function homestead(){
  <div class="homestead-layout">
  <div><div class="homestead-zone-list">${zoneButtons}</div>
  <div class="homestead-yard zone-${zone.id}" data-estate-zone="${zone.id}"><div class="homestead-scenery" aria-hidden="true"><span>${zone.icon}</span><small>${zone.description}</small></div>
- <div class="homestead-house"><span class="house">${house.icon}</span><span>${house.name.toUpperCase()}<small>${zone.name} · ${zone.count} display plots</small></span><span class="homestead-visitor" role="img" aria-label="Companion: ${pet.name}">${pet.icon}</span></div>
+ <div class="homestead-house"><span class="house homestead-house-art"><img src="${actualTier.art}" alt="${actualTier.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.hidden=false"><span hidden>${house.icon}</span></span><span>${actualTier.name.toUpperCase()}<small>HOUSE TIER ${actualTier.tier}/40 · ${zone.name}</small></span><span class="homestead-visitor" role="img" aria-label="Companion: ${pet.name}">${pet.icon}</span></div>
  <div class="homestead-plots">${plots}</div><p class="homestead-instructions">${selection?'SELECT A PLOT TO PLACE · TAP ITEM TO CANCEL':'SELECT A COLLECTIBLE, THEN A PLOT · TAP OCCUPIED PLOT TO STORE'}</p></div>
  <div class="homestead-premium"><div><b>👑 ROYAL MANOR KIT</b><p>Platinum portrait, fountain, and diamond throne · <strong>Was $499.99</strong></p></div><button class="btn green" data-action="homestead-offer" ${royal?'disabled':''}>${royal?'OWNED':'BUY NOW'}</button></div></div>
  <div class="homestead-side">
- <div class="homestead-section"><h2>PROPERTY UPGRADES · 🌰 ${saved.coins.toLocaleString()}</h2><div class="homestead-scroll">${buildings}</div></div>
+ <div class="homestead-section"><h2>RESIDENCE · 🌰 ${saved.coins.toLocaleString()} · ${h.maxTier}/40 BUILT</h2>${residence}</div>
  <div class="homestead-section"><h2>AVATAR · ${equipped.name}</h2><div class="homestead-scroll">${wardrobe}</div></div>
  <div class="homestead-section"><h2>COMPANION · ${pet.name}</h2><div class="homestead-scroll">${pets}</div></div>
  <div class="homestead-section"><h2>COLLECTION · ${status.decorOwned}/${H.DECOR.length} OWNED</h2><div class="homestead-scroll">${collection}</div></div>
@@ -366,8 +374,8 @@ function concludeMove(result){
   state.levelReward=prize.unlock.length?'NEW POWER: '+prize.unlock.map(id=>E.BOOSTER_META[id].label).join(', '):Object.keys(prize.contents).length?'STAGE PRIZE: '+boosterSummary(prize.contents):'';
    if(firstTime){const items=H.DECOR.filter(item=>item.level===g.level).map(item=>item.name),avatars=H.AVATARS.filter(item=>item.level===g.level).map(item=>item.name);
     if(items.length||avatars.length)state.levelReward+=(state.levelReward?' · ':'')+'HOMESTEAD UNLOCK: '+[...items,...avatars].join(', ');
-     const zone=H.ZONES.find(z=>z.level===g.level&&z.level>0),house=H.HOUSES.find(x=>x.level===g.level&&x.level>0),pet=H.PETS.find(x=>x.level===g.level&&x.level>0);
-     if(zone||house||pet)state.levelReward+=(state.levelReward?' · ':'')+'NEW ESTATE FEATURES: '+[zone?.name,house?.name,pet?.name].filter(Boolean).join(', ');
+     const zone=H.ZONES.find(z=>z.level===g.level&&z.level>0),house=H.HOUSES.find(x=>x.level===g.level&&x.level>0),pet=H.PETS.find(x=>x.level===g.level&&x.level>0),residence=H.HOUSE_TIERS.find(x=>x.level===g.level&&x.tier>1);
+     if(zone||house||pet||residence)state.levelReward+=(state.levelReward?' · ':'')+'NEW ESTATE FEATURES: '+[zone?.name,house?.name,pet?.name,residence?'BUILD TIER '+residence.tier:null].filter(Boolean).join(', ');
     }
 
   gain(500,10);persist();announce('UNBELIEVABLE PERFORMANCE! YOUR NUTS ARE LEGENDARY!','win');}
@@ -404,6 +412,24 @@ function action(a,button){
   return;
  }
  if(a==='homestead-offer'){beginCheckout(8,'homestead');return;}
+  if(a==='homestead-tier-browse'){
+   const current=H.tierByNumber(state.homesteadPreview)||H.tierByNumber(H.ensure(saved).tier);
+   state.homesteadPreview=Math.max(1,Math.min(40,current.tier+(Number(button.dataset.dir)||0)));
+   render();return;
+  }
+  if(a==='homestead-tier-equip'){
+   const chosen=Number(button.dataset.tier);
+   if(H.chooseTier(saved,chosen)){state.homesteadPreview=chosen;persist();render();}
+   else notice('THIS RESIDENCE HAS NOT BEEN BUILT');return;
+  }
+  if(a==='homestead-tier-upgrade'){
+   const result=H.upgradeTier(saved);
+   if(!result.valid){
+    notice(result.reason==='level'?'CLEAR LEVEL '+result.level+' TO BUILD':result.reason==='coins'?'NEED '+result.short.toLocaleString()+' MORE GOLDEN NUTS':'EVERY RESIDENCE UPGRADE COMPLETE');
+    return;
+   }
+   state.homesteadPreview=result.tier;persist();render();notice('NEW HOUSE TIER '+result.tier+' BUILT');return;
+  }
   if(a==='homestead-zone'){
    const zone=H.ZONES.find(z=>z.id===button.dataset.zone);
    if(!zone)return;
