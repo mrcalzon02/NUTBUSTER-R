@@ -38,7 +38,7 @@ public final class MainActivity extends Activity {
                     send.setType("text/plain");
                     send.putExtra(Intent.EXTRA_SUBJECT, "NUTBUSTER — Join the Nut Odyssey");
                     send.putExtra(Intent.EXTRA_TEXT,
-                        "Come bust some nuts in NUTBUSTER! Get the latest game release here:\\n" +
+                        "Come bust some nuts in NUTBUSTER! Get the latest game release here:\n" +
                         "https://github.com/mrcalzon02/NUTBUSTER-R/releases");
                     startActivity(Intent.createChooser(send, "Invite a friend to NUTBUSTER"));
                 });
