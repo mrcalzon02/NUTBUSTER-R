@@ -10,9 +10,9 @@ on:
 permissions:
   contents: read
 
-# Never cancel an in-progress signed release with a later source commit.
+# Independent build runs can execute in parallel; only the publishing job is serialized.
 concurrency:
-  group: nutbuster-release-${{ github.ref }}
+  group: nutbuster-build-${{ github.run_id }}-${{ github.run_attempt }}
   cancel-in-progress: false
 
 jobs:
@@ -183,6 +183,10 @@ jobs:
           if-no-files-found: ignore
 
   publisher-release:
+    # Protect the sole signed publisher channel without delaying other builds.
+    concurrency:
+      group: nutbuster-publisher-release
+      cancel-in-progress: false
     if: github.event_name != 'pull_request'
     # Signed alpha publication requires tested APK/desktop builds. The emulator
     # remains an independent post-build smoke check and evidence gate.
