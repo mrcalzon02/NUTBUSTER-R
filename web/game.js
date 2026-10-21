@@ -392,6 +392,12 @@ function concludeMove(result){
     if(items.length||avatars.length)state.levelReward+=(state.levelReward?' · ':'')+'HOMESTEAD UNLOCK: '+[...items,...avatars].join(', ');
      const zone=H.ZONES.find(z=>z.level===g.level&&z.level>0),house=H.HOUSES.find(x=>x.level===g.level&&x.level>0),pet=H.PETS.find(x=>x.level===g.level&&x.level>0),residence=H.HOUSE_TIERS.find(x=>x.level===g.level&&x.tier>1);
      if(zone||house||pet||residence)state.levelReward+=(state.levelReward?' · ':'')+'NEW ESTATE FEATURES: '+[zone?.name,house?.name,pet?.name,residence?'BUILD TIER '+residence.tier:null].filter(Boolean).join(', ');
+      const activeTier=H.ensure(saved).tier;
+      const newPlans=H.RENOVATIONS.filter(track=>{
+       const offer=H.renovationOffer(saved,activeTier,track.id);
+       return offer.valid&&offer.level===g.level;
+      });
+      if(newPlans.length)state.levelReward+=(state.levelReward?' · ':'')+'RENOVATION PLANS UNLOCKED: '+newPlans.length;
     }
 
   gain(500,10);persist();announce('UNBELIEVABLE PERFORMANCE! YOUR NUTS ARE LEGENDARY!','win');}
