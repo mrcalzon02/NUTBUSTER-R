@@ -45,6 +45,9 @@ function makeLevel(number){
   ice:design.ice??(n>=3?Math.min(20,1+Math.floor(n/16)):0),
   locks:design.locks??(n>=28?Math.min(14,1+Math.floor((n-28)/24)):0),
   chests:design.chests??(n>=68?Math.min(10,1+Math.floor((n-68)/36)):0),
+  jam:design.jam??(n>=110?Math.min(9,1+Math.floor((n-110)/65)):0),
+  bombs:design.bombs??(n>=210?Math.min(5,1+Math.floor((n-210)/90)):0),
+  fuseTurns:n>=210?Math.max(3,6-Math.floor((n-210)/100)):0,
   title:DESIGN.CHAPTERS[chapter],stageTitle:design.name,hint:design.hint,design};
  // Irregular late-game silhouettes have fewer cells than the rectangular grid.
  // Reserve space for ordinary nuts and guarantee that advertised blocker layers
@@ -53,6 +56,8 @@ function makeLevel(number){
  cfg.ice=Math.min(cfg.ice,Math.floor(usable*.42));
  cfg.locks=Math.min(cfg.locks,Math.floor(usable*.27));
  cfg.chests=Math.min(cfg.chests,Math.floor(usable*.20));
+ cfg.jam=Math.min(cfg.jam,Math.floor(usable*.18));
+ cfg.bombs=Math.min(cfg.bombs,Math.floor(usable*.12));
  // Level-book objectives replace the old modulo-ten wheel. Every target must be
  // physically satisfiable by its starting board, even without a purchased booster.
  const pressure=Math.floor((n-1)/55);
@@ -61,10 +66,11 @@ function makeLevel(number){
   if(kind==='ice')return {kind:'ice',target:Math.max(1,Math.min(cfg.ice*2,target||Math.min(cfg.ice*2,2+pressure)))};
   if(kind==='locks')return {kind:'locks',target:Math.max(1,Math.min(cfg.locks,target||Math.min(cfg.locks,1+pressure)))};
   if(kind==='chests')return {kind:'chests',target:Math.max(1,Math.min(cfg.chests*2,target||Math.min(cfg.chests*2,2+pressure)))};
+  if(kind==='jam')return {kind:'jam',target:Math.max(1,Math.min(cfg.jam,target||Math.min(cfg.jam,1+pressure)))};
   if(kind==='collect')return {kind:'collect',color:n%TYPES.length,target:target||collect};
   return {kind:'score',target:goal};
  };
- const available=(kind)=>kind==='ice'?cfg.ice>0:kind==='locks'?cfg.locks>0:kind==='chests'?cfg.chests>0:true;
+ const available=(kind)=>kind==='ice'?cfg.ice>0:kind==='locks'?cfg.locks>0:kind==='chests'?cfg.chests>0:kind==='jam'?cfg.jam>0:true;
  const kind=design.kind==='dual'?'dual':available(design.kind)?design.kind:'score';
  if(kind==='dual'){
   const blocker=cfg.locks?'locks':cfg.chests?'chests':'ice';
@@ -73,15 +79,15 @@ function makeLevel(number){
  return cfg;
 }
 function create(level=1,seed=level*7919){
- const cfg=makeLevel(level);let rand=rng(seed);const a=cfg.mask.map(v=>v?{type:0,ice:0,lock:0,chest:0,special:null}:null);
- const g={level:cfg.number,cfg,seed,rand,cells:a,score:0,moves:cfg.moves,won:false,lost:false,combos:0,history:[],boosterUsed:0,progress:{ice:0,locks:0,chests:0,colors:TYPES.map(()=>0)},uses:{}};
+ const cfg=makeLevel(level);let rand=rng(seed);const a=cfg.mask.map(v=>v?{type:0,ice:0,lock:0,chest:0,jam:0,fuse:0,special:null}:null);
+ const g={level:cfg.number,cfg,seed,rand,cells:a,score:0,moves:cfg.moves,won:false,lost:false,combos:0,history:[],boosterUsed:0,turns:0,progress:{ice:0,locks:0,chests:0,jam:0,bombs:0,colors:TYPES.map(()=>0)},uses:{}};
  for(let y=0;y<cfg.height;y++)for(let x=0;x<cfg.width;x++){
   const i=y*cfg.width+x;if(!a[i])continue;let opts=TYPES.map((_,i)=>i).filter(t=>!(x>=2&&a[i-1]&&a[i-2]&&a[i-1].type===t&&a[i-2].type===t)&&!(y>=2&&a[i-cfg.width]&&a[i-2*cfg.width]&&a[i-cfg.width].type===t&&a[i-2*cfg.width].type===t));a[i].type=opts[Math.floor(rand()*opts.length)];
  }
  const candidates=a.map((v,i)=>v?i:-1).filter(i=>i>=0);
  function plant(count,key){
   for(let t=0;t<count;t++){
-   const free=candidates.filter(i=>a[i]&&a[i].ice===0&&a[i].lock===0&&a[i].chest===0);
+   const free=candidates.filter(i=>a[i]&&(key==='jam'||key==='fuse'?a[i][key]===0:a[i].ice===0&&a[i].lock===0&&a[i].chest===0));
    if(!free.length)break;
    // Dedicated lesson layouts visibly demonstrate line/column/cross/area tools.
    // The rest of the campaign keeps seeded random distribution.
@@ -97,10 +103,11 @@ function create(level=1,seed=level*7919){
     };
     chosen=free.sort((a,b)=>priority(a)-priority(b)||a-b)[0];
    }
-   a[chosen][key]=key==='chest'?2:key==='ice'?2:1;
+   a[chosen][key]=key==='fuse'?cfg.fuseTurns:key==='chest'||key==='ice'?2:1;
   }
  }
  plant(cfg.ice,'ice');plant(cfg.locks,'lock');plant(cfg.chests,'chest');
+ plant(cfg.jam,'jam');plant(cfg.bombs,'fuse');
  if(!hasMove(g))shuffle(g);return g;
 }
 function matches(g){const hit=new Set(),groups=[];const {width:w,height:h}=g.cfg;function run(indices){if(indices.length>=3){groups.push(indices);indices.forEach(i=>hit.add(i));}}
@@ -134,16 +141,18 @@ function gravity(g,falls=[]){const w=g.cfg.width,h=g.cfg.height; // Void cells s
 function objectiveState(g){
  return g.cfg.objectives.map(spec=>{
   const value=spec.kind==='score'?g.score:spec.kind==='collect'?g.progress.colors[spec.color]:g.progress[spec.kind];
-  const label=spec.kind==='score'?'Score':spec.kind==='ice'?'Crack ice':spec.kind==='locks'?'Break locks':spec.kind==='chests'?'Open chests':'Collect '+TYPES[spec.color];
+  const label=spec.kind==='score'?'Score':spec.kind==='ice'?'Crack ice':spec.kind==='locks'?'Break locks':spec.kind==='chests'?'Open chests':spec.kind==='jam'?'Scrub butter':'Collect '+TYPES[spec.color];
   return {kind:spec.kind,label,value,target:spec.target,done:value>=spec.target};
  });
 }
 function complete(g){return objectiveState(g).every(o=>o.done);}
 function damage(g,i,summary){
  const c=g.cells[i];if(!c||c.type===null)return;
+ if(c.jam>0){c.jam--;g.progress.jam++;summary.cracked++;return;}
  if(c.ice>0){c.ice--;g.progress.ice++;summary.cracked++;return;}
  if(c.lock>0){c.lock--;g.progress.locks++;summary.cracked++;return;}
  if(c.chest>0){c.chest--;g.progress.chests++;summary.cracked++;return;}
+ if(c.fuse>0){c.fuse=0;g.progress.bombs++;summary.cracked++;return;}
  g.progress.colors[c.type]++;c.type=null;c.special=null;summary.removed++;
 }
 function expandSpecials(g,initial,targetColor){
@@ -244,6 +253,36 @@ function repairMove(g){
  }
  return shuffle(g);
 }
+function advanceHazards(g,result){
+ g.turns++;
+ if(g.won||g.lost||(!g.cfg.jam&&!g.cfg.bombs))return result;
+ const spread=[],expired=[];
+ // One sticky spread every third swap; deterministic and bounded by board size.
+ // It never creates a brand-new bomb or alters the void layout.
+ if(g.cfg.jam>0&&g.turns%3===0){
+  const w=g.cfg.width,origins=g.cells.map((c,i)=>c&&c.jam>0?i:-1).filter(i=>i>=0);
+  for(const i of origins){
+   const neighbors=[i-w,i+w,i-1,i+1].filter(j=>j>=0&&j<g.cells.length&&g.cells[j]&&
+    (Math.abs(j-i)===w||Math.floor(j/w)===Math.floor(i/w))&&g.cells[j].jam===0);
+   if(neighbors.length){
+    const choice=neighbors[Math.floor(g.rand()*neighbors.length)];
+    g.cells[choice].jam=1;spread.push(choice);break;
+   }
+  }
+ }
+ for(let i=0;i<g.cells.length;i++){
+  const c=g.cells[i];
+  if(!c||c.fuse<=0)continue;
+  c.fuse--;
+  if(!c.fuse){expired.push(i);g.moves=Math.max(0,g.moves-2);}
+ }
+ if(spread.length||expired.length||g.cfg.bombs>0)
+  result.stages.push({kind:'hazard',cells:snapshot(g).cells,spread,expired});
+ g.lost=g.moves<=0&&!g.won;
+ result.lost=g.lost;result.won=g.won;
+ result.hazards={spread,expired};
+ return result;
+}
 function swap(g,a,b){
  if(g.won||g.lost)return {valid:false,reason:'finished'};
  if(!adjacent(g,a,b))return {valid:false,reason:'adjacency'};
@@ -268,9 +307,9 @@ function swap(g,a,b){
   if(!g.lost&&!hasMove(g)){if(!repairMove(g))throw new Error('No legal moves after non-matching swap');
    stages.push({kind:'repair',cells:snapshot(g).cells});}
   g.history.push({loops:0,removed:0,cracked:0,score:g.score});
-  return {valid:true,loops:0,removed:0,cracked:0,won:false,lost:g.lost,swap:[a,b],stages};
+  return advanceHazards(g,{valid:true,loops:0,removed:0,cracked:0,won:false,lost:g.lost,swap:[a,b],stages});
  }
- g.moves--;return {...collapse(g,found),swap:[a,b],specialCombo:combination?.combo||null};
+ g.moves--;return advanceHazards(g,{...collapse(g,found),swap:[a,b],specialCombo:combination?.combo||null});
 }
 function booster(g,type,index){
  if(g.won)return {valid:false,reason:'finished'};
@@ -318,6 +357,6 @@ function booster(g,type,index){
  return {...r,valid:true,type,removed:r.removed+summary.removed,cracked:r.cracked+summary.cracked,
   won:g.won,lost:g.lost,stages:[stage,...r.stages],objectives:objectiveState(g)};
 }
-function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,special:c.special}:null)};}
-const api={TYPES,BOOSTERS,BOOSTER_META,makeLevel,create,matches,adjacent,hasMove,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,swap,booster,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
+function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,turns:g.turns,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,jam:c.jam,fuse:c.fuse,special:c.special}:null)};}
+const api={TYPES,BOOSTERS,BOOSTER_META,makeLevel,create,matches,adjacent,hasMove,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceHazards,swap,booster,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
 })(typeof window!=='undefined'?window:globalThis);
