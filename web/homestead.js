@@ -325,7 +325,7 @@ function prestigePlate(save){
  return [
   '🏡 NUTVALE HOMESTEAD · NUTBUSTER',
   status.tier+' · 🏰 Tier '+house.tier+'/'+HOUSE_TIERS.length+' · '+house.name,
-  avatar.icon+' '+avatar.name+' · '+pet.icon+' '+pet.name,
+  '👩🏻‍🦰 '+(root.NutAvatarArt?.current(save)?.name||avatar.name)+' · '+pet.icon+' '+pet.name,
   '🏆 '+status.wins+'/500 levels · ⭐ '+status.stars+' stars',
   '🎖 '+status.achievements.length+'/'+ACHIEVEMENTS.length+' awards · 🧩 '+status.setCount+'/'+SETS.length+' sets',
   '🛠️ '+status.renovations+'/'+RENOVATION_TOTAL+' renovations completed',
