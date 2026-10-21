@@ -107,3 +107,8 @@
  .nut-visual .piece{transition:none}
  .cell.clearing .nut-visual,.cell.clearing .overlay{animation:none}
 }
+
+/* Never flash emoji stand-ins before a real sprite finishes loading. Missing assets reveal fallback onerror. */
+.art-image{visibility:hidden}
+.art-image.loaded{visibility:visible}
+.icon-fallback,.nut-visual .fallback{visibility:hidden}
