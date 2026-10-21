@@ -343,9 +343,14 @@ function booster(g,type,index){
  const before=snapshot(g).cells,summary={removed:0,cracked:0};
  const targets=type==='unlock'?ids:[...expandSpecials(g,ids)];
  for(const i of targets){
-  // A hammer completely clears one cell. Deep drill pierces three layers
-  // across the column; other power-ups remove one layer per occupied cell.
-  const blows=type==='hammer'?5:type==='drill'?3:1;
+  // Master Key bypasses surface hazards: it acts on the lock mechanism itself.
+  if(type==='unlock'){
+   const layers=g.cells[i]?.lock||0;
+   if(layers){g.cells[i].lock=0;g.progress.locks+=layers;summary.cracked+=layers;}
+   continue;
+  }
+  // Hammer removes *all* layers in one cell; drills pierce three layers.
+  const blows=type==='hammer'?20:type==='drill'?3:1;
   for(let n=0;n<blows&&g.cells[i]?.type!==null;n++)damage(g,i,summary);
  }
  g.boosterUsed++;g.uses[type]=(g.uses[type]||0)+1;
