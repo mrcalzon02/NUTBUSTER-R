@@ -18,6 +18,21 @@ const HOUSES=Object.freeze([
  {id:'estate',name:'Regal Estate',icon:'🏰',level:250,cost:20000},
  {id:'palace',name:'Nutvale Palace',icon:'🏯',level:400,cost:50000}
 ]);
+const TIER_NAMES=Object.freeze([
+ 'The Acorn Hovel','Leaf-Roof Shack','First Proper Cottage','Shingled Retreat','Blooming Cottage',
+ 'Lantern Cottage','Honeywood House','Oakbeam Residence','Nutwood Villa','The Flourishing Lodge',
+ 'Crestwood Cottage','Merchant Manor','Gilded Gables','Terrace House','Conservatory Estate',
+ 'Blue-Roof Manor','Royal Tea Villa','Squirrel Hall','Fountain Court','The Nutvale Chateau',
+ 'Magnolia Manor','Wisteria Estate','Bluecrest Hall','Fountain Villas','Conservatory Palace',
+ 'Marblewood Manor','Imperial Terrace','Crystal Greenhouse','Thousand-Turret House','The Sovereign Nut',
+ 'Redwood Grandeur','Vine-Crowned Manor','Royal Blue Citadel','Twin-Tower Residence','Emerald Dome Palace',
+ 'Rivergate Castle','Rosegold Citadel','Azure Imperial Palace','Palace of Excess','Eternal Nut Imperium'
+]);
+const HOUSE_TIERS=Object.freeze(TIER_NAMES.map((name,index)=>{
+ const tier=index+1;
+ return Object.freeze({tier,name,level:tier===1?0:tier===40?500:Math.round((tier-1)*500/40),cost:tier===1?0:Math.round((400+140*tier)/50)*50,art:'art/homestead/tier-'+String(tier).padStart(2,'0')+'.webp'});
+}));
+const LEGACY_TIER=Object.freeze({cottage:1,lodge:3,manor:9,estate:21,palace:33});
 const PETS=Object.freeze([
  {id:'squirrel',name:'Resident Squirrel',icon:'🐿️',level:0},
  {id:'hedgehog',name:'Garden Hedgehog',icon:'🦔',level:10},
@@ -139,6 +154,13 @@ function ensure(save){
  h.houses=built;
  if(!Object.prototype.hasOwnProperty.call(houses,h.house)||h.houses[h.house]!==true)h.house='cottage';
  if(!pets[h.pet]||!petOwned(save,h.pet))h.pet='squirrel';
+ // One-way migration from the five original housing purchases.
+ // An existing estate is never charged again to access its equivalent visual tier.
+ if(!Number.isInteger(h.maxTier)||h.maxTier<1||h.maxTier>HOUSE_TIERS.length){
+  h.maxTier=Math.max(1,...Object.keys(LEGACY_TIER).filter(id=>h.houses[id]===true).map(id=>LEGACY_TIER[id]));
+ }
+ if(!Number.isInteger(h.tier)||h.tier<1||h.tier>h.maxTier)
+  h.tier=Math.min(h.maxTier,LEGACY_TIER[h.house]||1);
  const prior=h.placed;h.placed={};const used=new Set();
  for(let i=0;i<TOTAL_PLOTS;i++){
   const id=prior[i];
@@ -178,7 +200,7 @@ function stats(save){
  const zones=ZONES.filter(z=>zoneUnlocked(save,z.id)).length;
  const achievements=ACHIEVEMENTS.filter(a=>({wins,stars,threeStars,score:bestScore,sets:setCount,pets:petCount,zones})[a.kind]>=a.need);
  const tier=wins>=500?'Legendary Nutlord':wins>=400?'Royal Magnate':wins>=200?'Estate Baron':wins>=100?'Nutwood Noble':wins>=50?'Acorn Entrepreneur':wins>=10?'Respectable Landowner':'New Property Owner';
- return {wins,stars,threeStars,bestScore,bestLevel,scoreTotal,achievements,tier,decorOwned:DECOR.filter(d=>owned(save,d.id)).length,setCount,collections,petCount,zones};
+ return {wins,stars,threeStars,bestScore,bestLevel,scoreTotal,achievements,tier,houseTier:save.homestead?.tier||1,highestTier:save.homestead?.maxTier||1,decorOwned:DECOR.filter(d=>owned(save,d.id)).length,setCount,collections,petCount,zones};
 }
 function place(save,id,slot){
  ensure(save);const n=Number(slot);
@@ -201,16 +223,37 @@ function buildHouse(save,id){
   if(balance<house.cost)return {valid:false,reason:'coins',short:house.cost-balance};
   save.coins=balance-house.cost;save.homestead.houses[id]=true;
  }
- save.homestead.house=id;return {valid:true,spent:newlyBuilt?house.cost:0};
+ save.homestead.house=id;
+ const visual=LEGACY_TIER[id]||1;
+ save.homestead.maxTier=Math.max(save.homestead.maxTier,visual);
+ save.homestead.tier=visual;
+ return {valid:true,spent:newlyBuilt?house.cost:0};
+}
+function tierByNumber(tier){return Number.isInteger(tier)&&tier>=1&&tier<=HOUSE_TIERS.length?HOUSE_TIERS[tier-1]:null;}
+function chooseTier(save,tier){
+ ensure(save);
+ if(!tierByNumber(tier)||tier>save.homestead.maxTier)return false;
+ save.homestead.tier=tier;return true;
+}
+function upgradeTier(save){
+ ensure(save);
+ const h=save.homestead,next=tierByNumber(h.maxTier+1);
+ if(!next)return {valid:false,reason:'complete'};
+ if(!cleared(save,next.level))return {valid:false,reason:'level',level:next.level};
+ const coins=num(save.coins);
+ if(coins<next.cost)return {valid:false,reason:'coins',short:next.cost-coins};
+ save.coins=coins-next.cost;
+ h.maxTier=next.tier;h.tier=next.tier;
+ return {valid:true,tier:next.tier,spent:next.cost,art:next.art};
 }
 function prestigePlate(save){
  const status=stats(save),h=save.homestead||{};
  const avatar=avatars[h.avatar]&&avatarOwned(save,h.avatar)?avatars[h.avatar]:AVATARS[0];
- const house=Object.prototype.hasOwnProperty.call(houses,h.house)&&h.houses?.[h.house]===true?houses[h.house]:HOUSES[0];
+ const house=tierByNumber(h.tier)||HOUSE_TIERS[0];
  const pet=pets[h.pet]&&petOwned(save,h.pet)?pets[h.pet]:PETS[0];
  return [
   '🏡 NUTVALE HOMESTEAD · NUTBUSTER',
-  status.tier+' · '+house.icon+' '+house.name,
+  status.tier+' · 🏰 Tier '+house.tier+'/'+HOUSE_TIERS.length+' · '+house.name,
   avatar.icon+' '+avatar.name+' · '+pet.icon+' '+pet.name,
   '🏆 '+status.wins+'/500 levels · ⭐ '+status.stars+' stars',
   '🎖 '+status.achievements.length+'/'+ACHIEVEMENTS.length+' awards · 🧩 '+status.setCount+'/'+SETS.length+' sets',
@@ -224,7 +267,7 @@ function recordWin(save,level,score){
  const old=num(save.homestead.highScores[level]),now=num(score);
  if(now<=old)return false;save.homestead.highScores[level]=now;return true;
 }
-const api={SLOTS,TOTAL_PLOTS,ZONES,HOUSES,PETS,SETS,DECOR,AVATARS,ACHIEVEMENTS,ensure,owned,avatarOwned,petOwned,zoneForSlot,zoneUnlocked,setProgress,stats,place,remove,equip,equipPet,buildHouse,prestigePlate,purchase,recordWin};
+const api={SLOTS,TOTAL_PLOTS,ZONES,HOUSES,HOUSE_TIERS,PETS,SETS,DECOR,AVATARS,ACHIEVEMENTS,ensure,owned,avatarOwned,petOwned,zoneForSlot,zoneUnlocked,setProgress,stats,place,remove,equip,equipPet,buildHouse,tierByNumber,chooseTier,upgradeTier,prestigePlate,purchase,recordWin};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutHomestead=api;
 })(typeof window!=='undefined'?window:globalThis);
