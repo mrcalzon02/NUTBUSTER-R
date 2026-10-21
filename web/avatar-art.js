@@ -19,6 +19,7 @@ const COSTUMES=Object.freeze([...TIERS,...SEASONAL.map((id,i)=>Object.freeze({
 }))]);
 const IDS=Object.freeze(Object.fromEntries(COSTUMES.map(c=>[c.id,c])));
 const first=TIERS[0];
+const LEGACY_OUTFIT=Object.freeze({squire:'tier-01',gardener:'tier-01',champion:'tier-03',baron:'tier-05',explorer:'tier-09',emperor:'tier-21',legend:'tier-40',royal:'tier-01'});
 function owned(save,id){
  const item=Object.prototype.hasOwnProperty.call(IDS,id)?IDS[id]:null;
  if(!item)return false;
@@ -29,7 +30,10 @@ function owned(save,id){
 function ensure(save){
  if(!save.homestead||typeof save.homestead!=='object'||Array.isArray(save.homestead))save.homestead={};
  const h=save.homestead;
- if(!owned(save,h.outfit))h.outfit=first.id;
+ if(!owned(save,h.outfit)){
+  const legacy=Object.prototype.hasOwnProperty.call(LEGACY_OUTFIT,h.avatar)?LEGACY_OUTFIT[h.avatar]:first.id;
+  h.outfit=owned(save,legacy)?legacy:first.id;
+ }
  return h;
 }
 function equip(save,id){ensure(save);if(!owned(save,id))return false;save.homestead.outfit=id;return true;}
