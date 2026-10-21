@@ -20,6 +20,9 @@ for(let level=1;level<=500;level++){
 assert.equal(autumn,100);assert.equal(palace,100);assert.ok(covered===300);
 {
  const g=E.create(301,217),lane=g.cfg.features.wind[0];
+ // Isolate the wind inverse property: overlapping conveyors and portals deliberately
+ // alter the same payloads and must be verified in the full integration test below.
+ g.cfg.features.conveyors=[];g.cfg.features.portals=[];
  assert.equal(F.nextWindDirection(lane,0),'up');
  assert.equal(F.windDirection(lane,2),'up');
  assert.equal(F.nextWindDirection(lane,2),'down');
