@@ -1,9 +1,9 @@
 (function(){'use strict';
-const E=window.NutEngine, M=window.NutCampaignMaps, P=window.NutProgress, H=window.NutHomestead, screen=document.getElementById('screen');
+const E=window.NutEngine, M=window.NutCampaignMaps, P=window.NutProgress, H=window.NutHomestead, A=window.NutAvatarArt, screen=document.getElementById('screen');
 const icons=['🥜','🌰','🌰','🥜','🌰','🟢'];
 const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,levels:{voice:.9,music:.28,reactions:.38},completed:0};
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
-P.migrate(saved);H.ensure(saved);
+P.migrate(saved);H.ensure(saved);A.ensure(saved);
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
 let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadZone:'yard',homesteadPreview:null};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});}
@@ -282,6 +282,13 @@ function rewards(){const tiers=P.challengeRewards(saved),next=P.nextUnlock(saved
 function homestead(){
  const h=H.ensure(saved),status=H.stats(saved),selection=state.homesteadSelection;
  const equipped=H.AVATARS.find(a=>a.id===h.avatar)||H.AVATARS[0];
+ const costume=A.current(saved),costumeTotals=A.summary(saved);
+ const costumeCard=c=>{
+  const has=A.owned(saved,c.id),active=c.id===costume.id;
+  return `<button class="nutvale-outfit ${active?'selected':''} ${has?'':'locked'}" data-action="homestead-outfit" data-id="${c.id}" ${has?'':'disabled'} aria-label="${c.name}, ${has?'owned':'clear level '+c.level+' to unlock'}" aria-pressed="${active}"><span class="nutvale-outfit-thumb"><span aria-hidden="true">👩🏻‍🦰</span><img src="${c.art}" loading="lazy" alt="" onerror="this.hidden=true"></span><b>${c.name}</b><small>${has?(active?'EQUIPPED':'WEAR'):'LV '+c.level}</small></button>`;
+ };
+ const progressionOutfits=A.TIERS.map(costumeCard).join('');
+ const seasonalOutfits=A.COSTUMES.filter(c=>c.category==='seasonal').map(costumeCard).join('');
  const house=H.HOUSES.find(a=>a.id===h.house)||H.HOUSES[0];
  const actualTier=H.tierByNumber(h.tier)||H.HOUSE_TIERS[0];
  const preview=H.tierByNumber(state.homesteadPreview)||actualTier;
@@ -314,9 +321,9 @@ function homestead(){
   const slot=zone.start+i,id=h.placed[slot],item=H.DECOR.find(d=>d.id===id),occupied=!!item;
   return `<button class="homestead-plot ${occupied?'filled':''} ${selection?'target':''}" data-action="homestead-slot" data-slot="${slot}" aria-label="${zone.name} plot ${i+1}: ${item?item.name:'empty'}; ${selection?'place selected item':'tap to remove displayed item'}"><strong>${item?item.icon:'＋'}</strong><small>${item?item.name:'PLOT '+(i+1)}</small></button>`;
  }).join('');
- const wardrobe=H.AVATARS.map(a=>{
+ const titles=H.AVATARS.map(a=>{
   const has=H.avatarOwned(saved,a.id),active=h.avatar===a.id;
-  return `<button class="homestead-avatar ${has?'':'locked'} ${active?'selected':''}" data-action="homestead-avatar" data-id="${a.id}" ${has?'':'disabled'} aria-label="${a.name}, ${has?'owned':'locked'}"><strong>${a.icon}</strong><b>${a.name}</b><small>${active?'EQUIPPED':has?'WEAR':a.premium?'PREMIUM':'LV '+a.level}</small></button>`;
+  return `<button class="nutvale-legacy-title ${active?'selected':''} ${has?'':'locked'}" data-action="homestead-avatar" data-id="${a.id}" ${has?'':'disabled'}>${a.name}<small>${active?'ACTIVE':has?'SELECT':a.premium?'ROYAL KIT':'LV '+a.level}</small></button>`;
  }).join('');
  const pets=H.PETS.map(a=>{
   const has=H.petOwned(saved,a.id),active=h.pet===a.id;
@@ -345,17 +352,22 @@ function homestead(){
   return `<div class="homestead-award ${earned?'':'locked'}" title="${a.name}: ${kind} ${a.need}"><span class="emoji">${a.icon}</span><span>${a.name}<small>${earned?' · EARNED':' · '+kind+' '+a.need}</small></span></div>`;
  }).join('');
  const royal=h.purchases['royal-estate']===true;
- return `<div class="homestead-top"><div><h1>🏡 NUTVALE HOMESTEAD</h1><small>${status.tier} · ${equipped.icon} ${equipped.name}</small></div><div class="homestead-actions"><button class="btn ghost" data-action="homestead-plate">↗ PRESTIGE PLATE</button><button class="btn ghost" data-action="invite">↗ INVITE</button><button class="btn ghost" data-nav="campaign">LEVELS →</button></div></div>
- <div class="homestead-stats"><span>🏆 ${status.wins}/500 cleared</span><span>⭐ ${status.stars} stars</span><span>🎖 ${status.achievements.length}/${H.ACHIEVEMENTS.length} awards</span><span>🧩 ${status.setCount}/${H.SETS.length} sets</span><span>📈 ${status.bestScore.toLocaleString()} best</span><span>🛠 ${status.renovations}/1000 renovated</span></div>
+ return `<div class="homestead-top"><div><h1>🏡 NUTVALE HOMESTEAD</h1><small>${status.tier} · 👩🏻‍🦰 ${costume.name} · ${equipped.name}</small></div><div class="homestead-actions"><button class="btn ghost" data-action="homestead-plate">↗ PRESTIGE PLATE</button><button class="btn ghost" data-action="invite">↗ INVITE</button><button class="btn ghost" data-nav="campaign">LEVELS →</button></div></div>
+ <div class="homestead-stats"><span>🏆 ${status.wins}/500 cleared</span><span>⭐ ${status.stars} stars</span><span>🎖 ${status.achievements.length}/${H.ACHIEVEMENTS.length} awards</span><span>🧩 ${status.setCount}/${H.SETS.length} sets</span><span>📈 ${status.bestScore.toLocaleString()} best</span><span>🛠 ${status.renovations}/1000 renovated</span><span>👗 ${costumeTotals.unlocked}/60 outfits</span></div>
  <div class="homestead-layout">
  <div><div class="homestead-zone-list">${zoneButtons}</div>
  <div class="homestead-yard zone-${zone.id}" data-estate-zone="${zone.id}"><div class="homestead-scenery" aria-hidden="true"><span>${zone.icon}</span><small>${zone.description}</small></div>
- <div class="homestead-house"><span class="house homestead-house-art"><img src="${actualTier.art}" alt="${actualTier.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.hidden=false"><span hidden>${house.icon}</span><span class="homestead-flair homestead-flair-yard" aria-hidden="true">${residenceFlair(actualTier.tier)}</span></span><span>${actualTier.name.toUpperCase()}<small>HOUSE TIER ${actualTier.tier}/40 · ${zone.name}</small></span><span class="homestead-visitor" role="img" aria-label="Companion: ${pet.name}">${pet.icon}</span></div>
+ <div class="homestead-house"><span class="house homestead-house-art"><img src="${actualTier.art}" alt="${actualTier.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.hidden=false"><span hidden>${house.icon}</span><span class="homestead-flair homestead-flair-yard" aria-hidden="true">${residenceFlair(actualTier.tier)}</span></span><span>${actualTier.name.toUpperCase()}<small>HOUSE TIER ${actualTier.tier}/40 · ${zone.name}</small></span><span class="nutvale-estate-avatar" role="img" aria-label="Your human avatar: ${costume.name}"><span aria-hidden="true">👩🏻‍🦰</span><img src="${costume.art}" alt="" loading="lazy" onerror="this.hidden=true"></span><span class="homestead-visitor" role="img" aria-label="Companion: ${pet.name}">${pet.icon}</span></div>
  <div class="homestead-plots">${plots}</div><p class="homestead-instructions">${selection?'SELECT A PLOT TO PLACE · TAP ITEM TO CANCEL':'SELECT A COLLECTIBLE, THEN A PLOT · TAP OCCUPIED PLOT TO STORE'}</p></div>
  <div class="homestead-premium"><div><b>👑 ROYAL MANOR KIT</b><p>Platinum portrait, fountain, and diamond throne · <strong>Was $499.99</strong></p></div><button class="btn green" data-action="homestead-offer" ${royal?'disabled':''}>${royal?'OWNED':'BUY NOW'}</button></div></div>
  <div class="homestead-side">
  <div class="homestead-section"><h2>RESIDENCE · 🌰 ${saved.coins.toLocaleString()} · ${h.maxTier}/40 BUILT</h2>${residence}</div>
- <div class="homestead-section"><h2>AVATAR · ${equipped.name}</h2><div class="homestead-scroll">${wardrobe}</div></div>
+ <div class="homestead-section"><h2>HUMAN AVATAR · ${costume.name}</h2>
+  <div class="nutvale-avatar-showcase"><div class="nutvale-avatar-portrait"><span aria-hidden="true">👩🏻‍🦰</span><img src="${costume.art}" alt="${costume.name}, the Nutvale protagonist" onerror="this.hidden=true"></div>
+  <div class="nutvale-avatar-status"><b>${costume.name}</b><small>${costume.category==='seasonal'?'PERMANENT SEASONAL COLLECTION':'PROGRESSION COSTUME'} · ${costumeTotals.unlocked}/60 OWNED</small></div></div>
+  <h3 class="nutvale-avatar-subtitle">PROGRESSION · ${A.TIERS.filter(c=>A.owned(saved,c.id)).length}/40</h3><div class="nutvale-outfit-list">${progressionOutfits}</div>
+  <h3 class="nutvale-avatar-subtitle">SEASONAL ARCHIVE · ${costumeTotals.seasonal}/20</h3><div class="nutvale-outfit-list">${seasonalOutfits}</div>
+  <div class="nutvale-avatar-titles"><small>PRESTIGE TITLE · ${equipped.name}</small><div class="homestead-scroll">${titles}</div></div></div>
  <div class="homestead-section"><h2>COMPANION · ${pet.name}</h2><div class="homestead-scroll">${pets}</div></div>
  <div class="homestead-section"><h2>COLLECTION · ${status.decorOwned}/${H.DECOR.length} OWNED</h2><div class="homestead-scroll">${collection}</div></div>
  <div class="homestead-section"><h2>CURATED COLLECTIONS · ${status.setCount}/${H.SETS.length}</h2><div class="homestead-sets">${collections}</div></div>
@@ -398,6 +410,8 @@ function concludeMove(result){
        return offer.valid&&offer.level===g.level;
       });
       if(newPlans.length)state.levelReward+=(state.levelReward?' · ':'')+'RENOVATION PLANS UNLOCKED: '+newPlans.length;
+       const newOutfits=A.unlockedAt(g.level);
+       if(newOutfits.length)state.levelReward+=(state.levelReward?' · ':'')+'AVATAR OUTFIT UNLOCKED: '+newOutfits.map(c=>c.name).join(', ');
     }
 
   gain(500,10);persist();announce('UNBELIEVABLE PERFORMANCE! YOUR NUTS ARE LEGENDARY!','win');}
@@ -488,6 +502,7 @@ function action(a,button){
    }).catch(()=>notice('COULD NOT SHARE PRESTIGE PLATE'));return;
   }
   if(a==='homestead-select'){const id=button.dataset.id;if(!H.owned(saved,id))return;state.homesteadSelection=state.homesteadSelection===id?null:id;render();return;}
+  if(a==='homestead-outfit'){if(A.equip(saved,button.dataset.id)){persist();render();}else notice('CLEAR THE REQUIRED LEVEL TO UNLOCK THIS OUTFIT');return;}
   if(a==='homestead-avatar'){if(H.equip(saved,button.dataset.id)){persist();render();}return;}
   if(a==='homestead-slot'){const slot=Number(button.dataset.slot),id=state.homesteadSelection;
    const ok=id?H.place(saved,id,slot):H.remove(saved,slot);
