@@ -165,7 +165,7 @@ jobs:
           emulator-boot-timeout: 600
           script: |
             set -eu
-            adb install -r validation/NUTBUSTER-Android-debug.apk
+            adb install -r validation/release/NUTBUSTER-Android-debug.apk
             adb shell am start -W -n io.github.mrcalzon02.nutbuster/.MainActivity
             sleep 5
             adb shell dumpsys activity activities | grep -E 'io.github.mrcalzon02.nutbuster.*MainActivity'
