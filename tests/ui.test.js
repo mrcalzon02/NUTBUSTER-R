@@ -1,4 +1,4 @@
-const assert=require('node:assert/strict'),E=require('../web/engine.js');
+const assert=require('node:assert/strict'),E=require('../web/engine.js'),P=require('../web/progression.js'),M=require('../web/campaign-maps.js'),H=require('../web/homestead.js');
 const js=require('node:fs').readFileSync('web/game.js','utf8');
 const classes=()=>{let names=new Set();return {add:x=>names.add(x),remove:x=>names.delete(x),contains:x=>names.has(x),toggle:(x,v)=>v?names.add(x):names.delete(x)};};
 let html='',renders=0,clickHandler,boardCells=[];
@@ -17,7 +17,7 @@ const screen={classList:classes(),addEventListener:(k,f)=>{if(k==='click')clickH
  querySelectorAll:s=>s==='.nut-visual'?boardCells.filter(Boolean).map(x=>x.visual):[]
 };
 const document={getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:()=>[],createElement:()=>({style:{},innerHTML:'',remove(){}})};
-const window={NutEngine:E,NutCampaignMaps:{},addEventListener:()=>{},matchMedia:()=>({matches:true})};
+const window={NutEngine:E,NutProgress:P,NutHomestead:H,NutCampaignMaps:M,addEventListener:()=>{},matchMedia:()=>({matches:true})};
 const localStorage={getItem:()=>null,setItem:()=>{}};
 require('node:vm').runInNewContext(js,{window,document,localStorage,setTimeout:()=>0,clearTimeout:()=>{},requestAnimationFrame:f=>f(),console});
 const app=window.NutbusterApp, state=app.getState;
