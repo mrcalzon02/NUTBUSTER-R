@@ -10,7 +10,11 @@ if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio
 function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch(_){}}
 function safeNum(n){return Number.isFinite(n)?Math.min(999999999,Math.max(0,Math.trunc(n))):0;}
 function gain(coins=0,gems=0){saved.coins=safeNum(saved.coins+coins);saved.gems=safeNum(saved.gems+gems);persist();counters();}
-function counters(){document.getElementById('wallet').textContent=saved.coins.toLocaleString();document.getElementById('gems').textContent=saved.gems.toLocaleString();}
+function counters(){
+ for(const [id,value] of [['wallet',saved.coins],['gems',saved.gems],['play-wallet',saved.coins],['play-gems',saved.gems]]){
+  const el=document.getElementById(id);if(el)el.textContent=value.toLocaleString();
+ }
+}
 function boosterSummary(pack){return P.packText(pack,Object.fromEntries(E.BOOSTERS.map(id=>[id,E.BOOSTER_META[id].label])));}
 function inventorySummary(){return P.available(saved).map(id=>E.BOOSTER_META[id].label+' ×'+P.count(saved,id)).join(' · ');}
 function awardPack(kind){const pack=P.actualPack(saved,kind);P.grant(saved,pack);persist();return pack;}
@@ -106,21 +110,23 @@ function objectivePercent(g){
  const status=E.objectiveState(g);
  return Math.round(100*status.reduce((sum,o)=>sum+Math.min(1,o.value/o.target),0)/status.length);
 }
-// Clear, consistent vector symbols replace mismatched power-up sprites and emoji.
-const BOOSTER_ICON_PATHS={
- hammer:'<path d="M14 5l5 5M9 7l8 8M8 3l4 4-5 5-4-4zM12 12l-8 8"/>',
- row:'<path d="M2 12h20M7 7l-5 5 5 5M17 7l5 5-5 5"/>',
- column:'<path d="M12 2v20M7 7l5-5 5 5M7 17l5 5 5-5"/>',
- cross:'<path d="M12 2v20M2 12h20M8 5l4-3 4 3M8 19l4 3 4-3M5 8l-3 4 3 4M19 8l3 4-3 4"/>',
- blast:'<circle cx="11" cy="14" r="7"/><path d="M13 7l3-4 4 1 2-2M8 14h.01M15 14h.01"/>',
- color:'<path d="M12 2a10 10 0 1 0 10 10c0-2-2-3-4-3h-2c-2 0-2-2-2-3a4 4 0 0 0-2-4z"/><circle cx="6.5" cy="12" r="1"/><circle cx="9" cy="7" r="1"/><circle cx="16" cy="16" r="1"/>',
- shuffle:'<path d="M3 6h4c6 0 4 12 10 12h4M17 14l4 4-4 4M3 18h4c2 0 3-2 4-4M15 7c1-1 2-1 3-1h3M17 2l4 4-4 4"/>',
- extra:'<circle cx="12" cy="12" r="10"/><path d="M7 12h10M12 7v10"/>',
- drill:'<path d="M4 7h11l3 3-3 3H4zM18 10h4M8 13v7M5 20h6M3 5v2M11 3v4"/>',
- unlock:'<circle cx="8" cy="9" r="5"/><path d="M11.5 12.5L21 22m-4-4 3-3m-6 0 3-3"/>'
-};
+// Render owner-authored, already-shipped artwork, not generic substitute SVGs.
+const BOOSTER_ART=Object.freeze({
+ hammer:'art/primary/powerups/hammer.png',
+ row:'art/primary/powerups/row-clear.png',
+ column:'art/additions/effects/vertical-clear.png',
+ cross:'art/additions/effects/horizontal-clear.png',
+ blast:'art/primary/powerups/nut-burst.png',
+ color:'art/primary/powerups/rainbow.png',
+ shuffle:'art/additions/effects/rainbow-pulse.png',
+ extra:'art/additions/economy/hourglass.png',
+ drill:'art/additions/effects/rocket-impact.png',
+ unlock:'art/additions/effects/chain-break.png'
+});
 function boosterIcon(id){
- return '<svg class="booster-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+BOOSTER_ICON_PATHS[id]+'</svg>';
+ const sprite=BOOSTER_ART[id];
+ if(!sprite)throw new Error('Missing authored power-up art: '+id);
+ return '<img class="booster-icon" src="'+sprite+'" alt="" draggable="false" aria-hidden="true">';
 }
 function toolButtons(){
  return E.BOOSTERS.map(tool=>{
@@ -151,7 +157,7 @@ function game(){
    <div class="progress" aria-label="Objective progress"><div data-progress style="width:${ratio}%"></div></div>
   </div>
   <div class="board-wrap"><div class="board" style="--cols:${g.cfg.width};--rows:${g.cfg.height}" role="group" aria-label="Nutbuster match-three board">${g.cells.map((c,i)=>cellMarkup(c,i,g.cfg.width)).join('')}</div></div>
-  <div class="announcer" id="announcer" aria-live="off">${state.announcer||'SHOW ME THOSE NUTS!'}</div>
+  <div class="announcer"><span id="announcer" class="announcer-line" aria-live="off">${state.announcer||'SHOW ME THOSE NUTS!'}</span><span class="play-wallet"><button data-nav="shop" aria-label="Open shop, nut balance"><img src="art/primary/economy/golden-nuts.png" alt="" draggable="false"><b id="play-wallet">${saved.coins.toLocaleString()}</b></button><button data-nav="shop" aria-label="Open shop, gem balance"><img src="art/additions/economy/prismatic-acorn.png" alt="" draggable="false"><b id="play-gems">${saved.gems.toLocaleString()}</b></button></span></div>
   <div class="boosters" role="group" aria-label="Tactical boosters">${toolButtons()}</div>
  </section>`;
 }

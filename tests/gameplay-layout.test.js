@@ -9,7 +9,7 @@ const M=require('../web/campaign-maps.js'),F=require('../web/board-features.js')
 const index=read('web/index.html'),css=read('web/style.css');
 const navbar=index.match(/<nav class="bottom"[\s\S]*?<\/nav>/)?.[0]||'';
 assert.equal((navbar.match(/data-nav=/g)||[]).length,5,'There are five nav destinations');
-assert.equal((navbar.match(/class="nav-icon"/g)||[]).length,5,'Use descriptive vector icons instead of emoji placeholders');
+assert.equal((navbar.match(/<img class="nav-icon"/g)||[]).length,5,'Use original illustrated navigation art, not SVG substitutes');
 assert.match(css,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,'Footer should never wrap to a second row');
 assert.match(css,/\.boosters\{display:grid!important;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,
  'All ten tools should be visible in two grid rows');
