@@ -66,3 +66,28 @@ Challenge-track reward nodes, streak rewards, stage milestones, treasure chests,
 ## Gates for each implemented power
 
 **Verify:** 1) predictable target set; 2) distinct obstacle interaction; 3) deterministic state after execution; 4) at most one inventory use, even during cascades; 5) no destruction of void geometry; 6) UI button and input; 7) playback and VFX nonblocking; 8) source commit and three platform packages read back from GitHub. Planned powers remain unimplemented until all eight pass.
+
+## Implemented acquisition ladder — Chapter 1
+
+The booster below is unlocked when its indicated level is **cleared**. Starter stock is granted once, not on every replay. The Hammer is available immediately, with three uses.
+
+| Level | Unlock | Starter charges |
+|---|---|---|
+| 1 | Hammer | 3 |
+| 5 | Extra Moves | 3 |
+| 10 | Row Rocket | 3 |
+| 18 | Shuffle | 3 |
+| 26 | Column Rocket | 3 |
+| 37 | Shell Bomb | 3 |
+| 49 | Crossfire | 3 |
+| 62 | Color Pop | 3 |
+| 77 | Deep Drill | 3 |
+| 92 | Master Key | 3 |
+
+The game stores stock in the existing `nutbuster.v1` save, migrates previous completion progress without resetting player currencies, and deducts exactly one charge after a **valid** activation. Disabled powers show their unlocking level, depleted ones show `×0`, and every earned tool remains available from level 100 onward.
+
+The six fictional premium packages award different booster assortments at the **$0.00 final checkout**—not at the initial BUY button. Packages substitute already-earned powers for future locked contents, without secretly unlocking them early. The same grant path feeds daily rewards, three-hour chests, pig-bank redemption, referrals, season-pass claims and loot boxes.
+
+First-clear treasure nodes, booster nodes and chapter finales grant one-time packs. Clearing every 20th level adds to the separate 12-tier challenge track (requirements: 1, 2, 3, 4, 5, 7, 10, 12, 15, 18, 21 and 25 milestone clears). Each tier is individually claimable once. Replay protection and old-save migration are verified by `tests/progression.test.js`.
+
+Further economy development: a dedicated preview screen for packs, better inventory art for the six new tool icons, per-item reward effects, and enough daily/event variety to give players a reason to use each tool without forcing repetitive grinding.
