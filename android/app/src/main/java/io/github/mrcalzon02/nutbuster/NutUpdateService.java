@@ -1,6 +1,8 @@
 package io.github.mrcalzon02.nutbuster;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.os.SystemClock;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -23,7 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-/** User-invoked GitHub updater; never runs during normal offline game play. */
+/** Offline-safe GitHub release discovery with explicit player consent for download and installation. */
 final class NutUpdateService implements AutoCloseable {
     private static final String API =
         "https://api.github.com/repos/mrcalzon02/NUTBUSTER-R/releases?per_page=30";
@@ -34,17 +36,37 @@ final class NutUpdateService implements AutoCloseable {
     private final Consumer<String> status;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final AtomicBoolean busy = new AtomicBoolean(false);
+    private static final long AUTO_CHECK_INTERVAL_MS = 60L * 60L * 1000L;
+    private volatile long lastAutoCheckAt = -AUTO_CHECK_INTERVAL_MS;
+    private volatile long lastOfferedCode = -1L;
 
     NutUpdateService(Activity activity, Consumer<String> status) {
         this.activity = activity;
         this.status = status;
     }
 
-    void checkForUpdates() {
+    /** The Settings menu always allows a manual request, even after a declined offer. */
+    void checkForUpdates() { checkForUpdates(true); }
+
+    /** Called on boot and level entry. No download, install, or prompt unless newer signed release exists. */
+    void checkForUpdatesAutomatically() { checkForUpdates(false); }
+
+    private void checkForUpdates(boolean manual) {
+        if (!manual && !BuildConfig.UPDATE_CHANNEL_ENABLED) return;
         if (!busy.compareAndSet(false, true)) return;
+        if (!manual) {
+            long now = SystemClock.elapsedRealtime();
+            if (now - lastAutoCheckAt < AUTO_CHECK_INTERVAL_MS) {
+                busy.set(false);
+                return;
+            }
+            lastAutoCheckAt = now;
+        }
         worker.execute(() -> {
-            try { runCheck(); }
-            catch (Exception error) { status.accept("Update check failed: " + error.getClass().getSimpleName()); }
+            try { runCheck(manual); }
+            catch (Exception error) {
+                if (manual) status.accept("Update check failed: " + error.getClass().getSimpleName());
+            }
             finally { busy.set(false); }
         });
     }
@@ -57,16 +79,16 @@ final class NutUpdateService implements AutoCloseable {
         }
     }
 
-    private void runCheck() throws Exception {
+    private void runCheck(boolean manual) throws Exception {
         String expectedSigner = BuildConfig.DISTRIBUTION_SIGNER_SHA256;
         if (!BuildConfig.UPDATE_CHANNEL_ENABLED || !expectedSigner.matches("[0-9a-f]{64}")) {
-            status.accept("This test APK has no trusted publisher signing identity. Use the signed phone-test release to enable updates.");
+            if (manual) status.accept("This build has no trusted publisher signing identity. Install a signed phone-test release to enable updates.");
             return;
         }
         PackageManager pm = activity.getPackageManager();
         PackageInfo installed = installedInfo(pm, activity.getPackageName());
         if (installed == null || !expectedSigner.equals(fingerprint(installed))) {
-            status.accept("Installed app is not signed by the expected publisher. Update blocked.");
+            if (manual) status.accept("Installed app is not signed by the expected publisher. Update blocked.");
             return;
         }
         long currentCode = version(installed);
@@ -102,22 +124,63 @@ final class NutUpdateService implements AutoCloseable {
             }
         }
         if (best == null) {
-            status.accept("Up to date, or no verified newer Nutbuster APK exists.");
+            if (manual) status.accept("Up to date, or no verified newer Nutbuster APK exists.");
             return;
         }
-        status.accept("Verified release found. Downloading update " + best.code + "…");
-        File parent = new File(activity.getCacheDir(), "verified-updates");
-        if (!parent.isDirectory() && !parent.mkdirs()) throw new IllegalStateException("Could not make update cache");
-        File apk = new File(parent, "nutbuster-" + best.code + ".apk");
-        try {
-            downloadAndVerify(best, apk, pm, expectedSigner, currentCode);
-            status.accept("Update verified. Opening Android's installer…");
-            File finalApk=apk;
-            activity.runOnUiThread(() -> openInstaller(finalApk));
-        } catch (Exception e) {
-            if (apk.exists()) apk.delete();
-            throw e;
+        if (!manual && best.code == lastOfferedCode) return;
+        // No APK download is initiated by a check. A visible native decision is mandatory.
+        final Release available = best;
+        final long installedCode = currentCode;
+        activity.runOnUiThread(() -> showDownloadOffer(available, installedCode, expectedSigner, manual));
+    }
+
+    private void showDownloadOffer(Release release, long installedCode, String signer, boolean manual) {
+        if (activity.isFinishing() || activity.isDestroyed()) return;
+        if (!manual && release.code == lastOfferedCode) return;
+        lastOfferedCode = release.code;
+        status.accept("Update " + release.code + " available. Download only with player approval.");
+        new AlertDialog.Builder(activity)
+            .setTitle("NUTBUSTER update available")
+            .setMessage("A newer signed version (" + release.code + ") is available. Download the update from GitHub? Your local game progress remains on this device.")
+            .setPositiveButton("Download", (dialog, which) -> downloadApproved(release, installedCode, signer))
+            .setNegativeButton("Later", (dialog, which) -> status.accept("Update deferred. Play offline as usual."))
+            .show();
+    }
+
+    private void downloadApproved(Release release, long currentCode, String signer) {
+        if (!busy.compareAndSet(false, true)) return;
+        worker.execute(() -> {
+            File parent = new File(activity.getCacheDir(), "verified-updates");
+            File apk = new File(parent, "nutbuster-" + release.code + ".apk");
+            try {
+                status.accept("Downloading update " + release.code + " after your approval…");
+                if (!parent.isDirectory() && !parent.mkdirs())
+                    throw new IllegalStateException("Could not make update cache");
+                downloadAndVerify(release, apk, activity.getPackageManager(), signer, currentCode);
+                activity.runOnUiThread(() -> showInstallOffer(apk, release.code));
+            } catch (Exception error) {
+                if (apk.exists()) apk.delete();
+                status.accept("Update download/verification failed: " + error.getClass().getSimpleName());
+            } finally { busy.set(false); }
+        });
+    }
+
+    private void showInstallOffer(File verifiedApk, long releaseCode) {
+        if (activity.isFinishing() || activity.isDestroyed()) {
+            verifiedApk.delete();
+            return;
         }
+        status.accept("Update " + releaseCode + " verified. Installation requires separate approval.");
+        new AlertDialog.Builder(activity)
+            .setTitle("Install verified NUTBUSTER update?")
+            .setMessage("The download passed SHA-256, app identity, version and publisher certificate checks. Open Android's installer now? Android will also request your approval.")
+            .setPositiveButton("Install", (dialog, which) -> openInstaller(verifiedApk))
+            .setNegativeButton("Later", (dialog, which) -> {
+                verifiedApk.delete();
+                status.accept("Installation deferred. No installation was started.");
+            })
+            .setOnCancelListener(dialog -> verifiedApk.delete())
+            .show();
     }
 
     private void downloadAndVerify(Release release, File apk, PackageManager pm,
