@@ -70,3 +70,26 @@
 @keyframes nutvale-visitor{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(5deg)}}
 @media(max-width:430px){.homestead-top{align-items:flex-start}.homestead-actions .btn{min-height:37px;font-size:10px;padding:5px 7px}.homestead-zone{flex-basis:112px}.homestead-sets{grid-template-columns:1fr;max-height:170px}}
 @media(prefers-reduced-motion:reduce){.homestead-visitor{animation:none}}
+
+/* 40-tier illustrated residence builder — actual optimized WebP art. */
+.homestead-house{min-height:114px;justify-content:flex-start}
+.homestead-house-art{flex:0 0 132px;display:inline-flex;align-items:center;justify-content:center;min-width:0}
+.homestead-house-art img{width:100%;height:125px;object-fit:contain;filter:drop-shadow(0 4px 5px #18281999)}
+.homestead-house-art span:not([hidden]){font-size:34px}
+.homestead-house>span:nth-child(2){font-size:13px;min-width:0}
+.homestead-house .homestead-visitor{flex:0 0 auto}
+.homestead-residence-controls{display:grid;grid-template-columns:41px minmax(0,1fr) 41px;align-items:center;gap:7px;margin-bottom:5px}
+.homestead-residence-controls .btn{min-height:42px;padding:6px}
+.homestead-residence-controls div{text-align:center;min-width:0}
+.homestead-residence-controls b{display:block;color:#ffdd95;font-size:12px;line-height:1.15}
+.homestead-residence-controls small{display:block;color:#e7c8b3;font-size:10px;line-height:1.2;margin-top:3px}
+.homestead-preview{position:relative;display:flex;align-items:center;justify-content:center;min-height:190px;max-height:240px;background:radial-gradient(ellipse,#7c9360,#3c573d);border:1px solid #a1a276;border-radius:10px;overflow:hidden}
+.homestead-preview img{max-width:94%;max-height:224px;object-fit:contain;filter:drop-shadow(0 5px 7px #192a2099)}
+.homestead-preview-tag{position:absolute;top:7px;right:7px;font-weight:850;font-size:10px;color:#281923;background:#ffe4a0;border:1px solid #d2a66b;border-radius:7px;padding:3px 7px}
+.homestead-residence-actions{display:flex;flex-wrap:wrap;gap:5px;align-items:center;justify-content:center;margin:6px 0}
+.homestead-residence-actions .btn{font-size:12px;min-height:43px;padding:7px 10px}
+.homestead-tier-progress{height:8px;overflow:hidden;border:1px solid #b48c53;background:#241a2e;border-radius:15px}
+.homestead-tier-progress span{display:block;height:100%;background:linear-gradient(90deg,#b7d97b,#ffcd59);transition:width .18s}
+.homestead-tier-hint{display:block;color:#e8c3a0;font-size:10px;margin-top:4px;text-align:center}
+@media(max-width:400px){.homestead-house-art{flex-basis:98px}.homestead-house-art img{height:102px}.homestead-house{min-height:108px}.homestead-preview{min-height:160px}.homestead-preview img{max-height:174px}.homestead-residence-actions .btn{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.homestead-tier-progress span{transition:none}}
