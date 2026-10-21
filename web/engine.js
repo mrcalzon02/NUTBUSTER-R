@@ -113,7 +113,11 @@ function swap(g,a,b){
    }
    found={hit,groups:[]};
  }
- if(!found.hit.size){ca.type=pa.type;ca.special=pa.special;cb.type=pb.type;cb.special=pb.special;return {valid:false,reason:'no-match'};}
+ if(!found.hit.size){
+  // Non-matching adjacent swaps are intentional moves. Keep the new board and deduct a turn.
+  g.moves--;g.combos=0;g.lost=g.moves<=0;g.history.push({loops:0,removed:0,cracked:0,score:g.score});
+  return {valid:true,loops:0,removed:0,cracked:0,won:false,lost:g.lost,swap:[a,b],stages:[]};
+ }
  g.moves--;return {...collapse(g,found),swap:[a,b]};
 }
 function booster(g,type,index){if(g.won)return {valid:false,reason:'finished'};if(!BOOSTERS.includes(type))return {valid:false,reason:'unknown'};
