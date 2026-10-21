@@ -77,7 +77,7 @@ function collapse(g,first){let loops=0,removed=0,cracked=0;const stages=[];let f
   for(const i of ids){const c=g.cells[i];if(!c)continue;if(c.ice>0){c.ice--;cracked++;}else if(c.lock>0){c.lock--;cracked++;}else if(c.chest>0){c.chest--;cracked++;}else{c.type=null;c.special=null;removed++;}}
   if(sp>=0&&g.cells[sp]&&g.cells[sp].type===null){g.cells[sp].type=Math.floor(g.rand()*TYPES.length);g.cells[sp].special=found.groups.some(k=>k.length>=5)?'rainbow':'line';bonus+=100;}
   g.score+=(ids.length*60+bonus)*Math.min(loops,6);
-  const falls=[];gravity(g,falls);stages.push({kind:'cascade',before,clear:ids,falls,cells:snapshot(g).cells});
+  const afterClear=snapshot(g).cells,falls=[];gravity(g,falls);stages.push({kind:'cascade',before,afterClear,clear:ids,falls,cells:snapshot(g).cells});
   found=matches(g);
  }
  g.combos=loops;g.won=g.score>=g.cfg.goal;g.lost=g.moves<=0&&!g.won;
@@ -127,8 +127,8 @@ function booster(g,type,index){if(g.won)return {valid:false,reason:'finished'};i
  const ids=type==='hammer'?[index]:g.cells.map((v,i)=>v&&Math.floor(i/g.cfg.width)===Math.floor(index/g.cfg.width)?i:-1).filter(i=>i>=0);
  const before=snapshot(g).cells;
  for(const i of ids){let c=g.cells[i];if(c.ice)c.ice--;else if(c.lock)c.lock--;else if(c.chest)c.chest--;else {c.type=null;c.special=null;}}
- g.boosterUsed++;g.score+=ids.length*35;const falls=[];gravity(g,falls);const afterGravity=snapshot(g).cells,r=collapse(g);
- return {...r,type,stages:[{kind:'cascade',before,clear:ids,falls,cells:afterGravity},...r.stages]};
+ g.boosterUsed++;g.score+=ids.length*35;const afterClear=snapshot(g).cells,falls=[];gravity(g,falls);const afterGravity=snapshot(g).cells,r=collapse(g);
+ return {...r,type,stages:[{kind:'cascade',before,afterClear,clear:ids,falls,cells:afterGravity},...r.stages]};
 }
 function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,special:c.special}:null)};}
 const api={TYPES,BOOSTERS,makeLevel,create,matches,adjacent,hasMove,shuffle,swap,booster,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
