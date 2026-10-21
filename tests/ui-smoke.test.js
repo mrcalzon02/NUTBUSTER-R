@@ -20,5 +20,5 @@ assert.equal(window.NutbusterApp.getSave().music,false);assert.ok(audioCalls.inc
 window.NutbusterApp.nav('rewards');assert.match(html,/I AM MY OWN FRIEND/);
 handlers.click({target:{closest:()=>({dataset:{action:'friend'}})}});
 assert.equal(window.NutbusterApp.getSave().coins,51250);
-window.NutbusterApp.nav('campaign');assert.equal((html.match(/data-chapter=/g)||[]).length,5);
+window.NutbusterApp.nav('campaign');assert.equal((html.match(/class="map-node /g)||[]).length,100,'Return from a played level opens its chapter map');
 console.log('PASS: home, level board, shop claim, free friend reward, level map menu smoke tests');
