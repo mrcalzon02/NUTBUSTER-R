@@ -28,6 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           node tests/engine.test.js
+          node tests/booster-objectives.test.js
           node tests/ui-smoke.test.js
           node tests/audio.test.js
           node tests/package.test.js

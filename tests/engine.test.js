@@ -44,7 +44,7 @@ for(let lvl=1;lvl<=500;lvl++)for(let seed=1;seed<=5;seed++){
  assert.equal(result.valid,true);assert.equal(result.loops,0);
  assert.equal(independent.moves,previousMoves-1);assert.equal(independent.score,previousScore);
  assert.equal(independent.cells[harmless[0]].type,right);assert.equal(independent.cells[harmless[1]].type,left);
- assert.equal(result.stages.length,0);nonMatching++;
+ assert.ok(result.stages.every(s=>s.kind==='repair'),'Non-matching move may only trigger deadlock repair');nonMatching++;
 }
 const invalid=E.create(3,123);assert.equal(E.swap(invalid,0,999).valid,false);
 assert.equal(E.booster(invalid,'unlimited',1).valid,false);

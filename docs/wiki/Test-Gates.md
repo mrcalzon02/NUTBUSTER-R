@@ -13,3 +13,5 @@
 | G8 UI regression | `node tests/ui.test.js` checks checkout, grant, game screen persistence, non-matching/matching swaps, failure continuation and victory |
 
 **Current evidence:** Engine regression passed in an isolated JavaScript execution (2,500 scoring and 2,500 non-scoring swaps), and UI-flow regression passed with a mocked DOM. Changed files and final test source have been read back from GitHub `main`. On-device visuals, actual APK compilation, platform packaging, and new-release publication still require separate verification; no build or signed release should be inferred from a source commit.
+
+| G9 Power-ups | `tests/booster-objectives.test.js` verifies all 10 player tools, 4 match-created specials, five objective families, void masks and inventory usage |
