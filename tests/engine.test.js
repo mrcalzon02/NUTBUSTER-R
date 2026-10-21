@@ -43,8 +43,8 @@ for(let lvl=1;lvl<=500;lvl++)for(let seed=1;seed<=5;seed++){
  const result=E.swap(independent,...harmless);
  assert.equal(result.valid,true);assert.equal(result.loops,0);
  assert.equal(independent.moves,previousMoves-1);assert.equal(independent.score,previousScore);
- assert.ok(result.stages.every(s=>s.kind==='repair'),'Non-matching move may only trigger deadlock repair');
- if(!result.stages.length){assert.equal(independent.cells[harmless[0]].type,right);assert.equal(independent.cells[harmless[1]].type,left);}
+ assert.ok(result.stages.every(s=>s.kind==='repair'||s.kind==='hazard'),'Non-matching move may only trigger deadlock repair or a hazard timer');
+ if(!result.stages.some(s=>s.kind==='repair')){assert.equal(independent.cells[harmless[0]].type,right);assert.equal(independent.cells[harmless[1]].type,left);}
  else {assert.equal(E.matches(independent).hit.size,0);assert.ok(E.hasMove(independent),'Deadlock repair restored a legal match');}
  nonMatching++;
 }
