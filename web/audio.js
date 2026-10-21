@@ -14,10 +14,11 @@ const speaker=hasAudio?new root.Audio():null;
 const reaction=hasAudio?new root.Audio():null;
 const music=hasAudio?new root.Audio(base+'bubbly-whistle.mp3'):null;
 let voicesOn=true,musicOn=true,unlocked=false,gruntIndex=0,lastVoice=0;
+let voiceRate=1,reactionRate=1;
 let voiceLevel=0.90,musicLevel=0.28,reactionLevel=0.38;
 const grunts=['grunt-1.mp3','grunt-2.mp3','grunt-3.mp3','grunt-4.mp3'];
-if(speaker){speaker.preload='none';speaker.volume=0.90; speaker.onended=unduck;speaker.onerror=unduck;}
-if(reaction){reaction.preload='none';reaction.volume=.38;}
+if(speaker){speaker.preload='none';speaker.volume=0.90; speaker.onended=unduck;speaker.onerror=unduck;restoreRateAfterLoad(speaker,()=>voiceRate);}
+if(reaction){reaction.preload='none';reaction.volume=.38;restoreRateAfterLoad(reaction,()=>reactionRate);}
 if(music){music.preload='none';music.loop=true;music.volume=.28;}
 function unduck(){if(music)music.volume=musicLevel;}
 function setLevels(levels){
@@ -31,21 +32,34 @@ function setLevels(levels){
  return getLevels();
 }
 function getLevels(){return {voice:voiceLevel,music:musicLevel,reactions:reactionLevel};}
-function play(el){if(!el)return false;try{const result=el.play();if(result&&result.catch)result.catch(()=>{});return true;}catch(_){return false;}}
-function varyPlayback(el,spread){
- // HTML media normally preserves pitch during rate changes; disable that so
- // each replay gets a subtle change in both speed and tone.
- const low=1-spread,high=1+spread,previous=Number.isFinite(el.playbackRate)?el.playbackRate:1,step=.018;
- let rate=low+Math.random()*(high-low);
- // Keep consecutive triggers audibly different, even if RNG repeats a value.
- if(Math.abs(rate-previous)<step){
-  const down=previous-step,up=previous+step;
-  rate=down>=low&&(up>high||rate<previous)?down:up;
+function play(el){if(!el)return false;try{const result=el.play();if(result&&result.catch)result.catch(()=>{if(el===speaker)unduck();});return true;}catch(_){if(el===speaker)unduck();return false;}}
+function applyRate(el,rate){
+ // Browser pitch correction would otherwise cancel the tonal difference.
+ for(const prop of ['preservesPitch','webkitPreservesPitch','mozPreservesPitch']){
+  if(prop in el)try{el[prop]=false;}catch(_){} // Older WebViews may have read-only aliases.
  }
- el.preservesPitch=false;
- if('webkitPreservesPitch' in el)el.webkitPreservesPitch=false;
- if('mozPreservesPitch' in el)el.mozPreservesPitch=false;
- el.playbackRate=Math.max(low,Math.min(high,rate));
+ // A new source may restore its default rate; make the chosen rate the default too.
+ try{el.defaultPlaybackRate=rate;}catch(_){}
+ el.playbackRate=rate;
+}
+function restoreRateAfterLoad(el,getRate){
+ if(typeof el.addEventListener!=='function')return;
+ // Some media backends initialize/reset playback properties asynchronously on src changes.
+ for(const event of ['loadedmetadata','playing'])el.addEventListener(event,()=>{
+  const rate=getRate();
+  if(Math.abs(el.playbackRate-rate)>.0001||('preservesPitch' in el&&el.preservesPitch!==false))applyRate(el,rate);
+ });
+}
+function varyPlayback(el,spread,previous){
+ let rate=1+(Math.random()*2-1)*spread;
+ // Avoid imperceptible 1.8% differences: consecutive lines now differ by at least
+ // 72% of the allowed spread, even if the random source repeatedly returns 0.5.
+ if(Math.abs(rate-previous)<spread*.72){
+  const opposite=previous>=1?-1:1;
+  rate=1+opposite*spread*(.78+.22*Math.random());
+ }
+ applyRate(el,rate);
+ return rate;
 }
 function setVoiceEnabled(value){voicesOn=!!value;if(!voicesOn){if(speaker)speaker.pause();if(reaction)reaction.pause();unduck();}return voicesOn;}
 function setMusicEnabled(value){musicOn=!!value;if(!music)return musicOn;if(!musicOn)music.pause();else if(unlocked)play(music);return musicOn;}
@@ -54,10 +68,10 @@ function voice(key){if(!voicesOn||!speaker||!catalog[key])return false;
   // Always play wins and rewards. Ordinary mid-game voices have a brief spacing guard.
   const now=Date.now(),high=['win','close','package','premium','satisfaction','nutbuster'].includes(key);
   if(!high&&now-lastVoice<750)return false;
-  lastVoice=now;try{if(reaction)reaction.pause();speaker.pause();speaker.src=base+catalog[key];speaker.currentTime=0;varyPlayback(speaker,.04);if(music&&!music.paused)music.volume=musicLevel*.39;const accepted=play(speaker);if(!accepted)unduck();return accepted;}catch(_){unduck();return false;}
+  lastVoice=now;try{if(reaction)reaction.pause();speaker.pause();speaker.src=base+catalog[key];speaker.currentTime=0;voiceRate=varyPlayback(speaker,.09,voiceRate);if(music&&!music.paused)music.volume=musicLevel*.39;const accepted=play(speaker);if(!accepted)unduck();return accepted;}catch(_){unduck();return false;}
 }
 function grunt(){if(!voicesOn||!reaction)return false;
- try{reaction.pause();reaction.src=base+grunts[gruntIndex++%grunts.length];reaction.currentTime=0;varyPlayback(reaction,.06);return play(reaction);}catch(_){return false;}
+ try{reaction.pause();reaction.src=base+grunts[gruntIndex++%grunts.length];reaction.currentTime=0;reactionRate=varyPlayback(reaction,.11,reactionRate);return play(reaction);}catch(_){return false;}
 }
 // Suspend playback when the app is backgrounded; resume music when visible.
 if(root.document&&typeof root.document.addEventListener==='function'){
