@@ -1,0 +1,40 @@
+/* Nutvale Homestead — compact, mobile-first, touch-sized property editor. */
+.homestead-active{padding-top:8px!important}
+.homestead-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.homestead-top h1{font-size:clamp(19px,5vw,25px);line-height:1.1;margin:0;color:#ffe0a1}
+.homestead-top small{color:#ebcda5}
+.homestead-stats{display:flex;gap:5px;flex-wrap:wrap;margin:0 0 8px}
+.homestead-stats span{font-size:11px;font-weight:700;color:#ffe7b7;border:1px solid #997348;background:#2c1a31;padding:5px 8px;border-radius:8px}
+.homestead-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:start}
+.homestead-yard{position:relative;border:3px solid #bb9657;border-radius:14px;padding:10px;background:radial-gradient(circle at 55% 18%,#628c56,#34573c 80%);box-shadow:inset 0 4px 14px #142a1999;min-width:0}
+.homestead-house{display:flex;align-items:center;gap:8px;justify-content:center;font-weight:900;color:#fff1bf;text-shadow:0 2px #1a271a;margin:2px auto 9px;min-height:47px}
+.homestead-house .house{font-size:40px;filter:drop-shadow(0 3px 3px #1b2b1acc)}
+.homestead-house small{display:block;font-size:10px;font-weight:700}
+.homestead-plots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.homestead-plot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;aspect-ratio:1;min-height:52px;background:linear-gradient(160deg,#86a05d,#598148);border:2px dashed #bed18d;border-radius:9px;color:#172c1a;text-shadow:none;padding:3px;min-width:0}
+.homestead-plot.filled{border-style:solid;background:linear-gradient(#b3c98a,#81a35a);border-color:#e9d0a2}
+.homestead-plot strong{font-size:clamp(20px,6vw,33px);line-height:1.05;filter:drop-shadow(0 2px 1px #38512166)}
+.homestead-plot small{font-size:9px;line-height:1.05;font-weight:800;overflow:hidden;max-height:22px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.homestead-plot:focus-visible,.homestead-collectible:focus-visible,.homestead-avatar:focus-visible{outline:3px solid #99edff;outline-offset:1px}
+.homestead-plot.target{outline:2px solid #ffda7b;outline-offset:-4px}
+.homestead-instructions{font-size:11px;color:#ffe1ae;text-align:center;margin:7px 0 0}
+.homestead-side{min-width:0}
+.homestead-section{border:1px solid #92654e;border-radius:11px;padding:8px;background:#34243a;margin-bottom:9px}
+.homestead-section h2{margin:0 0 7px;color:#ffe0a5;font-size:14px}
+.homestead-scroll{display:flex;overflow-x:auto;overscroll-behavior-inline:contain;gap:5px;padding:2px 1px 6px;scrollbar-width:thin}
+.homestead-avatar,.homestead-collectible{flex:0 0 auto;border:1px solid #a8815c;background:#57394f;border-radius:9px;color:#ffebc5;text-align:center;padding:6px;min-height:65px}
+.homestead-avatar{width:94px}
+.homestead-avatar b,.homestead-collectible b{display:block;font-size:11px;line-height:1.15}
+.homestead-avatar strong,.homestead-collectible strong{display:block;font-size:28px;line-height:1.15}
+.homestead-collectible{width:102px}
+.homestead-collectible.locked,.homestead-avatar.locked{opacity:.52;filter:grayscale(.6)}
+.homestead-collectible.selected,.homestead-avatar.selected{border:2px solid #ffe068;background:#866144}
+.homestead-collectible small,.homestead-avatar small{font-size:10px;display:block;color:#d8d0bc}
+.homestead-awards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;max-height:162px;overflow-y:auto}
+.homestead-award{display:flex;align-items:center;gap:6px;min-width:0;border:1px solid #67535c;border-radius:8px;background:#291d2d;padding:5px;font-size:11px}
+.homestead-award .emoji{font-size:21px}.homestead-award.locked{opacity:.45}
+.homestead-premium{display:flex;gap:8px;align-items:center;justify-content:space-between;background:linear-gradient(100deg,#6e435f,#8b612b);border:1px solid #e3b36e;border-radius:10px;padding:8px;margin-bottom:8px}
+.homestead-premium p{font-size:11px;color:#ffebcb;margin:3px 0}.homestead-premium b{font-size:13px}
+.homestead-premium .btn{font-size:11px;white-space:nowrap;min-height:40px}
+@media(min-width:740px){.homestead-layout{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}.homestead-plot{min-height:80px}.homestead-premium{margin-top:8px}}
+@media(max-width:360px){.homestead-yard{padding:6px}.homestead-plots{gap:3px}.homestead-plot{min-height:46px}.homestead-plot small{font-size:8px}.homestead-collectible{width:90px}}
