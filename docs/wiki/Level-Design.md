@@ -15,3 +15,9 @@ Board geometry grows by stage: levels 1–10 are 4×5, 11–30 are 5×6, 31–70
 Fairness calibration gates: automatic valid-start, non-matching-swap and scoring-swap checks for all 500 IDs; device test for tap targets; clear in-game description of every new blocker; losses must be due to known rules rather than invisible operations. The deliberate unfairness after level 200 is comedic and can be bypassed with the game's freely available power-ups. Player saves keep the same numbering and stats format.
 
 See `Campaign-Maps.md` for the editable chapter map paths and assets.
+
+## Fixed Factory infrastructure (development gate)
+
+Conveyors begin at level **125**; portals begin at **164**. A conveyor cycles nut identities and special-nut identities in its continuous row segment every other move; later campaigns speed it up. Portals exchange nut payloads between distant occupied cells every third turn, accelerating later. Blockers, ice, locked cells, chests, sticky butter and timed-acorn hazard markers remain fixed to their tiles. Their transport movement is animated separately and can trigger ordinary cascades, but no extra player move is charged. Levels 125, 126, 164 and 165 teach the rules on-screen.
+
+`tests/board-features.test.js` verifies 500 feature plans, mask integrity, timing, payload identities and real swap triggering. `tools/difficulty-audit.js` produces seeded structural indicators per chapter, **not** measured player win rates. An additional simulation and human-play balancing gate is needed before promoting level 200's difficulty ceiling.

@@ -32,6 +32,8 @@ jobs:
           node tests/level-design.test.js
           node tests/special-combos.test.js
           node tests/hazards.test.js
+          node tests/board-features.test.js
+          node tools/difficulty-audit.js > "$RUNNER_TEMP/nutbuster-difficulty-audit.json"
           node tests/progression.test.js
           node tests/ui-smoke.test.js
           node tests/audio.test.js

@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const E=require('../web/engine.js'),L=require('../web/level-design.js');
 const M=require('../web/campaign-maps.js'),P=require('../web/progression.js');
 assert.equal(L.ACTS.length,10);
-assert.equal(Object.keys(L.LESSONS).length,25);
+assert.equal(Object.keys(L.LESSONS).length,29);
 const family=new Set(),shapes=new Set(),formation=new Set(),tutorial=new Set();
 for(let level=1;level<=500;level++){
  const d=L.profile(level),cfg=E.makeLevel(level),g=E.create(level,level*91+7);
