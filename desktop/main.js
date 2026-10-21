@@ -1,0 +1,3 @@
+const {app,BrowserWindow}=require('electron');const path=require('node:path');
+function create(){const win=new BrowserWindow({width:540,height:880,minWidth:340,minHeight:520,backgroundColor:'#211222',webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true}});win.setMenuBarVisibility(false);const html=app.isPackaged?path.join(process.resourcesPath,'web/index.html'):path.join(__dirname,'../web/index.html');win.loadFile(html);}
+app.whenReady().then(()=>{create();app.on('activate',()=>{if(BrowserWindow.getAllWindows().length===0)create();});});app.on('window-all-closed',()=>{if(process.platform!=='darwin')app.quit();});

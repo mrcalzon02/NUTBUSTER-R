@@ -1,0 +1,10 @@
+**/build/
+**/.gradle/
+**/node_modules/
+**/dist/
+*.apk
+*.aab
+*.jks
+*.keystore
+.DS_Store
+*.log
