@@ -7,6 +7,8 @@ import re
 import sys
 
 APK_NAME = "NUTBUSTER-Android-phone-test.apk"
+PINNED_SIGNER = (pathlib.Path(__file__).resolve().parents[1] /
+                 "config/nutbuster-publisher.sha256").read_text(encoding="ascii").strip()
 
 
 def generate(tag, version_string, publisher_sha, apk_path):
@@ -19,6 +21,8 @@ def generate(tag, version_string, publisher_sha, apk_path):
         raise ValueError("versionCode outside Android range")
     if re.fullmatch(r"[0-9a-f]{64}", publisher_sha) is None:
         raise ValueError("invalid publisher SHA-256")
+    if publisher_sha != PINNED_SIGNER:
+        raise ValueError("wrong publisher: NUTBUSTER's pinned signing certificate is required")
     apk = pathlib.Path(apk_path)
     size = apk.stat().st_size
     if not apk.is_file() or size <= 1024 or size > 100_000_000:

@@ -21,9 +21,9 @@ class ManifestTest(unittest.TestCase):
 
     def test_manifest_matches_verified_asset(self):
         tag = "nutbuster-phone-test-40-1"
-        result = module.generate(tag, "214800000", "a" * 64, self.apk)
+        result = module.generate(tag, "214800000", module.PINNED_SIGNER, self.apk)
         self.assertEqual(result["androidVersionCode"], 214800000)
-        self.assertEqual(result["signerSha256"], "a" * 64)
+        self.assertEqual(result["signerSha256"], module.PINNED_SIGNER)
         self.assertEqual(result["apk"]["size"], self.apk.stat().st_size)
         self.assertEqual(result["apk"]["digest"],
                          "sha256:" + hashlib.sha256(self.apk.read_bytes()).hexdigest())
@@ -35,8 +35,9 @@ class ManifestTest(unittest.TestCase):
         cases = [
             ("invalid tag", "1", "a" * 64),
             ("nutbuster-phone-test-40-1", "214800000", "not-fingerprint"),
-            ("nutbuster-phone-test-40-1", "2147483648", "a" * 64),
-            ("nutbuster-phone-test-40-1", "0", "a" * 64),
+            ("nutbuster-phone-test-40-1", "2147483648", module.PINNED_SIGNER),
+            ("nutbuster-phone-test-40-1", "0", module.PINNED_SIGNER),
+            ("nutbuster-phone-test-40-1", "214800000", "a" * 64),
         ]
         for tag, code, signer in cases:
             with self.subTest(tag=tag, code=code, signer=signer):

@@ -111,6 +111,11 @@ final class NutUpdateService implements AutoCloseable {
             String tag = release.optString("tag_name", "");
             if (!tag.matches("nutbuster-phone-test-[0-9]+-[0-9]+")) continue;
             String body = release.optString("body", "");
+            // Never offer an incompatible legacy-signed APK. A previously installed
+            // certificate cannot be changed by Android's package installer.
+            String publisherLine = "NUTBUSTER publisher signer SHA-256: " + expectedSigner;
+            String legacyLine = "Persistent ReverieVR signer SHA-256: " + expectedSigner;
+            if (!body.contains(publisherLine) && !body.contains(legacyLine)) continue;
             java.util.regex.Matcher m = java.util.regex.Pattern.compile("(?m)^Android versionCode: ([0-9]{1,10})\\r?$").matcher(body);
             if (!m.find()) continue;
             long code = Long.parseLong(m.group(1));
@@ -130,7 +135,7 @@ final class NutUpdateService implements AutoCloseable {
         }
         }
         if (best == null || best.code <= currentCode) {
-            if (manual) status.accept("Up to date, or no verified newer Nutbuster APK exists.");
+            if (manual) status.accept("Up to date, or no newer update with this app's signing certificate. Keep your installed app to preserve progress.");
             return;
         }
         if (!manual && best.code == lastOfferedCode) return;

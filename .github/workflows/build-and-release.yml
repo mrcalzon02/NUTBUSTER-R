@@ -42,6 +42,9 @@ jobs:
           node tests/audio.test.js
           node tests/package.test.js
           node tests/update-contract.test.js
+          node tests/authored-art-compact-ui.test.js
+          node tests/gameplay-layout.test.js
+          node tests/irregular-board-refill.test.js
           python3 tests/test_update_manifest.py
           node tests/campaign-maps.test.js
           node tests/asset-catalog.test.js
@@ -252,7 +255,9 @@ jobs:
           keytool -list -keystore "$RUNNER_TEMP/nutbuster-publisher.p12" -storepass "$PHONE_TEST_STORE_PASSWORD" -alias "$PHONE_TEST_KEY_ALIAS" >/dev/null
           keytool -exportcert -keystore "$RUNNER_TEMP/nutbuster-publisher.p12" -storepass "$PHONE_TEST_STORE_PASSWORD" -alias "$PHONE_TEST_KEY_ALIAS" -file "$RUNNER_TEMP/nutbuster-certificate.der" >/dev/null
           SHA="$(sha256sum "$RUNNER_TEMP/nutbuster-certificate.der" | cut -d' ' -f1)"
-          [[ "$SHA" =~ ^[0-9a-f]{64}$ ]] || { echo '::error::Invalid Nutbuster publisher fingerprint'; exit 1; }
+          PINNED="$(tr -d '[:space:]' < config/nutbuster-publisher.sha256)"
+          [[ "$PINNED" =~ ^[0-9a-f]{64}$ ]] || { echo '::error::Missing/invalid pinned NUTBUSTER signer'; exit 1; }
+          [[ "$SHA" = "$PINNED" ]] || { echo '::error::Wrong signing certificate: only the NUTBUSTER-owned publisher key is permitted'; exit 1; }
           printf 'sha=%s\npath=%s\n' "$SHA" "$RUNNER_TEMP/nutbuster-publisher.p12" >> "$GITHUB_OUTPUT"
       - name: Install Android SDK
         shell: bash
@@ -281,6 +286,8 @@ jobs:
           SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}/build-tools/36.0.0"
           "$SDK/apksigner" verify --verbose --print-certs "$APK" | tee "$RUNNER_TEMP/certificate.txt"
           SIGNER="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/certificate.txt" | head -n 1 | tr '[:upper:]' '[:lower:]')"
+          PINNED="$(tr -d '[:space:]' < config/nutbuster-publisher.sha256)"
+          test "$SIGNER" = "$PINNED"
           test "$SIGNER" = "${{ steps.signing.outputs.sha }}"
           "$SDK/aapt" dump badging "$APK" | tee "$RUNNER_TEMP/badging.txt"
           grep -F "package: name='io.github.mrcalzon02.nutbuster' versionCode='$CODE'" "$RUNNER_TEMP/badging.txt"
@@ -304,7 +311,7 @@ jobs:
           cp release/desktop/NUTBUSTER-Linux-x64 release/publish/
           python3 scripts/generate_update_manifest.py "$TAG" '${{ steps.signed.outputs.code }}' '${{ steps.signing.outputs.sha }}'
           (cd release/publish && sha256sum NUTBUSTER-* > SHA256SUMS.txt)
-          NOTES="$(printf 'NUTBUSTER testing release.\n\nAndroid versionCode: %s\nSource revision: %s\nNUTBUSTER publisher signer SHA-256: %s\n\nPre-release signing identity changed; older test APKs may require removal before installing this version.\n' '${{ steps.signed.outputs.code }}' "$GITHUB_SHA" '${{ steps.signing.outputs.sha }}')"
+          NOTES="$(printf 'NUTBUSTER testing release.\n\nAndroid versionCode: %s\nSource revision: %s\nNUTBUSTER publisher signer SHA-256: %s\n\nOnly the permanent NUTBUSTER publisher signing key is accepted. Android updates require an installed APK signed with this same key.\n' '${{ steps.signed.outputs.code }}' "$GITHUB_SHA" '${{ steps.signing.outputs.sha }}')"
           gh release create "$TAG" --draft --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes "$NOTES"
           gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/NUTBUSTER-update.json release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
           # GitHub computes SHA-256 for release assets. Refuse to publish until its digest matches our local artifact.
