@@ -40,3 +40,9 @@
 .map-node.hard::after{background-image:url("art/additions/ui/trophy.png")}
 .map-node.finale{border-color:#f6f39c;background:linear-gradient(#f8ee97,#b76b2c)}
 .map-node.finale::after{background-image:url("art/additions/ui/vip-crown.png")}
+
+/* Layered sprite effects render outside the board so rerenders never cut them off. */
+.nut-fx{pointer-events:none;position:fixed;z-index:70;width:clamp(110px,32vw,260px);height:clamp(110px,32vw,260px);object-fit:contain;transform:translate(-50%,-50%) scale(.35);opacity:0;animation:nut-fx-burst 780ms cubic-bezier(.18,.9,.28,1) forwards;filter:drop-shadow(0 0 12px #ffe292)}
+.nut-fx.rewards{width:clamp(150px,45vw,360px);height:clamp(150px,45vw,360px);animation-duration:1150ms}
+@keyframes nut-fx-burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.30) rotate(-13deg)}21%{opacity:1}65%{opacity:.95;transform:translate(-50%,-50%) scale(1.2) rotate(7deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.52) rotate(12deg)}}
+@media(prefers-reduced-motion:reduce){.nut-fx{animation:none;opacity:.65;transform:translate(-50%,-50%) scale(.9)}}
