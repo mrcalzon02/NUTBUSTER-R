@@ -75,7 +75,7 @@ function featureVisual(features,i){
  const belt=features.conveyors?.find(c=>c.indices.includes(i));
  const portal=features.portals?.find(c=>c.indices.includes(i));
  const wind=features.wind?.find(c=>c.indices.includes(i));
- const dir=wind?window.NutBoardFeatures.nextWindDirection(wind,state.game.turns):null;
+ const dir=wind?(window.NutBoardFeatures?.nextWindDirection(wind,state.game.turns)||'up'):null;
  return (belt?`<span class="board-feature conveyor" aria-hidden="true">${belt.direction==='right'?'›':'‹'}</span>`:'')+
   (portal?'<span class="board-feature portal" aria-hidden="true">◎</span>':'')+
  (wind?`<span class="board-feature wind" data-wind-direction="${dir}" aria-hidden="true">${dir==='up'?'↑':'↓'}</span>`:'');
@@ -140,7 +140,7 @@ function paintStats(){if(state.page!=='game'||!state.game)return;const g=state.g
   const i=Number(cell?.dataset?.cell);
   const lane=g.cfg.features.wind.find(l=>l.indices.includes(i));
   if(!lane)continue;
-  const dir=window.NutBoardFeatures.nextWindDirection(lane,g.turns);
+  const dir=window.NutBoardFeatures?.nextWindDirection(lane,g.turns)||'up';
   mark.textContent=dir==='up'?'↑':'↓';
   mark.dataset.windDirection=dir;
  }

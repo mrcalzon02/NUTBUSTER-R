@@ -33,6 +33,7 @@ jobs:
           node tests/special-combos.test.js
           node tests/hazards.test.js
           node tests/board-features.test.js
+          node tests/wind.test.js
           node tools/difficulty-audit.js > "$RUNNER_TEMP/nutbuster-difficulty-audit.json"
           node tools/greedy-playtest.js > "$RUNNER_TEMP/nutbuster-greedy-playtest.json"
           node tests/progression.test.js
