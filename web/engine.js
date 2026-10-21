@@ -2,7 +2,19 @@
 (function(root){
 'use strict';
 const TYPES=['peanut','walnut','almond','cashew','hazelnut','pistachio'];
-const BOOSTERS=['hammer','row','shuffle','extra'];
+const BOOSTERS=['hammer','row','column','cross','blast','color','shuffle','extra','drill','unlock'];
+const BOOSTER_META=Object.freeze({
+ hammer:{label:'Hammer',targeted:true,tip:'Break every layer of one stubborn cell'},
+ row:{label:'Row Rocket',targeted:true,tip:'Strike one complete row'},
+ column:{label:'Column Rocket',targeted:true,tip:'Strike one complete column'},
+ cross:{label:'Crossfire',targeted:true,tip:'Strike a complete row and column'},
+ blast:{label:'Shell Bomb',targeted:true,tip:'Explode a three-by-three region'},
+ color:{label:'Color Pop',targeted:true,tip:'Remove nuts matching the chosen color'},
+ shuffle:{label:'Shuffle',targeted:false,tip:'Rearrange nuts while preserving obstacles'},
+ extra:{label:'+5 Moves',targeted:false,tip:'Five extra chances to finish'},
+ drill:{label:'Deep Drill',targeted:true,tip:'Strike three layers down an entire column'},
+ unlock:{label:'Master Key',targeted:false,tip:'Open every chained tile'}
+});
 function rng(seed){let x=(seed>>>0)||0x9e3779b9;return function(){x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296;};}
 function shape(level,x,y,w,h){
  const cx=(w-1)/2, cy=(h-1)/2;
@@ -27,15 +39,30 @@ function makeLevel(number){
  // Difficulty grows progressively for 200 levels, then deliberately exceeds the normal ceiling.
  const moves=Math.max(9,32-Math.floor(n/12)-Math.floor(past200/39));
  const goal=Math.round(700+18*n+Math.pow(past200/12,1.35)*55);
- return {number:n,chapter:chapter+1,width:w,height:h,mask,moves,goal,
+ const cfg={number:n,chapter:chapter+1,width:w,height:h,mask,moves,goal,
   ice:n>=3?Math.min(20,1+Math.floor(n/16)):0,
   locks:n>=28?Math.min(14,1+Math.floor((n-28)/24)):0,
   chests:n>=68?Math.min(10,1+Math.floor((n-68)/36)):0,
   title:['Nutwood Meadows','Peanut Butter Factory','Squirrel Hoard Highlands','Autumn Windmill Vale','Moonlit Golden Palace'][chapter]};
+ const tier=Math.floor(n/55),slot=n%10;
+ // Each objective must have a different tactical solution. Layer targets count
+ // individual breaks, not cells removed. Multi-target finales appear after level 80.
+ let primary={kind:'score',target:goal};
+ if(n>5&&slot<=2&&cfg.ice)primary={kind:'ice',target:Math.min(cfg.ice*2,2+tier)};
+ else if(n>=28&&slot<=4&&cfg.locks)primary={kind:'locks',target:Math.min(cfg.locks,1+tier)};
+ else if(n>=68&&slot<=5&&cfg.chests)primary={kind:'chests',target:Math.min(cfg.chests*2,2+tier)};
+ else if(n>12&&slot<=8)primary={kind:'collect',color:n%TYPES.length,target:Math.min(11,4+tier)};
+ cfg.objectives=[primary];
+ if(n>=80&&slot===9){
+  const blocker=cfg.chests?{kind:'chests',target:Math.min(3+tier,cfg.chests*2)}:
+   cfg.locks?{kind:'locks',target:Math.min(2+tier,cfg.locks)}:{kind:'ice',target:Math.min(3+tier,cfg.ice*2)};
+  cfg.objectives=[{kind:'collect',color:n%TYPES.length,target:Math.min(8,3+tier)},blocker];
+ }
+ return cfg;
 }
 function create(level=1,seed=level*7919){
  const cfg=makeLevel(level);let rand=rng(seed);const a=cfg.mask.map(v=>v?{type:0,ice:0,lock:0,chest:0,special:null}:null);
- const g={level:cfg.number,cfg,seed,rand,cells:a,score:0,moves:cfg.moves,won:false,lost:false,combos:0,history:[],boosterUsed:0};
+ const g={level:cfg.number,cfg,seed,rand,cells:a,score:0,moves:cfg.moves,won:false,lost:false,combos:0,history:[],boosterUsed:0,progress:{ice:0,locks:0,chests:0,colors:TYPES.map(()=>0)},uses:{}};
  for(let y=0;y<cfg.height;y++)for(let x=0;x<cfg.width;x++){
   const i=y*cfg.width+x;if(!a[i])continue;let opts=TYPES.map((_,i)=>i).filter(t=>!(x>=2&&a[i-1]&&a[i-2]&&a[i-1].type===t&&a[i-2].type===t)&&!(y>=2&&a[i-cfg.width]&&a[i-2*cfg.width]&&a[i-cfg.width].type===t&&a[i-2*cfg.width].type===t));a[i].type=opts[Math.floor(rand()*opts.length)];
  }
@@ -50,7 +77,9 @@ function matches(g){const hit=new Set(),groups=[];const {width:w,height:h}=g.cfg
  return {hit,groups};
 }
 function adjacent(g,a,b){const w=g.cfg.width;return a>=0&&b>=0&&a<g.cells.length&&b<g.cells.length&&g.cells[a]&&g.cells[b]&&((Math.abs(a-b)===w)||(Math.floor(a/w)===Math.floor(b/w)&&Math.abs(a-b)===1));}
-function hasMove(g){for(let a=0;a<g.cells.length;a++)for(const b of [a+1,a+g.cfg.width]){if(!adjacent(g,a,b))continue;const p=g.cells[a].type;g.cells[a].type=g.cells[b].type;g.cells[b].type=p;const ok=matches(g).hit.size>0;g.cells[b].type=g.cells[a].type;g.cells[a].type=p;if(ok)return true;}return false;}
+function hasMove(g){for(let a=0;a<g.cells.length;a++)for(const b of [a+1,a+g.cfg.width]){if(!adjacent(g,a,b))continue;
+ if(g.cells[a].special||g.cells[b].special)return true;
+ const p=g.cells[a].type;g.cells[a].type=g.cells[b].type;g.cells[b].type=p;const ok=matches(g).hit.size>0;g.cells[b].type=g.cells[a].type;g.cells[a].type=p;if(ok)return true;}return false;}
 function shuffle(g){const ids=g.cells.map((v,i)=>v?i:-1).filter(i=>i>=0);for(let attempt=0;attempt<100;attempt++){
  for(let j=ids.length-1;j>0;j--){const k=Math.floor(g.rand()*(j+1)),p=g.cells[ids[j]].type;g.cells[ids[j]].type=g.cells[ids[k]].type;g.cells[ids[k]].type=p;}
  if(matches(g).hit.size===0&&hasMove(g))return true;
@@ -70,18 +99,63 @@ function gravity(g,falls=[]){const w=g.cfg.width,h=g.cfg.height; // Void cells s
   }
  }}
 }
+function objectiveState(g){
+ return g.cfg.objectives.map(spec=>{
+  const value=spec.kind==='score'?g.score:spec.kind==='collect'?g.progress.colors[spec.color]:g.progress[spec.kind];
+  const label=spec.kind==='score'?'Score':spec.kind==='ice'?'Crack ice':spec.kind==='locks'?'Break locks':spec.kind==='chests'?'Open chests':'Collect '+TYPES[spec.color];
+  return {kind:spec.kind,label,value,target:spec.target,done:value>=spec.target};
+ });
+}
+function complete(g){return objectiveState(g).every(o=>o.done);}
+function damage(g,i,summary){
+ const c=g.cells[i];if(!c||c.type===null)return;
+ if(c.ice>0){c.ice--;g.progress.ice++;summary.cracked++;return;}
+ if(c.lock>0){c.lock--;g.progress.locks++;summary.cracked++;return;}
+ if(c.chest>0){c.chest--;g.progress.chests++;summary.cracked++;return;}
+ g.progress.colors[c.type]++;c.type=null;c.special=null;summary.removed++;
+}
+function expandSpecials(g,initial,targetColor){
+ const hit=new Set(initial),pending=[...hit],seen=new Set(),w=g.cfg.width;
+ function add(i){if(g.cells[i]&&!hit.has(i)){hit.add(i);pending.push(i);}}
+ while(pending.length){
+  const i=pending.pop(),c=g.cells[i];if(!c||!c.special||seen.has(i))continue;seen.add(i);
+  const row=Math.floor(i/w),col=i%w,kind=c.special;
+  if(kind==='rainbow'){const color=targetColor&&Object.prototype.hasOwnProperty.call(targetColor,i)?targetColor[i]:c.type;
+   g.cells.forEach((v,k)=>{if(v&&v.type===color)add(k);});}
+  else if(kind==='line'||kind==='line-h')g.cells.forEach((v,k)=>{if(v&&Math.floor(k/w)===row)add(k);});
+  else if(kind==='line-v')g.cells.forEach((v,k)=>{if(v&&k%w===col)add(k);});
+  else if(kind==='blast')g.cells.forEach((v,k)=>{if(v&&Math.abs(Math.floor(k/w)-row)<=1&&Math.abs(k%w-col)<=1)add(k);});
+ }
+ return hit;
+}
+function newSpecial(groups){
+ const five=groups.find(a=>a.length>=5);
+ if(five)return {at:five[Math.floor(five.length/2)],kind:'rainbow'};
+ const overlaps=new Map();
+ for(const a of groups)for(const i of a)overlaps.set(i,(overlaps.get(i)||0)+1);
+ const common=[...overlaps].find(([,n])=>n>=2);
+ if(common)return {at:common[0],kind:'blast'};
+ const four=groups.find(a=>a.length>=4);
+ if(!four)return null;
+ return {at:four[Math.floor(four.length/2)],kind:four[1]-four[0]===1?'line-h':'line-v'};
+}
 function collapse(g,first){let loops=0,removed=0,cracked=0;const stages=[];let found=first||matches(g);
  while(found.hit.size&&loops<60){loops++;let bonus=0;
-  const before=snapshot(g).cells,ids=[...found.hit],specialSpot=found.groups.find(group=>group.length>=4);
-  const sp=specialSpot?specialSpot[Math.floor(specialSpot.length/2)]:-1;
-  for(const i of ids){const c=g.cells[i];if(!c)continue;if(c.ice>0){c.ice--;cracked++;}else if(c.lock>0){c.lock--;cracked++;}else if(c.chest>0){c.chest--;cracked++;}else{c.type=null;c.special=null;removed++;}}
-  if(sp>=0&&g.cells[sp]&&g.cells[sp].type===null){g.cells[sp].type=Math.floor(g.rand()*TYPES.length);g.cells[sp].special=found.groups.some(k=>k.length>=5)?'rainbow':'line';bonus+=100;}
+  const before=snapshot(g).cells,ids=[...expandSpecials(g,found.hit)],made=newSpecial(found.groups||[]);
+  const summary={removed:0,cracked:0};
+  for(const i of ids)damage(g,i,summary);
+  removed+=summary.removed;cracked+=summary.cracked;
+  if(made&&g.cells[made.at]?.type===null&&!before[made.at]?.special){
+   g.cells[made.at].type=before[made.at].type;
+   g.cells[made.at].special=made.kind;bonus+=100;
+  }
   g.score+=(ids.length*60+bonus)*Math.min(loops,6);
   const afterClear=snapshot(g).cells,falls=[];gravity(g,falls);stages.push({kind:'cascade',before,afterClear,clear:ids,falls,cells:snapshot(g).cells});
   found=matches(g);
  }
- g.combos=loops;g.won=g.score>=g.cfg.goal;g.lost=g.moves<=0&&!g.won;
- if(!g.won&&!g.lost&&!hasMove(g)){repairMove(g);stages.push({kind:'repair',cells:snapshot(g).cells});}
+ g.combos=loops;g.won=complete(g);g.lost=g.moves<=0&&!g.won;
+ if(!g.won&&!g.lost&&!hasMove(g)){if(!repairMove(g))throw new Error('No legal moves after repair');
+  stages.push({kind:'repair',cells:snapshot(g).cells});}
  g.history.push({loops,removed,cracked,score:g.score});return {valid:true,loops,removed,cracked,won:g.won,lost:g.lost,stages};
 }
 function repairMove(g){
@@ -103,33 +177,72 @@ function swap(g,a,b){
  let found=matches(g);
  if(ca.special||cb.special){
    const source=ca.special?a:b,special=g.cells[source].special,other=source===a?b:a;
-   const hit=new Set([source,other]);
-   if(special==='rainbow'){
-     const target=g.cells[other].type;
-     g.cells.forEach((c,i)=>{if(c&&c.type===target)hit.add(i);});
-   }else{
-     const row=Math.floor(source/g.cfg.width);
-     g.cells.forEach((c,i)=>{if(c&&Math.floor(i/g.cfg.width)===row)hit.add(i);});
+   const hit=new Set([...found.hit,source,other]);
+   const sources=[a,b].filter(i=>g.cells[i].special);
+   const overrides={};
+   for(const i of sources)if(g.cells[i].special==='rainbow')overrides[i]=g.cells[i===a?b:a].type;
+   if(sources.length===2&&sources.every(i=>g.cells[i].special==='rainbow')){
+     g.cells.forEach((c,i)=>{if(c)hit.add(i);});
    }
-   found={hit,groups:[]};
+   // Trigger the row/column/blast/rainbow combination and chain into other specials.
+   found={hit:expandSpecials(g,hit,overrides),groups:found.groups};
  }
  if(!found.hit.size){
   // Non-matching adjacent swaps are intentional moves. Keep the new board and deduct a turn.
-  g.moves--;g.combos=0;g.lost=g.moves<=0;g.history.push({loops:0,removed:0,cracked:0,score:g.score});
-  return {valid:true,loops:0,removed:0,cracked:0,won:false,lost:g.lost,swap:[a,b],stages:[]};
+  g.moves--;g.combos=0;g.lost=g.moves<=0;const stages=[];
+  if(!g.lost&&!hasMove(g)){if(!repairMove(g))throw new Error('No legal moves after non-matching swap');
+   stages.push({kind:'repair',cells:snapshot(g).cells});}
+  g.history.push({loops:0,removed:0,cracked:0,score:g.score});
+  return {valid:true,loops:0,removed:0,cracked:0,won:false,lost:g.lost,swap:[a,b],stages};
  }
  g.moves--;return {...collapse(g,found),swap:[a,b]};
 }
-function booster(g,type,index){if(g.won)return {valid:false,reason:'finished'};if(!BOOSTERS.includes(type))return {valid:false,reason:'unknown'};
- if(type==='extra'){g.moves+=5;g.lost=false;g.boosterUsed++;return {valid:true,type};}
- if(type==='shuffle'){shuffle(g);g.boosterUsed++;return {valid:true,type};}
- if(index<0||index>=g.cells.length||!g.cells[index])return {valid:false,reason:'target'};
- const ids=type==='hammer'?[index]:g.cells.map((v,i)=>v&&Math.floor(i/g.cfg.width)===Math.floor(index/g.cfg.width)?i:-1).filter(i=>i>=0);
- const before=snapshot(g).cells;
- for(const i of ids){let c=g.cells[i];if(c.ice)c.ice--;else if(c.lock)c.lock--;else if(c.chest)c.chest--;else {c.type=null;c.special=null;}}
- g.boosterUsed++;g.score+=ids.length*35;const afterClear=snapshot(g).cells,falls=[];gravity(g,falls);const afterGravity=snapshot(g).cells,r=collapse(g);
- return {...r,type,stages:[{kind:'cascade',before,afterClear,clear:ids,falls,cells:afterGravity},...r.stages]};
+function booster(g,type,index){
+ if(g.won)return {valid:false,reason:'finished'};
+ if(!BOOSTERS.includes(type))return {valid:false,reason:'unknown'};
+ if(type==='extra'){g.moves+=5;g.lost=false;g.boosterUsed++;g.uses.extra=(g.uses.extra||0)+1;
+  return {valid:true,type,stages:[],objectives:objectiveState(g)};}
+ if(type==='shuffle'){
+  const before=snapshot(g).cells;
+  if(!shuffle(g))return {valid:false,reason:'deadlock'};
+  g.boosterUsed++;g.uses.shuffle=(g.uses.shuffle||0)+1;
+  return {valid:true,type,stages:[{kind:'repair',before,cells:snapshot(g).cells}],objectives:objectiveState(g)};
+ }
+ let ids=[];
+ const w=g.cfg.width;
+ if(type==='unlock'){ids=g.cells.map((c,i)=>c&&c.lock>0?i:-1).filter(i=>i>=0);
+  if(!ids.length)return {valid:false,reason:'no-locks'};}
+ else {
+  if(!Number.isInteger(index)||index<0||index>=g.cells.length||!g.cells[index])return {valid:false,reason:'target'};
+  const row=Math.floor(index/w),col=index%w,nutType=g.cells[index].type;
+  ids=g.cells.map((c,i)=>{
+   if(!c)return -1;
+   const r=Math.floor(i/w),x=i%w;
+   const ok=type==='hammer'&&i===index||
+     (type==='row'||type==='cross')&&r===row||
+     (type==='column'||type==='drill'||type==='cross')&&x===col||
+     type==='blast'&&Math.abs(r-row)<=1&&Math.abs(x-col)<=1||
+     type==='color'&&c.type===nutType;
+   return ok?i:-1;
+  }).filter(i=>i>=0);
+ }
+ const before=snapshot(g).cells,summary={removed:0,cracked:0};
+ const targets=type==='unlock'?ids:[...expandSpecials(g,ids)];
+ for(const i of targets){
+  // A hammer completely clears one cell. Deep drill pierces three layers
+  // across the column; other power-ups remove one layer per occupied cell.
+  const blows=type==='hammer'?5:type==='drill'?3:1;
+  for(let n=0;n<blows&&g.cells[i]?.type!==null;n++)damage(g,i,summary);
+ }
+ g.boosterUsed++;g.uses[type]=(g.uses[type]||0)+1;
+ g.score+=targets.length*35;
+ const afterClear=snapshot(g).cells,falls=[];gravity(g,falls);
+ const afterGravity=snapshot(g).cells,r=collapse(g);
+ g.won=complete(g);g.lost=g.moves<=0&&!g.won;
+ const stage={kind:'cascade',before,afterClear,clear:targets,falls,cells:afterGravity};
+ return {...r,valid:true,type,removed:r.removed+summary.removed,cracked:r.cracked+summary.cracked,
+  won:g.won,lost:g.lost,stages:[stage,...r.stages],objectives:objectiveState(g)};
 }
-function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,special:c.special}:null)};}
-const api={TYPES,BOOSTERS,makeLevel,create,matches,adjacent,hasMove,shuffle,swap,booster,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
+function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,special:c.special}:null)};}
+const api={TYPES,BOOSTERS,BOOSTER_META,makeLevel,create,matches,adjacent,hasMove,shuffle,repairMove,objectiveState,expandSpecials,swap,booster,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
 })(typeof window!=='undefined'?window:globalThis);
