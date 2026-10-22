@@ -4,8 +4,14 @@ const base=path.join(__dirname,'../web/art/primary/nuts/elemental');
 const entries=C.entries,elemental=entries.filter(e=>e.group==='elemental');
 assert.equal(elemental.length,15,'only approved 3×5 art is registered');
 assert.deepEqual(C.groups.map(g=>g[0]),['nuts','elemental','specials','blockers','hazards','board','boosters']);
-assert.equal(entries.filter(e=>e.group==='nuts'&&e.live).length,E.TYPES.length);
-for(const name of E.TYPES)assert.ok(entries.some(e=>e.id===name&&e.group==='nuts'&&e.live),'Missing live ordinary nut '+name);
+const playableNuts=E.TYPES.filter(name=>!E.RETIRED_NUTS.includes(name));
+assert.equal(entries.filter(e=>e.group==='nuts'&&e.live).length,playableNuts.length);
+for(const name of playableNuts)assert.ok(entries.some(e=>e.id===name&&e.group==='nuts'&&e.live),'Missing live ordinary nut '+name);
+assert.ok(!entries.some(e=>e.group==='nuts'&&e.id==='ginkgo-nut'),'Closed-pistachio lookalike must not appear in player index');
+for(const intro of E.NEW_INTRODUCTIONS){
+ const item=entries.find(e=>e.group==='nuts'&&e.id===intro.name);
+ assert.ok(item?.rule.includes('level '+intro.level),'Player index must identify '+intro.name+' introduction level');
+}
 const manifest=JSON.parse(fs.readFileSync(path.join(base,'manifest.json'),'utf8'));
 assert.equal(manifest.enabled_for_gameplay,false);
 assert.deepEqual(manifest.layout,[5,5,5]);
@@ -65,4 +71,4 @@ assert.ok(game.includes('function codex()')&&game.includes('data-codex-filter'),
 assert.ok(game.includes('class="play-index"')&&game.includes('blocker-layer-count'),'Players need immediate help and visible chest hit counts');
 assert.ok(game.includes('timed acorn')&&game.includes('sticky butter'),'Cell labels must expose hazards');
 assert.ok(html.includes('<script src="nut-codex.js"></script>'),'Codex data must load before UI');
-console.log('PASS: 15 elemental previews, 19 ordinary nuts, complete mechanic index and live blocker/transport audit');
+console.log('PASS: 15 elemental previews, 18 selectable ordinary nut identities, complete mechanic index and live blocker/transport audit');

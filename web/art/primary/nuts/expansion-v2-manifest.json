@@ -1,5 +1,5 @@
 {
-  "notes": "Additional distinct standard nut tile art. web/engine.js rotates these variants into level rosters from stage 41, with extra slots from stage 201. Rainbow nut remains special-only; it is never a normal spawn.",
+  "notes": "Eleven additional distinct standard nut species enter live rotating level rosters at their scheduled stages. The pale ginkgo-nut resembles a closed pistachio and is retired from gameplay and the player index; its source art and stable registry ID remain preserved. Rainbow nut stays special-only.",
   "role": "optional-standard-match-nut-expansion",
   "schema": 1,
   "source": "assets/source/expansion/nut-varieties-v2.png",
@@ -193,5 +193,54 @@
         1030
       ]
     }
-  }
+  },
+  "retired_from_gameplay": [
+    "ginkgo-nut"
+  ],
+  "introductions": [
+    {
+      "level": 15,
+      "name": "coconut"
+    },
+    {
+      "level": 35,
+      "name": "tiger-nut"
+    },
+    {
+      "level": 80,
+      "name": "pecan"
+    },
+    {
+      "level": 126,
+      "name": "brazil-nut"
+    },
+    {
+      "level": 172,
+      "name": "chestnut"
+    },
+    {
+      "level": 218,
+      "name": "macadamia"
+    },
+    {
+      "level": 264,
+      "name": "pine-nut"
+    },
+    {
+      "level": 310,
+      "name": "hickory-nut"
+    },
+    {
+      "level": 356,
+      "name": "beechnut"
+    },
+    {
+      "level": 402,
+      "name": "pili-nut"
+    },
+    {
+      "level": 448,
+      "name": "candlenut"
+    }
+  ]
 }

@@ -71,7 +71,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/nuts/pecan.png",
     "effect": "Ordinary match nut. Match three or more to score and hit any overlaid obstacle.",
-    "rule": "Joins rotating level color rosters beginning at level 41; not every type appears in every stage."
+    "rule": "Introduced at level 80; rotates with other unlocked varieties. Ordinary match nut; no elemental power."
   },
   {
     "id": "brazil-nut",
@@ -80,7 +80,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/nuts/brazil-nut.png",
     "effect": "Ordinary match nut. Match three or more to score and hit any overlaid obstacle.",
-    "rule": "Joins rotating level color rosters beginning at level 41; not every type appears in every stage."
+    "rule": "Introduced at level 126; rotates with other unlocked varieties. Ordinary match nut; no elemental power."
   },
   {
     "id": "chestnut",
@@ -89,7 +89,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/nuts/chestnut.png",
     "effect": "Ordinary match nut. Match three or more to score and hit any overlaid obstacle.",
-    "rule": "Joins rotating level color rosters beginning at level 41; not every type appears in every stage."
+    "rule": "Introduced at level 172; rotates with other unlocked varieties. Ordinary match nut; no elemental power."
   },
   {
     "id": "macadamia",
@@ -98,7 +98,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/nuts/macadamia.png",
     "effect": "Ordinary match nut. Match three or more to score and hit any overlaid obstacle.",
-    "rule": "Joins rotating level color rosters beginning at level 41; not every type appears in every stage."
+    "rule": "Introduced at level 218; rotates with other unlocked varieties. Ordinary match nut; no elemental power."
   },
   {
     "id": "pine-nut",
@@ -107,7 +107,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/nuts/pine-nut.png",
     "effect": "Ordinary match nut. Match three or more to score and hit any overlaid obstacle.",
-    "rule": "Joins rotating level color rosters beginning at level 41; not every type appears in every stage."
+    "rule": "Introduced at level 264; rotates with other unlocked varieties. Ordinary match nut; no elemental power."
   },
   {
     "id": "coconut",
@@ -116,7 +116,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/nuts/coconut.png",
     "effect": "Ordinary match nut. Match three or more to score and hit any overlaid obstacle.",
-    "rule": "Joins rotating level color rosters beginning at level 41; not every type appears in every stage."
+    "rule": "Introduced at level 15; rotates with other unlocked varieties. Ordinary match nut; no elemental power."
   },
   {
     "id": "hickory-nut",
@@ -125,7 +125,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/nuts/hickory-nut.png",
     "effect": "Ordinary match nut. Match three or more to score and hit any overlaid obstacle.",
-    "rule": "Joins rotating level color rosters beginning at level 41; not every type appears in every stage."
+    "rule": "Introduced at level 310; rotates with other unlocked varieties. Ordinary match nut; no elemental power."
   },
   {
     "id": "beechnut",
@@ -134,7 +134,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/nuts/beechnut.png",
     "effect": "Ordinary match nut. Match three or more to score and hit any overlaid obstacle.",
-    "rule": "Joins rotating level color rosters beginning at level 41; not every type appears in every stage."
+    "rule": "Introduced at level 356; rotates with other unlocked varieties. Ordinary match nut; no elemental power."
   },
   {
     "id": "pili-nut",
@@ -143,16 +143,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/nuts/pili-nut.png",
     "effect": "Ordinary match nut. Match three or more to score and hit any overlaid obstacle.",
-    "rule": "Joins rotating level color rosters beginning at level 41; not every type appears in every stage."
-  },
-  {
-    "id": "ginkgo-nut",
-    "name": "Ginkgo Nut",
-    "group": "nuts",
-    "live": true,
-    "art": "art/primary/nuts/ginkgo-nut.png",
-    "effect": "Ordinary match nut. Match three or more to score and hit any overlaid obstacle.",
-    "rule": "Joins rotating level color rosters beginning at level 41; not every type appears in every stage."
+    "rule": "Introduced at level 402; rotates with other unlocked varieties. Ordinary match nut; no elemental power."
   },
   {
     "id": "candlenut",
@@ -161,7 +152,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/nuts/candlenut.png",
     "effect": "Ordinary match nut. Match three or more to score and hit any overlaid obstacle.",
-    "rule": "Joins rotating level color rosters beginning at level 41; not every type appears in every stage."
+    "rule": "Introduced at level 448; rotates with other unlocked varieties. Ordinary match nut; no elemental power."
   },
   {
     "id": "tiger-nut",
@@ -170,7 +161,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/nuts/tiger-nut.png",
     "effect": "Ordinary match nut. Match three or more to score and hit any overlaid obstacle.",
-    "rule": "Joins rotating level color rosters beginning at level 41; not every type appears in every stage."
+    "rule": "Introduced at level 35; rotates with other unlocked varieties. Ordinary match nut; no elemental power."
   },
   {
     "id": "fire",

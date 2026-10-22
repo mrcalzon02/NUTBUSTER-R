@@ -4,16 +4,33 @@
 // One more illustrated nut unlocks at the start of each new campaign.
 // The rainbow nut remains a special and never enters the ordinary spawn pool.
 const ORIGINAL=['peanut','walnut','almond','cashew','hazelnut','pistachio','gold-acorn'];
+// Keep stable ID/index positions (including retired artwork) for asset contracts.
 const NEW=['beechnut','brazil-nut','candlenut','chestnut','coconut','ginkgo-nut','hickory-nut','macadamia','pecan','pili-nut','pine-nut','tiger-nut'];
 const TYPES=Object.freeze([...ORIGINAL,...NEW]);
+const RETIRED_NUTS=Object.freeze(['ginkgo-nut']); // Closed pistachio lookalike: never playable.
+const NEW_INTRODUCTIONS=Object.freeze([
+ {level:15,name:'coconut'},
+ {level:35,name:'tiger-nut'},
+ {level:80,name:'pecan'},
+ {level:126,name:'brazil-nut'},
+ {level:172,name:'chestnut'},
+ {level:218,name:'macadamia'},
+ {level:264,name:'pine-nut'},
+ {level:310,name:'hickory-nut'},
+ {level:356,name:'beechnut'},
+ {level:402,name:'pili-nut'},
+ {level:448,name:'candlenut'}
+].map(x=>Object.freeze(x)));
 function chapterTypeCount(chapter){return Math.min(ORIGINAL.length,chapter+2);}
-// The illustrated new nuts rotate in real spawn pools every 20 levels from stage 41.
-// Keep ordinary simultaneous variety within a solvable 3–9 nut range.
-function rosterForLevel(n){
- const count=chapterTypeCount(Math.floor((n-1)/100)+1);
- const extras=(n>=41?1:0)+(n>=201?1:0);
- const band=Math.floor(Math.max(0,n-41)/20);
- return [...Array.from({length:count},(_,i)=>i),...Array.from({length:extras},(_,i)=>ORIGINAL.length+(band+i*6)%NEW.length)];
+// Each new species debuts at a named stage. Rotate only two expansion slots to
+// keep the board matchable; original chapter unlocks remain permanently active.
+function rosterForLevel(number){
+ const n=Math.max(1,Math.min(500,Math.trunc(number)||1));
+ const chapter=Math.floor((n-1)/100)+1,ordinary=chapterTypeCount(chapter);
+ const open=NEW_INTRODUCTIONS.filter(x=>n>=x.level).map(x=>TYPES.indexOf(x.name));
+ const extras=open.length<=2?open:
+  [open[open.length-1],open[Math.floor((n-1)/16)%(open.length-1)]];
+ return [...Array.from({length:ordinary},(_,i)=>i),...extras];
 }
 const DESIGN=typeof module!=='undefined'&&module.exports?require('./level-design.js'):root.NutLevelDesign;
 if(!DESIGN)throw new Error('NUTBUSTER level book must load before match-three engine');
@@ -64,7 +81,7 @@ function makeLevel(number){
  const factoryRamp=n>100&&n<=200?(n-101)/170:0;
  const goal=Math.round((700+18*n+Math.pow(past200/12,1.35)*55)*(1+factoryRamp));
  const cfg={number:n,chapter:chapter+1,typeCount:roster.length,roster,
-  newNut:n>1&&(n-1)%100===0?TYPES[chapterTypeCount(chapter+1)-1]:n>=41&&(n-41)%20===0?TYPES[roster[chapterTypeCount(chapter+1)]]:null,
+  newNut:n>1&&(n-1)%100===0?ORIGINAL[chapterTypeCount(chapter+1)-1]:(NEW_INTRODUCTIONS.find(x=>x.level===n)?.name||null),
   width:w,height:h,mask,moves,goal,
   ice:design.ice??(n>=3?Math.min(20,1+Math.floor(n/16)):0),
   locks:design.locks??(n>=28?Math.min(14,1+Math.floor((n-28)/24)):0),
@@ -443,5 +460,5 @@ function booster(g,type,index){
   won:g.won,lost:g.lost,stages:[stage,...r.stages],objectives:objectiveState(g)};
 }
 function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,turns:g.turns,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,jam:c.jam,fuse:c.fuse,special:c.special,hold:c.hold||0}:null)};}
-const api={TYPES,ORIGINAL,NEW,rosterForLevel,BOOSTERS,BOOSTER_META,HOLD_DROPS,makeLevel,create,matches,adjacent,hasMove,gravity,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,applyHold,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
+const api={TYPES,ORIGINAL,NEW,RETIRED_NUTS,NEW_INTRODUCTIONS,rosterForLevel,BOOSTERS,BOOSTER_META,HOLD_DROPS,makeLevel,create,matches,adjacent,hasMove,gravity,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,applyHold,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
 })(typeof window!=='undefined'?window:globalThis);

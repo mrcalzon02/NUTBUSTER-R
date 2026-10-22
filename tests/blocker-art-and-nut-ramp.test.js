@@ -13,11 +13,11 @@ for(let n=1;n<=500;n++){
  assert.equal(E.matches(g).hit.size,0,'free starting match at '+n);
  assert.ok(E.hasMove(g),'unplayable start at '+n);
 }
-for(const [level,expected] of [[1,3],[40,3],[41,4],[100,4],[101,5],[200,5],[201,7],[300,7],[301,8],[400,8],[401,9],[500,9]]){
+for(const [level,expected] of [[1,3],[14,3],[15,4],[34,4],[35,5],[40,5],[41,5],[79,5],[80,5],[100,5],[101,6],[200,6],[201,7],[300,7],[301,8],[400,8],[401,9],[500,9]]){
  const g=E.create(level,7777+level);
  assert.equal(g.cfg.typeCount,expected);
  const originalCount=Math.min(7,2+Math.ceil(level/100));
- assert.equal(g.cfg.newNut,level>1&&(level-1)%100===0?E.TYPES[originalCount-1]:level>=41&&(level-41)%20===0?E.TYPES[g.cfg.roster[originalCount]]:null);
+ assert.equal(g.cfg.newNut,level>1&&(level-1)%100===0?E.ORIGINAL[originalCount-1]:(E.NEW_INTRODUCTIONS.find(x=>x.level===level)?.name||null));
  let matched=false;
  for(let a=0;a<g.cells.length&&!matched;a++)for(const b of [a+1,a+g.cfg.width]){
   if(!E.adjacent(g,a,b))continue;
@@ -33,6 +33,27 @@ for(const [level,expected] of [[1,3],[40,3],[41,4],[100,4],[101,5],[200,5],[201,
  assert.ok(matched,'no scoring swap at '+level);
 }
 assert.equal(E.TYPES[6],'gold-acorn');
+assert.ok(E.TYPES.includes('ginkgo-nut'),'Retired sprite identity stays stable in the protected catalog');
+assert.deepEqual(E.RETIRED_NUTS,['ginkgo-nut']);
+assert.equal(E.NEW_INTRODUCTIONS.length,11);
+assert.deepEqual(E.NEW_INTRODUCTIONS.slice(0,2).map(x=>[x.level,x.name]),[[15,'coconut'],[35,'tiger-nut']]);
+const seen=new Set();
+for(let n=1;n<=500;n++){
+ const roster=E.rosterForLevel(n);
+ assert.ok(roster.length<=9,'Too many concurrent colors at stage '+n);
+ assert.equal(new Set(roster).size,roster.length,'Duplicate active type at '+n);
+ assert.ok(!roster.includes(E.TYPES.indexOf('ginkgo-nut')),'Closed pistachio appeared at stage '+n);
+ assert.ok(!roster.some(i=>E.TYPES[i]==='rainbow-nut'),'Rainbow is special-only');
+ const intro=E.NEW_INTRODUCTIONS.find(x=>x.level===n);
+ if(intro){
+  assert.ok(roster.includes(E.TYPES.indexOf(intro.name)),'New species must spawn on introduction stage '+n);
+  assert.equal(E.makeLevel(n).newNut,intro.name);
+  seen.add(intro.name);
+ }
+}
+assert.equal(seen.size,11,'All approved non-duplicate standard varieties introduced');
+assert.ok(E.rosterForLevel(35).includes(E.TYPES.indexOf('coconut')));
+assert.ok(E.rosterForLevel(35).includes(E.TYPES.indexOf('tiger-nut')));
 let html='';
 const screen={classList:{toggle(){}},addEventListener(){},get innerHTML(){return html;},set innerHTML(value){html=value;},querySelector:()=>null,querySelectorAll:()=>[]};
 const wallet={textContent:''},gems={textContent:''},toast={textContent:'',classList:{add(){},remove(){}}};
@@ -51,4 +72,4 @@ app.start(49);assert.match(html,/art\/primary\/blockers\/chain-1\.png/);
 app.start(77);assert.match(html,/art\/primary\/blockers\/chest\.png/);
 app.start(401);assert.match(html,/NEW NUT: GOLD ACORN!/);
 assert.match(fs.readFileSync(path.join(root,'web/style.css'),'utf8'),/\.overlay\.blocker-art .blocker-sprite/);
-console.log('PASS: blocker artwork and staged 3–9 matchable nut types with all 12 new species over 500 stages');
+console.log('PASS: blocker artwork and staged 3–9 matchable nut types, 11 introduced expansion species, duplicate retired');
