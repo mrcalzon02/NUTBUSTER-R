@@ -53,6 +53,33 @@ const base=E.swap(normal,from,to),boosted=E.swap(held,from,to);
 assert.equal(base.valid,true);assert.equal(boosted.valid,true);
 assert.equal(held.score-normal.score,120*(1+2+3),'each held match adds only its own 2×60 bonus per cascade multiplier');
 assert.equal(normal.cells[0].ice,0);assert.equal(held.cells[0].hold,0,'a matched/cleared held nut loses its hold');
+// Held special-nut identity, duration and artwork state survive shuffling.
+const sh=E.create(85,720),shAt=sh.cells.findIndex(c=>c&&!c.ice&&!c.lock);
+sh.cells[shAt].special='line-h';
+assert.equal(E.applyHold(sh,'jam_hold',shAt).valid,true);
+assert.equal(E.shuffle(sh),true);
+const survivor=sh.cells.filter(c=>c?.hold>0);
+assert.equal(survivor.length,1,'shuffling must preserve exactly one held payload');
+assert.equal(survivor[0].special,'line-h','special must travel with held nut');
+assert.equal(survivor[0].hold,2,'shuffling is not a gravity event');
+// Anchors in the interior split both sides of the same column. No gaps or
+// phantom moves are allowed even when vacancies touch both ends of the anchor.
+const anchored=E.create(1,903),aw=anchored.cfg.width,anchor=2*aw;
+for(const c of anchored.cells)if(c){c.type=1;c.hold=0;}
+anchored.cells[anchor].hold=2;
+anchored.cells[anchor-aw].type=null;
+anchored.cells[anchor+aw].type=null;
+const anchorDrops=[];E.gravity(anchored,anchorDrops);
+assert.equal(anchored.cells[anchor].type,1,'the held nut stays anchored through refill');
+assert.equal(anchored.cells[anchor].hold,1,'only one gravity drop consumed');
+assert.equal(anchorDrops.filter(f=>f.from===anchor).length,0,'anchor never fell');
+assert.ok(anchored.cells.every(c=>!c||c.type!==null),'both sides refilled, no blank cells');
+// A rejected hold target must not mutate board or consume stock.
+const invalidHold=E.create(12,913),voidAt=invalidHold.cells.findIndex(c=>!c);
+assert.ok(voidAt>=0);
+const initial=JSON.stringify(E.snapshot(invalidHold));
+assert.equal(E.applyHold(invalidHold,'jam_hold',voidAt).valid,false);
+assert.equal(JSON.stringify(E.snapshot(invalidHold)),initial,'invalid target cannot alter state');
 const index=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
 const css=fs.readFileSync(path.join(__dirname,'../web/style.css'),'utf8');
 const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
