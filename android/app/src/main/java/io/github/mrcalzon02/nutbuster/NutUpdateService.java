@@ -265,11 +265,24 @@ final class NutUpdateService implements AutoCloseable {
         if (total!=release.size || !toHex(sha.digest()).equals(release.checksum))
             throw new IllegalStateException("APK SHA-256 or size mismatch");
         PackageInfo candidate = pm.getPackageArchiveInfo(apk.getAbsolutePath(), signingFlags());
-        if (candidate == null || !activity.getPackageName().equals(candidate.packageName) ||
-            version(candidate)!=release.code || version(candidate)<=currentCode ||
-            !signer.equals(fingerprint(candidate))) {
-            throw new IllegalStateException("APK package, version, or signing certificate does not match installed app");
-        }
+        if (candidate == null)
+            throw new IllegalStateException("Android could not parse the downloaded APK");
+        if (!activity.getPackageName().equals(candidate.packageName))
+            throw new IllegalStateException("Downloaded APK package name differs from installed app");
+        long candidateCode = version(candidate);
+        if (candidateCode != release.code)
+            throw new IllegalStateException("Downloaded APK version differs from release metadata (expected " +
+                release.code + ", found " + candidateCode + ")");
+        if (candidateCode <= currentCode)
+            throw new IllegalStateException("Downloaded APK is not newer than the installed version");
+        // On some Android 9/10 devices archive PackageInfo.signingInfo is null even
+        // for a correctly signed APK. Retry certificate extraction with the legacy
+        // archive flag; DO NOT accept an unreadable or different publisher.
+        String actualSigner = archiveFingerprint(pm, apk.getAbsolutePath(), candidate);
+        if (actualSigner.isEmpty())
+            throw new IllegalStateException("Android could not read the downloaded APK signing certificate");
+        if (!signer.equals(actualSigner))
+            throw new IllegalStateException("Downloaded APK signing certificate differs from installed app");
     }
 
     private void openInstaller(File apk) {
@@ -316,6 +329,18 @@ final class NutUpdateService implements AutoCloseable {
     }
     private static int signingFlags(){ return Build.VERSION.SDK_INT>=28?
        PackageManager.GET_SIGNING_CERTIFICATES:PackageManager.GET_SIGNATURES; }
+    /**
+     * Android 9/10 may omit signingInfo for an APK archive even though installed
+     * packages expose it. Try the legacy archive signature lookup before failing
+     * closed. Never trust manifest-provided signer claims as certificate proof.
+     */
+    private static String archiveFingerprint(PackageManager pm, String archivePath,
+                                              PackageInfo initial) throws Exception {
+        String digest = fingerprint(initial);
+        if (!digest.isEmpty()) return digest;
+        PackageInfo legacy = pm.getPackageArchiveInfo(archivePath, PackageManager.GET_SIGNATURES);
+        return legacy == null ? "" : fingerprint(legacy);
+    }
     private static PackageInfo installedInfo(PackageManager pm, String name) throws Exception {
         return pm.getPackageInfo(name, signingFlags());
     }
