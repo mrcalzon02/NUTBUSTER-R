@@ -47,5 +47,18 @@ for(const level of [1,10,30,70,100,200,500]){
   assert.ok(height+hudAndTools<=contentHeight,'Board or powers clipped at '+vw+'x'+vh+' level '+level);
  }
 }
+// Regression for the photographed Android level-14 layout: the six-row,
+// five-column board has 12 deliberate void cells. Alternating :nth-child
+// tile artwork must NEVER repaint those empty grid slots.
+const voidCSS=css.match(/\\.board \\.cell\\.void\\{([^}]*)\\}/)?.[1];
+assert.ok(voidCSS,'Explicit board-void selector required to override alternating tile art');
+assert.match(voidCSS,/background-image:none!important/,'void slots cannot inherit tile artwork');
+assert.match(voidCSS,/background-color:transparent!important/,'void slots reveal the board surface');
+assert.match(voidCSS,/pointer-events:none/,'void slots are never tappable');
+app.start(14);
+const masked=E.makeLevel(14).mask.filter(yes=>!yes).length;
+assert.equal(masked,12,'level 14 has twelve masked-out tiles');
+assert.equal((html.match(/class="cell void"/g)||[]).length,masked,'all void cells must use the transparent slot style');
+assert.equal((html.match(/data-cell=/g)||[]).length,18,'only eighteen real tiles can receive input');
 app.nav('home');assert.equal(appPlaying,false,'Leaving the play screen restores normal navigation');
 console.log('PASS: compact full-height gameplay, ten visible power icons, five-column nav, responsive stage board geometry');
