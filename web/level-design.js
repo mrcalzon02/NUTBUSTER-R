@@ -39,11 +39,24 @@ const LESSONS=Object.freeze({
  126:{name:'Production Rotation',kind:'ice',hint:'Try a Row Rocket before the belt rearranges your nuts.'},
  164:{name:'Portal Puzzles',kind:'collect',hint:'Portal cells exchange nuts every three turns.'},
  165:{name:'Through the Nut Gate',kind:'locks',hint:'Portals transport nuts; the chain locks stay attached to their cells.'},
+ 175:{name:'Portal Assembly Line',kind:'dual',secondaryKind:'locks',secondaryTarget:6,locks:7,formation:'cross',hint:'Conveyors and portals move nut payloads while chained cells stay fixed. Plan for both systems.'},
+ 190:{name:'Butter on the Belt',kind:'jam',jam:7,target:7,formation:'row',hint:'Clear the sticky line before peanut butter spreads and the conveyor shifts your setup.'},
+ 200:{name:'Factory Shutdown',kind:'dual',secondaryKind:'jam',secondaryTarget:8,jam:8,formation:'cross',hint:'Factory finale: collect the quota and scrub the butter while belts and portals keep moving the floor.'},
+ 225:{name:'Fuse in the Hoard',kind:'dual',secondaryKind:'locks',secondaryTarget:6,locks:8,bombs:3,formation:'scatter',hint:'Timed acorns force a route through the locked hoard. Precision tools buy breathing room.'},
+ 250:{name:'Treasury Countdown',kind:'dual',secondaryKind:'chests',secondaryTarget:8,chests:7,bombs:4,formation:'column',hint:'Open the treasury while countdown acorns punish wasted moves.'},
+ 300:{name:'Highlands Last Stand',kind:'dual',secondaryKind:'chests',secondaryTarget:10,chests:8,bombs:5,formation:'cross',hint:'Highlands finale: crack the hoard under maximum timed-acorn pressure before your move budget collapses.'},
  301:{name:'Windmill Welcome',kind:'collect',hint:'Wind tunnels move nuts vertically every second turn. Arrows show the next gust.'},
  302:{name:'The Returning Gale',kind:'ice',hint:'Wind reverses after each gust. Ice stays in place while nuts ride the air.'},
  320:{name:'The Crosswind Challenge',kind:'dual',hint:'A gust can set up a cascade or spoil your carefully planned matches.'},
+ 350:{name:'Gale-Locked Gallery',kind:'dual',secondaryKind:'locks',secondaryTarget:8,locks:10,formation:'cross',hint:'Break the locked gallery while the wind keeps moving the nuts you meant to use.'},
+ 375:{name:'Vaults in the Wind',kind:'dual',secondaryKind:'chests',secondaryTarget:10,chests:8,formation:'column',hint:'Open deep vaults while reversing gusts repeatedly rebuild the board around them.'},
+ 400:{name:'The Great Windmill Maelstrom',kind:'dual',secondaryKind:'locks',secondaryTarget:10,locks:12,bombs:4,formation:'cross',hint:'Windmill finale: conveyors, portals, gusts, locks and countdowns all compete for the same moves.'},
  401:{name:'The Royal Tempest',kind:'collect',hint:'The Golden Palace has two wind lanes, gusting every turn.'},
- 402:{name:'Two Winds, No Mercy',kind:'dual',hint:'Two reversing wind lanes combine with conveyors, portals and blockers.'}
+ 402:{name:'Two Winds, No Mercy',kind:'dual',hint:'Two reversing wind lanes combine with conveyors, portals and blockers.'},
+ 425:{name:'Palace Portal Court',kind:'dual',secondaryKind:'chests',secondaryTarget:10,chests:8,formation:'column',hint:'Two wind lanes and palace portals keep the route unstable while the vaults stay put.'},
+ 450:{name:'Royal Butterworks',kind:'dual',secondaryKind:'jam',secondaryTarget:8,jam:9,formation:'cluster',hint:'Scrub the royal peanut-butter spill while every turn rearranges the nuts around it.'},
+ 475:{name:'Crown Countdown',kind:'dual',secondaryKind:'locks',secondaryTarget:10,locks:12,bombs:5,formation:'scatter',hint:'Break the crown locks under the Palace’s fastest countdown pressure.'},
+ 500:{name:'The Final Nut',kind:'dual',secondaryKind:'chests',secondaryTarget:12,chests:8,jam:9,bombs:5,formation:'cross',hint:'Finale: finish the collection and open the royal vault while every late-game system is active.'}
 });
 const FORMATIONS=['scatter','row','column','cluster','cross'];
 function profile(level){
@@ -86,6 +99,7 @@ function profile(level){
    'Make matches and build cascades to reach the score goal.'
   ),kind:lesson?.kind||kind,formation,lesson:!!lesson,
   objectiveTarget:lesson?.target||null,
+  secondaryKind:lesson?.secondaryKind||null,secondaryTarget:lesson?.secondaryTarget??null,
   ice:lesson?.ice??null,locks:lesson?.locks??null,chests:lesson?.chests??null,
   jam:lesson?.jam??null,bombs:lesson?.bombs??null,
   moveAdjustment
