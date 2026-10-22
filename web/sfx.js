@@ -40,12 +40,13 @@ function playbackSample(name,rate,delay,level){
  sound.volume=Math.min(1,Math.max(.02,volume*level*1.5));
  try{sound.preservesPitch=false;if('webkitPreservesPitch' in sound)sound.webkitPreservesPitch=false;}catch(_){}
  sound.playbackRate=Math.max(.80,Math.min(1.20,rate));
- sound.onended=finish;sound.onerror=finish;
+ function fallback(){if(finished)return;finish();synthesize(name,rate,0,level);}
+ sound.onended=finish;sound.onerror=fallback;
  function start(){
   if(finished)return;
   if(!enabled){finish();return;}
-  try{const result=sound.play();result?.catch?.(()=>{finish();synthesize(name,rate,0,level);});}
-  catch(_){finish();synthesize(name,rate,0,level);}
+  try{const result=sound.play();result?.catch?.(fallback);}
+  catch(_){fallback();}
  }
  if(delay>0&&root.setTimeout)root.setTimeout(start,Math.round(Math.min(1,delay)*1000));
  else start();
@@ -62,7 +63,7 @@ function getContext(){
  if(context.state==='suspended'&&context.resume)try{const pending=context.resume();pending?.catch?.(()=>{});}catch(_){}
  return context;
 }
-function unlock(){unlocked=true;return !!getContext();}
+function unlock(){unlocked=true;return !!getContext()||typeof root.Audio==='function';}
 function setEnabled(value){enabled=!!value;if(!enabled)for(const sound of [...liveSamples]){try{sound.pause();sound.onended?.();}catch(_){liveSamples.delete(sound);}}return enabled;}
 function setVolume(value){const v=Number(value);volume=Number.isFinite(v)?Math.max(0,Math.min(1,v)):.48;return volume;}
 function chooseShift(){
