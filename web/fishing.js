@@ -97,21 +97,22 @@ function step(save,mode,now=Date.now()){
  if(!['left','right','reel','slack'].includes(mode))return {valid:false,reason:'action'};
  const species=specimenId.get(f.id);f.turn++;
  // Changing cross-current and short surges force the player to respond instead of holding REEL.
- const wave=Math.sin((f.turn+f.seed%11)*1.95)*8+Math.sin((f.turn*3+f.seed%17)*.61)*4;
- f.fish=Math.max(5,Math.min(95,f.fish+wave*.5+((f.turn%4)===0?species.difficulty*1.5:-1)));
- const steering=10+n.rod*2;
+ const wave=Math.sin((f.turn+f.seed%11)*1.95)*(8+species.difficulty*1.6)+Math.sin((f.turn*3+f.seed%17)*.61)*(5+species.difficulty);
+ const surge=(f.turn+f.seed%7)%5===0?(f.turn%2?-1:1)*(7+species.difficulty*2):0;
+ f.fish=Math.max(5,Math.min(95,f.fish+wave+surge));
+ const steering=11+n.rod*3;
  if(mode==='left')f.hook=Math.max(0,f.hook-steering);
  if(mode==='right')f.hook=Math.min(100,f.hook+steering);
- const aligned=Math.abs(f.fish-f.hook)<=(16+n.rod*2);
+ const aligned=Math.abs(f.fish-f.hook)<=(13+n.rod*2);
  if(mode==='reel'){
-  f.progress+=aligned?(18+n.rod*3):(3+n.rod);
-  f.tension+=aligned?(5+species.difficulty):(16+species.difficulty*3);
+  f.progress+=aligned?Math.max(7,19+n.rod*3-species.difficulty):(2+n.rod);
+  f.tension+=aligned?(8+species.difficulty*2):(16+species.difficulty*3);
  }else if(mode==='slack'){
-  f.tension=Math.max(0,f.tension-24-n.rod*2);
-  f.progress=Math.max(0,f.progress-5);
+  f.tension=Math.max(0,f.tension-26-n.rod*2);
+  f.progress=Math.max(0,f.progress-4);
  }else{
   f.progress=Math.max(0,f.progress-1);
-  f.tension=Math.max(0,f.tension-5);
+  f.tension=Math.max(0,f.tension-6);
  }
  f.tension=Math.min(100,Math.max(0,f.tension));f.progress=Math.max(0,Math.min(100,f.progress));
  if(f.progress>=100){
