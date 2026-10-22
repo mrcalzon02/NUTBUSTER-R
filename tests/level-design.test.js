@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const E=require('../web/engine.js'),L=require('../web/level-design.js');
 const M=require('../web/campaign-maps.js'),P=require('../web/progression.js');
 assert.equal(L.ACTS.length,10);
-assert.equal(Object.keys(L.LESSONS).length,34);
+assert.equal(Object.keys(L.LESSONS).length,47);
 const family=new Set(),shapes=new Set(),formation=new Set(),tutorial=new Set();
 for(let level=1;level<=500;level++){
  const d=L.profile(level),cfg=E.makeLevel(level),g=E.create(level,level*91+7);
@@ -30,7 +30,7 @@ for(let level=1;level<=500;level++){
  if(d.lesson){formation.add(d.formation);tutorial.add(level);}
  if(level<=100)shapes.add(d.act);
 }
-for(const kind of ['score','ice','locks','chests','collect'])assert.ok(family.has(kind));
+for(const kind of ['score','ice','locks','chests','collect','jam'])assert.ok(family.has(kind));
 assert.equal(shapes.size,10,'First campaign has 10 acts, not 100 identical levels');
 const allMilestones=[1,5,10,18,26,37,49,62,77,92];
 for(const item of P.LADDER){
@@ -44,7 +44,14 @@ for(const [stage,kind,component] of [[11,'ice','row'],[27,'ice','column'],[38,'i
  assert.equal(g.cfg.design.lesson,true);
 }
 assert.equal(E.makeLevel(100).objectives.length,2,'Meadow finale combines goals');
+for(const [stage,secondary] of [[200,'jam'],[300,'chests'],[400,'locks'],[500,'chests']]){
+ const cfg=E.makeLevel(stage);
+ assert.equal(cfg.design.lesson,true,'Chapter finale '+stage+' is explicitly authored');
+ assert.deepEqual(cfg.objectives.map(o=>o.kind),['collect',secondary],'Finale '+stage+' uses its intended paired objective');
+}
+assert.ok(E.makeLevel(300).bombs>=5,'Highlands finale carries maximum timed-acorn pressure');
+assert.ok(E.makeLevel(500).features.wind.length>=2,'Palace finale retains two wind lanes');
 assert.equal(E.makeLevel(201).design.chapter,3);
 assert.ok(E.makeLevel(1).moves>E.makeLevel(100).moves);
 assert.ok(E.makeLevel(200).moves>E.makeLevel(500).moves);
-console.log('PASS: 500 authored stage profiles, 21 spotlight lessons, 10 acts, aligned map names, blocker availability, gentle-to-cruel move ramp');
+console.log('PASS: 500 authored stage profiles, 47 spotlight lessons, explicit chapter finales, aligned map names, blocker availability, gentle-to-cruel move ramp');
