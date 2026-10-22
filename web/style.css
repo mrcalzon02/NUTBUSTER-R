@@ -427,3 +427,12 @@
 .fake-ad-discount{font-size:12px;font-weight:900;color:#b1ffa4;text-align:center}
 @media(max-height:650px){.fake-ad-screen{gap:4px}.fake-ad-poster img{max-height:42dvh}.fake-ad-controls{padding:5px 7px}.fake-ad-clock{font-size:20px}}
 @media(prefers-reduced-motion:reduce){.fake-ad-poster img{animation:none}.fake-ad-track span{transition:none}}
+
+/* Full-frame landscape Wharf ads use original 16:9 art without cropping.
+   Poster artwork has NO buttons; all controls are drawn outside the image. */
+.fake-ad-screen.wharf-fisherman-ad{width:min(100%,1440px);max-width:100%;gap:5px}
+.wharf-fisherman-ad .fake-ad-poster{width:100%;max-width:100%;display:flex;flex-direction:column;gap:4px}
+.wharf-fisherman-ad .fake-ad-poster img{display:block;width:100%;height:auto;max-width:100%;max-height:min(68dvh,900px);object-fit:contain;border-radius:6px}
+.wharf-fisherman-ad .fake-ad-poster figcaption{position:static;inset:auto;background:transparent;padding:2px;color:#f7d88e;line-height:1.2}
+.wharf-fisherman-ad .fake-ad-controls{max-width:850px;width:100%;margin:0 auto}
+@media(max-height:650px){.wharf-fisherman-ad .fake-ad-poster img{max-height:46dvh}}
