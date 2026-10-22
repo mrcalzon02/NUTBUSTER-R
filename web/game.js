@@ -5,7 +5,7 @@ const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);H.ensure(saved);A.ensure(saved);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,fishBait:'worm' ,codexTab:'blockers',codexBack:'home'};let toastHandle;
+let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,fishBait:'worm' ,codexTab:'blockers',codexBack:'home',nutdexOpen:false};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});}
 if(window.NutSFX){window.NutSFX.setEnabled(state.effects);window.NutSFX.setVolume(saved.levels.sfx);}
 function playSFX(name,opts){window.NutSFX?.play(name,opts);}
@@ -44,6 +44,7 @@ function nav(page){
  // Replacing #screen.innerHTML for a no-op navigation reloads sprites and visibly flashes on Android.
  if(state.page===page)return;
  if(page==='codex')state.codexBack=state.page;
+ closeNutdex();
  state.epoch++;state.animating=false;state.page=page;state.selected=-1;state.tool=null;state.holdTool=null;
  if(page==='homestead'){state.homesteadEditing=false;state.homesteadSelection=null;}
  if(page==='campaign'&&state.game)state.chapter=M.chapterOf(state.game.level).id;
@@ -160,9 +161,9 @@ function game(){
    <div class="play-title" title="${g.cfg.stageTitle}" aria-label="LEVEL ${g.level}: ${g.cfg.stageTitle}"><b>LV ${g.level}</b><span>${g.cfg.stageTitle}</span></div>
    <div class="play-count" aria-label="Score"><span>SCORE</span><b data-stat="score">${g.score.toLocaleString()}</b></div>
    <div class="play-count" aria-label="Moves left"><span>MOVES</span><b data-stat="moves">${g.moves}</b></div>
-   <button class="play-index" data-nav="codex" aria-label="Open Nut Index and game rules" title="Nut Index / rules">?</button><details class="play-menu"><summary aria-label="Game options" title="Game options">⋮</summary><div class="play-menu-panel">
+   <button class="play-index" data-action="nutdex-open" aria-label="Open in-level Nutdex mechanics" title="NUTDEX">?</button><details class="play-menu"><summary aria-label="Game options" title="Game options">⋮</summary><div class="play-menu-panel">
     <button class="btn secondary" data-action="restart">Restart</button>
-    <button class="btn secondary" data-nav="shop">Shop</button><button class="btn secondary" data-nav="codex">Nut Index</button>
+    <button class="btn secondary" data-nav="shop">Shop</button><button class="btn secondary" data-action="nutdex-open">NUTDEX</button>
     <button class="btn ghost" data-action="sound">${state.sound?'Voice On':'Voice Off'}</button>
     <button class="btn ghost" data-action="music">${state.music?'Music On':'Music Off'}</button><button class="btn ghost" data-action="effects">${state.effects?'Effects On':'Effects Off'}</button>
    </div></details>
@@ -174,6 +175,7 @@ function game(){
   <div class="board-wrap"><div class="board" style="--cols:${g.cfg.width};--rows:${g.cfg.height}" role="group" aria-label="Nutbuster match-three board">${g.cells.map((c,i)=>cellMarkup(c,i,g.cfg.width)).join('')}</div></div>
   <div class="announcer"><span id="announcer" class="announcer-line" aria-live="off">${state.announcer||'SHOW ME THOSE NUTS!'}</span><span class="play-wallet"><button data-nav="shop" aria-label="Open shop, nut balance"><img src="art/primary/economy/golden-nuts.png" alt="" draggable="false"><b id="play-wallet">${saved.coins.toLocaleString()}</b></button><button data-nav="shop" aria-label="Open shop, gem balance"><img src="art/additions/economy/prismatic-acorn.png" alt="" draggable="false"><b id="play-gems">${saved.gems.toLocaleString()}</b></button></span></div>
   <div class="boosters" role="group" aria-label="Tactical boosters">${toolButtons()}</div>
+  <button class="nutdex-tab" data-action="nutdex-open" aria-haspopup="dialog" aria-label="NUTDEX special mechanics">NUTDEX ◀</button>
  </section>`;
 }
 function paintCells(cells){
@@ -491,7 +493,7 @@ function renderHomesteadEditor(){
  if(scroller)scroller.scrollLeft=scrollX;
 }
 
-function codex(){
+function codex(inLevel=false){
  const C=window.NutCodex;
  if(!C)return '<p>Nut index unavailable in this build.</p>';
  const group=state.codexTab||'blockers';
@@ -506,11 +508,24 @@ function codex(){
    '<p>'+e.effect+'</p><small>'+e.rule+'</small></div></article>';
  }).join('');
  const live=C.entries.filter(e=>e.live).length;
- return '<section class="codex-page"><div class="codex-head"><button class="btn ghost" data-action="codex-back">← BACK</button><h2>NUT INDEX</h2><small>'+live+' LIVE · '+(C.entries.length-live)+' PREVIEWS</small></div>'+
+ return '<section class="codex-page"><div class="codex-head"><button class="btn ghost" data-action="'+(inLevel?'nutdex-close':'codex-back')+'">'+(inLevel?'← LEVEL':'← BACK')+'</button><h2>'+(inLevel?'NUTDEX':'NUT INDEX')+'</h2><small>'+live+' LIVE · '+(C.entries.length-live)+' PREVIEWS</small></div>'+
   '<nav class="codex-tabs" aria-label="Indexed game mechanics">'+groups+'</nav>'+
   '<label class="codex-search">FIND <input type="search" data-codex-filter placeholder="Filter '+group+'…" aria-label="Filter index entries" autocomplete="off"></label>'+
   '<p class="codex-help">'+(group==='elemental'?'Elemental abilities are proposed rules; these nuts do not spawn yet.':'Live mechanics match engine behavior. Unimplemented art is marked PREVIEW.')+'</p>'+
   '<div class="codex-list">'+cards+'</div><p class="codex-empty" hidden>No matching entries.</p></section>';
+}
+function openNutdex(){
+ if(state.page!=='game'||!state.game||state.animating||state.nutdexOpen)return;
+ state.nutdexOpen=true;
+ const modal=document.createElement('section');
+ modal.className='nutdex-drawer';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','NUTDEX mechanics');
+ modal.innerHTML='<button class="nutdex-shade" data-action="nutdex-close" aria-label="Close Nutdex"></button><div class="nutdex-pane"><div class="nutdex-content">'+codex(true)+'</div></div>';
+ screen.appendChild(modal);
+ modal.querySelector?.('[data-action="nutdex-close"]')?.focus?.();
+}
+function closeNutdex(){
+ state.nutdexOpen=false;
+ screen.querySelector?.('.nutdex-drawer')?.remove?.();
 }
 function settings(){const lev=saved.levels||{voice:.9,music:.28,reactions:.38,sfx:.48};return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings"><p class="muted">Independent volume controls for speech, music, reactions and gameplay effects.</p>${[['voice','Announcer'],['music','Music'],['reactions','Match reactions'],['sfx','Game effects']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}<div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div><div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>`;}
 function render(){if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
@@ -526,7 +541,7 @@ function render(){if(window.NutFishing){const oldDay=saved.nutravaganza?.day;win
 function start(n){state.epoch++;state.animating=false;
  if(saved.hearts<=0){saved.hearts=5;notice('ENERGY RESTORED!');}
  saved.hearts--;persist();const level=Math.min(500,Math.max(1,Number(n)||1));
- state.game=E.create(level,Math.floor(Math.random()*0xffffffff));state.page='game';state.selected=-1;state.tool=null;state.holdTool=null;state.outcome=null;state.levelReward='';
+ closeNutdex();state.game=E.create(level,Math.floor(Math.random()*0xffffffff));state.page='game';state.selected=-1;state.tool=null;state.holdTool=null;state.outcome=null;state.levelReward='';
  playSFX('ui');state.announcer=state.game.cfg.newNut?'NEW NUT: '+state.game.cfg.newNut.replace('-',' ').toUpperCase()+'!':'PREPARE TO BUST SOME NUTS!';render();window.NutAudio?.voice('nutbuster-soft');
  window.NutbusterUpdates?.autoCheck?.('level');
 }
@@ -591,7 +606,13 @@ function cell(i){if(!state.game||state.game.won||state.game.lost||state.animatin
 }
 function action(a,button){
  if(a==='codex-back'){nav(state.codexBack&&state.codexBack!=='codex'?state.codexBack:'home');return;}
- if(a==='codex-tab'){if(window.NutCodex?.groups.some(([id])=>id===button.dataset.group)){state.codexTab=button.dataset.group;render();}return;}
+ if(a==='nutdex-open'){openNutdex();return;}
+ if(a==='nutdex-close'){closeNutdex();return;}
+ if(a==='codex-tab'){if(window.NutCodex?.groups.some(([id])=>id===button.dataset.group)){
+  state.codexTab=button.dataset.group;
+  if(state.page==='game'&&state.nutdexOpen){const content=screen.querySelector?.('.nutdex-content');if(content)content.innerHTML=codex(true);}
+  else render();
+ }return;}
  if(window.NutFishingUI?.action(a,button,{save:saved,state,progression:P,persist,render,notice}))return;
  if(a==='hold-offer'){const id=button.dataset.holdId;if(!P.HOLD_ITEMS[id])return;state.holdOffer=id;render();return;}
  if(a==='hold-cancel'){state.holdOffer=null;render();return;}
@@ -717,6 +738,7 @@ function action(a,button){
 }
 screen.addEventListener('click',e=>{window.NutAudio?.unlock();window.NutSFX?.unlock();if(Date.now()<swipeGuard)return;
  const target=e.target.closest('button');if(!target||state.animating)return;
+ if(state.nutdexOpen&&target.dataset.action!=='nutdex-close'&&target.dataset.action!=='codex-tab')return;
  if(target.dataset.cell!==undefined){cell(Number(target.dataset.cell));return;}
  playSFX('ui');
  if(target.dataset.holdTool){
@@ -737,12 +759,30 @@ screen.addEventListener('click',e=>{window.NutAudio?.unlock();window.NutSFX?.unl
  if(target.dataset.action)action(target.dataset.action,target);else if(target.dataset.nav)nav(target.dataset.nav);
 });
 document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{window.NutAudio?.unlock();window.NutSFX?.unlock();playSFX('ui');nav(b.dataset.nav);}));
-let pointer=null,swipeGuard=0;screen.addEventListener('pointerdown',e=>{const t=e.target.closest('[data-cell]');if(t)pointer={i:Number(t.dataset.cell),x:e.clientX,y:e.clientY};});screen.addEventListener('pointerup',e=>{window.NutAudio?.unlock();window.NutSFX?.unlock();if(!pointer||!state.game||state.page!=='game'||state.animating)return;const startPoint=pointer;pointer=null;const dx=e.clientX-startPoint.x,dy=e.clientY-startPoint.y;if(Math.max(Math.abs(dx),Math.abs(dy))<24||state.tool)return;const w=state.game.cfg.width;let j=startPoint.i+(Math.abs(dx)>Math.abs(dy)?(dx>0?1:-1):(dy>0?w:-w));if(E.adjacent(state.game,startPoint.i,j)){swipeGuard=Date.now()+400;doSwap(startPoint.i,j);}});
+let pointer=null,swipeGuard=0;
+screen.addEventListener('pointerdown',e=>{
+ if(state.page!=='game'||!state.game||state.nutdexOpen)return;
+ const tile=e.target.closest?.('[data-cell]');
+ if(!tile&&!e.target.closest?.('.play-layout'))return;
+ if(!tile&&e.target.closest?.('button, input, details'))return;
+ pointer={i:tile?Number(tile.dataset.cell):-1,x:e.clientX,y:e.clientY};
+});
+screen.addEventListener('pointercancel',()=>{pointer=null;});
+screen.addEventListener('pointerup',e=>{
+ window.NutAudio?.unlock();window.NutSFX?.unlock();
+ if(!pointer||!state.game||state.page!=='game'||state.animating||state.nutdexOpen)return;
+ const p=pointer;pointer=null;
+ const dx=e.clientX-p.x,dy=e.clientY-p.y;
+ if(dx>=Math.max(110,(window.innerWidth||360)*.30)&&Math.abs(dy)<dx*.55){swipeGuard=Date.now()+400;openNutdex();return;}
+ if(p.i<0||Math.max(Math.abs(dx),Math.abs(dy))<24||state.tool)return;
+ const w=state.game.cfg.width,j=p.i+(Math.abs(dx)>Math.abs(dy)?(dx>0?1:-1):(dy>0?w:-w));
+ if(E.adjacent(state.game,p.i,j)){swipeGuard=Date.now()+400;doSwap(p.i,j);}
+});
 screen.addEventListener('input',e=>{
  if(e.target?.dataset?.codexFilter!==undefined){const term=String(e.target.value||'').toLowerCase().trim();let count=0;
   screen.querySelectorAll('[data-codex-entry]').forEach(card=>{const show=(card.dataset.codexSearch||'').includes(term);card.hidden=!show;if(show)count++;});
   const empty=screen.querySelector('.codex-empty');if(empty)empty.hidden=count!==0;return;}
  const id=e.target?.dataset?.volume;if(!id||!['voice','music','reactions','sfx'].includes(id))return;saved.levels={...saved.levels,[id]:Number(e.target.value)/100};window.NutAudio?.setLevels?.(saved.levels);if(id==='sfx')window.NutSFX?.setVolume(saved.levels.sfx);persist();const out=e.target.parentElement?.querySelector('output');if(out)out.textContent=e.target.value+'%';});
-window.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.page==='game')nav('campaign');else if(e.key==='Escape'&&state.page==='checkout')action('checkout-back',{});else if(e.key==='Escape'&&state.page==='codex')action('codex-back',{});});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.page==='game'&&state.nutdexOpen)closeNutdex();else if(e.key==='Escape'&&state.page==='game')nav('campaign');else if(e.key==='Escape'&&state.page==='checkout')action('checkout-back',{});else if(e.key==='Escape'&&state.page==='codex')action('codex-back',{});});
 window.NutbusterApp={start,nav,getState:()=>state,getSave:()=>saved};render();
 })();

@@ -380,3 +380,14 @@
 .cell .overlay.blocker-art.chest{position:absolute}
 .cell .blocker-layer-count{position:absolute;right:1px;bottom:1px;z-index:4;display:grid;place-items:center;min-width:14px;height:14px;padding:0 2px;border-radius:5px;border:1px solid #ffd992;background:#48273bdd;color:#fff7cf;font-size:10px;line-height:1;pointer-events:none;text-shadow:0 1px 1px #231322}
 .play-index{display:grid;place-items:center;width:25px;height:29px;padding:0;border-radius:7px;border:1px solid #a77e53;background:#493037;color:#ffe4a6;font-size:16px;line-height:1}
+
+/* Slide-over NUTDEX preserves the live board in-place. */
+.nutdex-tab{position:fixed;z-index:12;right:max(0px,calc((100vw - 950px)/2));top:42%;height:90px;width:26px;padding:5px 2px;background:linear-gradient(#f3c56c,#ad6334);color:#261329;border:1px solid #ffeda8;border-right:0;border-radius:8px 0 0 8px;box-shadow:-2px 3px 10px #0009;writing-mode:vertical-rl;font-size:10px;font-weight:900;letter-spacing:.5px;cursor:pointer}
+.nutdex-drawer{position:fixed;inset:0;z-index:65}
+.nutdex-shade{position:absolute;inset:0;background:#160d1bc9;border:0;cursor:pointer}
+.nutdex-pane{position:absolute;right:0;top:0;bottom:0;width:min(96vw,540px);background:#251b2b;border-left:2px solid #ebb16d;box-shadow:-8px 0 28px #000b;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding:env(safe-area-inset-top) 5px calc(15px + env(safe-area-inset-bottom))}
+.nutdex-pane .codex-page{padding:6px 4px 12px}
+.nutdex-pane .codex-head{position:sticky;top:0;z-index:2;background:#251b2bf0;padding:5px 0}
+.nutdex-pane .codex-list{grid-template-columns:1fr}
+.nutdex-pane .codex-tabs{position:sticky;top:42px;z-index:1;background:#251b2bf0}
+@media(orientation:landscape) and (max-height:600px){.nutdex-tab{top:30%;height:70px}.nutdex-pane{width:min(70vw,570px)}}
