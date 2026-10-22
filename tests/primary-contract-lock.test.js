@@ -62,6 +62,10 @@ hard('P-010','play-wallet','play-wallet','web/art/primary/economy/golden-nuts.pn
 hard('P-011','play-gems','play-gems','web/art/additions/economy/prismatic-acorn.png');
 hard('P-024','no-early-ordinary-rainbow','special:rainbow','web/art/primary/nuts/rainbow-nut.png');
 hard('P-025','gold-acorn-distinction','TYPES:gold-acorn','web/art/primary/nuts/gold-acorn.png');
+assert.equal(row('P-032').stable_id,'locked-walnut-is-nut');
+assert.equal(row('P-032').lock,'HARD');
+assert.equal(row('P-033').stable_id,'tile-status-layer');
+assert.equal(row('P-034').state,'PLANNED','Do not report elemental chains as playable before activation code exists');
 const game=get('web/game.js'),html=get('web/index.html'),engine=get('web/engine.js');
 const fishing=get('web/fishing.js'),progress=get('web/progression.js');
 assert(game.includes("const key='nutbuster.v1'"),'Save namespace changed');

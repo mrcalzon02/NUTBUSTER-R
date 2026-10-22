@@ -511,7 +511,7 @@ function codex(inLevel=false){
  return '<section class="codex-page"><div class="codex-head"><button class="btn ghost" data-action="'+(inLevel?'nutdex-close':'codex-back')+'">'+(inLevel?'← LEVEL':'← BACK')+'</button><h2>'+(inLevel?'NUTDEX':'NUT INDEX')+'</h2><small>'+live+' LIVE · '+(C.entries.length-live)+' PREVIEWS</small></div>'+
   '<nav class="codex-tabs" aria-label="Indexed game mechanics">'+groups+'</nav>'+
   '<label class="codex-search">FIND <input type="search" data-codex-filter placeholder="Filter '+group+'…" aria-label="Filter index entries" autocomplete="off"></label>'+
-  '<p class="codex-help">'+(group==='elemental'?'Elemental abilities are proposed rules; these nuts do not spawn yet.':'Live mechanics match engine behavior. Unimplemented art is marked PREVIEW.')+'</p>'+
+  '<p class="codex-help">'+(group==='elemental'?'Elemental chains are PREVIEW: another elemental activates only when the prior power actually destroys its nut. Cosmetic effects, movement and shield hits do not chain. Elemental nuts do not yet spawn.':'Live mechanics match engine behavior. Unimplemented art is marked PREVIEW.')+'</p>'+
   '<div class="codex-list">'+cards+'</div><p class="codex-empty" hidden>No matching entries.</p></section>';
 }
 function openNutdex(){
