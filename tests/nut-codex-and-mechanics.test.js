@@ -62,5 +62,7 @@ for(const id of ['crate','rock'])assert.ok(entries.some(e=>e.id===id&&e.live===f
 const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
 const html=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
 assert.ok(game.includes('function codex()')&&game.includes('data-codex-filter'),'Codex must be a functional screen');
+assert.ok(game.includes('class="play-index"')&&game.includes('blocker-layer-count'),'Players need immediate help and visible chest hit counts');
+assert.ok(game.includes('timed acorn')&&game.includes('sticky butter'),'Cell labels must expose hazards');
 assert.ok(html.includes('<script src="nut-codex.js"></script>'),'Codex data must load before UI');
 console.log('PASS: 15 elemental previews, 19 ordinary nuts, complete mechanic index and live blocker/transport audit');

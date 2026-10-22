@@ -188,7 +188,7 @@
 #app.playing .bottom .nav-icon{width:18px;height:18px}
 #screen.game-active{height:calc(100dvh - 36px);flex:none;min-height:0;overflow:hidden;padding:3px 6px calc(43px + env(safe-area-inset-bottom))}
 .play-layout{height:100%;width:100%;min-height:0;display:flex;flex-direction:column;align-items:center;gap:3px}
-.play-hud{width:100%;height:31px;min-height:31px;display:grid;grid-template-columns:27px minmax(40px,1fr) auto auto 27px;align-items:center;gap:3px}
+.play-hud{width:100%;height:31px;min-height:31px;display:grid;grid-template-columns:27px minmax(40px,1fr) auto auto 25px 27px;align-items:center;gap:3px}
 .play-back,.play-menu summary{display:grid;place-items:center;width:27px;height:29px;border-radius:7px;border:1px solid #80565d;background:#3a2239;color:#ffe5b1;padding:0;font-size:23px;line-height:1;cursor:pointer}
 .play-title{min-width:0;font-size:11px;line-height:1.1;white-space:nowrap;overflow:hidden}
 .play-title b{display:block;color:#ffe197;font-size:12px}
@@ -368,3 +368,8 @@
 .codex-info>small{display:block;font-size:10px;line-height:1.32;color:#d8bba6}
 .codex-empty{padding:12px;text-align:center;color:#e3cfcf}
 @media(max-width:460px){.codex-page{padding:5px}.codex-list{grid-template-columns:1fr}.codex-picture{width:55px;height:55px}.codex-picture img{width:51px;height:51px}.codex-entry{padding:6px}}
+
+/* Chest artwork does not differ between two-hit and one-hit states: expose the actual remaining hits. */
+.cell .overlay.blocker-art.chest{position:absolute}
+.cell .blocker-layer-count{position:absolute;right:1px;bottom:1px;z-index:4;display:grid;place-items:center;min-width:14px;height:14px;padding:0 2px;border-radius:5px;border:1px solid #ffd992;background:#48273bdd;color:#fff7cf;font-size:10px;line-height:1;pointer-events:none;text-shadow:0 1px 1px #231322}
+.play-index{display:grid;place-items:center;width:25px;height:29px;padding:0;border-radius:7px;border:1px solid #a77e53;background:#493037;color:#ffe4a6;font-size:16px;line-height:1}

@@ -84,14 +84,15 @@ function blockerVisual(c){
  const sprite=c.ice?'ice-'+Math.min(2,c.ice):c.lock?'chain-'+Math.min(2,c.lock):c.chest?'chest':null;
  const kind=c.ice?'ice':c.lock?'chain':c.chest?'chest':null;
  const strength=c.ice||c.lock||c.chest||0;
- const layer=sprite?`<span class="overlay blocker-art ${kind}" data-strength="${strength}" aria-hidden="true"><img class="blocker-sprite" src="art/primary/blockers/${sprite}.png" alt="" draggable="false"></span>`:'';
+ const layer=sprite?`<span class="overlay blocker-art ${kind}" data-strength="${strength}" aria-hidden="true"><img class="blocker-sprite" src="art/primary/blockers/${sprite}.png" alt="" draggable="false">${c.chest?`<b class="blocker-layer-count">${c.chest}</b>`:''}</span>`:'';
  return layer+(c.jam?'<span class="hazard jam" aria-label="Sticky peanut butter">🍯</span>':'')+(c.fuse?`<span class="hazard fuse" aria-label="Timed acorn, ${c.fuse} moves">💣${c.fuse}</span>`:'');
 }
 function cellLabel(c,i,w){
  const nut=c.type===null?'empty':E.TYPES[c.type];
  const obstacle=c.ice?' ice '+c.ice+' layers':c.lock?' chain locked':c.chest?' chest '+c.chest+' layers':'';
+ const hazard=(c.jam?' sticky butter':'')+(c.fuse?' timed acorn '+c.fuse+' turns':'');
  const hold=c.hold?' held for '+c.hold+' gravity drops':'';
- return nut+obstacle+hold+' row '+(Math.floor(i/w)+1)+' column '+(i%w+1);
+ return nut+obstacle+hazard+hold+' row '+(Math.floor(i/w)+1)+' column '+(i%w+1);
 }
 function featureVisual(features,i){
  if(!features)return '';
@@ -106,7 +107,7 @@ function featureVisual(features,i){
 function nutKey(c){return c.type+':'+(c.special||'')+':'+(c.hold||0);}
 function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.jam||0)+':'+(c.fuse||0);}
 function cellMarkup(c,i,w){if(!c)return '<div class="cell void" aria-hidden="true"></div>';
- return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${cellLabel(c,i,w)}">${featureVisual(state.game.cfg.features,i)}${nutVisual(c)}${blockerVisual(c)}</button>`;
+ return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${cellLabel(c,i,w)}" title="${cellLabel(c,i,w)}">${featureVisual(state.game.cfg.features,i)}${nutVisual(c)}${blockerVisual(c)}</button>`;
 }
 function objectiveDisplay(g){
  const status=E.objectiveState(g);
@@ -154,7 +155,7 @@ function game(){
    <div class="play-title" title="${g.cfg.stageTitle}" aria-label="LEVEL ${g.level}: ${g.cfg.stageTitle}"><b>LV ${g.level}</b><span>${g.cfg.stageTitle}</span></div>
    <div class="play-count" aria-label="Score"><span>SCORE</span><b data-stat="score">${g.score.toLocaleString()}</b></div>
    <div class="play-count" aria-label="Moves left"><span>MOVES</span><b data-stat="moves">${g.moves}</b></div>
-   <details class="play-menu"><summary aria-label="Game options" title="Game options">⋮</summary><div class="play-menu-panel">
+   <button class="play-index" data-nav="codex" aria-label="Open Nut Index and game rules" title="Nut Index / rules">?</button><details class="play-menu"><summary aria-label="Game options" title="Game options">⋮</summary><div class="play-menu-panel">
     <button class="btn secondary" data-action="restart">Restart</button>
     <button class="btn secondary" data-nav="shop">Shop</button><button class="btn secondary" data-nav="codex">Nut Index</button>
     <button class="btn ghost" data-action="sound">${state.sound?'Voice On':'Voice Off'}</button>
