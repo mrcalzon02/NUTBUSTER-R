@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "source": "assets/source/expansion/fishing-rods-16-source.png",
+  "review": "web/art/fishing/rods/v1/contact-sheet.png",
+  "size": [
+    512,
+    512
+  ],
+  "pixel_integrity": "RGBA source preserved for each isolated object; all images transparent on canvas edges",
+  "extraction": "16 connected components at alpha >= 128. Assign all nonzero alpha pixels by nearest high-alpha object, then crop and pad. No rectangular overlap extraction.",
+  "sprites": [
+    {
+      "id": "woodland",
+      "index": 0,
+      "path": "art/fishing/rods/v1/woodland.png",
+      "git_blob_sha": "f352547a3661f760c602e5fe78d52cb07fe685d7"
+    },
+    {
+      "id": "brass",
+      "index": 1,
+      "path": "art/fishing/rods/v1/brass.png",
+      "git_blob_sha": "fd4bfc87c37625ff36001bd2807879b24b9b7ad0"
+    },
+    {
+      "id": "gilded",
+      "index": 2,
+      "path": "art/fishing/rods/v1/gilded.png",
+      "git_blob_sha": "d925e06b3ce8eac2cde19f8d7a4f247244b03f7d"
+    },
+    {
+      "id": "carbon",
+      "index": 3,
+      "path": "art/fishing/rods/v1/carbon.png",
+      "git_blob_sha": "5868cfa6c4d6bc440aecf74000734b538608f029"
+    },
+    {
+      "id": "verdant",
+      "index": 4,
+      "path": "art/fishing/rods/v1/verdant.png",
+      "git_blob_sha": "c0a8f0da1bfbe018bc94adf74386a904bfaa0d38"
+    },
+    {
+      "id": "coral",
+      "index": 5,
+      "path": "art/fishing/rods/v1/coral.png",
+      "git_blob_sha": "4b87ef262020cd7702f7f6feb58d60734a0299a3"
+    },
+    {
+      "id": "industrial",
+      "index": 6,
+      "path": "art/fishing/rods/v1/industrial.png",
+      "git_blob_sha": "9df18ac2d0785f33943da96508716d3b05c32747"
+    },
+    {
+      "id": "royal-blue",
+      "index": 7,
+      "path": "art/fishing/rods/v1/royal-blue.png",
+      "git_blob_sha": "3b70131f694111561314b3c45b74ab4e14f44673"
+    },
+    {
+      "id": "pirate",
+      "index": 8,
+      "path": "art/fishing/rods/v1/pirate.png",
+      "git_blob_sha": "1f030123e46253fbdb2a2608c7b925d9c3de7de2"
+    },
+    {
+      "id": "glacier",
+      "index": 9,
+      "path": "art/fishing/rods/v1/glacier.png",
+      "git_blob_sha": "923cf7924d169eaa6358274af14c25df65b0d493"
+    },
+    {
+      "id": "storm",
+      "index": 10,
+      "path": "art/fishing/rods/v1/storm.png",
+      "git_blob_sha": "b08e6700e634ac8a59d8f19ff9dcf282dc46367a"
+    },
+    {
+      "id": "magma",
+      "index": 11,
+      "path": "art/fishing/rods/v1/magma.png",
+      "git_blob_sha": "841be9a04da251cbdc8d176d5b4a4c81bbe7373f"
+    },
+    {
+      "id": "sovereign",
+      "index": 12,
+      "path": "art/fishing/rods/v1/sovereign.png",
+      "git_blob_sha": "215d2543642d9ac67b2bdb771c4e17f98d084472"
+    },
+    {
+      "id": "astral",
+      "index": 13,
+      "path": "art/fishing/rods/v1/astral.png",
+      "git_blob_sha": "4ff22da87b35d575eba98f2a595a3247024a64ba"
+    },
+    {
+      "id": "prismatic",
+      "index": 14,
+      "path": "art/fishing/rods/v1/prismatic.png",
+      "git_blob_sha": "2476fcf499e2c97af5b8b32a2cd028329e9d9e69"
+    },
+    {
+      "id": "confection",
+      "index": 15,
+      "path": "art/fishing/rods/v1/confection.png",
+      "git_blob_sha": "1a854267d30246358b3f8adf702ef8b7869b0708"
+    }
+  ]
+}
