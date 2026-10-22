@@ -9,7 +9,7 @@ function complete(g,where){
  assert.equal(g.cells.length,mask.length);
  for(let i=0;i<mask.length;i++){
   assert.equal(!!g.cells[i],!!mask[i],where+' topology at '+i);
-  if(mask[i])assert.ok(Number.isInteger(g.cells[i].type)&&g.cells[i].type>=0&&g.cells[i].type<g.cfg.typeCount,
+  if(mask[i])assert.ok(Number.isInteger(g.cells[i].type)&&g.cfg.roster.includes(g.cells[i].type),
    where+': playable tile '+i+' is empty / invalid');
  }
 }
