@@ -27,10 +27,13 @@ assert.ok(beltLevels>200&&portalLevels>150,'Transport covers a meaningful number
  const old=E.snapshot(g).cells,layers=old.map(c=>c&&[c.ice,c.lock,c.chest,c.jam,c.fuse]);
  assert.equal(F.advance(g,1,()=>E.snapshot(g).cells).length,0);
  const stages=F.advance(g,2,()=>E.snapshot(g).cells);
- assert.equal(stages.length,1);assert.equal(stages[0].mode,'conveyor');
- for(const t of stages[0].transfers){
+ assert.ok(stages.length>=1,'Conveyor must transport at least one free segment');
+ assert.ok(stages.every(stage=>stage.mode==='conveyor'),'Only conveyor can trigger at level 126');
+ for(const stage of stages)for(const t of stage.transfers){
   assert.equal(g.cells[t.to].type,old[t.from].type);
   assert.equal(g.cells[t.to].special,old[t.from].special);
+  for(const index of [t.from,t.to])assert.equal(
+   !!(old[index].ice||old[index].lock||old[index].chest),false,'Anchored illustrated pieces may not be transported');
  }
  assert.deepEqual(E.snapshot(g).cells.map(c=>c&&[c.ice,c.lock,c.chest,c.jam,c.fuse]),layers);
 }

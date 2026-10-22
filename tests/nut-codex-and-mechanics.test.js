@@ -67,7 +67,7 @@ for(const id of ['crate','rock'])assert.ok(entries.some(e=>e.id===id&&e.live===f
 }
 const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
 const html=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
-assert.ok(game.includes('function codex()')&&game.includes('data-codex-filter'),'Codex must be a functional screen');
+assert.ok(game.includes('function codex(inLevel=false)')&&game.includes('data-codex-filter'),'Codex must be a functional screen');
 assert.ok(game.includes('class="play-index"')&&game.includes('blocker-layer-count'),'Players need immediate help and visible chest hit counts');
 assert.ok(game.includes('class="nutdex-tab"')&&game.includes("modal.className='nutdex-drawer'"),'In-level Nutdex has right-edge tab and dialog');
 assert.ok(game.includes('screen.appendChild(modal)')&&game.includes("screen.querySelector?.('.nutdex-drawer')?.remove?.()"),'Drawer mounted without board replacement');
