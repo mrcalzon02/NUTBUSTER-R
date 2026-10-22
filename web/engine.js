@@ -3,8 +3,18 @@
 'use strict';
 // One more illustrated nut unlocks at the start of each new campaign.
 // The rainbow nut remains a special and never enters the ordinary spawn pool.
-const TYPES=['peanut','walnut','almond','cashew','hazelnut','pistachio','gold-acorn'];
-function chapterTypeCount(chapter){return Math.min(TYPES.length,chapter+2);}
+const ORIGINAL=['peanut','walnut','almond','cashew','hazelnut','pistachio','gold-acorn'];
+const NEW=['beechnut','brazil-nut','candlenut','chestnut','coconut','ginkgo-nut','hickory-nut','macadamia','pecan','pili-nut','pine-nut','tiger-nut'];
+const TYPES=Object.freeze([...ORIGINAL,...NEW]);
+function chapterTypeCount(chapter){return Math.min(ORIGINAL.length,chapter+2);}
+// The illustrated new nuts rotate in real spawn pools every 20 levels from stage 41.
+// Keep ordinary simultaneous variety within a solvable 3–9 nut range.
+function rosterForLevel(n){
+ const count=chapterTypeCount(Math.floor((n-1)/100)+1);
+ const extras=(n>=41?1:0)+(n>=201?1:0);
+ const band=Math.floor(Math.max(0,n-41)/20);
+ return [...Array.from({length:count},(_,i)=>i),...Array.from({length:extras},(_,i)=>ORIGINAL.length+(band+i*6)%NEW.length)];
+}
 const DESIGN=typeof module!=='undefined'&&module.exports?require('./level-design.js'):root.NutLevelDesign;
 if(!DESIGN)throw new Error('NUTBUSTER level book must load before match-three engine');
 const FEATURES=typeof module!=='undefined'&&module.exports?require('./board-features.js'):root.NutBoardFeatures;
@@ -43,7 +53,7 @@ function makeLevel(number){
  // 8x9 is the late-game maximum, not the beginner board.
  const w=n<=10?4:n<=30?5:n<=70?6:n<=140?7:8, h=w+1;
  const mask=[]; for(let y=0;y<h;y++)for(let x=0;x<w;x++)mask.push(shape(n,x,y,w,h));
- const chapter=Math.floor((n-1)/100),past200=Math.max(0,n-200);
+ const chapter=Math.floor((n-1)/100),past200=Math.max(0,n-200),roster=rosterForLevel(n);
  // Difficulty grows progressively for 200 levels, then deliberately exceeds the normal ceiling.
  // Three chapter-one levels were outliers in the reproducible non-booster bot
  // sample. Give them breathing room while human completion data is gathered.
@@ -53,8 +63,8 @@ function makeLevel(number){
  // accidentally becoming easier after the Meadow's late lock/chest stages.
  const factoryRamp=n>100&&n<=200?(n-101)/170:0;
  const goal=Math.round((700+18*n+Math.pow(past200/12,1.35)*55)*(1+factoryRamp));
- const cfg={number:n,chapter:chapter+1,typeCount:chapterTypeCount(chapter+1),
-  newNut:n>1&&(n-1)%100===0?TYPES[chapterTypeCount(chapter+1)-1]:null,
+ const cfg={number:n,chapter:chapter+1,typeCount:roster.length,roster,
+  newNut:n>1&&(n-1)%100===0?TYPES[chapterTypeCount(chapter+1)-1]:n>=41&&(n-41)%20===0?TYPES[roster[chapterTypeCount(chapter+1)]]:null,
   width:w,height:h,mask,moves,goal,
   ice:design.ice??(n>=3?Math.min(20,1+Math.floor(n/16)):0),
   locks:design.locks??(n>=28?Math.min(14,1+Math.floor((n-28)/24)):0),
@@ -82,7 +92,7 @@ function makeLevel(number){
   if(kind==='locks')return {kind:'locks',target:Math.max(1,Math.min(cfg.locks,target||Math.min(cfg.locks,1+pressure)))};
   if(kind==='chests')return {kind:'chests',target:Math.max(1,Math.min(cfg.chests*2,target||Math.min(cfg.chests*2,2+pressure)))};
   if(kind==='jam')return {kind:'jam',target:Math.max(1,Math.min(cfg.jam,target||Math.min(cfg.jam,1+pressure)))};
-  if(kind==='collect')return {kind:'collect',color:n%cfg.typeCount,target:target||collect};
+  if(kind==='collect')return {kind:'collect',color:cfg.roster[n%cfg.typeCount],target:target||collect};
   return {kind:'score',target:goal};
  };
  const available=(kind)=>kind==='ice'?cfg.ice>0:kind==='locks'?cfg.locks>0:kind==='chests'?cfg.chests>0:kind==='jam'?cfg.jam>0:true;
@@ -100,7 +110,7 @@ function create(level=1,seed=level*7919){
  const cfg=makeLevel(level);let rand=rng(seed);const a=cfg.mask.map(v=>v?{type:0,ice:0,lock:0,chest:0,jam:0,fuse:0,special:null,hold:0}:null);
  const g={level:cfg.number,cfg,seed,rand,cells:a,score:0,moves:cfg.moves,won:false,lost:false,combos:0,history:[],boosterUsed:0,turns:0,progress:{ice:0,locks:0,chests:0,jam:0,bombs:0,colors:TYPES.map(()=>0)},uses:{}};
  for(let y=0;y<cfg.height;y++)for(let x=0;x<cfg.width;x++){
-  const i=y*cfg.width+x;if(!a[i])continue;let opts=Array.from({length:cfg.typeCount},(_,i)=>i).filter(t=>!(x>=2&&a[i-1]&&a[i-2]&&a[i-1].type===t&&a[i-2].type===t)&&!(y>=2&&a[i-cfg.width]&&a[i-2*cfg.width]&&a[i-cfg.width].type===t&&a[i-2*cfg.width].type===t));a[i].type=opts[Math.floor(rand()*opts.length)];
+  const i=y*cfg.width+x;if(!a[i])continue;let opts=cfg.roster.filter(t=>!(x>=2&&a[i-1]&&a[i-2]&&a[i-1].type===t&&a[i-2].type===t)&&!(y>=2&&a[i-cfg.width]&&a[i-2*cfg.width]&&a[i-cfg.width].type===t&&a[i-2*cfg.width].type===t));a[i].type=opts[Math.floor(rand()*opts.length)];
  }
  const candidates=a.map((v,i)=>v?i:-1).filter(i=>i>=0);
  function plant(count,key){
@@ -143,7 +153,7 @@ function shuffle(g){const ids=g.cells.map((v,i)=>v?i:-1).filter(i=>i>=0);for(let
  if(matches(g).hit.size===0&&hasMove(g))return true;
  }
  // Guaranteed local repair: rebuild types until there is at least one legal match without pre-existing matches.
- for(let tries=0;tries<50;tries++){for(const i of ids)if(!g.cells[i].hold)g.cells[i].type=Math.floor(g.rand()*g.cfg.typeCount);if(matches(g).hit.size===0&&hasMove(g))return true;}
+ for(let tries=0;tries<50;tries++){for(const i of ids)if(!g.cells[i].hold)g.cells[i].type=g.cfg.roster[Math.floor(g.rand()*g.cfg.typeCount)];if(matches(g).hit.size===0&&hasMove(g))return true;}
  return false;
 }
 function gravity(g,falls=[]){
@@ -155,7 +165,7 @@ function gravity(g,falls=[]){
   const fresh=bottom-top+1-survivors.length;
   for(let y=bottom,n=0;y>=top;y--,n++){
    const i=y*w+x,c=g.cells[i],s=survivors[n];
-   c.type=s?s.type:Math.floor(g.rand()*g.cfg.typeCount);
+   c.type=s?s.type:g.cfg.roster[Math.floor(g.rand()*g.cfg.typeCount)];
    c.special=s?s.special:null;c.hold=s?s.hold:0;
    if(s){if(s.from!==i)falls.push({from:s.from,to:i,type:s.type,special:s.special,hold:s.hold});}
    else falls.push({from:-1,to:i,startRow:y-fresh,type:c.type,special:null,hold:0});
@@ -433,5 +443,5 @@ function booster(g,type,index){
   won:g.won,lost:g.lost,stages:[stage,...r.stages],objectives:objectiveState(g)};
 }
 function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,turns:g.turns,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,jam:c.jam,fuse:c.fuse,special:c.special,hold:c.hold||0}:null)};}
-const api={TYPES,BOOSTERS,BOOSTER_META,HOLD_DROPS,makeLevel,create,matches,adjacent,hasMove,gravity,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,applyHold,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
+const api={TYPES,ORIGINAL,NEW,rosterForLevel,BOOSTERS,BOOSTER_META,HOLD_DROPS,makeLevel,create,matches,adjacent,hasMove,gravity,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,applyHold,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
 })(typeof window!=='undefined'?window:globalThis);
