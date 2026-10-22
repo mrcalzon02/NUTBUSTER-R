@@ -1,0 +1,76 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const F=require('../web/fishing.js'),U=require('../web/fishing-ui.js');
+const at=new Date(2031,3,6,12).getTime();
+assert.equal(F.STAMPS.length,18);assert.equal(F.BACKGROUNDS.length,5);
+const save={coins:413,gems:20,nutravaganza:{dollars:100000,fish:[
+ {id:'minnow',size:27,value:15},{id:'bluegill',size:33,value:24}
+ ]}};
+let n=F.ensure(save,at);
+assert.deepEqual(n.fish.map(f=>f.slot),[0,1],'Existing aquarium residents migrate to distinct slots');
+assert.ok(F.stampUnlocked(n,'coral'));assert.ok(!F.stampUnlocked(n,'wreck'));
+assert.ok(F.backgroundUnlocked(n,'lagoon'));assert.ok(!F.backgroundUnlocked(n,'arcane'));
+const first=F.placeStamp(save,'coral',33,42,at);assert.equal(first.valid,true);
+assert.equal(F.placeStamp(save,'coral',33,42,at).reason,'overlap');
+assert.equal(F.placeStamp(save,'wreck',70,70,at).reason,'locked');
+assert.equal(F.placeStamp(save,'coral',-4,42,at).reason,'position');
+assert.equal(F.placeStamp(save,'coral',65,65,at).valid,true);
+assert.equal(F.placeStamp(save,'coral',88,69,at).valid,true);
+assert.equal(F.placeStamp(save,'coral',12,32,at).reason,'full','Basic tank has only three stamp slots');
+assert.equal(F.removeStamp(save,1,at).valid,true);
+assert.equal(F.removeStamp(save,10,at).valid,false);
+assert.equal(F.moveFish(save,0,3,at).valid,true);
+assert.equal(n.fish.find(f=>f.id==='minnow').slot,3);
+assert.equal(F.moveFish(save,1,3,at).swapped,true);
+assert.deepEqual(n.fish.map(f=>f.slot),[1,3]);
+assert.equal(F.moveFish(save,0,2,at).reason,'empty');
+assert.equal(F.moveFish(save,3,99,at).reason,'slot');
+// CATCHING, not keeping, unlocks decoration: selling the specimen cannot
+// take its discovery away, and a missed fish does not unlock anything.
+n.fight={id:'koi',seed:49,rodId:'woodland',turn:1,fish:55,hook:55,progress:99,tension:5};
+const caught=F.step(save,'reel',at);
+assert.equal(caught.status,'caught');assert.ok(F.stampUnlocked(n,'pagoda'));
+assert.ok(F.backgroundUnlocked(n,'reef'));
+const sold=F.resolve(save,'sell',at);
+assert.equal(sold.choice,'sell');assert.ok(F.stampUnlocked(n,'pagoda'));
+assert.equal(F.chooseBackground(save,'reef',at).valid,true);
+assert.equal(F.chooseBackground(save,'arcane',at).reason,'locked');
+for(let tier=0;tier<=10;tier++){
+ n.tank=tier;F.ensure(save,at);
+ const fishCapacity=4+3*tier,stampCapacity=3+2*tier;
+ assert.equal(F.capacity(n),fishCapacity);
+ assert.equal(F.stampCapacity(n),stampCapacity);
+ const page=U.aquarium(save);
+ assert.ok(page.includes('width:min(100%,'+(460+90*tier)+'px)'),'Tank width not scaling tier '+tier);
+ assert.ok(page.includes('height:min(74vh,'+(270+35*tier)+'px)'),'Tank height not scaling tier '+tier);
+ assert.ok(page.includes(fishCapacity+' FISH')||page.includes('/'+fishCapacity+' FISH'),'Tank UI missing fish slots at tier '+tier);
+ assert.ok(page.includes(stampCapacity+' STAMP SLOTS'));
+}
+n.tank=0;F.ensure(save,at);
+const editor=U.aquarium(save,{aquariumEditing:true,aquariumStamp:'coral',aquariumFishFrom:null});
+assert.equal((editor.match(/class="aquarium-fish-slot /g)||[]).length,4);
+assert.equal((editor.match(/class="aquarium-stamp-card /g)||[]).length,18);
+assert.equal((editor.match(/class="aquarium-theme /g)||[]).length,5);
+assert.ok(editor.includes('data-action="fish-aqua-stamp-place"'));
+assert.ok(editor.includes('data-action="fish-aqua-stamp-remove"'));
+assert.ok(U.aquariumPreview(save).includes('data-nav="aquarium"'));
+assert.ok(U.aquarium(save).includes('aquarium-swimmer'));
+const stored=JSON.parse(JSON.stringify(save));n=F.ensure(stored,at);
+assert.equal(n.aquarium.background,'reef');
+assert.equal(n.aquarium.stamps.length,2);
+assert.deepEqual(n.fish.map(f=>f.slot),[1,3]);
+assert.ok(n.aquarium.discovered.includes('koi'),'Sold fish discoveries persist in the save');
+const before={coins:stored.coins,gems:stored.gems,dollars:n.dollars};
+const cost=F.nextCost('tank',n);
+assert.equal(F.upgrade(stored,'tank',at).valid,true);
+assert.equal(n.tank,1);assert.equal(F.capacity(n),7);assert.equal(F.stampCapacity(n),5);
+assert.equal(n.dollars,before.dollars-cost);
+assert.equal(stored.coins,before.coins);assert.equal(stored.gems,before.gems);
+const css=fs.readFileSync(path.join(__dirname,'../web/fishing.css'),'utf8');
+const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
+assert.ok(css.includes('@keyframes aquarium-roam')&&css.includes('100cqw'),'Fish must swim and bounce inside glass');
+assert.ok(css.includes('.estate-aquarium-preview'),'Tank belongs to the estate');
+assert.ok(game.includes('window.NutFishingUI?.aquariumPreview?.(saved)'));
+assert.ok(game.includes('window.NutFishingUI.aquarium(saved,state)'));
+assert.ok(game.includes('fish-aqua-stamp-place')&&game.includes('getBoundingClientRect'));
+console.log('PASS 11 tiers, fish slot moves, 18 catch-unlocked stamps, five themes, persisted editing, estate preview and tank sizing');
