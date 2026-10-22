@@ -266,8 +266,15 @@ async function cascadeAnimation(stage,epoch){
  if(stage.kind==='repair'||stage.kind==='hazard'){paintCells(stage.cells);return;}
  if(stage.kind==='transport'){await transportAnimation(stage,epoch);return;}
  const board=screen.querySelector('.board');if(!board)return;
- stage.clear.forEach(i=>board.querySelector(`[data-cell="${i}"]`)?.classList.add('clearing'));
- if(!reducedMotion())await sleep(190);
+ // Never fade an ice-shielded nut that survived the hit.
+ const removed=stage.clear.filter(i=>stage.before?.[i]?.type!=null&&stage.afterClear?.[i]?.type===null);
+ removed.forEach(i=>board.querySelector(`[data-cell="${i}"]`)?.classList.add('clearing'));
+ const iceMotion=window.NutIceFX?.animate(stage,board,{
+  active:()=>state.page==='game'&&epoch===state.epoch,
+  reducedMotion:reducedMotion()
+ });
+ if(!reducedMotion())await Promise.all([sleep(190),iceMotion||Promise.resolve()]);
+ else if(iceMotion)await iceMotion;
  if(state.page!=='game'||epoch!==state.epoch)return;
  // New specials can be formed during the clear; paint them before cloning falling tiles.
  paintCells(stage.afterClear);
@@ -495,8 +502,8 @@ function concludeMove(result){
  else if(result.removed>=5)announce('OOOH, THAT IS A BIG ONE!','big-one');
  else {announce('NICE ONE!');window.NutAudio?.grunt();}
  paintStats();
- const iceCracked=(result.stages||[]).some(stage=>stage.before?.some((c,i)=>c&&c.ice>(stage.afterClear?.[i]?.ice??c.ice)));
- const fx=result.won||result.specialCombo==='double-rainbow'||result.specialCombo==='double-bomb'?'supernova':result.specialCombo?'rainbow':iceCracked?'ice-shatter':result.cracked?'shell-crack':result.loops>=3?'rainbow':'burst';
+ // Only fully broken individual cubes shatter, at the actual tile.
+ const fx=result.won||result.specialCombo==='double-rainbow'||result.specialCombo==='double-bomb'?'supernova':result.specialCombo?'rainbow':result.cracked?'shell-crack':result.loops>=3?'rainbow':'burst';
  if(result.loops)window.NutFX?.emit(fx,screen.querySelector?.('.board-wrap'));
  if(result.won||result.lost){state.outcome=result.won?'win':'loss';state.page='outcome';render();}
 }

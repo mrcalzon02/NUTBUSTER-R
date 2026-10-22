@@ -307,3 +307,13 @@
 @media (orientation:landscape) and (max-height:600px){
  #app.playing .game-active .board-wrap{height:min(calc(100dvh - 54px),calc(50vw),var(--board-max-h))}
 }
+
+/* A hard cube shakes, cracks to its one-hit sprite, then shatters locally. */
+.cell .overlay.blocker-art.ice.ice-hit .blocker-sprite{animation:nut-ice-jolt 160ms steps(4,end) both;transform-origin:center}
+.cell .overlay.blocker-art.ice.ice-damaged .blocker-sprite{animation:nut-ice-crack 100ms ease-out both}
+.cell .overlay.blocker-art.ice.ice-break .blocker-sprite{animation:nut-ice-break 220ms ease-out forwards}
+@keyframes nut-ice-jolt{0%,100%{transform:translate(0,0) rotate(0)}20%{transform:translate(-2px,-1px) rotate(-3deg)}40%{transform:translate(2px,0) rotate(2deg)}60%{transform:translate(-2px,1px) rotate(-2deg)}80%{transform:translate(2px,-1px) rotate(2deg)}}
+@keyframes nut-ice-crack{0%{transform:scale(1.08);filter:brightness(1.6)}100%{transform:scale(1);filter:brightness(1)}}
+@keyframes nut-ice-break{0%{transform:scale(1);opacity:.6}40%{transform:scale(1.12) rotate(3deg);opacity:.85}100%{transform:scale(.65) rotate(-5deg);opacity:0}}
+.nut-fx.ice-shatter{animation-duration:600ms;max-width:94px;max-height:94px}
+@media(prefers-reduced-motion:reduce){.cell .overlay.blocker-art.ice:is(.ice-hit,.ice-damaged,.ice-break) .blocker-sprite{animation:none!important}}
