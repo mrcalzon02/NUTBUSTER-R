@@ -72,14 +72,41 @@ function baitShop(save,state,E,P){
  '<div class="wharf-bait-scene"><img class="wharf-landscape" src="art/wharf/nutvale-wharf-bait-shop.webp" alt="Squirrel-run bait and tackle shop with rods, bait jars, lures, crabs, and fishing boats outside" width="1672" height="941" draggable="false"></div>'+
  '<div class="wharf-bait-layout"><div class="wharf-bait-main">'+rodSection+catchSection+'</div><div class="wharf-bait-side"><section class="fish-store"><h2>UPGRADES · NUTVALE DOLLARS</h2><div class="fish-upgrades">'+upgrades+'</div>'+craft+'</section><section class="fish-store"><h2>POWER-UPS → BAIT</h2><div class="fish-exchanges">'+exchanges+'</div></section>'+wharfAd+'</div></div>';
 }
-function aquarium(save){
- const n=F.ensure(save),cap=F.capacity(n),cost=F.nextCost('tank',n);
- const occupants=n.fish.map((fish,i)=>{
-  const spec=F.FISH.find(x=>x.id===fish.id),top=7+(i*23)%74,seconds=7+(i*3)%13;
-  return '<span class="aquarium-fish" role="img" aria-label="'+spec.name+', '+fish.size+' centimeters" style="top:'+top+'%;--fish-speed:'+seconds+'s;--fish-delay:-'+i*2+'s">'+fishIcon(spec,true)+'<small>'+spec.name+'</small></span>';
+function aquarium(save,state={}){
+ const n=F.ensure(save),cap=F.capacity(n),stampLimit=F.stampCapacity(n),cost=F.nextCost('tank',n),editing=!!state.aquariumEditing;
+ const residents=new Map(n.fish.map(f=>[f.slot,f]));
+ const background=F.BACKGROUNDS.find(b=>b.id===n.aquarium.background)||F.BACKGROUNDS[0];
+ const theme=F.BACKGROUNDS.map(b=>'<button class="aquarium-theme '+(b.id===background.id?'chosen':'')+'" data-action="fish-aqua-background" data-background="'+b.id+'" '+(F.backgroundUnlocked(n,b.id)?'':'disabled')+' aria-pressed="'+(b.id===background.id)+'">'+b.name+(F.backgroundUnlocked(n,b.id)?'':' 🔒')+'</button>').join('');
+ const stampCards=F.STAMPS.map(spec=>{
+  const unlocked=F.stampUnlocked(n,spec.id),selected=state.aquariumStamp===spec.id;
+  return '<button class="aquarium-stamp-card '+(selected?'selected':'')+'" data-action="fish-aqua-stamp-select" data-stamp="'+spec.id+'" '+(unlocked?'':'disabled')+' aria-pressed="'+selected+'" title="'+(unlocked?'Place '+spec.name:'Catch '+(F.FISH.find(f=>f.id===spec.fish)?.name||'a fish')+' to unlock')+'"><span>'+spec.icon+'</span><b>'+spec.name+'</b><small>'+(unlocked?'UNLOCKED':'🔒 '+(F.FISH.find(f=>f.id===spec.fish)?.name||'Fish'))+'</small></button>';
  }).join('');
- const ledger=n.fish.map(f=>{const spec=F.FISH.find(x=>x.id===f.id);return '<span class="fish-specimen">'+fishIcon(spec)+' <b>'+spec.name+'</b> '+f.size+' cm</span>';}).join('');
- return '<div class="nutravaganza-head"><h1>🐠 NUTVALE AQUARIUM</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="wharf">🎣 WHARF</button><button class="btn ghost" data-nav="homestead">← ESTATE</button></div></div><div class="aquarium-tank" aria-label="Animated aquarium, '+n.fish.length+' of '+cap+' fish"><div class="aquarium-light"></div>'+occupants+'<div class="aquarium-floor">🪸 🌿 🪨 🌾 🪸 🌿</div></div><div class="aquarium-footer"><b>'+n.fish.length+'/'+cap+' FISH · TANK TIER '+n.tank+'/10</b><button class="btn secondary" data-action="fish-upgrade" data-kind="tank" '+(cost===null||n.dollars<cost?'disabled':'')+'>'+(cost===null?'MAX CAPACITY':'EXPAND TANK · N$ '+cost)+'</button></div><div class="fish-collection">'+(ledger||'No residents yet. The water is suspiciously tranquil. Try the wharf!')+'</div>';
+ const stampLayers=n.aquarium.stamps.map((entry,i)=>{
+  const stamp=F.STAMPS.find(spec=>spec.id===entry.id);
+  return '<'+(editing?'button':'span')+' class="aquarium-stamp '+(editing?'removable':'')+'" '+(editing?'type="button" data-action="fish-aqua-stamp-remove" data-stamp-index="'+i+'" aria-label="Remove '+stamp.name+' stamp"':'aria-hidden="true"')+' style="left:'+entry.x+'%;top:'+entry.y+'%">'+stamp.icon+'</'+(editing?'button':'span')+'>';
+ }).join('');
+ // Fish roam through the open water, independent of their inventory slot.
+ // Deterministic per-slot phases ensure re-renders do not shuffle fish randomly.
+ const occupants=n.fish.map((fish,i)=>{
+  const spec=F.FISH.find(x=>x.id===fish.id),position=fish.slot,
+   y=15+(position*17+fish.size)%58,y2=16+(position*31+fish.size)%60,
+   duration=8+(position*3+fish.size)%14,width=38+Math.min(24,Math.floor(fish.size/5));
+  return '<span class="aquarium-fish aquarium-swimmer" role="img" aria-label="Slot '+(position+1)+': '+spec.name+', '+fish.size+' centimeters" style="--swim-y:'+y+'%;--swim-y2:'+y2+'%;--swim-speed:'+duration+'s;--swim-delay:-'+(position*3%17)+'s;--swim-width:'+width+'px">'+fishIcon(spec,true)+'</span>';
+ }).join('');
+ const slotButtons=Array.from({length:cap},(_,slot)=>{
+  const fish=residents.get(slot),spec=fish&&F.FISH.find(x=>x.id===fish.id);
+  const selected=state.aquariumFishFrom===slot;
+  return '<button class="aquarium-fish-slot '+(fish?'occupied':'empty')+' '+(selected?'selected':'')+'" data-action="fish-aqua-slot" data-slot="'+slot+'" aria-pressed="'+selected+'" aria-label="Tank slot '+(slot+1)+': '+(spec?spec.name:'empty')+'"><b>'+(slot+1)+'</b>'+(spec?fishIcon(spec):'<span>＋</span>')+'<small>'+(spec?spec.name:'EMPTY')+'</small></button>';
+ }).join('');
+ const room='<section class="aquarium-room"><div class="aquarium-room-title"><b>ESTATE AQUARIUM · TIER '+n.tank+'/10</b><small>'+n.fish.length+'/'+cap+' fish · '+n.aquarium.stamps.length+'/'+stampLimit+' stamps</small></div>'+
+  '<div class="aquarium-display aquarium-tier-'+n.tank+'"><div class="aquarium-tank aquarium-bg-'+background.id+' '+(editing?'editing':'')+'" style="--aquarium-tier:'+n.tank+';" aria-label="Animated '+background.name+' aquarium, '+n.fish.length+' of '+cap+' fish, '+n.aquarium.stamps.length+' stamps"><div class="aquarium-back-glow"></div><div class="aquarium-back-water"></div><div class="aquarium-floor" aria-hidden="true">🪨 🌿 🪸 🐚 🌾 🪸 🌿</div>'+stampLayers+occupants+
+  (editing&&state.aquariumStamp?'<button class="aquarium-placement-canvas" data-action="fish-aqua-stamp-place" aria-label="Tap a location in the aquarium to place the selected stamp"></button>':'')+
+  '<div class="aquarium-light" aria-hidden="true"></div></div></div></section>';
+ const editor=editing?'<section class="aquarium-editor"><div class="aquarium-edit-head"><b>BACKGROUNDS</b><small>Catch new species to unlock themes</small></div><div class="aquarium-themes">'+theme+'</div>'+
+  '<div class="aquarium-edit-head"><b>STAMPS · '+n.aquarium.stamps.length+'/'+stampLimit+'</b><small>'+((state.aquariumStamp)?'Tap a spot in the tank to place':'Select an unlocked stamp, then tap the tank')+'</small></div><div class="aquarium-stamp-palette">'+stampCards+'</div>'+
+  '<div class="aquarium-edit-head"><b>FISH SLOTS · '+n.fish.length+'/'+cap+'</b><small>'+(state.aquariumFishFrom===null?'Select a fish, then another slot to move or swap it':'Select its destination slot')+'</small></div><div class="aquarium-fish-slots">'+slotButtons+'</div></section>':'';
+ return '<div class="nutravaganza-head"><h1>🐠 ESTATE AQUARIUM</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="wharf">🎣 WHARF</button><button class="btn ghost" data-nav="homestead">← ESTATE</button></div></div>'+
+ room+'<div class="aquarium-footer"><span>'+n.fish.length+'/'+cap+' FISH · '+stampLimit+' STAMP SLOTS · TANK '+n.tank+'/10</span><button class="btn secondary" data-action="fish-aqua-edit" aria-pressed="'+editing+'">'+(editing?'✓ FINISH EDITING':'✎ EDIT AQUARIUM')+'</button><button class="btn secondary" data-action="fish-upgrade" data-kind="tank" '+(cost===null||n.dollars<cost?'disabled':'')+'>'+(cost===null?'MAX SIZE':'EXPAND TANK · N$ '+cost)+'</button></div>'+editor;
 }
 function action(name,button,ctx){
  if(!name.startsWith('fish-'))return false;
@@ -89,6 +116,45 @@ function action(name,button,ctx){
   const spec=F.BAITS.find(b=>b.id===button.dataset.bait);
   if(spec&&spec.level<=F.ensure(save).baitTier)state.fishBait=spec.id;
   render();return true;
+ }
+ if(name==='fish-aqua-edit'){
+  state.aquariumEditing=!state.aquariumEditing;state.aquariumStamp=null;state.aquariumFishFrom=null;render();return true;
+ }
+ if(name==='fish-aqua-stamp-select'){
+  const id=button.dataset.stamp,n=F.ensure(save);
+  if(!state.aquariumEditing||!F.stampUnlocked(n,id)){notice('CATCH THE REQUIRED FISH TO UNLOCK THIS STAMP');return true;}
+  state.aquariumStamp=state.aquariumStamp===id?null:id;render();return true;
+ }
+ if(name==='fish-aqua-slot'){
+  if(!state.aquariumEditing)return true;
+  const slot=Number(button.dataset.slot),n=F.ensure(save);
+  if(!Number.isInteger(slot)||slot<0||slot>=F.capacity(n))return true;
+  if(state.aquariumFishFrom===null){
+   if(!n.fish.some(f=>f.slot===slot))return true;
+   state.aquariumFishFrom=slot;render();return true;
+  }
+  if(state.aquariumFishFrom===slot){state.aquariumFishFrom=null;render();return true;}
+  result=F.moveFish(save,state.aquariumFishFrom,slot);
+  state.aquariumFishFrom=null;
+  if(result.valid){persist();render();root.NutSFX?.play('place');}
+  return true;
+ }
+ if(name==='fish-aqua-stamp-place'){
+  if(!state.aquariumEditing||!state.aquariumStamp)return true;
+  result=F.placeStamp(save,state.aquariumStamp,Number(button.dataset.x),Number(button.dataset.y));
+  if(!result.valid){notice(result.reason==='full'?'UPGRADE THE TANK FOR MORE STAMP SLOTS':'CANNOT PLACE STAMP HERE');return true;}
+  persist();render();root.NutSFX?.play('place');return true;
+ }
+ if(name==='fish-aqua-stamp-remove'){
+  if(!state.aquariumEditing)return true;
+  result=F.removeStamp(save,Number(button.dataset.stampIndex));
+  if(result.valid){persist();render();root.NutSFX?.play('select');}return true;
+ }
+ if(name==='fish-aqua-background'){
+  if(!state.aquariumEditing)return true;
+  result=F.chooseBackground(save,button.dataset.background);
+  if(!result.valid){notice('CATCH FISH TO UNLOCK THAT BACKGROUND');return true;}
+  persist();render();root.NutSFX?.play('place');return true;
  }
  if(name==='fish-rod-buy')result=F.buyRod(save,button.dataset.rod);
  else if(name==='fish-rod-equip')result=F.equipRod(save,button.dataset.rod);
