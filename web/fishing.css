@@ -31,9 +31,9 @@
 .aquarium-tank::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(110deg,transparent 0 75px,#ffffff12 78px 86px,transparent 89px 220px)}
 .aquarium-light{position:absolute;inset:0 0 auto;height:22%;background:linear-gradient(#d0f5e533,transparent)}
 .aquarium-floor{position:absolute;bottom:0;left:0;right:0;white-space:nowrap;text-align:center;font-size:clamp(26px,6vw,45px);background:linear-gradient(transparent,#b4b084 75%);padding-top:30px}
-.aquarium-fish{position:absolute;left:0;display:flex;align-items:center;gap:3px;white-space:nowrap;font-size:clamp(27px,6vw,56px);filter:drop-shadow(1px 3px 3px #17323e);animation:fish-swim var(--fish-speed,12s) linear var(--fish-delay,0s) infinite alternate}
+.aquarium-fish{position:absolute;left:0;display:flex;align-items:center;gap:3px;white-space:nowrap;font-size:clamp(27px,6vw,56px);filter:drop-shadow(1px 3px 3px #17323e);animation:fish-swim var(--fish-speed,12s) linear var(--fish-delay,0s) infinite}
 .aquarium-fish small{font-size:10px;border-radius:5px;padding:2px 3px;background:#05395199;color:#e7fafb}
-@keyframes fish-swim{from{transform:translateX(-95px) scaleX(1)}49%{transform:translateX(calc(100vw - 150px)) scaleX(1)}50%{transform:translateX(calc(100vw - 150px)) scaleX(-1)}to{transform:translateX(-95px) scaleX(-1)}}
+@keyframes fish-swim{0%{left:-95px;transform:scaleX(1)}48%{left:calc(100% - 35px);transform:scaleX(1)}50%{left:calc(100% - 35px);transform:scaleX(-1)}98%{left:-95px;transform:scaleX(-1)}100%{left:-95px;transform:scaleX(1)}}
 .aquarium-footer{margin:8px 0}.fish-collection{display:flex;gap:6px;flex-wrap:wrap;max-height:135px;overflow-y:auto}
 .fish-specimen{background:#2e5965;border:1px solid #8cb8b9;border-radius:7px;padding:6px 8px;font-size:12px;color:#f5edcf}
 @media(max-width:650px){.fish-layout{grid-template-columns:1fr}.fish-water{height:120px}.fish-wallet .btn{min-height:34px}.aquarium-tank{border-width:8px}}
