@@ -91,7 +91,9 @@ function blockerVisual(c){
  const kind=c.ice?'ice':c.lock?'chain':c.chest?'chest':null;
  const strength=c.ice||c.lock||c.chest||0;
  const layer=sprite?`<span class="overlay blocker-art ${kind}" data-strength="${strength}" aria-hidden="true"><img class="blocker-sprite" src="art/primary/blockers/${sprite}.png" alt="" draggable="false">${c.chest?`<b class="blocker-layer-count">${c.chest}</b>`:''}</span>`:'';
- return layer+(c.jam?'<span class="hazard jam" aria-label="Sticky peanut butter">🍯</span>':'')+(c.fuse?`<span class="hazard fuse" aria-label="Timed acorn, ${c.fuse} moves">💣${c.fuse}</span>`:'');
+ // Tile statuses paint transparent owner-authored art around whatever is in
+ // this board square. Unlike ice/locked-walnut/chest, they never replace a nut.
+ return layer+(c.jam?'<span class="hazard tile-status jam" aria-hidden="true"><img class="status-art" src="art/tile-overlays/game_192/sticky-butter.png" alt="" draggable="false"></span>':'')+(c.fuse?`<span class="hazard tile-status fuse" aria-hidden="true"><img class="status-art" src="art/tile-overlays/game_192/bomb.png" alt="" draggable="false"><b class="status-count">${c.fuse}</b></span>`:'');
 }
 function cellLabel(c,i,w){
  const nut=c.type===null?'empty':c.ice?'ice block':c.lock?'locked walnut':c.chest?'treasure chest':E.TYPES[c.type];

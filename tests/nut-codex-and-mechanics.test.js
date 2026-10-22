@@ -3,7 +3,10 @@ const E=require('../web/engine.js'),F=require('../web/board-features.js'),C=requ
 const base=path.join(__dirname,'../web/art/primary/nuts/elemental');
 const entries=C.entries,elemental=entries.filter(e=>e.group==='elemental');
 assert.equal(elemental.length,15,'only approved 3×5 art is registered');
-assert.deepEqual(C.groups.map(g=>g[0]),['nuts','elemental','specials','blockers','hazards','board','boosters']);
+assert.equal(entries.filter(e=>e.group==='tile-effects').length,16,'All sixteen tile overlay sprites need a Nutdex entry');
+assert.equal(entries.filter(e=>e.group==='tile-effects'&&e.live).length,2,'Only butter and bomb overlays are active');
+assert.ok(entries.some(e=>e.id==='tile-chain-lock'&&!e.live),'Do not confuse future tile lock with anchored walnut');
+assert.deepEqual(C.groups.map(g=>g[0]),['nuts','elemental','specials','blockers','tile-effects','hazards','board','boosters']);
 const playableNuts=E.TYPES.filter(name=>!E.RETIRED_NUTS.includes(name));
 assert.equal(entries.filter(e=>e.group==='nuts'&&e.live).length,playableNuts.length);
 for(const name of playableNuts)assert.ok(entries.some(e=>e.id===name&&e.group==='nuts'&&e.live),'Missing live ordinary nut '+name);

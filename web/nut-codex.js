@@ -403,7 +403,7 @@ const ENTRIES=[
     "name": "Sticky Peanut Butter",
     "group": "hazards",
     "live": true,
-    "art": null,
+    "art": "art/tile-overlays/game_192/sticky-butter.png",
     "symbol": "🍯",
     "effect": "A match or tool removes sticky butter before damaging another shield. Starting at level 110, one sticky layer spreads to a neighbor every third move.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
@@ -413,7 +413,7 @@ const ENTRIES=[
     "name": "Timed Acorn",
     "group": "hazards",
     "live": true,
-    "art": null,
+    "art": "art/tile-overlays/game_192/bomb.png",
     "symbol": "💣",
     "effect": "Countdown starts in the Highlands. Each move reduces the timer; expiry removes TWO moves once. Clearing its tile defuses it.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
@@ -567,7 +567,154 @@ const ENTRIES=[
     "rule": "Inventory power. All powers are obtainable without real payment."
   }
 ];
-const GROUPS=[['nuts','Nuts'],['elemental','Elemental'],['specials','Matches'],['blockers','Blockers'],['hazards','Statuses'],['board','Board'],['boosters','Tools']];
+// Original whole-nut replacement art and the new square-attached effects are distinct.
+ENTRIES.push(...[
+  {
+    "id": "tile-arcane",
+    "name": "Arcane Tile Aura",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/arcane.png",
+    "effect": "Purple runic ring; no board-cell arcane rule exists.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  },
+  {
+    "id": "tile-poison",
+    "name": "Poison Tile Aura",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/poison.png",
+    "effect": "Green poison glow on a board square; no poisoning rule is active.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  },
+  {
+    "id": "tile-frost",
+    "name": "Frost Tile Aura",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/frost.png",
+    "effect": "Ice aura applied to a square; unlike original two-hit ice cubes, this is not a whole-nut blocker.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  },
+  {
+    "id": "tile-radiance",
+    "name": "Radiance Tile Aura",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/radiance.png",
+    "effect": "Sunburst tile overlay; not yet a live cleansing status.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  },
+  {
+    "id": "tile-bomb",
+    "name": "Timed Acorn Overlay",
+    "group": "tile-effects",
+    "live": true,
+    "art": "art/tile-overlays/game_192/bomb.png",
+    "effect": "LIVE: This square has a ticking acorn; its timer decreases per move and expiry costs two moves. A hit defuses it.",
+    "rule": "TILE STATUS · square-attached, drawn transparently over the underlying nut."
+  },
+  {
+    "id": "tile-void-rock",
+    "name": "Void-Rock Tile Aura",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/void-rock.png",
+    "effect": "PREVIEW ONLY: Rock-ring art for a possible tile status, not the current empty holes or whole-piece rock blockers.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  },
+  {
+    "id": "tile-sticky-butter",
+    "name": "Sticky Peanut Butter Overlay",
+    "group": "tile-effects",
+    "live": true,
+    "art": "art/tile-overlays/game_192/sticky-butter.png",
+    "effect": "LIVE: The board square has sticky peanut butter, which absorbs a hit before other protection and can spread every third move.",
+    "rule": "TILE STATUS · square-attached, drawn transparently over the underlying nut."
+  },
+  {
+    "id": "tile-nature-vines",
+    "name": "Nature Vines",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/nature-vines.png",
+    "effect": "Green vines attached to a square; no live vine-tile rule exists.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  },
+  {
+    "id": "tile-shadow",
+    "name": "Shadow Tile Aura",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/shadow.png",
+    "effect": "Shadow swirl status art; not yet a playable square effect.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  },
+  {
+    "id": "tile-fire",
+    "name": "Fire Tile Aura",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/fire.png",
+    "effect": "Warm glow ring applied to a board square; no tile-burning rule is active.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  },
+  {
+    "id": "tile-water",
+    "name": "Water Tile Aura",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/water.png",
+    "effect": "Water swirl overlay; no tile-water status rule is active.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  },
+  {
+    "id": "tile-storm",
+    "name": "Storm Tile Aura",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/storm.png",
+    "effect": "Storm-cloud ring; no active storm-tile rule exists.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  },
+  {
+    "id": "tile-chain-lock",
+    "name": "Tile Chain-Lock Overlay",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/chain-lock.png",
+    "effect": "PREVIEW ONLY: Separate square-lock image. Do not confuse this with the original whole-piece locked walnut, which remains immovable.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  },
+  {
+    "id": "tile-lightning",
+    "name": "Lightning Tile Aura",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/lightning.png",
+    "effect": "Electric ring marking a square; tile-level lightning behavior is not implemented.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  },
+  {
+    "id": "tile-magma",
+    "name": "Magma Tile Aura",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/magma.png",
+    "effect": "Rock-and-lava ring; no tile-level magma mechanic is enabled.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  },
+  {
+    "id": "tile-crystal",
+    "name": "Crystal Tile Aura",
+    "group": "tile-effects",
+    "live": false,
+    "art": "art/tile-overlays/game_192/crystal.png",
+    "effect": "Crystal ring marking a square; no live tile-charge rule exists.",
+    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+  }
+]);
+const GROUPS=[['nuts','Nuts'],['elemental','Elemental'],['specials','Matches'],['blockers','Blockers'],['tile-effects','Tile FX'],['hazards','Statuses'],['board','Board'],['boosters','Tools']];
 const api=Object.freeze({entries:Object.freeze(ENTRIES.map(x=>Object.freeze(x))),groups:Object.freeze(GROUPS.map(x=>Object.freeze(x))),byGroup:group=>ENTRIES.filter(x=>x.group===group)});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutCodex=api;
