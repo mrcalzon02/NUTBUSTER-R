@@ -65,59 +65,86 @@ function shape(level,x,y,w,h){
  default:return Math.abs(x-cx)+Math.abs(y-cy)<=Math.floor((w+h)*0.38);
  }
 }
+// Explicit early-fivefold goal scale, then increasingly demanding later chapters.
+// Budget is allowed to recover slightly on a new map; it never flatlines at 9.
+function difficultyAt(n){
+ n=Math.min(500,Math.max(1,Math.trunc(n)||1));
+ const lerp=(points)=>{for(let i=1;i<points.length;i++)if(n<=points[i][0]){
+  const [a,v]=points[i-1],[b,w]=points[i];return v+(w-v)*(n-a)/(b-a);
+ }return points[points.length-1][1];};
+ const scoreScale=lerp([[1,5],[40,5],[100,4.2],[200,3.2],[500,2.4]]);
+ const quotaScale=lerp([[1,5],[40,5],[100,3.5],[200,2.5],[500,1.8]]);
+ const moves=Math.round(lerp([[1,36],[10,34],[30,31],[70,25],[100,22],[101,23],[150,20],[200,16],[201,19],[250,17],[300,15],[301,18],[350,16],[400,14],[401,17],[450,15],[500,13]]));
+ return {scoreScale,quotaScale,moves};
+}
 function makeLevel(number){
  const n=Math.max(1,Math.min(500,Math.trunc(number)||1)),design=DESIGN.profile(n);
  // 8x9 is the late-game maximum, not the beginner board.
  const w=n<=10?4:n<=30?5:n<=70?6:n<=140?7:8, h=w+1;
  const mask=[]; for(let y=0;y<h;y++)for(let x=0;x<w;x++)mask.push(shape(n,x,y,w,h));
- const chapter=Math.floor((n-1)/100),past200=Math.max(0,n-200),roster=rosterForLevel(n);
- // Difficulty grows progressively for 200 levels, then deliberately exceeds the normal ceiling.
- // Three chapter-one levels were outliers in the reproducible non-booster bot
- // sample. Give them breathing room while human completion data is gathered.
+ const chapter=Math.floor((n-1)/100),roster=rosterForLevel(n),difficulty=difficultyAt(n);
  const teachingGrace=(n===70||n===72||n===98)?3:0;
- const moves=Math.max(9,32-Math.floor(n/12)-Math.floor(past200/39)+design.moveAdjustment+teachingGrace);
- // Chapter 2 approaches the maximum *fair* target at level 200, rather than
- // accidentally becoming easier after the Meadow's late lock/chest stages.
- const factoryRamp=n>100&&n<=200?(n-101)/170:0;
- const goal=Math.round((700+18*n+Math.pow(past200/12,1.35)*55)*(1+factoryRamp));
+ const moves=Math.min(36,Math.max(12,difficulty.moves+teachingGrace));
+ const goal=Math.round((700+18*n+Math.pow(Math.max(0,n-100)/12,1.35)*40)*difficulty.scoreScale);
  const cfg={number:n,chapter:chapter+1,typeCount:roster.length,roster,
   newNut:n>1&&(n-1)%100===0?ORIGINAL[chapterTypeCount(chapter+1)-1]:(NEW_INTRODUCTIONS.find(x=>x.level===n)?.name||null),
   width:w,height:h,mask,moves,goal,
-  ice:design.ice??(n>=3?Math.min(20,1+Math.floor(n/16)):0),
-  locks:design.locks??(n>=28?Math.min(14,1+Math.floor((n-28)/24)):0),
-  chests:design.chests??(n>=68?Math.min(10,1+Math.floor((n-68)/36)):0),
-  jam:design.jam??(n>=110?Math.min(9,1+Math.floor((n-110)/65)):0),
-  bombs:design.bombs??(n>=210?Math.min(5,1+Math.floor((n-210)/90)):0),
+  ice:design.ice??(n>=3?Math.min(24,1+Math.floor(n/8)):0),
+  locks:design.locks??(n>=28?Math.min(17,1+Math.floor((n-28)/15)):0),
+  chests:design.chests??(n>=68?Math.min(13,1+Math.floor((n-68)/26)):0),
+  jam:design.jam??(n>=110?Math.min(12,1+Math.floor((n-110)/40)):0),
+  bombs:design.bombs??(n>=210?Math.min(7,1+Math.floor((n-210)/70)):0),
   fuseTurns:n>=210?Math.max(3,6-Math.floor((n-210)/100)):0,
   title:DESIGN.CHAPTERS[chapter],stageTitle:design.name,hint:design.hint,design};
  // Irregular late-game silhouettes have fewer cells than the rectangular grid.
  // Reserve space for ordinary nuts and guarantee that advertised blocker layers
  // can actually be placed; otherwise a board can start mathematically unwinnable.
  const usable=mask.filter(Boolean).length;
- cfg.ice=Math.min(cfg.ice,Math.floor(usable*.42));
- cfg.locks=Math.min(cfg.locks,Math.floor(usable*.27));
- cfg.chests=Math.min(cfg.chests,Math.floor(usable*.20));
- cfg.jam=Math.min(cfg.jam,Math.floor(usable*.18));
+ // Reserve tangible stock for the new quota before shrinking for board geometry.
+ const goalKind=design.kind==='dual'?(design.secondaryKind||'locks'):design.kind;
+ const legacyPressure=Math.floor((n-1)/55)+(n>100&&n<=200?Math.floor((n-101)/25):0);
+ const previousStock={ice:cfg.ice,locks:cfg.locks,chests:cfg.chests,jam:cfg.jam};
+ const explicitGoal=design.kind==='dual'?design.secondaryTarget??design.objectiveTarget:design.objectiveTarget;
+ const originalQuota=(kind)=>{
+  if(Number.isFinite(explicitGoal)&&explicitGoal>0)return Math.trunc(explicitGoal);
+  if(kind==='ice'||kind==='chests')return Math.min(previousStock[kind]*2,2+legacyPressure);
+  return Math.min(previousStock[kind],1+legacyPressure);
+ };
+ const boostedQuota=['ice','locks','chests','jam'].includes(goalKind)?
+  Math.ceil(originalQuota(goalKind)*difficulty.quotaScale):0;
+ if(goalKind==='ice'||goalKind==='locks'||goalKind==='chests')
+  cfg[goalKind]=Math.max(cfg[goalKind],Math.ceil(boostedQuota/3));
+ if(goalKind==='jam')cfg.jam=Math.max(cfg.jam,boostedQuota);
+ cfg.ice=Math.min(cfg.ice,Math.floor(usable*.44));
+ cfg.locks=Math.min(cfg.locks,Math.floor(usable*.32));
+ cfg.chests=Math.min(cfg.chests,Math.floor(usable*.24));
+ cfg.jam=Math.min(cfg.jam,Math.floor(usable*.30));
  cfg.bombs=Math.min(cfg.bombs,Math.floor(usable*.12));
  // Original illustrated blockers are immovable whole-piece replacements,
  // so reserve >60% of board cells for visible matchable ordinary nuts.
  const capacity=Math.floor(usable*.38);
  while(cfg.ice+cfg.locks+cfg.chests>capacity){
-  const kind=['ice','locks','chests'].sort((a,b)=>cfg[b]-cfg[a])[0];
+  const kind=['ice','locks','chests'].filter(k=>k!==goalKind&&cfg[k])
+   .sort((a,b)=>cfg[b]-cfg[a])[0]||['ice','locks','chests'].filter(k=>cfg[k])
+   .sort((a,b)=>cfg[b]-cfg[a])[0];
   if(!cfg[kind])break;
   cfg[kind]--;
  }
+ // Layers are real hits, visually numbered above the translucent art.
+ cfg.iceLayers=cfg.ice?Math.max(2,Math.min(5,goalKind==='ice'?Math.ceil(boostedQuota/cfg.ice):2)):0;
+ cfg.lockLayers=cfg.locks?Math.max(1,Math.min(5,goalKind==='locks'?Math.ceil(boostedQuota/cfg.locks):1)):0;
+ cfg.chestLayers=cfg.chests?Math.max(2,Math.min(5,goalKind==='chests'?Math.ceil(boostedQuota/cfg.chests):2)):0;
  // Level-book objectives replace the old modulo-ten wheel. Every target must be
  // physically satisfiable by its starting board, even without a purchased booster.
  const factoryObjectiveRamp=n>100&&n<=200?Math.floor((n-101)/25):0;
  const pressure=Math.floor((n-1)/55)+factoryObjectiveRamp;
  const collect=Math.min(n<=100?11:15,4+pressure+Math.floor((n%10)/4));
  const build=(kind,target)=>{
-  if(kind==='ice')return {kind:'ice',target:Math.max(1,Math.min(cfg.ice*2,target||Math.min(cfg.ice*2,2+pressure)))};
-  if(kind==='locks')return {kind:'locks',target:Math.max(1,Math.min(cfg.locks,target||Math.min(cfg.locks,1+pressure)))};
-  if(kind==='chests')return {kind:'chests',target:Math.max(1,Math.min(cfg.chests*2,target||Math.min(cfg.chests*2,2+pressure)))};
-  if(kind==='jam')return {kind:'jam',target:Math.max(1,Math.min(cfg.jam,target||Math.min(cfg.jam,1+pressure)))};
-  if(kind==='collect')return {kind:'collect',color:cfg.roster[n%cfg.typeCount],target:target||collect};
+  if(kind==='ice')return {kind:'ice',target:Math.max(1,Math.min(goalKind==='ice'?boostedQuota:Math.ceil((target||Math.min(cfg.ice*2,2+pressure))*difficulty.quotaScale),cfg.ice*cfg.iceLayers))};
+  if(kind==='locks')return {kind:'locks',target:Math.max(1,Math.min(goalKind==='locks'?boostedQuota:Math.ceil((target||Math.min(cfg.locks,1+pressure))*difficulty.quotaScale),cfg.locks*cfg.lockLayers))};
+  if(kind==='chests')return {kind:'chests',target:Math.max(1,Math.min(goalKind==='chests'?boostedQuota:Math.ceil((target||Math.min(cfg.chests*2,2+pressure))*difficulty.quotaScale),cfg.chests*cfg.chestLayers))};
+  if(kind==='jam')return {kind:'jam',target:Math.max(1,Math.min(goalKind==='jam'?boostedQuota:Math.ceil((target||Math.min(cfg.jam,1+pressure))*difficulty.quotaScale),cfg.jam))};
+  if(kind==='collect')return {kind:'collect',color:cfg.roster[n%cfg.typeCount],target:Math.ceil((target||collect)*difficulty.quotaScale)};
   return {kind:'score',target:goal};
  };
  const available=(kind)=>kind==='ice'?cfg.ice>0:kind==='locks'?cfg.locks>0:kind==='chests'?cfg.chests>0:kind==='jam'?cfg.jam>0:true;
@@ -156,7 +183,7 @@ function create(level=1,seed=level*7919){
     };
     chosen=free.sort((a,b)=>priority(a)-priority(b)||a-b)[0];
    }
-   a[chosen][key]=key==='fuse'?cfg.fuseTurns:key==='chest'||key==='ice'?2:1;
+   a[chosen][key]=key==='fuse'?cfg.fuseTurns:key==='chest'?cfg.chestLayers:key==='ice'?cfg.iceLayers:key==='lock'?cfg.lockLayers:1;
    if(key==='lock')a[chosen].type=TYPES.indexOf('walnut');
   }
  }
@@ -482,5 +509,5 @@ function booster(g,type,index){
   won:g.won,lost:g.lost,stages:[stage,...r.stages],objectives:objectiveState(g)};
 }
 function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,turns:g.turns,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,jam:c.jam,fuse:c.fuse,special:c.special,hold:c.hold||0}:null)};}
-const api={TYPES,ORIGINAL,NEW,RETIRED_NUTS,NEW_INTRODUCTIONS,rosterForLevel,BOOSTERS,BOOSTER_META,HOLD_DROPS,makeLevel,create,matches,adjacent,hasMove,gravity,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,applyHold,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
+const api={TYPES,ORIGINAL,NEW,RETIRED_NUTS,NEW_INTRODUCTIONS,rosterForLevel,difficultyAt,BOOSTERS,BOOSTER_META,HOLD_DROPS,makeLevel,create,matches,adjacent,hasMove,gravity,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,applyHold,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
 })(typeof window!=='undefined'?window:globalThis);

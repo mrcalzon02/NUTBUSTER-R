@@ -95,7 +95,7 @@ function blockerVisual(c){
  const kind=c.ice?'ice':c.lock?'chain':c.chest?'chest':null;
  const strength=c.ice||c.lock||c.chest||0;
  const spritePath=c.chest?'art/primary/blockers/chest.png':'art/primary/overlays/'+sprite+'.png';
- const layer=sprite?`<span class="overlay blocker-art ${kind}" data-strength="${strength}" aria-hidden="true"><img class="blocker-sprite" src="${spritePath}" alt="" draggable="false">${c.chest||c.ice>1?`<b class="blocker-layer-count">${strength}</b>`:''}</span>`:'';
+ const layer=sprite?`<span class="overlay blocker-art ${kind}" data-strength="${strength}" aria-hidden="true"><img class="blocker-sprite" src="${spritePath}" alt="" draggable="false">${strength>1?`<b class="blocker-layer-count">${strength}</b>`:''}</span>`:'';
  // Surface hazards layer over the ordinary nut and any pinned cell blocker.
  return layer+(c.jam?'<span class="hazard tile-status jam" aria-hidden="true"><img class="status-art" src="art/primary/overlays/sticky-butter.png" alt="" draggable="false"></span>':'')+(c.fuse?`<span class="hazard tile-status fuse" aria-hidden="true"><img class="status-art" src="art/primary/overlays/bomb.png" alt="" draggable="false"><b class="status-count">${c.fuse}</b></span>`:'');
 }
