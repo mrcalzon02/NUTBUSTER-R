@@ -6,17 +6,18 @@ const root=path.join(__dirname,'..');
 for(const asset of ['nuts/gold-acorn.png','blockers/ice-1.png','blockers/ice-2.png','blockers/chain-1.png','blockers/chest.png'])
  assert.ok(fs.existsSync(path.join(root,'web/art/primary',asset)),asset+' must be shipped');
 for(let n=1;n<=500;n++){
- const expected=Math.min(7,2+Math.ceil(n/100)),g=E.create(n,n*37+99);
- assert.equal(g.cfg.typeCount,expected,'active nut count at level '+n);
- assert.ok(g.cells.every(c=>!c||c.type>=0&&c.type<expected),'unavailable nut at '+n);
- assert.ok(g.cfg.objectives.every(o=>o.kind!=='collect'||o.color<expected),'locked collection target at '+n);
+ const expected=E.rosterForLevel(n),g=E.create(n,n*37+99);
+ assert.equal(g.cfg.typeCount,expected.length,'active nut count at level '+n);
+ assert.ok(g.cells.every(c=>!c||expected.includes(c.type)),'unavailable nut at '+n);
+ assert.ok(g.cfg.objectives.every(o=>o.kind!=='collect'||expected.includes(o.color)),'locked collection target at '+n);
  assert.equal(E.matches(g).hit.size,0,'free starting match at '+n);
  assert.ok(E.hasMove(g),'unplayable start at '+n);
 }
-for(const [level,expected] of [[1,3],[100,3],[101,4],[200,4],[201,5],[300,5],[301,6],[400,6],[401,7],[500,7]]){
+for(const [level,expected] of [[1,3],[40,3],[41,4],[100,4],[101,5],[200,5],[201,7],[300,7],[301,8],[400,8],[401,9],[500,9]]){
  const g=E.create(level,7777+level);
  assert.equal(g.cfg.typeCount,expected);
- assert.equal(g.cfg.newNut,level>1&&(level-1)%100===0?E.TYPES[expected-1]:null);
+ const originalCount=Math.min(7,2+Math.ceil(level/100));
+ assert.equal(g.cfg.newNut,level>1&&(level-1)%100===0?E.TYPES[originalCount-1]:level>=41&&(level-41)%20===0?E.TYPES[g.cfg.roster[originalCount]]:null);
  let matched=false;
  for(let a=0;a<g.cells.length&&!matched;a++)for(const b of [a+1,a+g.cfg.width]){
   if(!E.adjacent(g,a,b))continue;
@@ -26,7 +27,7 @@ for(const [level,expected] of [[1,3],[100,3],[101,4],[200,4],[201,5],[300,5],[30
   g.cells[a].type=left;g.cells[b].type=right;
   if(!ok)continue;
   E.swap(g,a,b);
-  assert.ok(g.cells.every(c=>!c||c.type<expected),'refill or repair unlocked nuts prematurely at '+level);
+  assert.ok(g.cells.every(c=>!c||g.cfg.roster.includes(c.type)),'refill or repair unlocked nuts prematurely at '+level);
   matched=true;break;
  }
  assert.ok(matched,'no scoring swap at '+level);
@@ -50,4 +51,4 @@ app.start(49);assert.match(html,/art\/primary\/blockers\/chain-1\.png/);
 app.start(77);assert.match(html,/art\/primary\/blockers\/chest\.png/);
 app.start(401);assert.match(html,/NEW NUT: GOLD ACORN!/);
 assert.match(fs.readFileSync(path.join(root,'web/style.css'),'utf8'),/\.overlay\.blocker-art .blocker-sprite/);
-console.log('PASS: blocker artwork and 3–7 matchable nut types across all 500 stages');
+console.log('PASS: blocker artwork and staged 3–9 matchable nut types with all 12 new species over 500 stages');
