@@ -345,7 +345,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/overlays/frost.png",
     "symbol": "🧊",
-    "effect": "Translucent ice reveals the ordinary nut underneath. The cell stays pinned and interrupts gravity. Each hit removes one ice layer; the badge shows remaining hits.",
+    "effect": "Translucent ice reveals the ordinary nut underneath. The cell stays pinned. Harder stages may use 3–5 layers; each strike removes exactly one and the badge displays remaining hits.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
   },
   {
@@ -355,7 +355,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/overlays/chain-lock.png",
     "symbol": "⛓️",
-    "effect": "The translucent chain shows the underlying nut. The cell cannot swap or fall until its chain breaks. Strike it or use Master Key to remove the lock.",
+    "effect": "The translucent chain shows the underlying walnut. A stronger chain may take multiple hits; its counter tracks remaining layers. Strike the chain or use Master Key to remove every layer.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
   },
   {
@@ -365,7 +365,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/blockers/chest.png",
     "symbol": "🧰",
-    "effect": "The chest pins the underlying nut. Matching beside it or using a tool removes its layers; the badge shows remaining hits. Once opened, that nut becomes movable.",
+    "effect": "The chest pins the underlying nut. Harder stages can require 3–5 strikes; the badge shows remaining layers. Opening every layer frees the nut.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
   },
   {

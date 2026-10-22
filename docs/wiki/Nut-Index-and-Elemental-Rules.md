@@ -25,7 +25,7 @@ An elemental variant retains its underlying ordinary color for matching. When it
 | Arcane | Recolor two adjacent ordinary nuts to the activated color |
 
 ## Live rules explained in the index
-Ice blocks are immovable two-layer replacement pieces. Chained walnuts cannot swap, fall or be transported until unlocked. Treasure chests are immovable two-hit replacement pieces. Matching beside any of these damages a layer. Butter absorbs a hit before other shields and spreads every third move. Timed acorns expire for a penalty of two moves. A master key removes all chain layers even under butter. Special matches make rockets, blasts and rainbow nuts.
+Ice blockers ordinarily begin with two layers, but high-pressure stages can seed reinforced 3–5-hit variants, each showing a remaining-hit badge. Chained walnuts cannot swap, fall or be transported until unlocked; stronger chains can also have multiple layers. Treasure chests may require 2–5 strikes. Matching beside any of these damages a layer. Butter absorbs a hit before other shields and spreads every third move. Timed acorns expire for a penalty of two moves. A master key removes all chain layers even under butter. Special matches make rockets, blasts and rainbow nuts.
 
 Conveyors rotate payloads beginning at level 125, portals exchange payloads at 164, and wind tunnels begin at 301. Tile statuses stay in their cells while whole-piece blockers interrupt transport. Void cells and occupied whole-piece blockers break gravity into segments. Rock and crate images are present but are not active blockers.
 
@@ -53,3 +53,8 @@ The new 4×4 transparent effects atlas ships as **sixteen 192×192 RGBA icons** 
 Only **sticky-butter** (`cell.jam`) and **bomb** (`cell.fuse`) already have tested live game rules, so those two sprites now appear in the game and the Nutdex status index. Both icons keep the nut underneath visible and attach to the tile, not the moving nut payload. The timed sprite carries a legible turn counter.
 
 The remaining fourteen images (fire, frost, lightning, water, nature-vines, poison, radiance, shadow, crystal, magma, storm, arcane, chain-lock, void-rock) are displayed in Nutdex under **Tile FX** as previews. There is **no** automatic transfer of elemental-nut rules to identically named tile sprites. `chain-lock.png` is NOT the existing immovable illustrated walnut. `void-rock.png` is NOT the empty board cell mechanic. They need explicit rule design, statuses, lifecycle and tests before activation.
+
+
+## Earlier, stronger 500-level campaign pressure (October 2026)
+
+In response to early tester reports, levels 1–40 now use five times their old score target and request roughly five times as many collection or blocker hits. Blocker levels are backed by real, countable durability (up to five visible layers per shield), not phantom objectives. This is an aggressive challenge target and requires actual human completion-rate testing. Subsequent chapters preserve all board-size thresholds and increase absolute objectives while reducing the move allowance gradually, eliminating the former nine-move plateau from levels 301–500. The numeral on ice/chain/chest overlays represents the remaining **hits**, not a separate nut type. The fifteen elemental whole-nut powers and optional trials remain in development; their saved game and in-board wiring are not certified by the difficulty audit.

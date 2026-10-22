@@ -34,7 +34,10 @@ for(const id of ['ice','chain','chest','jam','fuse','hold','conveyor','portal','
  assert.ok(entries.some(e=>e.id===id&&e.live),'Absent current mechanic '+id);
 for(const id of ['crate','rock'])assert.ok(entries.some(e=>e.id===id&&e.live===false),'Do not promise '+id+' mechanic');
 {
- const g=E.create(3,3390),i=g.cells.findIndex(c=>c&&c.ice===2);assert.ok(i>=0);
+ const g=E.create(3,3390),i=g.cells.findIndex(c=>c&&c.ice>=3);assert.ok(i>=0);
+ // Force this fixture to two hits to test shield priority independently of
+ // the new campaign difficulty schedule, which uses three-hit early ice.
+ g.cells[i].ice=2;
  g.cells[i].jam=1;
  E.booster(g,'row',i);assert.equal(g.cells[i].jam,0);assert.equal(g.cells[i].ice,2,'butter must shield ice');
  E.booster(g,'row',i);assert.equal(g.cells[i].ice,1,'first blow cracks ice');

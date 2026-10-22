@@ -63,7 +63,7 @@ const localStorage={getItem:()=>null,setItem(){}};
 vm.runInNewContext(fs.readFileSync(path.join(root,'web/game.js'),'utf8'),{window,document,localStorage,setTimeout(){},clearTimeout(){},console});
 const app=window.NutbusterApp;
 app.start(3);
-assert.match(html,/art\/primary\/overlays\/frost\.png/);assert.match(html,/data-strength="2"/);
+assert.match(html,/art\/primary\/overlays\/frost\.png/);assert.match(html,/data-strength="3"/,'Level 3 must display the reinforced three-hit ice');
 assert.doesNotMatch(html,/class="overlay ice">❄/,'no gray frost emoji placeholder');
 const icy=app.getState().game.cells.find(c=>c?.ice);
 assert.ok(icy);icy.ice=1;app.nav('home');app.nav('game');
