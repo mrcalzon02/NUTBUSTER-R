@@ -10,10 +10,10 @@
 2. Bottom: alternating opaque caramel backing (tile sizing remains responsive).
 3. Shape boundaries: four-neighbor edge mask (N/E/S/W); use four independent outside edge quads to avoid 47 expensive full tiles.
 4. Convex/concave corners: corner overlays chosen by four cardinal neighbors plus diagonal neighbors. The original caramel border source is the art style anchor.
-5. Mechanics: blockers use overlay layers, never replace the nut piece itself unless the mechanic explicitly occupies the cell.
+5. Mechanics: original illustrated ice, locked walnut, and chest are immovable whole-piece replacements; they temporarily hide their underlying nut. Sticky butter and timed fuses are tile-attached statuses with separate reserved artwork.
 6. Top: match effects, selection, hint and animations. Keep the button grid mounted; independently move nut sprites using recorded pre-clear, post-clear, and post-gravity frames. Never substitute a full board rerender for gravity.
 
-Every adjacent swap consumes a move even if no match occurs. Void areas interrupt gravity by design. A column can contain multiple independent falling segments. Cross/portal mechanics are reserved for later gates; current levels do not implement cross-cell teleports.
+Every allowed adjacent swap consumes one move even when no match occurs; swaps with whole-piece blockers are forbidden. Void areas and occupied whole-piece blockers split gravity. Conveyors (level 125), portals (level 164), and wind (level 301) move only eligible free nut payloads. Portals pause when an endpoint is occupied. Matched neighboring nuts and direct tool strikes remove blockers; the underlying nut appears only once all protection is gone.
 
 ## Campaign nut introductions and illustrated blockers
 

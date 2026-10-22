@@ -25,11 +25,11 @@ An elemental variant retains its underlying ordinary color for matching. When it
 | Arcane | Recolor two adjacent ordinary nuts to the activated color |
 
 ## Live rules explained in the index
-Ice has two separately removable layers. Chains shield a nut but do not prevent swaps. Chests take two hits. Butter absorbs a hit before other shields and spreads every third move. Timed acorns expire for a penalty of two moves. A master key removes all chain layers even under butter. Special matches make rockets, blasts and rainbow nuts.
+Ice blocks are immovable two-layer replacement pieces. Chained walnuts cannot swap, fall or be transported until unlocked. Treasure chests are immovable two-hit replacement pieces. Matching beside any of these damages a layer. Butter absorbs a hit before other shields and spreads every third move. Timed acorns expire for a penalty of two moves. A master key removes all chain layers even under butter. Special matches make rockets, blasts and rainbow nuts.
 
-Conveyors rotate payloads beginning at level 125, portals exchange payloads at 164, and wind tunnels begin at 301. Fixed hazards do not travel with the payload. Void cells break gravity into segments. Rock and crate images are present but are not active blockers.
+Conveyors rotate payloads beginning at level 125, portals exchange payloads at 164, and wind tunnels begin at 301. Tile statuses stay in their cells while whole-piece blockers interrupt transport. Void cells and occupied whole-piece blockers break gravity into segments. Rock and crate images are present but are not active blockers.
 
-Current ordinary nut variants count: 19, with the twelve art expansion varieties rotating into rosters starting at level 41.
+Current core nut identities: 19 registry entries, with one retired closed-pistachio lookalike. Eleven approved expansion varieties enter progressively from level 15; the elemental family remains preview-only.
 
 ## Evidence and follow-up
 The existing engine passed 14 focused behavioral checks for layered ice, chains, butter, timed acorns, portal movement, wind, and animation planning. The new automated test checks the index status labels and sprite-file contract as well as actual engine behavior. Elemental effects and Android index UX are not certified or enabled yet.
