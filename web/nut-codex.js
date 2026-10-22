@@ -345,7 +345,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/blockers/ice-2.png",
     "symbol": "🧊",
-    "effect": "Ice protects the nut beneath it. Each hit removes ONE layer; two-hit ice cracks to one-hit ice, then breaks. The nut remains until a later hit.",
+    "effect": "The illustrated ice block REPLACES the nut until freed. It cannot be swapped or transported and interrupts gravity. Match three nuts beside the ice to crack it one layer, or strike it with a tool. Two-hit ice needs two separate hits before the nut underneath appears.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
   },
   {
@@ -355,7 +355,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/blockers/chain-1.png",
     "symbol": "⛓️",
-    "effect": "A chain shields its nut from clearing; one hit removes one chain layer. Chained nuts can still be swapped. Master Key removes all chains.",
+    "effect": "The original chain artwork is a WHOLE locked walnut, not a tile overlay. It cannot swap, drop, or pass through a gravity column. Match three beside it, strike it with a booster, or use Master Key. Once unlocked, it becomes an ordinary movable walnut.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
   },
   {
@@ -365,7 +365,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/blockers/chest.png",
     "symbol": "🧰",
-    "effect": "A chest needs two separate hits (or a multi-hit tool). Both hits count toward chest objectives; the nut is preserved until unshielded.",
+    "effect": "The illustrated chest REPLACES a nut and remains anchored. Matching beside it or using a strike removes one of its two layers. A multi-hit tool opens it faster. Once opened, the hidden ordinary nut becomes movable.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
   },
   {
@@ -435,7 +435,7 @@ const ENTRIES=[
     "live": true,
     "art": null,
     "symbol": "›",
-    "effect": "From level 125, rotates nut payloads within a marked row every second turn. Ice, locks, butter and chests stay on their squares.",
+    "effect": "From level 125, transports only free nuts every second turn. Whole-piece ice, locked walnuts and chests split belts into shorter independent lanes. Sticky butter remains attached to board tiles.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
   },
   {
@@ -445,7 +445,7 @@ const ENTRIES=[
     "live": true,
     "art": null,
     "symbol": "◎",
-    "effect": "From level 164, exchanges nut payloads between two marked cells every third turn (faster later). The blockers remain fixed.",
+    "effect": "From level 164, swaps free nut payloads between two marked portals. If either end contains a locked walnut, chest or ice block, that portal cycle is skipped.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
   },
   {
@@ -455,7 +455,7 @@ const ENTRIES=[
     "live": true,
     "art": null,
     "symbol": "↕",
-    "effect": "From level 301, rotates a marked column every second turn; from level 401, every turn. Direction reverses after each gust.",
+    "effect": "From level 301, rotates free nut payloads in vertical lanes. A locked walnut, ice block or chest divides the wind into separate movable segments.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
   },
   {

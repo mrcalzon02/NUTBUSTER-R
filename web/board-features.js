@@ -72,6 +72,7 @@ function nextWindDirection(lane,currentTurn){
 }
 function advance(g,turn,snapshot){
  const features=g.cfg.features||{},stages=[];
+ const blocked=i=>!!(g.cells[i]&&(g.cells[i].ice>0||g.cells[i].lock>0||g.cells[i].chest>0));
  const move=(from,to)=>({from,to,type:g.cells[from].type,special:g.cells[from].special,hold:g.cells[from].hold||0});
  function apply(mode,transfers){
   if(!transfers.length)return;
@@ -81,19 +82,22 @@ function advance(g,turn,snapshot){
  }
  for(const belt of features.conveyors||[]){
   if(turn%belt.every)continue;
-  const ids=belt.indices;
-  apply('conveyor',ids.map((from,i)=>move(from,ids[belt.direction==='right'?(i+1)%ids.length:(i+ids.length-1)%ids.length])));
+  const chunks=[];let segment=[];
+  for(const i of belt.indices){if(blocked(i)){if(segment.length>1)chunks.push(segment);segment=[];}else segment.push(i);}
+  if(segment.length>1)chunks.push(segment);
+  for(const ids of chunks)apply('conveyor',ids.map((from,i)=>move(from,ids[belt.direction==='right'?(i+1)%ids.length:(i+ids.length-1)%ids.length])));
  }
  for(const portal of features.portals||[]){
   if(turn%portal.every)continue;
   const [a,b]=portal.indices;
-  apply('portal',[move(a,b),move(b,a)]);
+  if(!blocked(a)&&!blocked(b))apply('portal',[move(a,b),move(b,a)]);
  }
  for(const lane of features.wind||[]){
   if(turn%lane.every)continue;
-  const ids=lane.indices,dir=windDirection(lane,turn);
-  // Vertical wrap is intentional: the gust is an enclosed rotating wind tunnel.
-  apply('wind',ids.map((from,i)=>move(from,ids[
+  const dir=windDirection(lane,turn),chunks=[];let segment=[];
+  for(const i of lane.indices){if(blocked(i)){if(segment.length>1)chunks.push(segment);segment=[];}else segment.push(i);}
+  if(segment.length>1)chunks.push(segment);
+  for(const ids of chunks)apply('wind',ids.map((from,i)=>move(from,ids[
    dir==='down'?(i+1)%ids.length:(i+ids.length-1)%ids.length
   ])));
  }

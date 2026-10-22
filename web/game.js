@@ -83,7 +83,7 @@ function art(category,name,emoji,cls='art'){return `<span class="${cls}"><img cl
 function piece(type){if(type===null||type===undefined)return '';const name=E.TYPES[type];
  return `<img class="piece" src="art/primary/nuts/${name}.png" alt="" draggable="false" onload="this.classList.add('loaded')" onerror="this.style.display='none';this.nextElementSibling.style.visibility='visible'"><span class="fallback" aria-hidden="true">${icons[type]||'🌰'}</span>`;
 }
-function nutVisual(c){return `<span class="nut-visual">${piece(c.type)}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}${c.hold?`<span class="hold-marker" aria-hidden="true"><img src="art/additions/effects/focus-ring.png" alt="" draggable="false"><b>${c.hold}</b></span>`:''}</span>`;}
+function nutVisual(c){return `<span class="nut-visual">${c.ice||c.lock||c.chest?'':piece(c.type)}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}${c.hold?`<span class="hold-marker" aria-hidden="true"><img src="art/additions/effects/focus-ring.png" alt="" draggable="false"><b>${c.hold}</b></span>`:''}</span>`;}
 function blockerVisual(c){
  // Existing original atlas sprites, never gray panels or emoji stand-ins.
  const sprite=c.ice?'ice-'+Math.min(2,c.ice):c.lock?'chain-'+Math.min(2,c.lock):c.chest?'chest':null;
@@ -93,8 +93,8 @@ function blockerVisual(c){
  return layer+(c.jam?'<span class="hazard jam" aria-label="Sticky peanut butter">🍯</span>':'')+(c.fuse?`<span class="hazard fuse" aria-label="Timed acorn, ${c.fuse} moves">💣${c.fuse}</span>`:'');
 }
 function cellLabel(c,i,w){
- const nut=c.type===null?'empty':E.TYPES[c.type];
- const obstacle=c.ice?' ice '+c.ice+' layers':c.lock?' chain locked':c.chest?' chest '+c.chest+' layers':'';
+ const nut=c.type===null?'empty':c.ice?'ice block':c.lock?'locked walnut':c.chest?'treasure chest':E.TYPES[c.type];
+ const obstacle=c.ice?' ice '+c.ice+' layers':c.lock?' chained walnut immovable '+c.lock+' layers':c.chest?' chest '+c.chest+' layers':'';
  const hazard=(c.jam?' sticky butter':'')+(c.fuse?' timed acorn '+c.fuse+' turns':'');
  const hold=c.hold?' held for '+c.hold+' gravity drops':'';
  return nut+obstacle+hazard+hold+' row '+(Math.floor(i/w)+1)+' column '+(i%w+1);
@@ -109,7 +109,7 @@ function featureVisual(features,i){
   (portal?'<span class="board-feature portal" aria-hidden="true">◎</span>':'')+
  (wind?`<span class="board-feature wind" data-wind-direction="${dir}" aria-hidden="true">${dir==='up'?'↑':'↓'}</span>`:'');
 }
-function nutKey(c){return c.type+':'+(c.special||'')+':'+(c.hold||0);}
+function nutKey(c){return c.type+':'+(c.special||'')+':'+(c.hold||0)+':'+Number(!!(c.ice||c.lock||c.chest));}
 function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.jam||0)+':'+(c.fuse||0);}
 function cellMarkup(c,i,w){if(!c)return '<div class="cell void" aria-hidden="true"></div>';
  return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${cellLabel(c,i,w)}" title="${cellLabel(c,i,w)}">${featureVisual(state.game.cfg.features,i)}${nutVisual(c)}${blockerVisual(c)}</button>`;
@@ -201,8 +201,9 @@ function reconcileBoardNuts(){
   vis.style.visibility='';
   // A late transport/fall frame may leave an old image in a reused fixed tile.
   const image=vis.querySelector('.piece');
-  const expected=c.type===null?null:'art/primary/nuts/'+E.TYPES[c.type]+'.png';
-  if(expected&&(!image||image.getAttribute('src')!==expected))vis.outerHTML=nutVisual(c);
+  const expected=c.type===null||c.ice||c.lock||c.chest?null:'art/primary/nuts/'+E.TYPES[c.type]+'.png';
+  if(!expected&&image)vis.outerHTML=nutVisual(c);
+  else if(expected&&(!image||image.getAttribute('src')!==expected))vis.outerHTML=nutVisual(c);
   else if(image?.complete&&image.naturalWidth>0)image.classList.add('loaded');
  }
  board.querySelectorAll('.clearing').forEach(el=>el.classList.remove('clearing'));

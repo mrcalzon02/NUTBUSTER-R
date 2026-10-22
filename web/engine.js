@@ -48,7 +48,7 @@ const BOOSTER_META=Object.freeze({
  shuffle:{label:'Shuffle',targeted:false,tip:'Rearrange nuts while preserving obstacles'},
  extra:{label:'+5 Moves',targeted:false,tip:'Five extra chances to finish'},
  drill:{label:'Deep Drill',targeted:true,tip:'Strike three layers down an entire column'},
- unlock:{label:'Master Key',targeted:false,tip:'Open every chained tile'}
+ unlock:{label:'Master Key',targeted:false,tip:'Release every locked walnut'}
 });
 function rng(seed){let x=(seed>>>0)||0x9e3779b9;return function(){x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296;};}
 function shape(level,x,y,w,h){
@@ -99,6 +99,14 @@ function makeLevel(number){
  cfg.chests=Math.min(cfg.chests,Math.floor(usable*.20));
  cfg.jam=Math.min(cfg.jam,Math.floor(usable*.18));
  cfg.bombs=Math.min(cfg.bombs,Math.floor(usable*.12));
+ // Original illustrated blockers are immovable whole-piece replacements,
+ // so reserve >60% of board cells for visible matchable ordinary nuts.
+ const capacity=Math.floor(usable*.38);
+ while(cfg.ice+cfg.locks+cfg.chests>capacity){
+  const kind=['ice','locks','chests'].sort((a,b)=>cfg[b]-cfg[a])[0];
+  if(!cfg[kind])break;
+  cfg[kind]--;
+ }
  // Level-book objectives replace the old modulo-ten wheel. Every target must be
  // physically satisfiable by its starting board, even without a purchased booster.
  const factoryObjectiveRamp=n>100&&n<=200?Math.floor((n-101)/25):0;
@@ -149,23 +157,25 @@ function create(level=1,seed=level*7919){
     chosen=free.sort((a,b)=>priority(a)-priority(b)||a-b)[0];
    }
    a[chosen][key]=key==='fuse'?cfg.fuseTurns:key==='chest'||key==='ice'?2:1;
+   if(key==='lock')a[chosen].type=TYPES.indexOf('walnut');
   }
  }
  plant(cfg.ice,'ice');plant(cfg.locks,'lock');plant(cfg.chests,'chest');
  plant(cfg.jam,'jam');plant(cfg.bombs,'fuse');
- if(!hasMove(g))shuffle(g);return g;
+ if(matches(g).hit.size||!hasMove(g))shuffle(g);return g;
 }
+function pinned(c){return !!(c&&(c.ice>0||c.lock>0||c.chest>0));}
 function matches(g){const hit=new Set(),groups=[];const {width:w,height:h}=g.cfg;function run(indices){if(indices.length>=3){groups.push(indices);indices.forEach(i=>hit.add(i));}}
- for(let y=0;y<h;y++){let active=[],prev=null;for(let x=0;x<=w;x++){const i=y*w+x,c=x<w?g.cells[i]:null,t=c?c.type:null;if(t!==null&&t===prev)active.push(i);else{run(active);active=t!==null?[i]:[];prev=t;}}}
- for(let x=0;x<w;x++){let active=[],prev=null;for(let y=0;y<=h;y++){const i=y*w+x,c=y<h?g.cells[i]:null,t=c?c.type:null;if(t!==null&&t===prev)active.push(i);else{run(active);active=t!==null?[i]:[];prev=t;}}}
+ for(let y=0;y<h;y++){let active=[],prev=null;for(let x=0;x<=w;x++){const i=y*w+x,c=x<w?g.cells[i]:null,t=c&&!pinned(c)?c.type:null;if(t!==null&&t===prev)active.push(i);else{run(active);active=t!==null?[i]:[];prev=t;}}}
+ for(let x=0;x<w;x++){let active=[],prev=null;for(let y=0;y<=h;y++){const i=y*w+x,c=y<h?g.cells[i]:null,t=c&&!pinned(c)?c.type:null;if(t!==null&&t===prev)active.push(i);else{run(active);active=t!==null?[i]:[];prev=t;}}}
  return {hit,groups};
 }
-function adjacent(g,a,b){const w=g.cfg.width;return a>=0&&b>=0&&a<g.cells.length&&b<g.cells.length&&g.cells[a]&&g.cells[b]&&((Math.abs(a-b)===w)||(Math.floor(a/w)===Math.floor(b/w)&&Math.abs(a-b)===1));}
+function adjacent(g,a,b){const w=g.cfg.width;return a>=0&&b>=0&&a<g.cells.length&&b<g.cells.length&&g.cells[a]&&g.cells[b]&&!pinned(g.cells[a])&&!pinned(g.cells[b])&&((Math.abs(a-b)===w)||(Math.floor(a/w)===Math.floor(b/w)&&Math.abs(a-b)===1));}
 function hasMove(g){for(let a=0;a<g.cells.length;a++)for(const b of [a+1,a+g.cfg.width]){if(!adjacent(g,a,b))continue;
  if(g.cells[a].special||g.cells[b].special)return true;
  const p=g.cells[a].type;g.cells[a].type=g.cells[b].type;g.cells[b].type=p;const ok=matches(g).hit.size>0;g.cells[b].type=g.cells[a].type;g.cells[a].type=p;if(ok)return true;}return false;}
 function swapPayload(a,b){for(const key of ['type','special','hold']){const t=a[key];a[key]=b[key];b[key]=t;}}
-function shuffle(g){const ids=g.cells.map((v,i)=>v?i:-1).filter(i=>i>=0);for(let attempt=0;attempt<100;attempt++){
+function shuffle(g){const ids=g.cells.map((v,i)=>v&&!pinned(v)?i:-1).filter(i=>i>=0);for(let attempt=0;attempt<100;attempt++){
  for(let j=ids.length-1;j>0;j--){const k=Math.floor(g.rand()*(j+1));swapPayload(g.cells[ids[j]],g.cells[ids[k]]);}
  if(matches(g).hit.size===0&&hasMove(g))return true;
  }
@@ -198,7 +208,7 @@ function gravity(g,falls=[]){
    const top=y+1;
    let end=bottom;
    for(let at=bottom;at>=top-1;at--){
-    if(at===top-1||(g.cells[at*w+x].hold>0&&g.cells[at*w+x].type!==null)){
+    if(at===top-1||((g.cells[at*w+x].hold>0||pinned(g.cells[at*w+x]))&&g.cells[at*w+x].type!==null)){
      compact(x,at+1,end);
      end=at-1;
     }
@@ -293,9 +303,21 @@ function newSpecial(groups){
  if(!four)return null;
  return {at:four[Math.floor(four.length/2)],kind:four[1]-four[0]===1?'line-h':'line-v'};
 }
+function blockerNeighbors(g,hit){
+ const w=g.cfg.width,affected=new Set(hit);
+ for(const i of hit){
+  const row=Math.floor(i/w);
+  for(const j of [i-1,i+1,i-w,i+w]){
+   if(j<0||j>=g.cells.length)continue;
+   if(Math.abs(j-i)===1&&Math.floor(j/w)!==row)continue;
+   if(pinned(g.cells[j]))affected.add(j);
+  }
+ }
+ return affected;
+}
 function collapse(g,first){let loops=0,removed=0,cracked=0;const stages=[];let found=first||matches(g);
  while(found.hit.size&&loops<60){loops++;let bonus=0;
-  const before=snapshot(g).cells,ids=[...expandSpecials(g,found.hit)],made=newSpecial(found.groups||[]);
+  const before=snapshot(g).cells,ids=[...blockerNeighbors(g,expandSpecials(g,found.hit))],made=newSpecial(found.groups||[]);
   const summary={removed:0,cracked:0};
   const heldMatches=ids.filter(i=>found.hit.has(i)&&g.cells[i]?.hold>0).length;
   for(const i of ids)damage(g,i,summary);
@@ -315,7 +337,7 @@ function collapse(g,first){let loops=0,removed=0,cracked=0;const stages=[];let f
 }
 function repairMove(g){
  // Deadlock recovery exchanges only two existing nut identities before considering a full shuffle.
- const ids=g.cells.map((v,i)=>v?i:-1).filter(i=>i>=0);
+ const ids=g.cells.map((v,i)=>v&&!pinned(v)?i:-1).filter(i=>i>=0);
  for(let a=0;a<ids.length;a++)for(let b=a+1;b<ids.length;b++){
   const left=g.cells[ids[a]],right=g.cells[ids[b]];if(left.type===right.type)continue;
   const t=left.type;left.type=right.type;right.type=t;
@@ -403,7 +425,7 @@ function swap(g,a,b){
 function applyHold(g,type,index){
  if(g.won||g.lost)return {valid:false,reason:'finished'};
  const drops=HOLD_DROPS[type];if(!drops)return {valid:false,reason:'unknown'};
- if(!Number.isInteger(index)||index<0||index>=g.cells.length||!g.cells[index]||g.cells[index].type===null)return {valid:false,reason:'target'};
+ if(!Number.isInteger(index)||index<0||index>=g.cells.length||!g.cells[index]||g.cells[index].type===null||pinned(g.cells[index]))return {valid:false,reason:'target'};
  const c=g.cells[index];if((c.hold||0)>=drops)return {valid:false,reason:'already-held'};
  c.hold=drops;g.boosterUsed++;g.uses[type]=(g.uses[type]||0)+1;
  return {valid:true,type,index,drops,stages:[],objectives:objectiveState(g)};
