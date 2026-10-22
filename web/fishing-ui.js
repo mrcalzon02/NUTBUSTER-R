@@ -3,7 +3,7 @@
 'use strict';
 const F=root.NutFishing;
 if(!F)throw new Error('NutFishing must load before fishing-ui');
-function fishIcon(spec){return spec.art?'<img class="fish-art" src="'+spec.art+'" alt="" loading="lazy">':spec.icon;}
+function fishIcon(spec,active=false){return spec.art?'<img class="fish-art" src="'+spec.art+'" alt="" loading="'+(active?'eager':'lazy')+'">':spec.icon;}
 function wharf(save,state,E,P){
  const n=F.ensure(save),fight=n.fight,pending=n.pending;
  const bait=state.fishBait||'worm',cap=F.capacity(n);
@@ -28,11 +28,11 @@ function wharf(save,state,E,P){
  let play='';
  if(pending){
   const item=F.FISH.find(s=>s.id===pending.id);
-  play='<div class="fish-decision"><h2>'+fishIcon(item)+' '+item.name+' CAUGHT!</h2><p>'+pending.size+' cm · Worth N$ '+pending.value+'</p><div class="fish-actions"><button class="btn green" data-action="fish-keep" '+(n.fish.length>=cap?'disabled':'')+'>KEEP IN AQUARIUM</button><button class="btn secondary" data-action="fish-sell">SELL · N$ '+pending.value+'</button><button class="btn ghost" data-action="fish-release">RELEASE</button></div></div>';
+  play='<div class="fish-decision"><h2>'+fishIcon(item,true)+' '+item.name+' CAUGHT!</h2><p>'+pending.size+' cm · Worth N$ '+pending.value+'</p><div class="fish-actions"><button class="btn green" data-action="fish-keep" '+(n.fish.length>=cap?'disabled':'')+'>KEEP IN AQUARIUM</button><button class="btn secondary" data-action="fish-sell">SELL · N$ '+pending.value+'</button><button class="btn ghost" data-action="fish-release">RELEASE</button></div></div>';
  }else if(fight){
   const item=F.FISH.find(s=>s.id===fight.id);
   const radius=16+n.rod*2;
-  play='<div class="fish-fight"><div class="fish-fight-head"><b>'+fishIcon(item)+' '+item.name+'</b><small>TURN '+fight.turn+'/34</small></div><div class="fish-water" aria-label="Fish position and moving hook"><div class="fish-catch-zone" style="left:'+Math.max(0,fight.hook-radius)+'%;width:'+radius*2+'%"></div><span class="fish-in-fight" style="left:'+fight.fish+'%">'+fishIcon(item)+'</span><span class="fish-hook" style="left:'+fight.hook+'%">⌄</span></div><div class="fish-gauges"><label>REEL PROGRESS <meter min="0" max="100" value="'+fight.progress+'"></meter>'+Math.round(fight.progress)+'%</label><label>LINE TENSION <meter min="0" max="100" value="'+fight.tension+'" low="25" high="70" optimum="0"></meter>'+Math.round(fight.tension)+'%</label></div><div class="fish-actions"><button class="btn secondary" data-action="fish-left">◀ TRACK</button><button class="btn green" data-action="fish-reel">REEL!</button><button class="btn secondary" data-action="fish-right">TRACK ▶</button><button class="btn ghost" data-action="fish-slack">GIVE LINE</button></div><small>Keep the hook under the fish. Reel when aligned; give line to avoid a snap. Each command advances the fight.</small></div>';
+  play='<div class="fish-fight"><div class="fish-fight-head"><b>'+fishIcon(item,true)+' '+item.name+'</b><small>TURN '+fight.turn+'/34</small></div><div class="fish-water" aria-label="Fish position and moving hook"><div class="fish-catch-zone" style="left:'+Math.max(0,fight.hook-radius)+'%;width:'+radius*2+'%"></div><span class="fish-in-fight" style="left:'+fight.fish+'%">'+fishIcon(item,true)+'</span><span class="fish-hook" style="left:'+fight.hook+'%">⌄</span></div><div class="fish-gauges"><label>REEL PROGRESS <meter min="0" max="100" value="'+fight.progress+'"></meter>'+Math.round(fight.progress)+'%</label><label>LINE TENSION <meter min="0" max="100" value="'+fight.tension+'" low="25" high="70" optimum="0"></meter>'+Math.round(fight.tension)+'%</label></div><div class="fish-actions"><button class="btn secondary" data-action="fish-left">◀ TRACK</button><button class="btn green" data-action="fish-reel">REEL!</button><button class="btn secondary" data-action="fish-right">TRACK ▶</button><button class="btn ghost" data-action="fish-slack">GIVE LINE</button></div><small>Keep the hook under the fish. Reel when aligned; give line to avoid a snap. Each command advances the fight.</small></div>';
  }else{
   const options=F.BAITS.filter(spec=>spec.level<=n.baitTier).map(spec=>
    '<button class="fish-bait '+(bait===spec.id?'selected':'')+'" data-action="fish-select-bait" data-bait="'+spec.id+'" aria-pressed="'+(bait===spec.id)+'"><span>'+fishIcon(spec)+'</span><b>'+spec.name+'</b><small>×'+n.baits[spec.id]+'</small></button>'
@@ -51,7 +51,7 @@ function aquarium(save){
  const n=F.ensure(save),cap=F.capacity(n),cost=F.nextCost('tank',n);
  const occupants=n.fish.map((fish,i)=>{
   const spec=F.FISH.find(x=>x.id===fish.id),top=7+(i*23)%74,seconds=7+(i*3)%13;
-  return '<span class="aquarium-fish" role="img" aria-label="'+spec.name+', '+fish.size+' centimeters" style="top:'+top+'%;--fish-speed:'+seconds+'s;--fish-delay:-'+i*2+'s">'+fishIcon(spec)+'<small>'+spec.name+'</small></span>';
+  return '<span class="aquarium-fish" role="img" aria-label="'+spec.name+', '+fish.size+' centimeters" style="top:'+top+'%;--fish-speed:'+seconds+'s;--fish-delay:-'+i*2+'s">'+fishIcon(spec,true)+'<small>'+spec.name+'</small></span>';
  }).join('');
  const ledger=n.fish.map(f=>{const spec=F.FISH.find(x=>x.id===f.id);return '<span class="fish-specimen">'+fishIcon(spec)+' <b>'+spec.name+'</b> '+f.size+' cm</span>';}).join('');
  return '<div class="nutravaganza-head"><h1>🐠 NUTVALE AQUARIUM</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="fishing">🎣 WHARF</button><button class="btn ghost" data-nav="homestead">← ESTATE</button></div></div><div class="aquarium-tank" aria-label="Animated aquarium, '+n.fish.length+' of '+cap+' fish"><div class="aquarium-light"></div>'+occupants+'<div class="aquarium-floor">🪸 🌿 🪨 🌾 🪸 🌿</div></div><div class="aquarium-footer"><b>'+n.fish.length+'/'+cap+' FISH · TANK TIER '+n.tank+'/10</b><button class="btn secondary" data-action="fish-upgrade" data-kind="tank" '+(cost===null||n.dollars<cost?'disabled':'')+'>'+(cost===null?'MAX CAPACITY':'EXPAND TANK · N$ '+cost)+'</button></div><div class="fish-collection">'+(ledger||'No residents yet. The water is suspiciously tranquil. Try the wharf!')+'</div>';
