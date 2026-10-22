@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "origin": "nut-tile-overlay-effects-package.zip",
+  "drive_file_id": "1lueIZ4zvDhw7eEXM9NUjKoKK7dvXvTaK",
+  "drive_folder_id": "1jGkIW-crPP-0yECCTArvMI7GIfGOHbjW",
+  "sprite_dimensions": [
+    192,
+    192
+  ],
+  "color_mode": "RGBA",
+  "transparent": true,
+  "source_opacity_multiplier": 0.78,
+  "art_layer": "TILE_OVERLAY_ONLY",
+  "sprites": {
+    "arcane": {
+      "path": "game_192/arcane.png",
+      "identity": "TILE_EFFECT"
+    },
+    "poison": {
+      "path": "game_192/poison.png",
+      "identity": "TILE_EFFECT"
+    },
+    "frost": {
+      "path": "game_192/frost.png",
+      "identity": "TILE_EFFECT"
+    },
+    "radiance": {
+      "path": "game_192/radiance.png",
+      "identity": "TILE_EFFECT"
+    },
+    "bomb": {
+      "path": "game_192/bomb.png",
+      "identity": "TILE_EFFECT"
+    },
+    "void-rock": {
+      "path": "game_192/void-rock.png",
+      "identity": "TILE_EFFECT"
+    },
+    "sticky-butter": {
+      "path": "game_192/sticky-butter.png",
+      "identity": "TILE_EFFECT"
+    },
+    "nature-vines": {
+      "path": "game_192/nature-vines.png",
+      "identity": "TILE_EFFECT"
+    },
+    "shadow": {
+      "path": "game_192/shadow.png",
+      "identity": "TILE_EFFECT"
+    },
+    "fire": {
+      "path": "game_192/fire.png",
+      "identity": "TILE_EFFECT"
+    },
+    "water": {
+      "path": "game_192/water.png",
+      "identity": "TILE_EFFECT"
+    },
+    "storm": {
+      "path": "game_192/storm.png",
+      "identity": "TILE_EFFECT"
+    },
+    "chain-lock": {
+      "path": "game_192/chain-lock.png",
+      "identity": "TILE_EFFECT"
+    },
+    "lightning": {
+      "path": "game_192/lightning.png",
+      "identity": "TILE_EFFECT"
+    },
+    "magma": {
+      "path": "game_192/magma.png",
+      "identity": "TILE_EFFECT"
+    },
+    "crystal": {
+      "path": "game_192/crystal.png",
+      "identity": "TILE_EFFECT"
+    }
+  },
+  "live_bindings": {
+    "sticky-butter": "cell.jam",
+    "bomb": "cell.fuse"
+  },
+  "reserved": [
+    "arcane",
+    "poison",
+    "frost",
+    "radiance",
+    "void-rock",
+    "nature-vines",
+    "shadow",
+    "fire",
+    "water",
+    "storm",
+    "chain-lock",
+    "lightning",
+    "magma",
+    "crystal"
+  ],
+  "do_not_replace": "web/art/primary/blockers (whole-nut replacement art)"
+}
