@@ -17,3 +17,15 @@ The design is satire, not real deceptive commerce: users must never be asked for
 The puzzle board is stable: each swap costs one move, including swaps that make no match. Only matched tiles clear, surviving nuts keep their identities and descend via gravity, and new nuts arrive from above in legible animated cascades. Between animations, the board and controls must remain mounted instead of flashing replacement emoji and images. Early levels start at 4×5; the 8×9 board is the late-game size ceiling.
 
 **Functional guarantee:** no decorative claim-only buttons. Test state changes, transaction totals, end screens, sprite stability, controls, and fall traces. UI parody must not compromise accessibility, discoverability of the final total, or offline function.
+
+## Local parody ad rewards (2026-10-22)
+
+The original eight squirrel-product posters are included as optimized local `web/art/ads/*.webp` art, not loaded from an ad exchange. They play in a voluntary **120-second fake advertisement viewer** with a small side-to-side wobble (disabled for reduced-motion preferences), a visual countdown and progress bar, and a clear **Skip · No Reward** control.
+
+The original `Wah wahvoice.mp3` recording loops quietly during a foreground watch, respecting the voice toggle and an ad-only mute control. The ad timer **does not progress while the document is hidden**, and a delayed tick is capped to prevent a resumed phone from crediting minutes of background time. Closing, navigating away or aborting stops audio and cancels the current timer without paying.
+
+**Daily opt-in path:** once per local calendar day, a completed watch awards **750 Golden Nuts** (`saved.coins`) and **one Hammer** (existing booster inventory). The day key persists in the local save and avoids duplicate daily payouts; this is separate from the existing daily-login gift. Gems remain separate and unchanged.
+
+**Fictional shop path:** when an offer is under review, a completed watch applies **50% off only that displayed fictional sticker price**. It does not alter the contents granted or permit real charges. The final checkout still explicitly reveals **TOTAL DUE: FREE ($0.00)**. Discount completion is consumed/reset after that offer and does not transfer to another offer.
+
+No network connection, real ad SDK, billing, analytics, or watch telemetry is required. The fake ad is a satirical optional reward, not a gate on regular level progression or existing freebies.

@@ -110,8 +110,15 @@ for(const item of ladder)assert(boosts.some(([id])=>id===item.id),'Unlocked boos
 assert.equal(rows.filter(r=>r.domain==='avatar-outfit').length,60);
 assert.equal(rows.filter(r=>r.domain==='homestead-tier').length,40);
 assert.equal(rows.filter(r=>r.domain==='campaign-map').length,6);
-assert.equal(rows.filter(r=>r.domain==='fake-ad-splash'&&r.state==='PENDING_IMPORT').length,8,
- 'Do not mark generated but uncommitted fake ads as deployed');
+assert.equal(rows.filter(r=>r.domain==='fake-ad-splash'&&r.state==='IMPLEMENTED').length,8,
+ 'All eight committed local ad posters must remain in the catalog');
+for(const r of rows.filter(r=>r.domain==='fake-ad-splash')){
+ assert.equal(r.lock,'HARD');
+ assert.ok(r.image_path.endsWith('.webp'),'Ads use original compressed poster artwork');
+}
+assert.equal(row('AD-13').image_path,'web/audio/ads/wah-wah-voice.mp3');
+assert.equal(row('AD-12').state,'IMPLEMENTED');
+assert.equal(row('AD-11').state,'IMPLEMENTED');
 assert(progress.includes('gems:15')&&progress.includes('gems:30'),'Gravity-hold gem costs changed');
 assert(engine.includes("const NEW=['beechnut'"),'Expansion roster removed');
 console.log('NUTBUSTER contract verified: '+rows.length+' entries; '+all.length+
