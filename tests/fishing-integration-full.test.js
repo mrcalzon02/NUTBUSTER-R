@@ -79,7 +79,7 @@ for(const fish of F.FISH.filter(x=>x.art)){
  n.pending=null;
  n.fight={id:fish.id,seed:7,rodId:'woodland',turn:0,fish:45,hook:50,progress:0,tension:10};
  const fight=U.wharf(save,{fishBait:'worm'},{BOOSTERS:[]},{unlocked:()=>false});
- assert.ok(fight.includes('src="'+fish.art+'" loading="eager"'),'Encounter sprite should load immediately: '+fish.id);
+ assert.ok(fight.includes('src="'+fish.art+'" alt="" loading="eager"'),'Encounter sprite should load immediately: '+fish.id);
  const saved=JSON.parse(JSON.stringify(save));
  assert.equal(F.ensure(saved,d).fight.id,fish.id,'Encounter lost after serialization: '+fish.id);
  n.fight=null;
