@@ -4,8 +4,8 @@ const base=path.join(__dirname,'../web/art/tile-overlays');
 const manifest=JSON.parse(fs.readFileSync(path.join(base,'manifest.json'),'utf8'));
 const names=Object.keys(manifest.sprites);
 assert.equal(names.length,16,'Exactly 16 specialist tile overlay icons were approved');
-const live=['bomb','sticky-butter'];
-assert.deepEqual(Object.keys(manifest.live_bindings).sort(),live);
+const live=['bomb','sticky-butter','frost','chain-lock'];
+assert.deepEqual(Object.keys(manifest.live_bindings).sort(),['bomb','sticky-butter'],'previous imported package bindings remain preserved');
 for(const name of names){
  const item=manifest.sprites[name],file=path.join(base,item.path);
  assert.ok(fs.existsSync(file),'Missing imported tile overlay: '+name);
@@ -17,19 +17,21 @@ for(const name of names){
  assert.ok(data.length>1000,'Tile overlay unexpectedly empty: '+name);
  const e=C.entries.find(e=>e.id==='tile-'+name&&e.group==='tile-effects');
  assert.ok(e,'NUTDEX Tile FX entry missing for '+name);
- assert.equal(e.live,live.includes(name),'Only pre-existing implemented statuses may be LIVE: '+name);
- assert.equal(e.art,'art/tile-overlays/'+item.path);
+ assert.equal(e.live,live.includes(name),'Four implemented statuses must be LIVE: '+name);
+ assert.equal(e.art,'art/primary/overlays/'+name+'.png');
  const csv=fs.readFileSync(path.join(__dirname,'../docs/contracts/nutbuster-primary-mechanics-and-asset-lock.csv'),'utf8');
  const gitBlob=crypto.createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex');
  assert.ok(csv.includes(gitBlob),'Canonical CSV must protect actual binary identity: '+name);
 }
 const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
 const css=fs.readFileSync(path.join(__dirname,'../web/style.css'),'utf8');
-for(const name of live)assert.ok(game.includes('art/tile-overlays/game_192/'+name+'.png'),'Live effect does not render: '+name);
+for(const name of ['bomb','sticky-butter'])assert.ok(game.includes('art/primary/overlays/'+name+'.png'),'Hazard art not rendered: '+name);
+for(const name of ['frost','chain-lock'])assert.ok(game.includes("?'"+name+"'"),'Missing pinned sprite mapping '+name);
 assert.ok(game.includes('class="status-count"'),'Countdown must stay readable over bomb art');
 assert.ok(css.includes('.cell .hazard.tile-status .status-art'),'Tile art must occupy the square without replacing the nut');
-assert.ok(game.includes("c.ice||c.lock||c.chest?'':piece(c.type)"),'Original whole-piece blocker images must remain replacements');
-assert.equal(C.entries.filter(e=>e.group==='tile-effects'&&e.live).length,2);
+assert.ok(game.includes('piece(c.type)'),'Ordinary nut remains visible beneath tile overlay');
+assert.ok(!game.includes("c.ice||c.lock||c.chest?'':piece(c.type)"),'Pinned cells must not hide the underlying nut');
+assert.equal(C.entries.filter(e=>e.group==='tile-effects'&&e.live).length,4);
 console.log('PASS: 16 PNG tile overlays, SHA contract, Nutdex previews, two active statuses and whole-piece separation');
 
 /* Render both legal stackings: a tile status around a free nut, and a tile
@@ -59,12 +61,12 @@ app.nav('home');app.nav('game');
 function tile(i){const at=page.indexOf('data-cell="'+i+'"');return at<0?'':page.slice(at,page.indexOf('</button>',at));}
 const regular=tile(free),shielded=tile(covered);
 assert.match(regular,/class="piece"/,'Free nut is visible under a sticky overlay');
-assert.match(regular,/art\/tile-overlays\/game_192\/sticky-butter.png/);
+assert.match(regular,/art\/primary\/overlays\/sticky-butter.png/);
 assert.doesNotMatch(regular,/blocker-sprite/,'Status must not fabricate a whole-piece blocker');
-assert.doesNotMatch(shielded,/class="piece"/,'Protected nut remains hidden under original whole-piece artwork');
+assert.match(shielded,/class="piece"/,'Pinned nut must remain visible under translucent ring');
 assert.match(shielded,/blocker-sprite/,'Original immovable blocker image remains visible');
-assert.match(shielded,/art\/tile-overlays\/game_192\/sticky-butter.png/,'Tile status can coexist with whole-piece blocker');
+assert.match(shielded,/art\/primary\/overlays\/sticky-butter.png/,'Tile status can coexist with whole-piece blocker');
 app.start(210);
-assert.match(page,/art\/tile-overlays\/game_192\/bomb.png/);
+assert.match(page,/art\/primary\/overlays\/bomb.png/);
 assert.match(page,/class="status-count">[0-9]+<\/b>/,'The acorn fuse still exposes its remaining turns');
 console.log('PASS: tile status remains visible over both free and anchored nuts without changing the piece identity');

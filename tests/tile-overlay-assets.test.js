@@ -1,0 +1,31 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const root=path.resolve(__dirname,'..'),dir=path.join(root,'web/art/primary/overlays');
+const manifest=JSON.parse(fs.readFileSync(path.join(dir,'manifest.json'),'utf8'));
+const sum=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+assert.equal(manifest.schema,2);
+assert.deepEqual(manifest.layout,[4,4]);assert.deepEqual(manifest.sprite_size,[192,192]);
+assert.equal(Object.keys(manifest.sprites).length,16,'exactly 16 approved tile sprites');
+assert.equal(sum(fs.readFileSync(path.join(root,manifest.source))),manifest.source_sha256);
+for(const [name,sprite] of Object.entries(manifest.sprites)){
+ assert.equal(sprite.path,'art/primary/overlays/'+name+'.png');
+ const image=fs.readFileSync(path.join(root,'web',sprite.path));
+ assert.equal(image.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+ assert.equal(image.readUInt32BE(16),192,name+' width');
+ assert.equal(image.readUInt32BE(20),192,name+' height');
+ assert.equal(image[24],8,'8-bit PNG required');
+ assert.equal(image[25],6,'RGBA transparency required');
+ assert.ok(image.length>1000,name+' truncated');
+ assert.ok(sprite.opacity_multiplier>0&&sprite.opacity_multiplier<.8,name+' insufficient transparency');
+ assert.equal(sum(image),sprite.sha256,name+' file checksum');
+}
+assert.equal(manifest.sprites.bomb.special_crop,'warm-spark overflow above row boundary');
+assert.ok(manifest.sprites.bomb.source_rect[1]<Math.round(manifest.source_size[1]*.75),'bomb fuse must extend beyond grid boundary');
+const C=require('../web/nut-codex.js');
+assert.equal(C.entries.filter(e=>e.group==='tile-effects').length,16);
+for(const name of Object.keys(manifest.sprites))assert.ok(C.entries.some(e=>e.id==='tile-'+name&&e.art==='art/primary/overlays/'+name+'.png'),'Missing player index tile '+name);
+const game=fs.readFileSync(path.join(root,'web/game.js'),'utf8'),ice=fs.readFileSync(path.join(root,'web/ice-effects.js'),'utf8');
+assert.ok(game.includes('piece(c.type)'),'ordinary nut must remain underneath');
+assert.ok(!game.includes("c.ice||c.lock||c.chest?'':piece(c.type)"),'blockers must not hide underlying nut');
+assert.ok(ice.includes('art/primary/overlays/frost.png'),'frost animation must use overlay art');
+console.log('PASS: 16 RGBA overlays, hashes, transparency configuration, dynamic bomb crop and live nut visibility');

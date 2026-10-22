@@ -31,7 +31,7 @@ const second=E.create(40,8521),j=second.cells.findIndex(x=>x?.ice===2);
 const hammer=E.booster(second,'hammer',j);assert.equal(hammer.valid,true);
 assert.deepEqual(Ice.plan(hammer.stages[0]).filter(e=>e.index===j).map(e=>[e.from,e.to,e.breaks]),[[2,1,false],[1,0,true]]);
 function tile(initial){
- const history=[],classes=new Set, image={src:'art/primary/blockers/ice-'+initial+'.png'};
+ const history=[],classes=new Set, image={src:'art/primary/overlays/frost.png'};
  const overlay={dataset:{strength:String(initial)},offsetWidth:42,querySelector:s=>s==='.blocker-sprite'?image:null,
  classList:{add(...names){for(const n of names){classes.add(n);history.push('add:'+n)}},remove(...names){for(const n of names){classes.delete(n);history.push('remove:'+n)}}},
  remove(){history.push('removed');overlay.removed=true}};
@@ -43,7 +43,7 @@ function tile(initial){
  const board={querySelector:s=>t[Number(s.match(/\d+/)[0])]};
  await Ice.animate({before:[c(2),c(1),c(2)],afterClear:[c(1),c(0),c(0)]},board);
  assert.equal(t[0].overlay.dataset.strength,'1');
- assert.ok(t[0].image.src.endsWith('ice-1.png'));
+ assert.ok(t[0].image.src.endsWith('frost.png'));
  assert.equal(t[0].overlay.removed,undefined);
  assert.equal(t[1].overlay.removed,true);
  assert.equal(t[2].overlay.removed,true);
@@ -55,6 +55,6 @@ function tile(initial){
  assert.equal(quiet.overlay.removed,true);assert.equal(quiet.history.includes('add:ice-hit'),false);assert.equal(emitted.length,previous);
  const aborted=tile(2);
  await Ice.animate({before:[c(2)],afterClear:[c(1)]},{querySelector:()=>aborted},{active:()=>false});
- assert.equal(aborted.image.src,'art/primary/blockers/ice-2.png');
+ assert.equal(aborted.image.src,'art/primary/overlays/frost.png');
  console.log('PASS: ice artwork, real engine 2-hit transitions, shake/crack/shatter and reduced motion');
 })().catch(e=>{console.error(e);process.exitCode=1});

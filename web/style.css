@@ -399,3 +399,10 @@
 .nutdex-pane .codex-list{grid-template-columns:1fr}
 .nutdex-pane .codex-tabs{position:sticky;top:42px;z-index:1;background:#251b2bf0}
 @media(orientation:landscape) and (max-height:600px){.nutdex-tab{top:30%;height:70px}.nutdex-pane{width:min(70vw,570px)}}
+
+/* Canonical translucent tile rings show the ordinary nut beneath pinned ice
+   and chain statuses. Existing hit-count badge distinguishes reinforced ice. */
+.cell .overlay.blocker-art.ice .blocker-sprite,
+#app.playing .game-active .cell .overlay.blocker-art.ice .blocker-sprite{width:94%;height:94%;max-width:94%;max-height:94%;opacity:1}
+.cell .overlay.blocker-art.chain .blocker-sprite{width:94%;height:94%;object-fit:contain}
+.cell .overlay.blocker-art.ice[data-strength="2"] .blocker-sprite{filter:drop-shadow(0 0 3px #79e3ff)}

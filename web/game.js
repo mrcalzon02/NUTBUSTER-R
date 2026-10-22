@@ -84,20 +84,20 @@ function art(category,name,emoji,cls='art'){return `<span class="${cls}"><img cl
 function piece(type){if(type===null||type===undefined)return '';const name=E.TYPES[type];
  return `<img class="piece" src="art/primary/nuts/${name}.png" alt="" draggable="false" onload="this.classList.add('loaded')" onerror="this.style.display='none';this.nextElementSibling.style.visibility='visible'"><span class="fallback" aria-hidden="true">${icons[type]||'🌰'}</span>`;
 }
-function nutVisual(c){return `<span class="nut-visual">${c.ice||c.lock||c.chest?'':piece(c.type)}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}${c.hold?`<span class="hold-marker" aria-hidden="true"><img src="art/additions/effects/focus-ring.png" alt="" draggable="false"><b>${c.hold}</b></span>`:''}</span>`;}
+function nutVisual(c){return `<span class="nut-visual">${piece(c.type)}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}${c.hold?`<span class="hold-marker" aria-hidden="true"><img src="art/additions/effects/focus-ring.png" alt="" draggable="false"><b>${c.hold}</b></span>`:''}</span>`;}
 function blockerVisual(c){
- // Existing original atlas sprites, never gray panels or emoji stand-ins.
- const sprite=c.ice?'ice-'+Math.min(2,c.ice):c.lock?'chain-'+Math.min(2,c.lock):c.chest?'chest':null;
+ // The ordinary nut remains visible beneath translucent tile blockers.
+ const sprite=c.ice?'frost':c.lock?'chain-lock':c.chest?'chest':null;
  const kind=c.ice?'ice':c.lock?'chain':c.chest?'chest':null;
  const strength=c.ice||c.lock||c.chest||0;
- const layer=sprite?`<span class="overlay blocker-art ${kind}" data-strength="${strength}" aria-hidden="true"><img class="blocker-sprite" src="art/primary/blockers/${sprite}.png" alt="" draggable="false">${c.chest?`<b class="blocker-layer-count">${c.chest}</b>`:''}</span>`:'';
- // Tile statuses paint transparent owner-authored art around whatever is in
- // this board square. Unlike ice/locked-walnut/chest, they never replace a nut.
- return layer+(c.jam?'<span class="hazard tile-status jam" aria-hidden="true"><img class="status-art" src="art/tile-overlays/game_192/sticky-butter.png" alt="" draggable="false"></span>':'')+(c.fuse?`<span class="hazard tile-status fuse" aria-hidden="true"><img class="status-art" src="art/tile-overlays/game_192/bomb.png" alt="" draggable="false"><b class="status-count">${c.fuse}</b></span>`:'');
+ const spritePath=c.chest?'art/primary/blockers/chest.png':'art/primary/overlays/'+sprite+'.png';
+ const layer=sprite?`<span class="overlay blocker-art ${kind}" data-strength="${strength}" aria-hidden="true"><img class="blocker-sprite" src="${spritePath}" alt="" draggable="false">${c.chest||c.ice>1?`<b class="blocker-layer-count">${strength}</b>`:''}</span>`:'';
+ // Surface hazards layer over the ordinary nut and any pinned cell blocker.
+ return layer+(c.jam?'<span class="hazard tile-status jam" aria-hidden="true"><img class="status-art" src="art/primary/overlays/sticky-butter.png" alt="" draggable="false"></span>':'')+(c.fuse?`<span class="hazard tile-status fuse" aria-hidden="true"><img class="status-art" src="art/primary/overlays/bomb.png" alt="" draggable="false"><b class="status-count">${c.fuse}</b></span>`:'');
 }
 function cellLabel(c,i,w){
- const nut=c.type===null?'empty':c.ice?'ice block':c.lock?'locked walnut':c.chest?'treasure chest':E.TYPES[c.type];
- const obstacle=c.ice?' ice '+c.ice+' layers':c.lock?' chained walnut immovable '+c.lock+' layers':c.chest?' chest '+c.chest+' layers':'';
+ const nut=c.type===null?'empty':E.TYPES[c.type];
+ const obstacle=c.ice?' pinned beneath ice '+c.ice+' hits remaining':c.lock?' pinned beneath a chain '+c.lock+' hits remaining':c.chest?' pinned beneath a chest '+c.chest+' hits remaining':'';
  const hazard=(c.jam?' sticky butter':'')+(c.fuse?' timed acorn '+c.fuse+' turns':'');
  const hold=c.hold?' held for '+c.hold+' gravity drops':'';
  return nut+obstacle+hazard+hold+' row '+(Math.floor(i/w)+1)+' column '+(i%w+1);

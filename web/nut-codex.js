@@ -343,9 +343,9 @@ const ENTRIES=[
     "name": "Ice Shield",
     "group": "blockers",
     "live": true,
-    "art": "art/primary/blockers/ice-2.png",
+    "art": "art/primary/overlays/frost.png",
     "symbol": "🧊",
-    "effect": "The illustrated ice block REPLACES the nut until freed. It cannot be swapped or transported and interrupts gravity. Match three nuts beside the ice to crack it one layer, or strike it with a tool. Two-hit ice needs two separate hits before the nut underneath appears.",
+    "effect": "Translucent ice reveals the ordinary nut underneath. The cell stays pinned and interrupts gravity. Each hit removes one ice layer; the badge shows remaining hits.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
   },
   {
@@ -353,9 +353,9 @@ const ENTRIES=[
     "name": "Chain Shield / Lock",
     "group": "blockers",
     "live": true,
-    "art": "art/primary/blockers/chain-1.png",
+    "art": "art/primary/overlays/chain-lock.png",
     "symbol": "⛓️",
-    "effect": "The original chain artwork is a WHOLE locked walnut, not a tile overlay. It cannot swap, drop, or pass through a gravity column. Match three beside it, strike it with a booster, or use Master Key. Once unlocked, it becomes an ordinary movable walnut.",
+    "effect": "The translucent chain shows the underlying nut. The cell cannot swap or fall until its chain breaks. Strike it or use Master Key to remove the lock.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
   },
   {
@@ -365,7 +365,7 @@ const ENTRIES=[
     "live": true,
     "art": "art/primary/blockers/chest.png",
     "symbol": "🧰",
-    "effect": "The illustrated chest REPLACES a nut and remains anchored. Matching beside it or using a strike removes one of its two layers. A multi-hit tool opens it faster. Once opened, the hidden ordinary nut becomes movable.",
+    "effect": "The chest pins the underlying nut. Matching beside it or using a tool removes its layers; the badge shows remaining hits. Once opened, that nut becomes movable.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
   },
   {
@@ -403,7 +403,7 @@ const ENTRIES=[
     "name": "Sticky Peanut Butter",
     "group": "hazards",
     "live": true,
-    "art": "art/tile-overlays/game_192/sticky-butter.png",
+    "art": "art/primary/overlays/sticky-butter.png",
     "symbol": "🍯",
     "effect": "A match or tool removes sticky butter before damaging another shield. Starting at level 110, one sticky layer spreads to a neighbor every third move.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
@@ -413,7 +413,7 @@ const ENTRIES=[
     "name": "Timed Acorn",
     "group": "hazards",
     "live": true,
-    "art": "art/tile-overlays/game_192/bomb.png",
+    "art": "art/primary/overlays/bomb.png",
     "symbol": "💣",
     "effect": "Countdown starts in the Highlands. Each move reduces the timer; expiry removes TWO moves once. Clearing its tile defuses it.",
     "rule": "In the current engine. Hit priority: butter → ice → chain → chest → timer → nut."
@@ -574,7 +574,7 @@ ENTRIES.push(...[
     "name": "Arcane Tile Aura",
     "group": "tile-effects",
     "live": false,
-    "art": "art/tile-overlays/game_192/arcane.png",
+    "art": "art/primary/overlays/arcane.png",
     "effect": "Purple runic ring; no board-cell arcane rule exists.",
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   },
@@ -583,7 +583,7 @@ ENTRIES.push(...[
     "name": "Poison Tile Aura",
     "group": "tile-effects",
     "live": false,
-    "art": "art/tile-overlays/game_192/poison.png",
+    "art": "art/primary/overlays/poison.png",
     "effect": "Green poison glow on a board square; no poisoning rule is active.",
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   },
@@ -591,17 +591,17 @@ ENTRIES.push(...[
     "id": "tile-frost",
     "name": "Frost Tile Aura",
     "group": "tile-effects",
-    "live": false,
-    "art": "art/tile-overlays/game_192/frost.png",
-    "effect": "Ice aura applied to a square; unlike original two-hit ice cubes, this is not a whole-nut blocker.",
-    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+    "live": true,
+    "art": "art/primary/overlays/frost.png",
+    "effect": "LIVE: A pinned frosted tile with visible underlying nut, and one or two required hits.",
+    "rule": "IN GAME: pinned tile status; rendered as translucent art above its nut."
   },
   {
     "id": "tile-radiance",
     "name": "Radiance Tile Aura",
     "group": "tile-effects",
     "live": false,
-    "art": "art/tile-overlays/game_192/radiance.png",
+    "art": "art/primary/overlays/radiance.png",
     "effect": "Sunburst tile overlay; not yet a live cleansing status.",
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   },
@@ -610,7 +610,7 @@ ENTRIES.push(...[
     "name": "Timed Acorn Overlay",
     "group": "tile-effects",
     "live": true,
-    "art": "art/tile-overlays/game_192/bomb.png",
+    "art": "art/primary/overlays/bomb.png",
     "effect": "LIVE: This square has a ticking acorn; its timer decreases per move and expiry costs two moves. A hit defuses it.",
     "rule": "TILE STATUS · square-attached, drawn transparently over the underlying nut."
   },
@@ -619,7 +619,7 @@ ENTRIES.push(...[
     "name": "Void-Rock Tile Aura",
     "group": "tile-effects",
     "live": false,
-    "art": "art/tile-overlays/game_192/void-rock.png",
+    "art": "art/primary/overlays/void-rock.png",
     "effect": "PREVIEW ONLY: Rock-ring art for a possible tile status, not the current empty holes or whole-piece rock blockers.",
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   },
@@ -628,7 +628,7 @@ ENTRIES.push(...[
     "name": "Sticky Peanut Butter Overlay",
     "group": "tile-effects",
     "live": true,
-    "art": "art/tile-overlays/game_192/sticky-butter.png",
+    "art": "art/primary/overlays/sticky-butter.png",
     "effect": "LIVE: The board square has sticky peanut butter, which absorbs a hit before other protection and can spread every third move.",
     "rule": "TILE STATUS · square-attached, drawn transparently over the underlying nut."
   },
@@ -637,7 +637,7 @@ ENTRIES.push(...[
     "name": "Nature Vines",
     "group": "tile-effects",
     "live": false,
-    "art": "art/tile-overlays/game_192/nature-vines.png",
+    "art": "art/primary/overlays/nature-vines.png",
     "effect": "Green vines attached to a square; no live vine-tile rule exists.",
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   },
@@ -646,7 +646,7 @@ ENTRIES.push(...[
     "name": "Shadow Tile Aura",
     "group": "tile-effects",
     "live": false,
-    "art": "art/tile-overlays/game_192/shadow.png",
+    "art": "art/primary/overlays/shadow.png",
     "effect": "Shadow swirl status art; not yet a playable square effect.",
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   },
@@ -655,7 +655,7 @@ ENTRIES.push(...[
     "name": "Fire Tile Aura",
     "group": "tile-effects",
     "live": false,
-    "art": "art/tile-overlays/game_192/fire.png",
+    "art": "art/primary/overlays/fire.png",
     "effect": "Warm glow ring applied to a board square; no tile-burning rule is active.",
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   },
@@ -664,7 +664,7 @@ ENTRIES.push(...[
     "name": "Water Tile Aura",
     "group": "tile-effects",
     "live": false,
-    "art": "art/tile-overlays/game_192/water.png",
+    "art": "art/primary/overlays/water.png",
     "effect": "Water swirl overlay; no tile-water status rule is active.",
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   },
@@ -673,7 +673,7 @@ ENTRIES.push(...[
     "name": "Storm Tile Aura",
     "group": "tile-effects",
     "live": false,
-    "art": "art/tile-overlays/game_192/storm.png",
+    "art": "art/primary/overlays/storm.png",
     "effect": "Storm-cloud ring; no active storm-tile rule exists.",
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   },
@@ -681,17 +681,17 @@ ENTRIES.push(...[
     "id": "tile-chain-lock",
     "name": "Tile Chain-Lock Overlay",
     "group": "tile-effects",
-    "live": false,
-    "art": "art/tile-overlays/game_192/chain-lock.png",
-    "effect": "PREVIEW ONLY: Separate square-lock image. Do not confuse this with the original whole-piece locked walnut, which remains immovable.",
-    "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
+    "live": true,
+    "art": "art/primary/overlays/chain-lock.png",
+    "effect": "LIVE: A pinned chained tile with its underlying nut visible; the lock must be broken before movement.",
+    "rule": "IN GAME: pinned tile status; rendered as translucent art above its nut."
   },
   {
     "id": "tile-lightning",
     "name": "Lightning Tile Aura",
     "group": "tile-effects",
     "live": false,
-    "art": "art/tile-overlays/game_192/lightning.png",
+    "art": "art/primary/overlays/lightning.png",
     "effect": "Electric ring marking a square; tile-level lightning behavior is not implemented.",
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   },
@@ -700,7 +700,7 @@ ENTRIES.push(...[
     "name": "Magma Tile Aura",
     "group": "tile-effects",
     "live": false,
-    "art": "art/tile-overlays/game_192/magma.png",
+    "art": "art/primary/overlays/magma.png",
     "effect": "Rock-and-lava ring; no tile-level magma mechanic is enabled.",
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   },
@@ -709,7 +709,7 @@ ENTRIES.push(...[
     "name": "Crystal Tile Aura",
     "group": "tile-effects",
     "live": false,
-    "art": "art/tile-overlays/game_192/crystal.png",
+    "art": "art/primary/overlays/crystal.png",
     "effect": "Crystal ring marking a square; no live tile-charge rule exists.",
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   }

@@ -1,6 +1,6 @@
 /* Two-hit ice: animate each real damage step using existing authored sprite art. */
 (function(root){'use strict';
- const art='art/primary/blockers/';
+ const art='art/primary/overlays/frost.png';
  function plan(stage){
   if(!stage||!Array.isArray(stage.before)||!Array.isArray(stage.afterClear))return [];
   const hits=[];
@@ -27,7 +27,7 @@
    tiles.slice(0,12).forEach((hit,i)=>root.NutSFX?.play('ice',{delay:i*.018,pitch:hit.from>1?.82:1.15}));
    for(const hit of tiles){
     hit.overlay.dataset.strength=String(hit.from);
-    hit.image.src=art+'ice-'+Math.min(2,hit.from)+'.png';
+    hit.image.src=art;
     hit.overlay.classList.remove('ice-hit','ice-damaged','ice-break');
     if(!reduced){void hit.overlay.offsetWidth;hit.overlay.classList.add('ice-hit');}
    }
@@ -39,8 +39,9 @@
      hit.overlay.classList.add('ice-break');
      if(!reduced)root.NutFX?.emit('ice-shatter',hit.tile);
     }else{
-     hit.image.src=art+'ice-'+Math.min(2,hit.to)+'.png';
+     hit.image.src=art;
      hit.overlay.dataset.strength=String(hit.to);
+     const marker=hit.overlay.querySelector('.blocker-layer-count');if(marker)marker.textContent=String(hit.to);
      if(!reduced)hit.overlay.classList.add('ice-damaged');
     }
    }
