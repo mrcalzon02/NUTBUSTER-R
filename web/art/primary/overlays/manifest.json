@@ -1,0 +1,422 @@
+{
+  "layout": [
+    4,
+    4
+  ],
+  "processing": "tools/slice_tile_overlays.py",
+  "role": "nut-tile-overlays-only",
+  "schema": 2,
+  "source": "assets/source/expansion/nut-tile-overlays-4x4.png",
+  "source_sha256": "f0bc54ba511c677a029e1efb1d6d79cdd67a50c0e4b253b4880aadf80b8ddaf3",
+  "source_size": [
+    1254,
+    1254
+  ],
+  "sprite_size": [
+    192,
+    192
+  ],
+  "sprites": {
+    "arcane": {
+      "grid_index": 11,
+      "opacity_multiplier": 0.78,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/arcane.png",
+      "raw_path": "raw_trimmed/arcane.png",
+      "sha256": "a7f3783855dfdb1de73189ba39b722e95209cb7a670fe8498219bff9502ae913",
+      "source_rect": [
+        940,
+        627,
+        1254,
+        940
+      ],
+      "source_sha256": "13d23a759777b90ba137525e180402d5a491e461805de300eb9ed89e9fd6b8b6",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        3,
+        0,
+        300,
+        313
+      ]
+    },
+    "bomb": {
+      "grid_index": 14,
+      "opacity_multiplier": 0.66,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/bomb.png",
+      "raw_path": "raw_trimmed/bomb.png",
+      "sha256": "9c7719c204d18e615701253ef43940a7c14a265ad18c3d12d439171d1051659e",
+      "source_rect": [
+        627,
+        905,
+        940,
+        1254
+      ],
+      "source_sha256": "afac5cacdfc075df94fa7e0d298e301f822af54a12ef1cfc99310b6867cecea3",
+      "special_crop": "warm-spark overflow above row boundary",
+      "trimmed_rect": [
+        18,
+        4,
+        309,
+        309
+      ]
+    },
+    "chain-lock": {
+      "grid_index": 13,
+      "opacity_multiplier": 0.66,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/chain-lock.png",
+      "raw_path": "raw_trimmed/chain-lock.png",
+      "sha256": "b4908ec7222263dfaf78823c7eb47c7662cd650d155ddda950e10a1c703f3d91",
+      "source_rect": [
+        314,
+        940,
+        627,
+        1254
+      ],
+      "source_sha256": "e3618b2867a64710593aa104285ca1a97d4b8a9b24784c12266b4b12b3f5e3ae",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        31,
+        0,
+        307,
+        270
+      ]
+    },
+    "crystal": {
+      "grid_index": 8,
+      "opacity_multiplier": 0.78,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/crystal.png",
+      "raw_path": "raw_trimmed/crystal.png",
+      "sha256": "adadb732eda933878eca50832506b7b3a8afcf515d01f4b5958701d7a58723ab",
+      "source_rect": [
+        0,
+        627,
+        314,
+        940
+      ],
+      "source_sha256": "e86cde0e1d40e51be05c9557e07f3f35c67dd22e69705298d325b4a85f746b7b",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        21,
+        5,
+        314,
+        313
+      ]
+    },
+    "fire": {
+      "grid_index": 0,
+      "opacity_multiplier": 0.78,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/fire.png",
+      "raw_path": "raw_trimmed/fire.png",
+      "sha256": "710d610f20df18673bf311b131f1f8a8f561d8bb7e8e6e2fcf60bea78439029b",
+      "source_rect": [
+        0,
+        0,
+        314,
+        314
+      ],
+      "source_sha256": "ea91be660f001e398a85f5b970f682c799ba876f8f3e8efe17ed51c481e50272",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        22,
+        23,
+        314,
+        314
+      ]
+    },
+    "frost": {
+      "grid_index": 1,
+      "opacity_multiplier": 0.78,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/frost.png",
+      "raw_path": "raw_trimmed/frost.png",
+      "sha256": "2cd51f2bba20c3012449c457e794920dab6c534085b264cfecd03c1194e0729e",
+      "source_rect": [
+        314,
+        0,
+        627,
+        314
+      ],
+      "source_sha256": "2509ca27cd561f4a9971b19122f3bbedbfa92f47fc628571c1b867b2d5b6af6f",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        27,
+        38,
+        305,
+        314
+      ]
+    },
+    "lightning": {
+      "grid_index": 2,
+      "opacity_multiplier": 0.78,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/lightning.png",
+      "raw_path": "raw_trimmed/lightning.png",
+      "sha256": "7e2505062eb9ead0062a3268069a43faee19000d524af8630a564d6cba8c6bc5",
+      "source_rect": [
+        627,
+        0,
+        940,
+        314
+      ],
+      "source_sha256": "526f37bf648ad5c3b223f3e6c6f6a29394c2856f244e7c8a9b89c45fd4992774",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        0,
+        29,
+        291,
+        314
+      ]
+    },
+    "magma": {
+      "grid_index": 9,
+      "opacity_multiplier": 0.78,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/magma.png",
+      "raw_path": "raw_trimmed/magma.png",
+      "sha256": "c613cfcef5ad646ae2863b1b71189459236742c9f69f54b42d1fc74e50201603",
+      "source_rect": [
+        314,
+        627,
+        627,
+        940
+      ],
+      "source_sha256": "89ab65b164ab5f21fbaa56240500d02de8ba0bfb08d0597d592f3c89581e1ab6",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        22,
+        6,
+        309,
+        298
+      ]
+    },
+    "nature-vines": {
+      "grid_index": 4,
+      "opacity_multiplier": 0.78,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/nature-vines.png",
+      "raw_path": "raw_trimmed/nature-vines.png",
+      "sha256": "66cb5628967606a58896b45e1598c2efd2fad3dc422d3286e380f1a2f2658328",
+      "source_rect": [
+        0,
+        314,
+        314,
+        627
+      ],
+      "source_sha256": "524ac6284efbf4d11140d1cd91eaa3bb7d2d3070a74fe29e7a24695adbb11f74",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        26,
+        0,
+        314,
+        313
+      ]
+    },
+    "poison": {
+      "grid_index": 5,
+      "opacity_multiplier": 0.78,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/poison.png",
+      "raw_path": "raw_trimmed/poison.png",
+      "sha256": "2fa8a8fc88de405bfa45f8a7072c4819a1bc2a40cdd31e89bfafd794e600b7f0",
+      "source_rect": [
+        314,
+        314,
+        627,
+        627
+      ],
+      "source_sha256": "01fcdce143950d919e0b72ec9a023b37699d14e227fd412e3e544f855192a5c2",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        28,
+        0,
+        313,
+        313
+      ]
+    },
+    "radiance": {
+      "grid_index": 6,
+      "opacity_multiplier": 0.78,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/radiance.png",
+      "raw_path": "raw_trimmed/radiance.png",
+      "sha256": "78f4b091e2f075916c77b6006fc935745ae624f8b9964756c3c878778e87f512",
+      "source_rect": [
+        627,
+        314,
+        940,
+        627
+      ],
+      "source_sha256": "ee46adfc0c61be96919f364209c5edb23b892f8fdda472495797a966d3a4639c",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        0,
+        0,
+        313,
+        313
+      ]
+    },
+    "shadow": {
+      "grid_index": 7,
+      "opacity_multiplier": 0.78,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/shadow.png",
+      "raw_path": "raw_trimmed/shadow.png",
+      "sha256": "1e5d3bc9edc47fd281f906da1332d99ea84ceff3655d61b6463448ee87537ce2",
+      "source_rect": [
+        940,
+        314,
+        1254,
+        627
+      ],
+      "source_sha256": "b91f2322f625d4ba9d4f7aee58d57416d03f02539a661cac060c3cc3b9961684",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        0,
+        0,
+        301,
+        313
+      ]
+    },
+    "sticky-butter": {
+      "grid_index": 12,
+      "opacity_multiplier": 0.72,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/sticky-butter.png",
+      "raw_path": "raw_trimmed/sticky-butter.png",
+      "sha256": "aa37059ceb51f95548816df95165a7026ff63029e6aaefb3e17e7a8a8c194932",
+      "source_rect": [
+        0,
+        940,
+        314,
+        1254
+      ],
+      "source_sha256": "f2bbbe2c4b63b4401b80fdd48231fbef3fabfb53c844c55986c4bd901a326a56",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        25,
+        0,
+        314,
+        276
+      ]
+    },
+    "storm": {
+      "grid_index": 10,
+      "opacity_multiplier": 0.78,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/storm.png",
+      "raw_path": "raw_trimmed/storm.png",
+      "sha256": "1275d450913a8e235e136989731b3f364d32607f82c2e98e3e200e218169d2e1",
+      "source_rect": [
+        627,
+        627,
+        940,
+        940
+      ],
+      "source_sha256": "0f42e951a7501de8b151bda77928db7fd7c3fe7a77a3043c6860a161828d247b",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        10,
+        0,
+        306,
+        313
+      ]
+    },
+    "void-rock": {
+      "grid_index": 15,
+      "opacity_multiplier": 0.78,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/void-rock.png",
+      "raw_path": "raw_trimmed/void-rock.png",
+      "sha256": "b54d7759a1b468cb79f15fc0409ae26d6c7aaa18338f8d38a9c35d2a09b4fd3a",
+      "source_rect": [
+        940,
+        940,
+        1254,
+        1254
+      ],
+      "source_sha256": "b83755ea7d50786df8276047fc409cf6d70cf45c0971c524e6c7612159fb3377",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        7,
+        0,
+        298,
+        281
+      ]
+    },
+    "water": {
+      "grid_index": 3,
+      "opacity_multiplier": 0.78,
+      "output_pixels": [
+        192,
+        192
+      ],
+      "path": "art/primary/overlays/water.png",
+      "raw_path": "raw_trimmed/water.png",
+      "sha256": "a4ad26900eaab300c70a46dbba222825384e19fb42c7dc708ad67fddad120439",
+      "source_rect": [
+        940,
+        0,
+        1254,
+        314
+      ],
+      "source_sha256": "40e578cf62741b212c40bb2210d7264b6fa88e003bb27d33debd1d267759b6ba",
+      "special_crop": "grid-cell alpha-trim",
+      "trimmed_rect": [
+        4,
+        36,
+        304,
+        314
+      ]
+    }
+  },
+  "whole_nut_special_art": "Preserved independently; these assets are transparent overlaid tile statuses, not ordinary match pieces."
+}
