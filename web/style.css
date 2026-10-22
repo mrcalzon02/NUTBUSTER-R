@@ -406,3 +406,24 @@
 #app.playing .game-active .cell .overlay.blocker-art.ice .blocker-sprite{width:94%;height:94%;max-width:94%;max-height:94%;opacity:1}
 .cell .overlay.blocker-art.chain .blocker-sprite{width:94%;height:94%;object-fit:contain}
 .cell .overlay.blocker-art.ice[data-strength="2"] .blocker-sprite{filter:drop-shadow(0 0 3px #79e3ff)}
+
+/* Full-screen fictional rewarded ad. Keep controls and countdown on-screen. */
+#app:has(.fake-ad-screen) .bottom{display:none}
+.fake-ad-screen{width:min(100%,640px);margin:auto;padding:4px 8px 12px;min-height:calc(100dvh - 75px);display:flex;flex-direction:column;gap:8px}
+.fake-ad-top{display:flex;justify-content:space-between;align-items:center;gap:7px;font-size:10px;color:#fce5b4}
+.fake-ad-top .btn{flex-shrink:0;font-size:10px}
+.fake-ad-poster{position:relative;flex:1;min-height:0;margin:0 auto;width:min(100%,410px);display:flex;align-items:center;justify-content:center}
+.fake-ad-poster img{display:block;max-width:100%;max-height:min(59dvh,700px);height:auto;width:auto;object-fit:contain;box-shadow:0 6px 24px #100614cc;border:2px solid #ddb46d;border-radius:9px;animation:fake-ad-wobble 4.25s ease-in-out infinite alternate;transform-origin:50% 55%}
+.fake-ad-poster figcaption{position:absolute;left:0;right:0;bottom:2px;background:#281428d6;color:#fff0ba;text-align:center;font-size:10px;padding:5px}
+@keyframes fake-ad-wobble{from{transform:rotate(-1.35deg) translateX(-2px)}to{transform:rotate(1.35deg) translateX(2px)}}
+.fake-ad-controls{display:grid;gap:7px;padding:9px 12px;border-radius:9px;border:1px solid #bd8d61;background:#322035;text-align:center}
+.fake-ad-controls strong{font-size:11px;color:#ffdd99}
+.fake-ad-clock{font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums;font-weight:1000;color:#fff4d4}
+.fake-ad-track{height:9px;border-radius:9px;background:#170c1c;overflow:hidden}
+.fake-ad-track span{display:block;width:0;height:100%;background:linear-gradient(90deg,#df8a39,#ffe88d);transition:width .2s linear}
+.fake-ad-caption{font-size:10px;line-height:1.35;color:#e7c39b}
+.fake-ad-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fake-ad-actions .btn{min-height:42px;font-size:11px}
+.fake-ad-discount{font-size:12px;font-weight:900;color:#b1ffa4;text-align:center}
+@media(max-height:650px){.fake-ad-screen{gap:4px}.fake-ad-poster img{max-height:42dvh}.fake-ad-controls{padding:5px 7px}.fake-ad-clock{font-size:20px}}
+@media(prefers-reduced-motion:reduce){.fake-ad-poster img{animation:none}.fake-ad-track span{transition:none}}
