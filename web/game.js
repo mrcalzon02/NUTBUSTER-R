@@ -534,10 +534,75 @@ function closeNutdex(){
  state.nutdexOpen=false;
  screen.querySelector?.('.nutdex-drawer')?.remove?.();
 }
+function fakeAdScreen(){
+ const s=state.adSession;if(!s||!Ads)return '<p>Fake ad unavailable.</p>';
+ const remaining=Ads.remaining(s),progress=Math.round(s.elapsed/Ads.DURATION_MS*100);
+ const reward=s.kind==='daily'?'750 Golden Nuts and 1 Hammer':'50% off this fictional shop offer';
+ return `<section class="fake-ad-screen" aria-label="Fictional rewarded advertisement">
+  <div class="fake-ad-top"><b>SPONSORED BY NUTVALE MARKETING</b><button class="btn ghost" data-action="ad-close" aria-label="Close fake advertisement without a reward">✕ SKIP · NO REWARD</button></div>
+  <figure class="fake-ad-poster"><img src="${s.poster.image}" alt="${s.poster.name}: fictional squirrel product advertisement" draggable="false"><figcaption>${s.poster.name}</figcaption></figure>
+  <div class="fake-ad-controls"><strong>PARODY AD · NO REAL ADVERTISER</strong>
+   <div class="fake-ad-clock" role="timer" data-ad-timer>${Math.floor(remaining/60)}:${String(remaining%60).padStart(2,'0')}</div>
+   <div class="fake-ad-track" role="progressbar" data-ad-progress aria-label="Ad watch progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}"><span style="width:${progress}%"></span></div>
+   <small class="fake-ad-caption">WAH-WAH-WAH! · ${reward} · timer pauses in the background</small>
+   <div class="fake-ad-actions"><button class="btn ghost" data-action="ad-mute">${state.adMuted?'🔇 UNMUTE WAH-WAH':'🔊 MUTE WAH-WAH'}</button>
+    <button class="btn green" data-action="ad-claim" ${s.ready?'':'disabled'}>${s.ready?'CLAIM REWARD':'WATCHING…'}</button></div>
+  </div>
+ </section>`;
+}
+function stopFakeAdTimer(){
+ if(adTicker!==null){clearInterval(adTicker);adTicker=null;}
+ Ads?.stopAudio?.();
+}
+function cancelFakeAd(){
+ stopFakeAdTimer();if(state.adSession)Ads?.cancel?.(state.adSession);
+ state.adSession=null;state.adReturn=null;state.adMuted=false;
+}
+function refreshFakeAd(){
+ const s=state.adSession;if(!Ads||!s||state.page!=='fake-ad')return;
+ Ads.tick(s,adNow(),!document.hidden);
+ const remain=Ads.remaining(s),clock=screen.querySelector('[data-ad-timer]');
+ if(clock)clock.textContent=Math.floor(remain/60)+':'+String(remain%60).padStart(2,'0');
+ const track=screen.querySelector('[data-ad-progress]'),percent=Math.round(s.elapsed/Ads.DURATION_MS*100);
+ if(track){track.setAttribute('aria-valuenow',String(percent));const bar=track.querySelector('span');if(bar)bar.style.width=percent+'%';}
+ if(s.ready){const button=screen.querySelector('[data-action="ad-claim"]');if(button){button.disabled=false;button.textContent='CLAIM REWARD';}}
+}
+function startFakeAd(kind){
+ if(!Ads){notice('FAKE ADS UNAVAILABLE');return;}
+ if(kind==='daily'&&saved.fakeAdDailyDay===Ads.dayKey()){notice('AD BONUS ALREADY CLAIMED TODAY');return;}
+ if(kind==='discount'&&(state.page!=='checkout'||!Number.isInteger(state.checkout))){notice('SELECT AN OFFER FIRST');return;}
+ if(state.page==='fake-ad')return;
+ const offer=kind==='discount'?state.checkout:null;
+ const s=Ads.session(kind,offer,Math.floor(Math.random()*Ads.posters.length),adNow());
+ if(!s)return;
+ stopFakeAdTimer();
+ state.adReturn=state.page;state.adSession=s;state.adMuted=false;state.page='fake-ad';
+ render();
+ Ads.audio(state.sound&&!document.hidden,saved.levels.voice);
+ adTicker=setInterval(refreshFakeAd,250);
+}
+function finishFakeAd(){
+ const s=state.adSession;
+ if(state.page!=='fake-ad'||!Ads?.claim?.(s)){notice('FINISH THE AD TIMER TO CLAIM');return;}
+ const destination=state.adReturn;
+ stopFakeAdTimer();
+ if(s.kind==='daily'&&saved.fakeAdDailyDay!==Ads.dayKey()){
+  saved.fakeAdDailyDay=Ads.dayKey();
+  P.grant(saved,{hammer:1});
+  gain(750,0);persist();
+  notice('AD BONUS · +750 GOLDEN NUTS · +1 HAMMER');
+ }else if(s.kind==='discount'&&s.offer===state.checkout){
+  state.discountOffer=s.offer;
+  notice('50% OFF THE FICTIONAL PRICE · FINAL CHECKOUT STILL FREE');
+ }
+ state.adSession=null;state.adReturn=null;state.adMuted=false;
+ state.page=destination||'rewards';
+ render();playSFX('coin');
+}
 function settings(){const lev=saved.levels||{voice:.9,music:.28,reactions:.38,sfx:.48};return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings"><p class="muted">Independent volume controls for speech, music, reactions and gameplay effects.</p>${[['voice','Announcer'],['music','Music'],['reactions','Match reactions'],['sfx','Game effects']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}<div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div><div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>`;}
 function render(){if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
  screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');screen.classList?.toggle('codex-active',state.page==='codex');
- screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='homestead'?homestead():state.page==='fishing'?window.NutFishingUI.wharf(saved,state,E,P):state.page==='aquarium'?window.NutFishingUI.aquarium(saved):state.page==='codex'?codex():state.page==='settings'?settings():state.page==='checkout'?checkout():state.page==='outcome'?outcome():rewards();
+ screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='homestead'?homestead():state.page==='fishing'?window.NutFishingUI.wharf(saved,state,E,P):state.page==='aquarium'?window.NutFishingUI.aquarium(saved):state.page==='codex'?codex():state.page==='settings'?settings():state.page==='checkout'?checkout():state.page==='fake-ad'?fakeAdScreen():state.page==='outcome'?outcome():rewards();
  window.NutbusterUpdates?.syncStatus?.();
  if(state.page==='campaign'&&state.chapter&&typeof screen.querySelector==='function'){
   const center=()=>{const selected=screen.querySelector('[data-current="true"]'),viewport=screen.querySelector('[data-map-scroll]');
@@ -615,6 +680,11 @@ function action(a,button){
  if(a==='codex-back'){nav(state.codexBack&&state.codexBack!=='codex'?state.codexBack:'home');return;}
  if(a==='nutdex-open'){openNutdex();return;}
  if(a==='nutdex-close'){closeNutdex();return;}
+ if(a==='ad-daily'){startFakeAd('daily');return;}
+ if(a==='ad-discount'){startFakeAd('discount');return;}
+ if(a==='ad-claim'){finishFakeAd();return;}
+ if(a==='ad-close'){const back=state.adReturn||'rewards';cancelFakeAd();state.page=back;render();return;}
+ if(a==='ad-mute'){state.adMuted=!state.adMuted;Ads?.audio?.(state.sound&&!state.adMuted&&!document.hidden,saved.levels.voice);const b=screen.querySelector('[data-action="ad-mute"]');if(b)b.textContent=state.adMuted?'🔇 UNMUTE WAH-WAH':'🔊 MUTE WAH-WAH';return;}
  if(a==='codex-tab'){if(window.NutCodex?.groups.some(([id])=>id===button.dataset.group)){
   state.codexTab=button.dataset.group;
   if(state.page==='game'&&state.nutdexOpen){const content=screen.querySelector?.('.nutdex-content');if(content)content.innerHTML=codex(true);}
@@ -790,6 +860,10 @@ screen.addEventListener('input',e=>{
   screen.querySelectorAll('[data-codex-entry]').forEach(card=>{const show=(card.dataset.codexSearch||'').includes(term);card.hidden=!show;if(show)count++;});
   const empty=screen.querySelector('.codex-empty');if(empty)empty.hidden=count!==0;return;}
  const id=e.target?.dataset?.volume;if(!id||!['voice','music','reactions','sfx'].includes(id))return;saved.levels={...saved.levels,[id]:Number(e.target.value)/100};window.NutAudio?.setLevels?.(saved.levels);if(id==='sfx')window.NutSFX?.setVolume(saved.levels.sfx);persist();const out=e.target.parentElement?.querySelector('output');if(out)out.textContent=e.target.value+'%';});
-window.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.page==='game'&&state.nutdexOpen)closeNutdex();else if(e.key==='Escape'&&state.page==='game')nav('campaign');else if(e.key==='Escape'&&state.page==='checkout')action('checkout-back',{});else if(e.key==='Escape'&&state.page==='codex')action('codex-back',{});});
+document.addEventListener?.('visibilitychange',()=>{
+ if(state.page==='fake-ad')Ads?.audio?.(state.sound&&!state.adMuted&&!document.hidden,saved.levels.voice);
+});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.page==='fake-ad'){const back=state.adReturn||'rewards';cancelFakeAd();state.page=back;render();}
+ else if(e.key==='Escape'&&state.page==='game'&&state.nutdexOpen)closeNutdex();else if(e.key==='Escape'&&state.page==='game')nav('campaign');else if(e.key==='Escape'&&state.page==='checkout')action('checkout-back',{});else if(e.key==='Escape'&&state.page==='codex')action('codex-back',{});});
 window.NutbusterApp={start,nav,getState:()=>state,getSave:()=>saved};render();
 })();
