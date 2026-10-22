@@ -72,11 +72,11 @@ function nextWindDirection(lane,currentTurn){
 }
 function advance(g,turn,snapshot){
  const features=g.cfg.features||{},stages=[];
- const move=(from,to)=>({from,to,type:g.cells[from].type,special:g.cells[from].special});
+ const move=(from,to)=>({from,to,type:g.cells[from].type,special:g.cells[from].special,hold:g.cells[from].hold||0});
  function apply(mode,transfers){
   if(!transfers.length)return;
   const before=snapshot();
-  for(const t of transfers){g.cells[t.to].type=t.type;g.cells[t.to].special=t.special;}
+  for(const t of transfers){g.cells[t.to].type=t.type;g.cells[t.to].special=t.special;g.cells[t.to].hold=t.hold;}
   stages.push({kind:'transport',mode,before,cells:snapshot(),transfers});
  }
  for(const belt of features.conveyors||[]){

@@ -10,6 +10,7 @@ if(!DESIGN)throw new Error('NUTBUSTER level book must load before match-three en
 const FEATURES=typeof module!=='undefined'&&module.exports?require('./board-features.js'):root.NutBoardFeatures;
 if(!FEATURES)throw new Error('Board features must load before the engine');
 const BOOSTERS=['hammer','row','column','cross','blast','color','shuffle','extra','drill','unlock'];
+const HOLD_DROPS=Object.freeze({butter_hold:1,jam_hold:2});
 const BOOSTER_META=Object.freeze({
  hammer:{label:'Hammer',targeted:true,tip:'Break every layer of one stubborn cell'},
  row:{label:'Row Rocket',targeted:true,tip:'Strike one complete row'},
@@ -94,7 +95,7 @@ function makeLevel(number){
  return cfg;
 }
 function create(level=1,seed=level*7919){
- const cfg=makeLevel(level);let rand=rng(seed);const a=cfg.mask.map(v=>v?{type:0,ice:0,lock:0,chest:0,jam:0,fuse:0,special:null}:null);
+ const cfg=makeLevel(level);let rand=rng(seed);const a=cfg.mask.map(v=>v?{type:0,ice:0,lock:0,chest:0,jam:0,fuse:0,special:null,hold:0}:null);
  const g={level:cfg.number,cfg,seed,rand,cells:a,score:0,moves:cfg.moves,won:false,lost:false,combos:0,history:[],boosterUsed:0,turns:0,progress:{ice:0,locks:0,chests:0,jam:0,bombs:0,colors:TYPES.map(()=>0)},uses:{}};
  for(let y=0;y<cfg.height;y++)for(let x=0;x<cfg.width;x++){
   const i=y*cfg.width+x;if(!a[i])continue;let opts=Array.from({length:cfg.typeCount},(_,i)=>i).filter(t=>!(x>=2&&a[i-1]&&a[i-2]&&a[i-1].type===t&&a[i-2].type===t)&&!(y>=2&&a[i-cfg.width]&&a[i-2*cfg.width]&&a[i-cfg.width].type===t&&a[i-2*cfg.width].type===t));a[i].type=opts[Math.floor(rand()*opts.length)];
@@ -134,24 +135,49 @@ function adjacent(g,a,b){const w=g.cfg.width;return a>=0&&b>=0&&a<g.cells.length
 function hasMove(g){for(let a=0;a<g.cells.length;a++)for(const b of [a+1,a+g.cfg.width]){if(!adjacent(g,a,b))continue;
  if(g.cells[a].special||g.cells[b].special)return true;
  const p=g.cells[a].type;g.cells[a].type=g.cells[b].type;g.cells[b].type=p;const ok=matches(g).hit.size>0;g.cells[b].type=g.cells[a].type;g.cells[a].type=p;if(ok)return true;}return false;}
+function swapPayload(a,b){for(const key of ['type','special','hold']){const t=a[key];a[key]=b[key];b[key]=t;}}
 function shuffle(g){const ids=g.cells.map((v,i)=>v?i:-1).filter(i=>i>=0);for(let attempt=0;attempt<100;attempt++){
- for(let j=ids.length-1;j>0;j--){const k=Math.floor(g.rand()*(j+1)),p=g.cells[ids[j]].type;g.cells[ids[j]].type=g.cells[ids[k]].type;g.cells[ids[k]].type=p;}
+ for(let j=ids.length-1;j>0;j--){const k=Math.floor(g.rand()*(j+1));swapPayload(g.cells[ids[j]],g.cells[ids[k]]);}
  if(matches(g).hit.size===0&&hasMove(g))return true;
  }
  // Guaranteed local repair: rebuild types until there is at least one legal match without pre-existing matches.
- for(let tries=0;tries<50;tries++){for(const i of ids)g.cells[i].type=Math.floor(g.rand()*g.cfg.typeCount);if(matches(g).hit.size===0&&hasMove(g))return true;}
+ for(let tries=0;tries<50;tries++){for(const i of ids)if(!g.cells[i].hold)g.cells[i].type=Math.floor(g.rand()*g.cfg.typeCount);if(matches(g).hit.size===0&&hasMove(g))return true;}
  return false;
 }
-function gravity(g,falls=[]){const w=g.cfg.width,h=g.cfg.height; // Void cells separate independent column segments.
- for(let x=0;x<w;x++){let y=h-1;while(y>=0){while(y>=0&&!g.cells[y*w+x])y--;if(y<0)break;const bottom=y;while(y>=0&&g.cells[y*w+x])y--;const top=y+1,survivors=[];
-  for(let yy=bottom;yy>=top;yy--){const c=g.cells[yy*w+x];if(c.type!==null)survivors.push({type:c.type,special:c.special,from:yy*w+x});}
+function gravity(g,falls=[]){
+ const w=g.cfg.width,h=g.cfg.height,didDrop=g.cells.some(c=>c&&c.type===null);
+ function compact(x,top,bottom){
+  if(top>bottom)return;
+  const survivors=[];
+  for(let y=bottom;y>=top;y--){const i=y*w+x,c=g.cells[i];if(c.type!==null)survivors.push({type:c.type,special:c.special,hold:c.hold||0,from:i});}
   const fresh=bottom-top+1-survivors.length;
-  for(let yy=bottom,n=0;yy>=top;yy--,n++){const i=yy*w+x,c=g.cells[i],s=survivors[n];
-   c.type=s?s.type:Math.floor(g.rand()*g.cfg.typeCount);c.special=s?s.special:null;
-   if(s){if(s.from!==i)falls.push({from:s.from,to:i,type:s.type,special:s.special});}
-   else falls.push({from:-1,to:i,startRow:yy-fresh,type:c.type,special:null});
+  for(let y=bottom,n=0;y>=top;y--,n++){
+   const i=y*w+x,c=g.cells[i],s=survivors[n];
+   c.type=s?s.type:Math.floor(g.rand()*g.cfg.typeCount);
+   c.special=s?s.special:null;c.hold=s?s.hold:0;
+   if(s){if(s.from!==i)falls.push({from:s.from,to:i,type:s.type,special:s.special,hold:s.hold});}
+   else falls.push({from:-1,to:i,startRow:y-fresh,type:c.type,special:null,hold:0});
   }
- }}
+ }
+ for(let x=0;x<w;x++){
+  let y=h-1;
+  while(y>=0){
+   while(y>=0&&!g.cells[y*w+x])y--;
+   if(y<0)break;
+   const bottom=y;
+   while(y>=0&&g.cells[y*w+x])y--;
+   const top=y+1;
+   let end=bottom;
+   for(let at=bottom;at>=top-1;at--){
+    if(at===top-1||(g.cells[at*w+x].hold>0&&g.cells[at*w+x].type!==null)){
+     compact(x,at+1,end);
+     end=at-1;
+    }
+   }
+  }
+ }
+ // Gravity only consumes duration if an actual vacancy was resolved, not each turn.
+ if(didDrop)for(const c of g.cells)if(c&&c.hold>0)c.hold--;
 }
 function objectiveState(g){
  return g.cfg.objectives.map(spec=>{
@@ -168,7 +194,7 @@ function damage(g,i,summary){
  if(c.lock>0){c.lock--;g.progress.locks++;summary.cracked++;return;}
  if(c.chest>0){c.chest--;g.progress.chests++;summary.cracked++;return;}
  if(c.fuse>0){c.fuse=0;g.progress.bombs++;summary.cracked++;return;}
- g.progress.colors[c.type]++;c.type=null;c.special=null;summary.removed++;
+ g.progress.colors[c.type]++;c.type=null;c.special=null;c.hold=0;summary.removed++;
 }
 function expandSpecials(g,initial,targetColor){
  const hit=new Set(initial),pending=[...hit],seen=new Set(),w=g.cfg.width;
@@ -242,13 +268,14 @@ function collapse(g,first){let loops=0,removed=0,cracked=0;const stages=[];let f
  while(found.hit.size&&loops<60){loops++;let bonus=0;
   const before=snapshot(g).cells,ids=[...expandSpecials(g,found.hit)],made=newSpecial(found.groups||[]);
   const summary={removed:0,cracked:0};
+  const heldMatches=ids.filter(i=>found.hit.has(i)&&g.cells[i]?.hold>0).length;
   for(const i of ids)damage(g,i,summary);
   removed+=summary.removed;cracked+=summary.cracked;
   if(made&&g.cells[made.at]?.type===null&&!before[made.at]?.special){
    g.cells[made.at].type=before[made.at].type;
    g.cells[made.at].special=made.kind;bonus+=100;
   }
-  g.score+=(ids.length*60+bonus)*Math.min(loops,6);
+  g.score+=(ids.length*60+bonus+heldMatches*120)*Math.min(loops,6);
   const afterClear=snapshot(g).cells,falls=[];gravity(g,falls);stages.push({kind:'cascade',before,afterClear,clear:ids,falls,cells:snapshot(g).cells});
   found=matches(g);
  }
@@ -263,7 +290,7 @@ function repairMove(g){
  for(let a=0;a<ids.length;a++)for(let b=a+1;b<ids.length;b++){
   const left=g.cells[ids[a]],right=g.cells[ids[b]];if(left.type===right.type)continue;
   const t=left.type;left.type=right.type;right.type=t;
-  if(matches(g).hit.size===0&&hasMove(g))return true;
+  if(matches(g).hit.size===0&&hasMove(g)){const h=left.hold;left.hold=right.hold;right.hold=h;const s=left.special;left.special=right.special;right.special=s;return true;}
   right.type=left.type;left.type=t;
  }
  return shuffle(g);
@@ -319,8 +346,8 @@ function advanceHazards(g,result){
 function swap(g,a,b){
  if(g.won||g.lost)return {valid:false,reason:'finished'};
  if(!adjacent(g,a,b))return {valid:false,reason:'adjacency'};
- const ca=g.cells[a],cb=g.cells[b],pa={type:ca.type,special:ca.special},pb={type:cb.type,special:cb.special};
- ca.type=pb.type;ca.special=pb.special;cb.type=pa.type;cb.special=pa.special;
+ const ca=g.cells[a],cb=g.cells[b];
+ swapPayload(ca,cb);
  let found=matches(g);
  let combination=null;
  if(ca.special||cb.special){
@@ -343,6 +370,14 @@ function swap(g,a,b){
   return finishTurn(g,{valid:true,loops:0,removed:0,cracked:0,won:false,lost:g.lost,swap:[a,b],stages});
  }
  g.moves--;return finishTurn(g,{...collapse(g,found),swap:[a,b],specialCombo:combination?.combo||null});
+}
+function applyHold(g,type,index){
+ if(g.won||g.lost)return {valid:false,reason:'finished'};
+ const drops=HOLD_DROPS[type];if(!drops)return {valid:false,reason:'unknown'};
+ if(!Number.isInteger(index)||index<0||index>=g.cells.length||!g.cells[index]||g.cells[index].type===null)return {valid:false,reason:'target'};
+ const c=g.cells[index];if((c.hold||0)>=drops)return {valid:false,reason:'already-held'};
+ c.hold=drops;g.boosterUsed++;g.uses[type]=(g.uses[type]||0)+1;
+ return {valid:true,type,index,drops,stages:[],objectives:objectiveState(g)};
 }
 function booster(g,type,index){
  if(g.won)return {valid:false,reason:'finished'};
@@ -395,6 +430,6 @@ function booster(g,type,index){
  return {...r,valid:true,type,removed:r.removed+summary.removed,cracked:r.cracked+summary.cracked,
   won:g.won,lost:g.lost,stages:[stage,...r.stages],objectives:objectiveState(g)};
 }
-function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,turns:g.turns,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,jam:c.jam,fuse:c.fuse,special:c.special}:null)};}
-const api={TYPES,BOOSTERS,BOOSTER_META,makeLevel,create,matches,adjacent,hasMove,gravity,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
+function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,turns:g.turns,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,jam:c.jam,fuse:c.fuse,special:c.special,hold:c.hold||0}:null)};}
+const api={TYPES,BOOSTERS,BOOSTER_META,HOLD_DROPS,makeLevel,create,matches,adjacent,hasMove,gravity,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,applyHold,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
 })(typeof window!=='undefined'?window:globalThis);

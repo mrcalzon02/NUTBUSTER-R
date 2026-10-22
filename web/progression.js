@@ -33,6 +33,10 @@ const BUNDLES=Object.freeze({
  finale:{cross:2,unlock:1,drill:1}
 });
 const LEVEL_BY_TOOL=Object.freeze(Object.fromEntries(LADDER.map(item=>[item.id,item.level])));
+const HOLD_ITEMS=Object.freeze({
+ butter_hold:Object.freeze({label:'Peanut Butter',drops:1,gems:15,art:'art/primary/nuts/peanut.png',tip:'Hold one nut for one actual gravity drop; held matches triple that nut\'s points'}),
+ jam_hold:Object.freeze({label:'Jam',drops:2,gems:30,art:'art/additions/economy/hourglass.png',tip:'Hold one nut for two actual gravity drops; held matches triple that nut\'s points'})
+});
 const nonnegative=n=>Number.isFinite(Number(n))?Math.max(0,Math.min(999999,Math.trunc(Number(n)))):0;
 function normalizedMap(input){const result={};if(input&&typeof input==='object'&&!Array.isArray(input))
  for(const [key,value] of Object.entries(input))if(Object.prototype.hasOwnProperty.call(LEVEL_BY_TOOL,key))result[key]=nonnegative(value);
@@ -52,6 +56,8 @@ function migrate(save){
   for(const item of LADDER)stock[item.id]=(item.level===1||hasCleared(save,item.level)||previous>=item.level)?item.starter:0;
   save.boosterInventory=stock;
  }else save.boosterInventory=normalizedMap(save.boosterInventory);
+ if(!save.holdInventory||typeof save.holdInventory!=='object'||Array.isArray(save.holdInventory))save.holdInventory={};
+ for(const id of Object.keys(HOLD_ITEMS))save.holdInventory[id]=nonnegative(save.holdInventory[id]);
  if(!save.claimedUnlocks||typeof save.claimedUnlocks!=='object')save.claimedUnlocks={};
  if(!save.claimedLevelRewards||typeof save.claimedLevelRewards!=='object')save.claimedLevelRewards={};
  if(!save.claimedChallengeRewards||typeof save.claimedChallengeRewards!=='object')save.claimedChallengeRewards={};
@@ -64,6 +70,16 @@ function migrate(save){
 function count(save,id){return nonnegative(save.boosterInventory?.[id]);}
 function spend(save,id){if(!unlocked(save,id)||count(save,id)<1)return false;
  save.boosterInventory[id]--;return true;}
+function holdCount(save,id){return HOLD_ITEMS[id]?nonnegative(save.holdInventory?.[id]):0;}
+function buyHold(save,id){
+ const item=HOLD_ITEMS[id];if(!item)return {valid:false,reason:'unknown'};
+ if(nonnegative(save.gems)<item.gems)return {valid:false,reason:'gems',short:item.gems-nonnegative(save.gems)};
+ if(!save.holdInventory||typeof save.holdInventory!=='object')save.holdInventory={};
+ save.gems=nonnegative(save.gems)-item.gems;
+ save.holdInventory[id]=nonnegative(holdCount(save,id)+1);
+ return {valid:true,id,gems:save.gems,stock:holdCount(save,id)};
+}
+function spendHold(save,id){if(!HOLD_ITEMS[id]||holdCount(save,id)<1)return false;save.holdInventory[id]--;return true;}
 function actualPack(save,kind){
  const intended=BUNDLES[kind];
  if(!intended)throw new RangeError('Unknown pack '+kind);
@@ -131,7 +147,7 @@ function claimChallenge(save,index){
  grant(save,reward.contents);
  return {valid:true,contents:reward.contents};
 }
-const api={LADDER,CHALLENGE_STEPS,BUNDLES,LEVEL_BY_TOOL,migrate,unlocked,available,nextUnlock,count,spend,actualPack,grant,packText,kindForLevel,firstClear,challengeProgress,challengeRewards,claimChallenge};
+const api={LADDER,CHALLENGE_STEPS,BUNDLES,LEVEL_BY_TOOL,HOLD_ITEMS,migrate,unlocked,available,nextUnlock,count,spend,holdCount,buyHold,spendHold,actualPack,grant,packText,kindForLevel,firstClear,challengeProgress,challengeRewards,claimChallenge};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutProgress=api;
 })(typeof window!=='undefined'?window:globalThis);
