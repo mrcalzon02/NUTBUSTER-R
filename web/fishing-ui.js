@@ -25,7 +25,7 @@ function wharf(save,state,E,P){
   play='<div class="fish-cast"><h2>CAST A LINE · '+F.DAILY+' FREE WORMS DAILY</h2><div class="fish-bait-row">'+options+'</div><button class="btn green" data-action="fish-cast" '+(!n.baits[bait]?'disabled':'')+'>CAST · '+bait.toUpperCase()+'</button><small>Casting consumes one bait. Escaped fish do not refund it.</small></div>';
  }
  const exchanges=E.BOOSTERS.filter(id=>P.unlocked(save,id)).map(id=>
-  '<button class="fish-exchange" data-action="fish-trade" data-tool="'+id+'" '+(!P.count(save,id)?'disabled':'')+'>'+E.BOOSTER_META[id].label+' ×'+P.count(save,id)+' → '+F.BOOSTER_BAIT[id]+' 🪱</button>'
+  '<button class="fish-exchange" data-action="fish-trade" data-booster="'+id+'" '+(!P.count(save,id)?'disabled':'')+'>'+E.BOOSTER_META[id].label+' ×'+P.count(save,id)+' → '+F.BOOSTER_BAIT[id]+' 🪱</button>'
  ).join('')||'<small>Unlock power-ups in the campaign to exchange them for bait.</small>';
  const craft=n.baitTier>=1?'<div class="fish-actions"><button class="btn ghost" data-action="fish-craft" data-bait="glitter" '+(!n.baits.worm||n.dollars<35?'disabled':'')+'>GLITTER GRUB · 1 🪱 + N$35</button>'+(n.baitTier>=2?'<button class="btn ghost" data-action="fish-craft" data-bait="royal" '+(!n.baits.worm||n.dollars<100?'disabled':'')+'>ROYAL ROE · 1 🪱 + N$100</button>':'')+'</div>':'';
  return '<div class="nutravaganza-head"><h1>🎣 NUTVALE FISHING WHARF</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="aquarium">🐠 AQUARIUM '+n.fish.length+'/'+cap+'</button><button class="btn ghost" data-nav="homestead">← ESTATE</button></div></div><div class="fish-layout"><div class="fish-main"><div class="fish-dock" aria-hidden="true">🛶 MOONNUT WATERFRONT 🌊</div>'+play+'</div><aside class="fish-sidebar"><section class="fish-store"><h2>UPGRADES</h2><div class="fish-upgrades">'+upgrades+'</div>'+craft+'</section><section class="fish-store"><h2>POWER-UP → BAIT</h2><div class="fish-exchanges">'+exchanges+'</div></section></aside></div>';
@@ -49,7 +49,7 @@ function action(name,button,ctx){
   render();return true;
  }
  if(name==='fish-upgrade')result=F.upgrade(save,button.dataset.kind);
- else if(name==='fish-trade')result=F.trade(save,button.dataset.tool,P);
+ else if(name==='fish-trade')result=F.trade(save,button.dataset.booster,P);
  else if(name==='fish-craft')result=F.craft(save,button.dataset.bait);
  else if(name==='fish-cast')result=F.cast(save,state.fishBait||'worm',Math.floor(Math.random()*4294967296));
  else if(['fish-left','fish-right','fish-reel','fish-slack'].includes(name))result=F.step(save,name.slice(5));
