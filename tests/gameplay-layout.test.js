@@ -50,7 +50,7 @@ for(const level of [1,10,30,70,100,200,500]){
 // Regression for the photographed Android level-14 layout: the six-row,
 // five-column board has 12 deliberate void cells. Alternating :nth-child
 // tile artwork must NEVER repaint those empty grid slots.
-const voidCSS=css.match(/\\.board \\.cell\\.void\\{([^}]*)\\}/)?.[1];
+const voidCSS=css.split('.board .cell.void{')[1]?.split('}')[0];
 assert.ok(voidCSS,'Explicit board-void selector required to override alternating tile art');
 assert.match(voidCSS,/background-image:none!important/,'void slots cannot inherit tile artwork');
 assert.match(voidCSS,/background-color:transparent!important/,'void slots reveal the board surface');
