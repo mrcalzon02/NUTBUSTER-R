@@ -20,7 +20,17 @@
     "supernova": "art/additions/effects/shell-supernova.png",
     "rainbow": "art/additions/effects/rainbow-pulse.png",
     "chest-open": "art/additions/effects/chest-pop.png",
-    "coin-shower": "art/additions/effects/coin-shower.png"
+    "coin-shower": "art/additions/effects/coin-shower.png",
+    "sparkle-burst": "art/additions/effects/sparkle-burst.png",
+    "shell-ring": "art/additions/effects/shell-ring.png",
+    "horizontal-clear": "art/additions/effects/horizontal-clear.png",
+    "vertical-clear": "art/additions/effects/vertical-clear.png",
+    "rocket-impact": "art/additions/effects/rocket-impact.png",
+    "time-boost": "art/additions/effects/time-boost.png",
+    "royal-boost": "art/additions/effects/royal-boost.png",
+    "golden-acorn-glow": "art/additions/effects/golden-acorn-glow.png",
+    "focus-ring": "art/additions/effects/focus-ring.png",
+    "confetti": "art/additions/effects/confetti.png"
   },
   "upcoming_batches": [
     "moment-to-moment",
@@ -28,5 +38,5 @@
     "economy",
     "map-ui"
   ],
-  "notes": "Independent animation atlases to be generated and committed under a future revision; existing sprites listed here are already available."
+  "notes": "All 18 existing sliced effects are available via NutFX; each matched nut uses a local shake + Nutsplosion. Dedicated booster effects fire on successful activation independently of cascades. Multi-frame atlases remain a future enhancement."
 }

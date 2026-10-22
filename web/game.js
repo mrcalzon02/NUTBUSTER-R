@@ -29,6 +29,9 @@ function activateBooster(id,index){const meta=E.BOOSTER_META[id];
  const result=E.booster(state.game,id,index);
  if(!result.valid){notice(result.reason==='no-locks'?'No chains to unlock.':'Choose a valid target.');return null;}
  if(!P.spend(saved,id))throw new Error('Inventory desynchronized after power activation');
+ // Successful activations always play their OWN visual, even if no nut is cleared.
+ const target=index>=0?screen.querySelector(`[data-cell="${index}"]`):screen.querySelector('.board-wrap');
+ window.NutFX?.booster?.(id,target);
  persist();refreshBoosters();return result;
 }
 function notice(message){const n=document.getElementById('toast');n.textContent=message;n.classList.add('show');clearTimeout(toastHandle);toastHandle=setTimeout(()=>n.classList.remove('show'),2300);}
@@ -270,19 +273,28 @@ async function transportAnimation(stage,epoch){
  paintCells(stage.cells);
  board.querySelectorAll('.nut-visual').forEach(el=>{el.style.visibility='';});
 }
-async function cascadeAnimation(stage,epoch){
+async function cascadeAnimation(stage,epoch,wave=1){
  if(state.page!=='game'||epoch!==state.epoch)return;
  if(stage.kind==='repair'||stage.kind==='hazard'){paintCells(stage.cells);return;}
  if(stage.kind==='transport'){await transportAnimation(stage,epoch);return;}
  const board=screen.querySelector('.board');if(!board)return;
  // Never fade an ice-shielded nut that survived the hit.
- const removed=stage.clear.filter(i=>stage.before?.[i]?.type!=null&&stage.afterClear?.[i]?.type===null);
- removed.forEach(i=>board.querySelector(`[data-cell="${i}"]`)?.classList.add('clearing'));
+ // Only nuts ACTUALLY removed shake and explode. Cracked-but-surviving nuts stay
+ // visible beneath their shields. Each cascade wave has its own Nutsplosion.
+ const plan=window.NutFX?.planCascade(stage,wave);
+ const removed=plan?.removed||stage.clear.filter(i=>stage.before?.[i]?.type!=null&&stage.afterClear?.[i]?.type===null).map(index=>({index}));
+ const exploding=removed.map(item=>board.querySelector(`[data-cell="${item.index}"]`)).filter(Boolean);
+ const reduced=reducedMotion();
+ if(!reduced)exploding.forEach(tile=>tile.classList.add('nut-shaking'));
  const iceMotion=window.NutIceFX?.animate(stage,board,{
   active:()=>state.page==='game'&&epoch===state.epoch,
-  reducedMotion:reducedMotion()
+  reducedMotion:reduced
  });
- if(!reducedMotion())await Promise.all([sleep(190),iceMotion||Promise.resolve()]);
+ if(!reduced)await sleep(155);
+ if(state.page!=='game'||epoch!==state.epoch)return;
+ exploding.forEach(tile=>{tile.classList.remove('nut-shaking');if(!reduced)tile.classList.add('nut-exploding');});
+ window.NutFX?.burstCascade?.(stage,board,wave);
+ if(!reduced)await Promise.all([sleep(200),iceMotion||Promise.resolve()]);
  else if(iceMotion)await iceMotion;
  if(state.page!=='game'||epoch!==state.epoch)return;
  // New specials can be formed during the clear; paint them before cloning falling tiles.
@@ -306,7 +318,7 @@ async function cascadeAnimation(stage,epoch){
   hidden.push(fall.to);
  }
  // The fixed grid is never rebuilt. Only moved nuts are hidden beneath their animated sprites.
- paintCells(stage.cells);board.querySelectorAll('.clearing').forEach(el=>el.classList.remove('clearing'));
+ paintCells(stage.cells);exploding.forEach(tile=>tile.classList.remove('nut-exploding'));
  hidden.forEach(i=>{const v=board.querySelector(`[data-cell="${i}"] .nut-visual`);if(v)v.style.visibility='hidden';});
  if(!reducedMotion())await (tasks.length?Promise.all(tasks):sleep(120));
  overlays.forEach(el=>el.remove());
@@ -321,7 +333,8 @@ async function applyMove(result){
   if(epoch!==state.epoch||state.page!=='game')return;
   const first=result.stages?.[0]?.before||E.snapshot(state.game).cells;
   paintCells(first);screen.querySelectorAll('.nut-visual').forEach(el=>{el.style.visibility='';});
-  for(const stage of result.stages||[]){await cascadeAnimation(stage,epoch);if(epoch!==state.epoch||state.page!=='game')return;}
+  let wave=0;
+  for(const stage of result.stages||[]){if(stage.kind==='cascade')wave++;await cascadeAnimation(stage,epoch,wave);if(epoch!==state.epoch||state.page!=='game')return;}
   paintCells(E.snapshot(state.game).cells);paintStats();
   concludeMove(result);
  }finally{if(epoch===state.epoch){reconcileBoardNuts();state.animating=false;}}
@@ -539,9 +552,9 @@ function concludeMove(result){
  else if(result.removed>=5)announce('OOOH, THAT IS A BIG ONE!','big-one');
  else {announce('NICE ONE!');window.NutAudio?.grunt();}
  paintStats();
- // Only fully broken individual cubes shatter, at the actual tile.
- const fx=result.won||result.specialCombo==='double-rainbow'||result.specialCombo==='double-bomb'?'supernova':result.specialCombo?'rainbow':result.cracked?'shell-crack':result.loops>=3?'rainbow':'burst';
- if(result.loops)window.NutFX?.emit(fx,screen.querySelector?.('.board-wrap'));
+ // Every removed nut already produced its own tile-centered Nutsplosion during
+ // the cascade. Reserve the large board overlay for spectacular finishes only.
+ if(result.won||result.specialCombo==='double-rainbow')window.NutFX?.emit('supernova',screen.querySelector?.('.board-wrap'));
  if(result.won||result.lost){state.outcome=result.won?'win':'loss';state.page='outcome';render();}
 }
 function doSwap(a,b){if(state.animating||state.page!=='game')return;
@@ -556,6 +569,7 @@ function cell(i){if(!state.game||state.game.won||state.game.lost||state.animatin
   if(!result.valid){notice(result.reason==='already-held'?'THAT NUT IS ALREADY HELD':'CHOOSE A NUT TO HOLD');return;}
   if(!P.spendHold(saved,id))throw new Error('Hold item inventory out of sync');
   state.holdTool=null;persist();paintCells(E.snapshot(state.game).cells);refreshBoosters();updateTools();
+  window.NutFX?.booster?.(id,screen.querySelector(`[data-cell="${i}"]`));
   notice(P.HOLD_ITEMS[id].label.toUpperCase()+' · '+result.drops+' GRAVITY DROPS · ×3 MATCH');
   return;
  }
