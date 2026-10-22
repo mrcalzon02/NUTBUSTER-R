@@ -65,3 +65,42 @@
 .fish-catch-entry small{display:block;font-size:10px;color:#d7e7ef;line-height:1.3}
 .fish-catch-entry .fish-art{width:45px;height:35px}
 @media(max-width:650px){.fish-catch-grid{grid-template-columns:1fr}}
+
+/* Landscapes are presented at their native 1672×941 aspect ratio, never cropped.
+   Hotspots are HTML controls layered over the illustrated hub, not burned-in art. */
+.wharf-hub-scene,.wharf-fishing-stage,.wharf-bait-scene{position:relative;width:100%;max-width:1672px;margin:0 auto;border-radius:10px;overflow:hidden;border:1px solid #bba879;background:#13506e}
+.wharf-landscape{display:block;width:100%;height:auto;aspect-ratio:1672/941;object-fit:contain;user-select:none}
+.wharf-hub-hotspot{position:absolute;top:23%;height:53%;display:flex;align-items:flex-end;justify-content:center;padding:4px;border:2px solid transparent;border-radius:11px;background:transparent;color:#fff8e9;cursor:pointer}
+.wharf-hub-fishing{left:2.5%;width:34%}
+.wharf-hub-shop{right:2.5%;width:33%}
+.wharf-hub-hotspot span{padding:6px 12px;border:1px solid #f6d58e;border-radius:8px;background:#243345ed;box-shadow:0 2px 8px #12202eaa;font-size:clamp(10px,1.4vw,15px);font-weight:900;text-shadow:0 1px 2px #000}
+.wharf-hub-hotspot:hover,.wharf-hub-hotspot:focus-visible{border-color:#fff3ba;background:#ffc34c18;outline-offset:-3px}
+.wharf-hub-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:5px 2px;color:#f5e4ad;font-size:12px}
+.wharf-hub-foot .btn{font-size:11px;padding:5px 8px}
+.wharf-fishing-stage .wharf-underwater-interface{position:absolute;left:10%;right:10%;top:41%;bottom:12%;pointer-events:none}
+.wharf-underwater-interface .fish-water{position:relative;display:block;width:100%;height:100%;border:0;background:transparent;overflow:visible}
+.wharf-underwater-interface .fish-hook,.wharf-underwater-interface .fish-in-fight,.wharf-underwater-interface .fish-catch-zone{pointer-events:none}
+.wharf-underwater-interface .fish-in-fight{top:48%;filter:drop-shadow(0 0 5px #041e32) drop-shadow(1px 3px 2px #091525)}
+.wharf-underwater-interface .fish-catch-zone{border-color:#cfffff9c;background:#aafaff1a}
+.wharf-underwater-interface .fish-hook{color:#fff8dc;text-shadow:0 0 5px #062841}
+.wharf-fishing-controls{width:min(100%,910px);margin:7px auto}
+.wharf-fishing-controls .fish-fight,.wharf-fishing-controls .fish-cast,.wharf-fishing-controls .fish-decision{background:#1a3748ee}
+.wharf-fishing-controls .fish-fight .fish-actions{margin:7px 0}
+.wharf-fishing-foot{width:min(100%,910px);margin:0 auto}
+.wharf-fishing-foot .wharf-ad-offer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:7px 9px}
+.wharf-fishing-foot .wharf-ad-offer .btn{font-size:10px}
+.wharf-fishing-foot .wharf-ad-offer small{font-size:10px}
+.wharf-bait-scene{max-height:none}
+.wharf-bait-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(235px,1fr);gap:10px;max-width:1672px;margin:9px auto 0}
+.wharf-bait-main,.wharf-bait-side{min-width:0}
+.wharf-bait-side .fish-store{margin-bottom:7px}
+.wharf-bait-main .fish-rods .fish-rod-list{max-height:340px}
+@media(max-width:650px){
+ .wharf-hub-hotspot{top:24%;height:58%}
+ .wharf-hub-hotspot span{font-size:10px;padding:5px 6px}
+ .wharf-hub-foot{font-size:10px}
+ .wharf-bait-layout{grid-template-columns:1fr}
+ .wharf-fishing-stage .wharf-underwater-interface{left:8%;right:8%;top:40%;bottom:9%}
+ .wharf-underwater-interface .fish-in-fight .fish-art{width:36px;height:32px}
+ .wharf-underwater-interface .fish-hook{font-size:24px}
+}

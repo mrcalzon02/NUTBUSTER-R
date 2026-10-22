@@ -471,7 +471,7 @@ function homestead(){
   return `<div class="homestead-award ${earned?'':'locked'}" title="${a.name}: ${kind} ${a.need}"><span class="emoji">${a.icon}</span><span>${a.name}<small>${earned?' · EARNED':' · '+kind+' '+a.need}</small></span></div>`;
  }).join('');
  const royal=h.purchases['royal-estate']===true;
- return `<div class="homestead-top"><div><h1>🏡 NUTVALE HOMESTEAD</h1><small>${status.tier} · 👩🏻‍🦰 ${costume.name} · ${equipped.name}</small></div><div class="homestead-actions"><button class="btn secondary" data-nav="fishing">🎣 FISHING WHARF</button><button class="btn secondary" data-nav="aquarium">🐠 AQUARIUM</button><button class="btn ghost" data-action="homestead-plate">↗ PRESTIGE PLATE</button><button class="btn ghost" data-action="invite">↗ INVITE</button><button class="btn ghost" data-nav="campaign">LEVELS →</button></div></div>
+ return `<div class="homestead-top"><div><h1>🏡 NUTVALE HOMESTEAD</h1><small>${status.tier} · 👩🏻‍🦰 ${costume.name} · ${equipped.name}</small></div><div class="homestead-actions"><button class="btn secondary" data-nav="wharf">🎣 FISHING WHARF</button><button class="btn secondary" data-nav="aquarium">🐠 AQUARIUM</button><button class="btn ghost" data-action="homestead-plate">↗ PRESTIGE PLATE</button><button class="btn ghost" data-action="invite">↗ INVITE</button><button class="btn ghost" data-nav="campaign">LEVELS →</button></div></div>
  <div class="homestead-stats"><span>🏆 ${status.wins}/500 cleared</span><span>⭐ ${status.stars} stars</span><span>🎖 ${status.achievements.length}/${H.ACHIEVEMENTS.length} awards</span><span>🧩 ${status.setCount}/${H.SETS.length} sets</span><span>📈 ${status.bestScore.toLocaleString()} best</span><span>🛠 ${status.renovations}/1000 renovated</span><span>👗 ${costumeTotals.unlocked}/60 outfits</span></div>
  <div class="homestead-layout">
  <div class="homestead-yard-column"><div class="homestead-zone-list">${zoneButtons}</div>
@@ -573,7 +573,7 @@ function startFakeAd(kind){
  if(kind==='daily'&&saved.fakeAdDailyDay===Ads.dayKey()){notice('AD BONUS ALREADY CLAIMED TODAY');return;}
  if(kind==='wharf'){
   const F=window.NutFishing;
-  if(state.page!=='fishing'||!F||!Ads.wharfPosters?.length){notice('WHARF ADS ONLY AVAILABLE AT THE DOCK');return;}
+  if(!['fishing','bait-shop'].includes(state.page)||!F||!Ads.wharfPosters?.length){notice('WHARF ADS ONLY AVAILABLE AT THE DOCK');return;}
   const n=F.ensure(saved),today=F.localDay(Date.now());
   if(!today||typeof n.wharfAdDay==='string'&&n.wharfAdDay>=today){notice('WHARF AD BONUS ALREADY CLAIMED TODAY');return;}
   if(n.baits.worm>999999999-F.WHARF_AD_REWARD.bait){notice('BAIT INVENTORY FULL');return;}
@@ -603,7 +603,7 @@ function finishFakeAd(){
  }else if(s.kind==='discount'&&s.offer===state.checkout){
   state.discountOffer=s.offer;
   notice('50% OFF THE FICTIONAL PRICE · FINAL CHECKOUT STILL FREE');
- }else if(s.kind==='wharf'&&destination==='fishing'){
+ }else if(s.kind==='wharf'&&['fishing','bait-shop'].includes(destination)){
   const reward=window.NutFishing?.claimWharfAd?.(saved);
   if(reward?.valid){persist();notice('WHARF AD BONUS · +'+reward.bait+' BAIT · +N$'+reward.dollars);}
   else notice('WHARF BONUS UNAVAILABLE OR ALREADY CLAIMED');
@@ -615,7 +615,7 @@ function finishFakeAd(){
 function settings(){const lev=saved.levels||{voice:.9,music:.28,reactions:.38,sfx:.48};return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings"><p class="muted">Independent volume controls for speech, music, reactions and gameplay effects.</p>${[['voice','Announcer'],['music','Music'],['reactions','Match reactions'],['sfx','Game effects']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}<div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div><div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>`;}
 function render(){if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');document.getElementById('app')?.classList?.toggle('fake-ad-active',state.page==='fake-ad');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
  screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');screen.classList?.toggle('codex-active',state.page==='codex');
- screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='homestead'?homestead():state.page==='fishing'?window.NutFishingUI.wharf(saved,state,E,P):state.page==='aquarium'?window.NutFishingUI.aquarium(saved):state.page==='codex'?codex():state.page==='settings'?settings():state.page==='checkout'?checkout():state.page==='fake-ad'?fakeAdScreen():state.page==='outcome'?outcome():rewards();
+ screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='homestead'?homestead():state.page==='wharf'?window.NutFishingUI.hub(saved):state.page==='fishing'?window.NutFishingUI.wharf(saved,state,E,P):state.page==='bait-shop'?window.NutFishingUI.baitShop(saved,state,E,P):state.page==='aquarium'?window.NutFishingUI.aquarium(saved):state.page==='codex'?codex():state.page==='settings'?settings():state.page==='checkout'?checkout():state.page==='fake-ad'?fakeAdScreen():state.page==='outcome'?outcome():rewards();
  window.NutbusterUpdates?.syncStatus?.();
  if(state.page==='campaign'&&state.chapter&&typeof screen.querySelector==='function'){
   const center=()=>{const selected=screen.querySelector('[data-current="true"]'),viewport=screen.querySelector('[data-map-scroll]');
