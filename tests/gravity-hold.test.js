@@ -80,6 +80,32 @@ assert.ok(voidAt>=0);
 const initial=JSON.stringify(E.snapshot(invalidHold));
 assert.equal(E.applyHold(invalidHold,'jam_hold',voidAt).valid,false);
 assert.equal(JSON.stringify(E.snapshot(invalidHold)),initial,'invalid target cannot alter state');
+// 1,000 seeded held-nut matches across all 500 stages. Every result must
+// preserve irregular masks and leave no playable cell unfilled.
+let heldGames=0,cascadeStages=0;
+for(let level=1;level<=500;level++)for(const seed of [1111,7777]){
+ const board=E.create(level,level*73+seed),indices=board.cells.map((c,i)=>c?i:-1).filter(i=>i>=0);
+ const mask=board.cells.map(Boolean);
+ assert.equal(E.applyHold(board,'jam_hold',indices[0]).valid,true);
+ assert.equal(E.applyHold(board,'butter_hold',indices[1]).valid,true);
+ let pair=null;
+ for(let a=0;a<board.cells.length&&!pair;a++)for(const b of [a+1,a+board.cfg.width]){
+  if(!E.adjacent(board,a,b))continue;
+  const oldA=board.cells[a].type,oldB=board.cells[b].type;
+  board.cells[a].type=oldB;board.cells[b].type=oldA;
+  const scoring=E.matches(board).hit.size>0;
+  board.cells[a].type=oldA;board.cells[b].type=oldB;
+  if(scoring){pair=[a,b];break}
+ }
+ assert.ok(pair,'stage '+level+' has a scoring swap');
+ const outcome=E.swap(board,...pair);
+ assert.equal(outcome.valid,true);
+ assert.deepEqual(board.cells.map(Boolean),mask,'held stage '+level+' mask intact');
+ assert.ok(board.cells.every(c=>!c||c.type!==null),'held stage '+level+' never blanks nut');
+ assert.ok(board.cells.every(c=>!c||(c.hold>=0&&c.hold<=2)),'held stage '+level+' hold bounded');
+ cascadeStages+=outcome.stages.filter(stage=>stage.kind==='cascade').length;
+ heldGames++;
+}
 const index=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
 const css=fs.readFileSync(path.join(__dirname,'../web/style.css'),'utf8');
 const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
@@ -116,4 +142,4 @@ const i=app.getState().game.cells.findIndex(c=>c&&c.type!==null);
 click({holdTool:'butter_hold'});click({cell:String(i)});
 assert.equal(app.getState().game.cells[i].hold,1);
 assert.equal(P.holdCount(app.getSave(),'butter_hold'),0);
-console.log('PASS: gravity-held nuts, score multiplier, refill timing, transport, voids, gem confirmation and twelve illustrated power controls');
+console.log('PASS: '+heldGames+' held-match games, '+cascadeStages+' cascade stages, gem confirmation, 1/2-drop holds, x3 score, transport, shuffles, masks and twelve illustrated controls');
