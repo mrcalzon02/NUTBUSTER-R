@@ -5,7 +5,7 @@ const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);H.ensure(saved);A.ensure(saved);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,fishBait:'worm' ,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null};let toastHandle;
+let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});}
 if(window.NutSFX){window.NutSFX.setEnabled(state.effects);window.NutSFX.setVolume(saved.levels.sfx);}
 function playSFX(name,opts){window.NutSFX?.play(name,opts);}
@@ -50,6 +50,7 @@ function nav(page){
  closeNutdex();
  state.epoch++;state.animating=false;state.page=page;state.selected=-1;state.tool=null;state.holdTool=null;
  if(page==='homestead'){state.homesteadEditing=false;state.homesteadSelection=null;}
+ if(page!=='aquarium'){state.aquariumEditing=false;state.aquariumStamp=null;state.aquariumFishFrom=null;}
  if(page==='campaign'&&state.game)state.chapter=M.chapterOf(state.game.level).id;
  render();}
 
@@ -481,6 +482,7 @@ function homestead(){
  ${edit?`<div class="homestead-section homestead-editor"><div class="homestead-editor-head"><b>PLACEABLE ITEMS · ${status.decorOwned}/${H.DECOR.length} OWNED</b><small>${selection?'TAP A PLOT':'CHOOSE AN ITEM'}</small></div><div class="homestead-scroll homestead-collection-scroll" role="group" aria-label="Placeable backyard decorations">${collection}</div></div>`:''}
  <div class="homestead-premium"><div><b>👑 ROYAL MANOR KIT</b><p>Platinum portrait, fountain, and diamond throne · <strong>Was $499.99</strong></p></div><button class="btn green" data-action="homestead-offer" ${royal?'disabled':''}>${royal?'OWNED':'BUY NOW'}</button></div></div>
  <div class="homestead-side">
+ ${window.NutFishingUI?.aquariumPreview?.(saved)||''}
  <div class="homestead-section"><h2>RESIDENCE · 🌰 ${saved.coins.toLocaleString()} · ${h.maxTier}/40 BUILT</h2>${residence}</div>
  <div class="homestead-section"><h2>HUMAN AVATAR · ${costume.name}</h2>
   <div class="nutvale-avatar-showcase"><div class="nutvale-avatar-portrait"><span aria-hidden="true">👩🏻‍🦰</span><img src="${costume.art}" alt="${costume.name}, the Nutvale protagonist" onerror="this.hidden=true"></div>
@@ -615,7 +617,7 @@ function finishFakeAd(){
 function settings(){const lev=saved.levels||{voice:.9,music:.28,reactions:.38,sfx:.48};return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings"><p class="muted">Independent volume controls for speech, music, reactions and gameplay effects.</p>${[['voice','Announcer'],['music','Music'],['reactions','Match reactions'],['sfx','Game effects']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}<div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div><div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>`;}
 function render(){if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');document.getElementById('app')?.classList?.toggle('fake-ad-active',state.page==='fake-ad');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
  screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');screen.classList?.toggle('codex-active',state.page==='codex');
- screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='homestead'?homestead():state.page==='wharf'?window.NutFishingUI.hub(saved):state.page==='fishing'?window.NutFishingUI.wharf(saved,state,E,P):state.page==='bait-shop'?window.NutFishingUI.baitShop(saved,state,E,P):state.page==='aquarium'?window.NutFishingUI.aquarium(saved):state.page==='codex'?codex():state.page==='settings'?settings():state.page==='checkout'?checkout():state.page==='fake-ad'?fakeAdScreen():state.page==='outcome'?outcome():rewards();
+ screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='homestead'?homestead():state.page==='wharf'?window.NutFishingUI.hub(saved):state.page==='fishing'?window.NutFishingUI.wharf(saved,state,E,P):state.page==='bait-shop'?window.NutFishingUI.baitShop(saved,state,E,P):state.page==='aquarium'?window.NutFishingUI.aquarium(saved,state):state.page==='codex'?codex():state.page==='settings'?settings():state.page==='checkout'?checkout():state.page==='fake-ad'?fakeAdScreen():state.page==='outcome'?outcome():rewards();
  window.NutbusterUpdates?.syncStatus?.();
  if(state.page==='campaign'&&state.chapter&&typeof screen.querySelector==='function'){
   const center=()=>{const selected=screen.querySelector('[data-current="true"]'),viewport=screen.querySelector('[data-map-scroll]');
@@ -847,6 +849,12 @@ screen.addEventListener('click',e=>{window.NutAudio?.unlock();window.NutSFX?.unl
    announce('UNLIMITED SATISFACTION!','oh-my');
   }else{state.tool=state.tool===tool?null:tool;state.holdTool=null;selectCell(-1);updateTools();}return;}
  if(target.dataset.chapter){state.chapter=Number(target.dataset.chapter);render();return;}
+ if(target.dataset.action==='fish-aqua-stamp-place'&&state.page==='aquarium'){
+  const rect=target.getBoundingClientRect?.();
+  if(!rect||!rect.width||!rect.height)return;
+  target.dataset.x=String(Math.max(0,Math.min(100,100*(e.clientX-rect.left)/rect.width)));
+  target.dataset.y=String(Math.max(0,Math.min(100,100*(e.clientY-rect.top)/rect.height)));
+ }
  if(target.dataset.action)action(target.dataset.action,target);else if(target.dataset.nav)nav(target.dataset.nav);
 });
 document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{window.NutAudio?.unlock();window.NutSFX?.unlock();playSFX('ui');nav(b.dataset.nav);}));

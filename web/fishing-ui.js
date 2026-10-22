@@ -72,6 +72,13 @@ function baitShop(save,state,E,P){
  '<div class="wharf-bait-scene"><img class="wharf-landscape" src="art/wharf/nutvale-wharf-bait-shop.webp" alt="Squirrel-run bait and tackle shop with rods, bait jars, lures, crabs, and fishing boats outside" width="1672" height="941" draggable="false"></div>'+
  '<div class="wharf-bait-layout"><div class="wharf-bait-main">'+rodSection+catchSection+'</div><div class="wharf-bait-side"><section class="fish-store"><h2>UPGRADES · NUTVALE DOLLARS</h2><div class="fish-upgrades">'+upgrades+'</div>'+craft+'</section><section class="fish-store"><h2>POWER-UPS → BAIT</h2><div class="fish-exchanges">'+exchanges+'</div></section>'+wharfAd+'</div></div>';
 }
+function aquariumPreview(save){
+ const n=F.ensure(save),cap=F.capacity(n),stamps=F.stampCapacity(n);
+ const fish=n.fish.slice(0,4).map(resident=>fishIcon(F.FISH.find(f=>f.id===resident.id))).join('');
+ return '<section class="homestead-section estate-aquarium-preview"><button class="estate-tank-button" data-nav="aquarium" aria-label="Enter your estate aquarium">'+
+  '<span class="estate-tank-mini" aria-hidden="true">'+(fish||'🐚 🫧 🌿')+'</span>'+
+  '<span class="estate-tank-copy"><b>🐠 ESTATE AQUARIUM · TIER '+n.tank+'/10</b><small>'+n.fish.length+'/'+cap+' fish · '+n.aquarium.stamps.length+'/'+stamps+' stamps</small><small>VIEW & DECORATE →</small></span></button></section>';
+}
 function aquarium(save,state={}){
  const n=F.ensure(save),cap=F.capacity(n),stampLimit=F.stampCapacity(n),cost=F.nextCost('tank',n),editing=!!state.aquariumEditing;
  const residents=new Map(n.fish.map(f=>[f.slot,f]));
@@ -176,7 +183,7 @@ function action(name,button,ctx){
  else if(result.choice==='keep')notice('NEW AQUARIUM RESIDENT!');
  return true;
 }
-const api={hub,wharf,baitShop,aquarium,action};
+const api={hub,wharf,baitShop,aquarium,aquariumPreview,action};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutFishingUI=api;
 })(typeof window!=='undefined'?window:globalThis);
