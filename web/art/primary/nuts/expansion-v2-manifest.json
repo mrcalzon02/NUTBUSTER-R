@@ -1,5 +1,5 @@
 {
-  "notes": "Additional distinct standard nut tile art; not automatically enabled in level pools. Rainbow nut remains special-only.",
+  "notes": "Additional distinct standard nut tile art. web/engine.js rotates these variants into level rosters from stage 41, with extra slots from stage 201. Rainbow nut remains special-only; it is never a normal spawn.",
   "role": "optional-standard-match-nut-expansion",
   "schema": 1,
   "source": "assets/source/expansion/nut-varieties-v2.png",
