@@ -1,0 +1,40 @@
+/* Nutravaganza: compact and touch-safe wharf, responsive living aquarium. */
+.nutravaganza-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 9px}
+.nutravaganza-head h1{font-size:clamp(17px,2.5vw,24px);margin:0;color:#fce6af}
+.fish-wallet{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.fish-wallet>b{color:#ffe4a0;font-size:15px}
+.fish-wallet .btn{padding:7px 9px;min-height:36px}
+.fish-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(230px,1fr);gap:10px}
+.fish-main,.fish-sidebar{min-width:0}
+.fish-dock{display:flex;align-items:center;justify-content:space-evenly;min-height:88px;overflow:hidden;border-radius:12px 12px 0 0;background:linear-gradient(160deg,#4a729b,#8cbaaa 43%,#1d5e77 44%,#06485f 75%,#2c796e);color:#fff1d7;text-shadow:0 1px 5px #061624;font-size:clamp(14px,3vw,23px);font-weight:800}
+.fish-cast,.fish-fight,.fish-decision,.fish-store{padding:10px;border:1px solid #7b8f98;background:#1d394b;border-radius:9px;color:#fff1dc}
+.fish-cast h2,.fish-store h2,.fish-decision h2{margin:0 0 8px;font-size:14px}
+.fish-cast>small,.fish-fight>small{display:block;margin:6px 0;color:#d4e9ef;font-size:11px}
+.fish-bait-row,.fish-actions,.fish-upgrades,.fish-exchanges{display:flex;gap:6px;flex-wrap:wrap;margin:7px 0}
+.fish-bait{display:flex;align-items:center;gap:5px;flex-direction:column;min-width:85px;max-width:125px;flex:1;padding:8px 5px;background:#274a57;border:2px solid #6d8790;border-radius:9px;color:#fcf0d2;font-size:11px}
+.fish-bait span{font-size:23px}.fish-bait b{font-size:11px}.fish-bait.selected{border-color:#ffe27a;background:#376d76}
+.fish-actions .btn{flex:1 1 92px;min-height:46px;padding:7px 9px;font-size:11px}
+.fish-cast>.btn{margin:6px 0}
+.fish-exchanges{max-height:190px;overflow-y:auto}
+.fish-exchange{padding:8px;border:1px solid #9fa990;border-radius:7px;background:#31484e;color:#f7f2d6;font-size:11px;min-height:40px}
+.fish-exchange:disabled,.fish-upgrades .btn:disabled{opacity:.48}
+.fish-upgrades>.btn{flex:1 1 120px;font-size:11px;min-height:42px;padding:5px 7px}
+.fish-fight-head,.fish-gauges label,.aquarium-footer{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.fish-fight-head{margin-bottom:8px}
+.fish-water{height:150px;position:relative;overflow:hidden;border-radius:8px;border:2px solid #77d8e5;background:radial-gradient(ellipse at 45% 0%,#6ac0d3,#0a688c 54%,#06364d)}
+.fish-catch-zone{position:absolute;top:0;bottom:0;background:#9fffc02e;border-left:2px dashed #b8ffda;border-right:2px dashed #b8ffda}
+.fish-in-fight{position:absolute;top:42%;font-size:34px;transform:translateX(-50%);filter:drop-shadow(0 3px 3px #14324b)}
+.fish-hook{position:absolute;top:5px;color:#fff;font-size:36px;transform:translateX(-50%)}
+.fish-gauges{margin:8px 0}.fish-gauges label{margin:5px 0;font-size:12px;font-weight:700}
+.fish-gauges meter{width:48%;height:18px}
+.aquarium-tank{position:relative;height:clamp(250px,47vh,540px);overflow:hidden;border:12px solid #745e41;border-radius:15px;background:radial-gradient(ellipse at 40% 20%,#3cacc2,#056e92 55%,#063349);box-shadow:inset 0 0 36px #032438,0 8px 14px #1f1116}
+.aquarium-tank::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(110deg,transparent 0 75px,#ffffff12 78px 86px,transparent 89px 220px)}
+.aquarium-light{position:absolute;inset:0 0 auto;height:22%;background:linear-gradient(#d0f5e533,transparent)}
+.aquarium-floor{position:absolute;bottom:0;left:0;right:0;white-space:nowrap;text-align:center;font-size:clamp(26px,6vw,45px);background:linear-gradient(transparent,#b4b084 75%);padding-top:30px}
+.aquarium-fish{position:absolute;left:0;display:flex;align-items:center;gap:3px;white-space:nowrap;font-size:clamp(27px,6vw,56px);filter:drop-shadow(1px 3px 3px #17323e);animation:fish-swim var(--fish-speed,12s) linear var(--fish-delay,0s) infinite alternate}
+.aquarium-fish small{font-size:10px;border-radius:5px;padding:2px 3px;background:#05395199;color:#e7fafb}
+@keyframes fish-swim{from{transform:translateX(-95px) scaleX(1)}49%{transform:translateX(calc(100vw - 150px)) scaleX(1)}50%{transform:translateX(calc(100vw - 150px)) scaleX(-1)}to{transform:translateX(-95px) scaleX(-1)}}
+.aquarium-footer{margin:8px 0}.fish-collection{display:flex;gap:6px;flex-wrap:wrap;max-height:135px;overflow-y:auto}
+.fish-specimen{background:#2e5965;border:1px solid #8cb8b9;border-radius:7px;padding:6px 8px;font-size:12px;color:#f5edcf}
+@media(max-width:650px){.fish-layout{grid-template-columns:1fr}.fish-water{height:120px}.fish-wallet .btn{min-height:34px}.aquarium-tank{border-width:8px}}
+@media(prefers-reduced-motion:reduce){.aquarium-fish{animation:none!important;position:relative;display:inline-flex!important;top:auto!important;left:auto!important;margin:7px}.aquarium-tank{display:flex;flex-wrap:wrap;align-content:flex-start;padding:12px}}
