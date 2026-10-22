@@ -68,7 +68,7 @@ assert.equal(n.dollars,before.dollars-cost);
 assert.equal(stored.coins,before.coins);assert.equal(stored.gems,before.gems);
 const css=fs.readFileSync(path.join(__dirname,'../web/fishing.css'),'utf8');
 const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
-assert.ok(css.includes('@keyframes aquarium-roam')&&css.includes('100cqw'),'Fish must swim and bounce inside glass');
+assert.ok(css.includes('@keyframes aquarium-roam')&&css.includes('left:calc(100% - var(--swim-width'),'Fish must swim and bounce inside glass');
 assert.ok(css.includes('.estate-aquarium-preview'),'Tank belongs to the estate');
 assert.ok(game.includes('window.NutFishingUI?.aquariumPreview?.(saved)'));
 assert.ok(game.includes('window.NutFishingUI.aquarium(saved,state)'));

@@ -130,16 +130,15 @@
 .aquarium-display .aquarium-swimmer{position:absolute;left:0;top:0;z-index:6;width:var(--swim-width,54px);height:clamp(26px,7vw,66px);display:flex;align-items:center;justify-content:center;white-space:nowrap;animation:aquarium-roam var(--swim-speed,11s) ease-in-out var(--swim-delay,0s) infinite alternate;will-change:transform;pointer-events:none}
 .aquarium-swimmer .fish-art{width:100%;height:100%;object-fit:contain}
 @keyframes aquarium-roam{
- 0%{top:var(--swim-y,28%);transform:translateX(2px) scaleX(1)}
- 34%{top:var(--swim-y2,50%);transform:translateX(calc(72cqw - var(--swim-width,54px))) scaleX(1)}
- 49%{top:var(--swim-y2,50%);transform:translateX(calc(100cqw - var(--swim-width,54px) - 4px)) scaleX(1)}
- 50%{top:var(--swim-y2,50%);transform:translateX(calc(100cqw - var(--swim-width,54px) - 4px)) scaleX(-1)}
- 85%{top:var(--swim-y,28%);transform:translateX(calc(20cqw - var(--swim-width,54px))) scaleX(-1)}
- 100%{top:var(--swim-y,28%);transform:translateX(2px) scaleX(-1)}
+ 0%{left:2px;top:var(--swim-y,28%);transform:scaleX(1)}
+ 34%{left:calc(72% - var(--swim-width,54px));top:var(--swim-y2,50%);transform:scaleX(1)}
+ 49%{left:calc(100% - var(--swim-width,54px) - 4px);top:var(--swim-y2,50%);transform:scaleX(1)}
+ 50%{left:calc(100% - var(--swim-width,54px) - 4px);top:var(--swim-y2,50%);transform:scaleX(-1)}
+ 85%{left:20%;top:var(--swim-y,28%);transform:scaleX(-1)}
+ 100%{left:2px;top:var(--swim-y,28%);transform:scaleX(-1)}
 }
 /* Use the tank itself as the coordinate container; never animate outside glass. */
-.aquarium-display>.aquarium-tank{container-type:inline-size}
-.aquarium-display .aquarium-swimmer{--swim-range:100cqw}
+/* Percent-based travel also works in older Android WebViews. */
 .aquarium-editor{margin:9px 0 12px;padding:9px;background:#1f3748;border:1px solid #7294a5;border-radius:9px;color:#f6e8d1}
 .aquarium-edit-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;margin:10px 0 5px}
 .aquarium-edit-head:first-child{margin-top:0}
@@ -169,3 +168,5 @@
 .estate-aquarium-preview .estate-tank-mini .fish-art{width:23px;height:23px}
 .estate-aquarium-preview .estate-tank-copy{display:flex;flex-direction:column;gap:2px}
 .estate-aquarium-preview .estate-tank-copy b{font-size:12px}.estate-aquarium-preview .estate-tank-copy small{font-size:10px;color:#d5f0e3}
+
+@media(prefers-reduced-motion:reduce){.aquarium-display .aquarium-swimmer{position:absolute!important;display:flex!important;top:var(--swim-y,28%)!important;left:12%!important;margin:0!important;transform:none!important}}
