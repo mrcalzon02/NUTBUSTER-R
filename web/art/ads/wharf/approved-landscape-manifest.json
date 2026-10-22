@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "channel": "nutvale-wharf",
+  "ownerApproval": "4 standalone landscape posters; no portrait crops; no images with baked-in buttons",
+  "dimensions": "Full 16:9 landscape, object-fit contain",
+  "reward": {
+    "wormBait": 2,
+    "nutvaleDollars": 100,
+    "oncePer": "local calendar day"
+  },
+  "posters": [
+    {
+      "id": "wharf-sit-back-fish-earn",
+      "name": "Sit Back. Fish. Earn.",
+      "path": "landscape/wharf-sit-back-fish-earn.webp",
+      "git_blob_sha": "34a928491bab91390d82013a012ec96aad66e89a",
+      "bytes": 272892,
+      "width": 1671,
+      "height": 941
+    },
+    {
+      "id": "wharf-fish-more-nuts",
+      "name": "Fish More Nuts!",
+      "path": "landscape/wharf-fish-more-nuts.webp",
+      "git_blob_sha": "cfc3d859d932e15ab2eeb7c701d22a02688a3b99",
+      "bytes": 363064,
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "id": "wharf-fish-more-nuts-alt",
+      "name": "Fish More Nuts! Alternate",
+      "path": "landscape/wharf-fish-more-nuts-alt.webp",
+      "git_blob_sha": "256d33b1027b191cf7581d86b649124ae7d5f334",
+      "bytes": 364860,
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "id": "wharf-catch-bigger-dreams",
+      "name": "Catch Bigger Dreams!",
+      "path": "landscape/wharf-catch-bigger-dreams.webp",
+      "git_blob_sha": "0f6eb7546df8d6f34c45f15fd3eb1730c2774f1d",
+      "bytes": 337264,
+      "width": 1672,
+      "height": 941
+    }
+  ],
+  "originalPlannedSlogans": [
+    "Catch Bigger Dreams!",
+    "Fish More Nuts!",
+    "Reel In Rewards!",
+    "Squirrels Know Fishing!",
+    "Life Is Better at the Wharf!",
+    "Tiny Rods, Big Adventures!",
+    "Fish, Chill, Repeat!",
+    "Even Squirrels Get Away!"
+  ],
+  "legacyPortraits": "Do not use older crop-sheet assets in the active rotation."
+}

@@ -12,12 +12,20 @@
   {id:'whisker-wax-plus',name:'Whisker Wax Plus'},
   {id:'squirrel-life-resort',name:'Live the Squirrel Life'}
  ].map(p=>Object.freeze({...p,image:'art/ads/'+p.id+'.webp'})));
+ // Only approved, full-frame 16:9 wharf posters; legacy collage crops stay inactive.
+ const wharfPosters=Object.freeze([
+  {id:'wharf-sit-back-fish-earn',name:'Sit Back. Fish. Earn.'},
+  {id:'wharf-fish-more-nuts',name:'Fish More Nuts!'},
+  {id:'wharf-fish-more-nuts-alt',name:'Fish More Nuts! Alternate'},
+  {id:'wharf-catch-bigger-dreams',name:'Catch Bigger Dreams!'}
+ ].map(p=>Object.freeze({...p,image:'art/ads/wharf/landscape/'+p.id+'.webp'})));
  let playback=null;
  function session(kind,offer,posterIndex=0,now=0){
-  if(kind!=='daily'&&kind!=='discount')return null;
+  if(kind!=='daily'&&kind!=='discount'&&kind!=='wharf')return null;
   if(kind==='discount'&&(!Number.isInteger(offer)||offer<0||offer>8))return null;
-  const index=Math.abs(Math.trunc(Number(posterIndex)||0))%posters.length;
-  return {kind,offer:kind==='discount'?offer:null,poster:posters[index],
+  const pool=kind==='wharf'?wharfPosters:posters;
+  const index=Math.abs(Math.trunc(Number(posterIndex)||0))%pool.length;
+  return {kind,offer:kind==='discount'?offer:null,poster:pool[index],
    elapsed:0,last:Number.isFinite(now)?now:0,ready:false,claimed:false,cancelled:false};
  }
  function tick(s,now,visible=true){
@@ -52,7 +60,7 @@
   try{const p=playback.play();p?.catch?.(()=>{});return true;}catch(_){return false;}
  }
  function dayKey(date=new Date()){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');}
- const api=Object.freeze({posters,DURATION_MS,audioPath,session,tick,remaining,claim,cancel,stopAudio,audio,dayKey});
+ const api=Object.freeze({posters,wharfPosters,DURATION_MS,audioPath,session,tick,remaining,claim,cancel,stopAudio,audio,dayKey});
  root.NutFakeAds=api;
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

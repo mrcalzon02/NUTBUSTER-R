@@ -27,6 +27,7 @@ const BAITS=Object.freeze([
 ]);
 const BOOSTER_BAIT=Object.freeze({hammer:2,extra:2,row:2,shuffle:2,column:3,blast:3,cross:3,color:3,drill:4,unlock:4});
 const DAILY=6;
+const WHARF_AD_REWARD=Object.freeze({bait:2,dollars:100});
 const limit=n=>Number.isSafeInteger(n)&&n>=0?Math.min(n,999999999):0;
 const specimenId=new Map(FISH.map(x=>[x.id,x]));
 function localDay(now){const date=new Date(now);if(!Number.isFinite(date.getTime()))return null;return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');}
@@ -53,6 +54,16 @@ function ensure(save,now=Date.now()){
   n.day=today;n.baits.worm=Math.min(12,n.baits.worm+DAILY);
  }
  return n;
+}
+// Never pay a wharf ad twice on the same day, or after a clock rollback.
+function claimWharfAd(save,now=Date.now()){
+ const today=localDay(now);if(!today)return {valid:false,reason:'date'};
+ const n=ensure(save,now);
+ if(typeof n.wharfAdDay==='string'&&today<=n.wharfAdDay)return {valid:false,reason:'claimed'};
+ if(n.baits.worm>999999999-WHARF_AD_REWARD.bait)return {valid:false,reason:'bait-limit'};
+ n.wharfAdDay=today;n.baits.worm+=WHARF_AD_REWARD.bait;
+ const prior=n.dollars;n.dollars=limit(n.dollars+WHARF_AD_REWARD.dollars);
+ return {valid:true,bait:WHARF_AD_REWARD.bait,dollars:n.dollars-prior,day:today};
 }
 function capacity(n){return 4+3*n.tank;}
 function nextCost(kind,n){const level=kind==='rod'?n.rod:kind==='tank'?n.tank:n.baitTier;
@@ -188,7 +199,7 @@ function resolve(save,choice,now=Date.now()){
  n.pending=null;
  return {valid:true,choice,fish:{...fish},dollars:n.dollars};
 }
-const api={FISH,BAITS,RODS,BOOSTER_BAIT,DAILY,localDay,ensure,capacity,nextCost,upgrade,trade,craft,cast,step,resolve,rodModel,rodOdds,chooseFish,buyRod,equipRod,repairRod};
+const api={FISH,BAITS,RODS,BOOSTER_BAIT,DAILY,WHARF_AD_REWARD,localDay,ensure,claimWharfAd,capacity,nextCost,upgrade,trade,craft,cast,step,resolve,rodModel,rodOdds,chooseFish,buyRod,equipRod,repairRod};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutFishing=api;
 })(typeof window!=='undefined'?window:globalThis);
