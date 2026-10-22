@@ -537,10 +537,11 @@ function closeNutdex(){
 function fakeAdScreen(){
  const s=state.adSession;if(!s||!Ads)return '<p>Fake ad unavailable.</p>';
  const remaining=Ads.remaining(s),progress=Math.round(s.elapsed/Ads.DURATION_MS*100);
- const reward=s.kind==='daily'?'750 Golden Nuts and 1 Hammer':'50% off this fictional shop offer';
- return `<section class="fake-ad-screen" aria-label="Fictional rewarded advertisement">
-  <div class="fake-ad-top"><b>SPONSORED BY NUTVALE MARKETING</b><button class="btn ghost" data-action="ad-close" aria-label="Close fake advertisement without a reward">✕ SKIP · NO REWARD</button></div>
-  <figure class="fake-ad-poster"><img src="${s.poster.image}" alt="${s.poster.name}: fictional squirrel product advertisement" draggable="false"><figcaption>${s.poster.name}</figcaption></figure>
+ const wharf=s.kind==='wharf';
+ const reward=s.kind==='daily'?'750 Golden Nuts and 1 Hammer':wharf?'2 Worm Bait and N$100':'50% off this fictional shop offer';
+ return `<section class="fake-ad-screen ${wharf?'wharf-fisherman-ad':''}" aria-label="${wharf?'Fishing Wharf squirrel fisherman parody ad':'Fictional rewarded advertisement'}">
+  <div class="fake-ad-top"><b>${wharf?'NUTVALE WHARF · SQUIRREL FISHERMEN':'SPONSORED BY NUTVALE MARKETING'}</b><button class="btn ghost" data-action="ad-close" aria-label="Close fake advertisement without a reward">✕ SKIP · NO REWARD</button></div>
+  <figure class="fake-ad-poster"><img src="${s.poster.image}" alt="${s.poster.name}: fictional ${wharf?'squirrel fisherman':'squirrel product'} advertisement" draggable="false"><figcaption>${s.poster.name}</figcaption></figure>
   <div class="fake-ad-controls"><strong>PARODY AD · NO REAL ADVERTISER</strong>
    <div class="fake-ad-clock" role="timer" data-ad-timer>${Math.floor(remaining/60)}:${String(remaining%60).padStart(2,'0')}</div>
    <div class="fake-ad-track" role="progressbar" data-ad-progress aria-label="Ad watch progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}"><span style="width:${progress}%"></span></div>
@@ -570,10 +571,18 @@ function refreshFakeAd(){
 function startFakeAd(kind){
  if(!Ads){notice('FAKE ADS UNAVAILABLE');return;}
  if(kind==='daily'&&saved.fakeAdDailyDay===Ads.dayKey()){notice('AD BONUS ALREADY CLAIMED TODAY');return;}
+ if(kind==='wharf'){
+  const F=window.NutFishing;
+  if(state.page!=='fishing'||!F||!Ads.wharfPosters?.length){notice('WHARF ADS ONLY AVAILABLE AT THE DOCK');return;}
+  const n=F.ensure(saved),today=F.localDay(Date.now());
+  if(!today||typeof n.wharfAdDay==='string'&&n.wharfAdDay>=today){notice('WHARF AD BONUS ALREADY CLAIMED TODAY');return;}
+  if(n.baits.worm>999999999-F.WHARF_AD_REWARD.bait){notice('BAIT INVENTORY FULL');return;}
+ }
  if(kind==='discount'&&(state.page!=='checkout'||!Number.isInteger(state.checkout))){notice('SELECT AN OFFER FIRST');return;}
  if(state.page==='fake-ad')return;
  const offer=kind==='discount'?state.checkout:null;
- const s=Ads.session(kind,offer,Math.floor(Math.random()*Ads.posters.length),adNow());
+ const pool=kind==='wharf'?Ads.wharfPosters:Ads.posters;
+ const s=Ads.session(kind,offer,Math.floor(Math.random()*pool.length),adNow());
  if(!s)return;
  stopFakeAdTimer();
  state.adReturn=state.page;state.adSession=s;state.adMuted=false;state.page='fake-ad';
@@ -594,6 +603,10 @@ function finishFakeAd(){
  }else if(s.kind==='discount'&&s.offer===state.checkout){
   state.discountOffer=s.offer;
   notice('50% OFF THE FICTIONAL PRICE · FINAL CHECKOUT STILL FREE');
+ }else if(s.kind==='wharf'&&destination==='fishing'){
+  const reward=window.NutFishing?.claimWharfAd?.(saved);
+  if(reward?.valid){persist();notice('WHARF AD BONUS · +'+reward.bait+' BAIT · +N$'+reward.dollars);}
+  else notice('WHARF BONUS UNAVAILABLE OR ALREADY CLAIMED');
  }
  state.adSession=null;state.adReturn=null;state.adMuted=false;
  state.page=destination||'rewards';
@@ -681,6 +694,7 @@ function action(a,button){
  if(a==='nutdex-open'){openNutdex();return;}
  if(a==='nutdex-close'){closeNutdex();return;}
  if(a==='ad-daily'){startFakeAd('daily');return;}
+ if(a==='ad-wharf'){startFakeAd('wharf');return;}
  if(a==='ad-discount'){startFakeAd('discount');return;}
  if(a==='ad-claim'){finishFakeAd();return;}
  if(a==='ad-close'){const back=state.adReturn||'rewards';cancelFakeAd();state.page=back;render();return;}
