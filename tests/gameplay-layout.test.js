@@ -13,6 +13,7 @@ assert.equal((navbar.match(/<img class="nav-icon"/g)||[]).length,5,'Use original
 assert.match(css,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,'Footer should never wrap to a second row');
 assert.match(css,/\.boosters\{display:grid!important;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,
  'All ten tools should be visible in two grid rows');
+assert.match(css,/#app\.playing \.game-active \.boosters\{grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/,'12 powers must remain two compact rows');
 assert.match(css,/grid-template-rows:repeat\(var\(--rows\),minmax\(0,1fr\)\)/,'Board must honor actual stage height');
 let html='',appPlaying=false;
 const screen={classList:{toggle(){}},addEventListener(){},get innerHTML(){return html;},set innerHTML(value){html=value;},querySelector:()=>null,querySelectorAll:()=>[]};
@@ -30,7 +31,8 @@ for(const level of [1,10,30,70,100,200,500]){
  app.start(level);const g=app.getState().game;
  assert.ok(appPlaying,'Play layout flag should be present');
  assert.match(html,new RegExp('aria-label="LEVEL '+level+':'));
- assert.equal((html.match(/data-tool=/g)||[]).length,10,'All powers present for level '+level);
+ assert.equal((html.match(/data-tool=/g)||[]).length,10,'All ten standard powers present for level '+level);
+ assert.equal((html.match(/data-hold-tool=/g)||[]).length,2,'Two gravity holds visible for level '+level);
  assert.equal((html.match(/class="booster-icon"/g)||[]).length,10,'Each power has a clear graphic');
  assert.equal((html.match(/data-cell=/g)||[]).length,g.cfg.mask.filter(Boolean).length);
  assert.ok(html.includes('--rows:'+g.cfg.height),'Board rows match stage dimensions');

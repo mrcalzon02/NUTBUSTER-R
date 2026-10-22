@@ -51,6 +51,7 @@ jobs:
           node tests/asset-catalog.test.js
           node tests/ice-art-regression.test.js
           node tests/ice-animation.test.js
+          node tests/gravity-hold.test.js
           node tests/fx.test.js
           node tests/campaign-ui.test.js
 

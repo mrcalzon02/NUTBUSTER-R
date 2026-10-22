@@ -671,6 +671,7 @@ screen.addEventListener('click',e=>{window.NutAudio?.unlock();window.NutAudio?.g
   if(target.dataset.tool){const tool=target.dataset.tool;if(!state.game||state.page!=='game')return;
   if(!P.unlocked(saved,tool)||!P.count(saved,tool)){activateBooster(tool,-1);return;}
   if(!E.BOOSTER_META[tool].targeted){
+   state.holdTool=null;updateTools();
    const res=activateBooster(tool,-1);if(!res)return;
    state.tool=null;updateTools();
    if(res.stages?.length)void applyMove(res);else {paintCells(E.snapshot(state.game).cells);paintStats();}

@@ -34,6 +34,7 @@ window.NutbusterApp.start(12);
 assert.ok(playing);
 assert.equal((html.match(/<img class="booster-icon"/g)||[]).length,10);
 assert.doesNotMatch(html,/<svg class="booster-icon"/);
+assert.equal((html.match(/<img class="hold-icon"/g)||[]).length,2,'New hold powers use existing original illustrations');
 assert.equal((html.match(/class="play-wallet"/g)||[]).length,1);
 assert.match(html,/id="play-wallet">250</);
 assert.match(html,/id="play-gems">25</);
