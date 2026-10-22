@@ -266,10 +266,10 @@
  object-fit:contain;
  image-rendering:auto;
  /* The nut underneath must remain visible THROUGH the illustrated ice. */
- opacity:.59;
+ opacity:1;
 }
 .cell .overlay.blocker-art.ice[data-strength="2"] .blocker-sprite{
- opacity:.74;
+ opacity:1;
 }
 /* The painted cube remains centered and clear at the smallest board sizes. */
 #app.playing .game-active .cell .overlay.blocker-art.ice .blocker-sprite{
