@@ -13,23 +13,23 @@ const g=E.create(45,4242),at=g.cells.findIndex(c=>c&&!c.ice&&!c.lock&&!c.jam&&!c
 assert.ok(at>=0);assert.equal(E.applyHold(g,'jam_hold',at).valid,true);
 assert.equal(E.applyHold(g,'jam_hold',at).valid,false,'do not double-spend already-held nut');
 E.gravity(g,[]);assert.equal(g.cells[at].hold,2,'no real drop: no expiry');
-const other=g.cells.findIndex((c,i)=>i!==at&&c&&c.type!==null);
+const other=g.cells.findIndex((c,i)=>i!==at&&c&&c.type!==null&&!c.ice&&!c.lock&&!c.chest);
 g.cells[other].type=null;const falls=[];E.gravity(g,falls);
 assert.ok(falls.length>0);assert.equal(g.cells[at].hold,1);
 const snap=E.snapshot(g).cells;assert.equal(snap[at].hold,1);
-const other2=g.cells.findIndex((c,i)=>i!==at&&c&&c.type!==null);
+const other2=g.cells.findIndex((c,i)=>i!==at&&c&&c.type!==null&&!c.ice&&!c.lock&&!c.chest);
 g.cells[other2].type=null;E.gravity(g,[]);
 assert.equal(g.cells[at].hold,0,'jam expires after exactly two refills');
 assert.ok(g.cells.every(c=>!c||c.type!==null),'no playable cells left empty');
 for(const [level,turn,key] of [[126,2,'conveyors'],[164,3,'portals'],[301,2,'wind']]){
  const state=E.create(level,1477),lane=state.cfg.features[key][0];
  if(!lane)continue;
- const target=lane.indices[0];assert.equal(E.applyHold(state,'jam_hold',target).valid,true);
+ const target=lane.indices.find(i=>state.cells[i]&&!state.cells[i].ice&&!state.cells[i].lock&&!state.cells[i].chest);assert.ok(target>=0);assert.equal(E.applyHold(state,'jam_hold',target).valid,true);
  const stages=F.advance(state,turn,()=>E.snapshot(state).cells);
  assert.ok(stages.length>0);assert.equal(state.cells.filter(c=>c?.hold>0).length,1);
  assert.equal(state.cells.find(c=>c?.hold>0).hold,2,'transport may move, but cannot consume drops');
 }
-const board=E.create(12,8334),anchors=board.cells.map((c,i)=>c?i:-1).filter(i=>i>=0).slice(0,3);
+const board=E.create(12,8334),anchors=board.cells.map((c,i)=>c&&!c.ice&&!c.lock&&!c.chest?i:-1).filter(i=>i>=0).slice(0,3);
 assert.equal(E.applyHold(board,'jam_hold',anchors[0]).valid,true);
 assert.equal(E.applyHold(board,'butter_hold',anchors[1]).valid,true);
 const mask=board.cells.map(Boolean);
@@ -40,7 +40,7 @@ function prepared(){
  const q=E.create(1,259),w=q.cfg.width;
  for(let i=0;i<q.cells.length;i++)if(q.cells[i]){
   q.cells[i].type=(Math.floor(i/w)+i%w)%2;
-  q.cells[i].ice=2;q.cells[i].hold=0;
+  q.cells[i].ice=0;q.cells[i].hold=0;
  }
  for(let i=0;i<3;i++)q.cells[i].type=0;
  return q;
@@ -51,10 +51,10 @@ const w=normal.cfg.width,from=normal.cells.length-w,to=from+1;
 assert.ok(E.adjacent(normal,from,to));
 const base=E.swap(normal,from,to),boosted=E.swap(held,from,to);
 assert.equal(base.valid,true);assert.equal(boosted.valid,true);
-assert.equal(held.score-normal.score,120*(1+2+3),'each held match adds only its own 2×60 bonus per cascade multiplier');
+assert.equal(held.score-normal.score,120,'only the matched held nut gains its own 2×60 bonus');
 assert.equal(normal.cells[0].ice,0);assert.equal(held.cells[0].hold,0,'a matched/cleared held nut loses its hold');
 // Held special-nut identity, duration and artwork state survive shuffling.
-const sh=E.create(85,720),shAt=sh.cells.findIndex(c=>c&&!c.ice&&!c.lock);
+const sh=E.create(85,720),shAt=sh.cells.findIndex(c=>c&&!c.ice&&!c.lock&&!c.chest);
 sh.cells[shAt].special='line-h';
 assert.equal(E.applyHold(sh,'jam_hold',shAt).valid,true);
 assert.equal(E.shuffle(sh),true);
@@ -84,7 +84,7 @@ assert.equal(JSON.stringify(E.snapshot(invalidHold)),initial,'invalid target can
 // preserve irregular masks and leave no playable cell unfilled.
 let heldGames=0,cascadeStages=0;
 for(let level=1;level<=500;level++)for(const seed of [1111,7777]){
- const board=E.create(level,level*73+seed),indices=board.cells.map((c,i)=>c?i:-1).filter(i=>i>=0);
+ const board=E.create(level,level*73+seed),indices=board.cells.map((c,i)=>c&&!c.ice&&!c.lock&&!c.chest?i:-1).filter(i=>i>=0);
  const mask=board.cells.map(Boolean);
  assert.equal(E.applyHold(board,'jam_hold',indices[0]).valid,true);
  assert.equal(E.applyHold(board,'butter_hold',indices[1]).valid,true);
@@ -138,7 +138,7 @@ assert.equal(P.holdCount(app.getSave(),'butter_hold'),1);
 assert.ok(store['nutbuster.v1'],'purchase saved');
 app.start(40);
 assert.equal((html.match(/data-hold-tool=/g)||[]).length,2);
-const i=app.getState().game.cells.findIndex(c=>c&&c.type!==null);
+const i=app.getState().game.cells.findIndex(c=>c&&c.type!==null&&!c.ice&&!c.lock&&!c.chest);
 click({holdTool:'butter_hold'});click({cell:String(i)});
 assert.equal(app.getState().game.cells[i].hold,1);
 assert.equal(P.holdCount(app.getSave(),'butter_hold'),0);

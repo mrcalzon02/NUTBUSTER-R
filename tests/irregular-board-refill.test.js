@@ -24,10 +24,11 @@ for(let level=1;level<=500;level++){
   const g=E.create(level,seed*1787+level*31);
   if(g.cfg.mask.includes(false))voidBoards++;
   complete(g,'initial '+level);
-  // Force missing payloads in interrupted columns and isolated vertical islands.
+  // Force missing FREE payloads in interrupted columns and isolated vertical islands.
+  // Whole-piece ice, locked walnuts and chests are never erased to create artificial vacancies.
   // They must refill independently, not from another segment across a hole.
   const missing=[];
-  for(let i=0;i<g.cells.length;i++)if(g.cells[i]&&rng()<.27){
+  for(let i=0;i<g.cells.length;i++)if(g.cells[i]&&!g.cells[i].ice&&!g.cells[i].lock&&!g.cells[i].chest&&rng()<.27){
    g.cells[i].type=null;g.cells[i].special=null;missing.push(i);
   }
   if(missing.length){
