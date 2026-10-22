@@ -1,0 +1,251 @@
+{
+  "collection": "elemental-nuts",
+  "enabled_for_gameplay": false,
+  "layout": [
+    5,
+    5,
+    5
+  ],
+  "role": "art-and-rules-preview",
+  "schema": 1,
+  "source": "drive-staged",
+  "source_dimensions": [
+    1536,
+    1024
+  ],
+  "source_sha256": "4e29ac5f1597730335fdf05474fa5c0a183a2ddac45b5c1f4e8c5d39480e7bd2",
+  "sprite_dimensions": [
+    192,
+    192
+  ],
+  "sprites": {
+    "arcane": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/arcane.png",
+      "sha256": "629a978adee7c32a706d393338f85e8a8a7168f13e78ee99503c84d41733b18c",
+      "source_rect": [
+        1221,
+        676,
+        1536,
+        1024
+      ]
+    },
+    "crystal": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/crystal.png",
+      "sha256": "052c4a45110bb3ab4cfa237abfce097665fa7bbc1f03d3588aa411121c5410e2",
+      "source_rect": [
+        0,
+        676,
+        307,
+        1024
+      ]
+    },
+    "earth": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/earth.png",
+      "sha256": "ca9843e48f970fbd55a323893d7079d914f832f42eb71bf989e0ab42bb5d1c2e",
+      "source_rect": [
+        921,
+        0,
+        1217,
+        344
+      ]
+    },
+    "fire": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/fire.png",
+      "sha256": "63e5bd7c32dfa4ce9f61588200e418e411f851b4d942ffdd52ae77e1791c94c0",
+      "source_rect": [
+        0,
+        0,
+        316,
+        344
+      ]
+    },
+    "frost": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/frost.png",
+      "sha256": "6eb949dd96bffcef21c66d7da039504c8dc9c61f8795abfc5794f7b316a3643e",
+      "source_rect": [
+        613,
+        676,
+        909,
+        1024
+      ]
+    },
+    "ice": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/ice.png",
+      "sha256": "2400262d15ecfe964c2ef7aae13f8aa2bc241856dd18e99de3dbc780696f46b5",
+      "source_rect": [
+        316,
+        0,
+        614,
+        344
+      ]
+    },
+    "lightning": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/lightning.png",
+      "sha256": "437fc11ce237205c5f3a67eae9c447032c25418cf8ec37463b9711dbf5b1bee1",
+      "source_rect": [
+        0,
+        344,
+        312,
+        676
+      ]
+    },
+    "magma": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/magma.png",
+      "sha256": "3d6827a8082df4041980ee4a3543264ff6146980bf139a8e737fae74e39c2618",
+      "source_rect": [
+        307,
+        676,
+        613,
+        1024
+      ]
+    },
+    "nature": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/nature.png",
+      "sha256": "0edfa01ac737cd5888b903493b08c2dabd0adfe6f650b29dece9222c0fa19db5",
+      "source_rect": [
+        312,
+        344,
+        627,
+        676
+      ]
+    },
+    "poison": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/poison.png",
+      "sha256": "25ed4c358c49c5de750cbf720ef37ef066fb1ba9ef6fc673b816f13ce6f0de9b",
+      "source_rect": [
+        627,
+        344,
+        917,
+        676
+      ]
+    },
+    "radiance": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/radiance.png",
+      "sha256": "c9c9510ff3c66169a89b560fc14b274673955f0c6c82e4cc3341e50239b54761",
+      "source_rect": [
+        917,
+        344,
+        1225,
+        676
+      ]
+    },
+    "shadow": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/shadow.png",
+      "sha256": "446613cb5c9324da2cf7d9a0f57d8ddcca2445c36a25bc0f0112f90602819ff5",
+      "source_rect": [
+        1225,
+        344,
+        1536,
+        676
+      ]
+    },
+    "storm": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/storm.png",
+      "sha256": "2788e8c8cc6fa831b77e31765fdaed81b5499066cca76334a7691111be060cf3",
+      "source_rect": [
+        909,
+        676,
+        1221,
+        1024
+      ]
+    },
+    "water": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/water.png",
+      "sha256": "a2b4f25d4e7b9e614cbe6d5b9e114ed854fb4e2ed1de3c42488bdf2f8acf7e32",
+      "source_rect": [
+        614,
+        0,
+        921,
+        344
+      ]
+    },
+    "wind": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/elemental/wind.png",
+      "sha256": "d9d214a8daeb34bdf1613ce24d5def5facfe40493ce17c9aa156e09dd7c7601f",
+      "source_rect": [
+        1217,
+        0,
+        1536,
+        344
+      ]
+    }
+  },
+  "source_drive_url": "https://drive.google.com/file/d/13lBWifXqDQuD34WjVLLi-IjkQcBR07UZ/view?usp=drivesdk",
+  "source_local_path": "assets/source/expansion/elemental-nuts-3x5.png",
+  "source_notice": "Original 3x5 master is stored in the linked NUTBUSTER Drive folder; copy it to source_local_path before rerunning slicer."
+}
