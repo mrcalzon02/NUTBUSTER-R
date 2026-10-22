@@ -13,7 +13,7 @@ const PRESETS=Object.freeze({
  reel:[340,430,.08,'triangle',.12],caught:[470,980,.37,'triangle',.23],
  escaped:[430,145,.32,'sine',.21],place:[360,590,.18,'triangle',.18]
 });
-let context=null,enabled=true,volume=.48,unlocked=false;
+let context=null,enabled=true,volume=.48,unlocked=false,lastPitch=1;
 function getContext(){
  if(!unlocked)return null;
  if(!context){
@@ -32,6 +32,11 @@ function play(name,{delay=0,pitch=1,level=1}={}){
  if(!spec||!ctx||typeof ctx.createOscillator!=='function')return false;
  try{
   const [from,to,duration,wave,strength]=spec;
+  // Every cue gets a slight fresh tonal/speed variation; never repeat identical pitches.
+  let shift=1+(Math.random()*2-1)*.055;
+  if(Math.abs(shift-lastPitch)<.03)shift=lastPitch>=1?.946:1.054;
+  lastPitch=shift;
+  pitch*=shift;
   const start=ctx.currentTime+Math.max(0,Math.min(1,delay));
   const osc=ctx.createOscillator(),gain=ctx.createGain(),peak=Math.max(.0001,Math.min(.30,strength*volume*level));
   osc.type=wave;osc.frequency.setValueAtTime(Math.max(20,from*pitch),start);
