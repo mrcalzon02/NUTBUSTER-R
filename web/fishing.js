@@ -18,7 +18,75 @@ const FISH=Object.freeze([
  {id:'puffer',name:'Inflation Puffer',icon:'🐡',value:210,weight:8,difficulty:6},
  {id:'eel',name:'Electric Eel',icon:'🐍',value:275,weight:8,difficulty:7},
  {id:'sturgeon',name:'Imperial Sturgeon',icon:'🐟',value:425,weight:9,difficulty:8},
- {id:'leviathan',name:'Nutvale Leviathan',icon:'🐉',value:800,weight:10,difficulty:9}
+ {id:'leviathan',name:'Nutvale Leviathan',icon:'🐉',value:800,weight:10,difficulty:9},
+ {id:"fish-set01-azure-darter",name:"Azure Darter",icon:"🐟",value:28,difficulty:1,habitat:"river",rarity:"common",art:"art/fishing/species/v2/fish-set01-azure-darter.png"},
+ {id:"fish-set01-copper-fin",name:"Copper Fin",icon:"🐠",value:49,difficulty:2,habitat:"pond",rarity:"common",art:"art/fishing/species/v2/fish-set01-copper-fin.png"},
+ {id:"fish-set01-ribbon-koi",name:"Ribbon Koi",icon:"🐠",value:84,difficulty:3,habitat:"pond",rarity:"uncommon",art:"art/fishing/species/v2/fish-set01-ribbon-koi.png"},
+ {id:"fish-set01-moss-trout",name:"Moss Trout",icon:"🐟",value:133,difficulty:4,habitat:"river",rarity:"uncommon",art:"art/fishing/species/v2/fish-set01-moss-trout.png"},
+ {id:"fish-set01-constellation-gar",name:"Constellation Gar",icon:"🐟",value:273,difficulty:6,habitat:"arcane",rarity:"rare",art:"art/fishing/species/v2/fish-set01-constellation-gar.png"},
+ {id:"fish-set01-sunline-perch",name:"Sunline Perch",icon:"🐠",value:28,difficulty:1,habitat:"pond",rarity:"common",art:"art/fishing/species/v2/fish-set01-sunline-perch.png"},
+ {id:"fish-set01-sapphire-catfish",name:"Sapphire Catfish",icon:"🐟",value:84,difficulty:3,habitat:"arcane",rarity:"uncommon",art:"art/fishing/species/v2/fish-set01-sapphire-catfish.png"},
+ {id:"fish-set01-amethyst-snapper",name:"Amethyst Snapper",icon:"🐟",value:133,difficulty:4,habitat:"arcane",rarity:"uncommon",art:"art/fishing/species/v2/fish-set01-amethyst-snapper.png"},
+ {id:"fish-set02-gilded-ridge",name:"Gilded Ridge",icon:"🐠",value:32,difficulty:1,habitat:"pond",rarity:"common",art:"art/fishing/species/v2/fish-set02-gilded-ridge.png"},
+ {id:"fish-set02-cobalt-whisker",name:"Cobalt Whisker",icon:"🐟",value:53,difficulty:2,habitat:"deep",rarity:"common",art:"art/fishing/species/v2/fish-set02-cobalt-whisker.png"},
+ {id:"fish-set02-rose-current",name:"Rose Current",icon:"🐟",value:88,difficulty:3,habitat:"river",rarity:"uncommon",art:"art/fishing/species/v2/fish-set02-rose-current.png"},
+ {id:"fish-set02-comet-guppy",name:"Comet Guppy",icon:"🐟",value:200,difficulty:5,habitat:"arcane",rarity:"rare",art:"art/fishing/species/v2/fish-set02-comet-guppy.png"},
+ {id:"fish-set02-sawtooth-pike",name:"Sawtooth Pike",icon:"🐟",value:200,difficulty:5,habitat:"river",rarity:"rare",art:"art/fishing/species/v2/fish-set02-sawtooth-pike.png"},
+ {id:"fish-set02-blue-streak",name:"Blue Streak",icon:"🐟",value:53,difficulty:2,habitat:"river",rarity:"common",art:"art/fishing/species/v2/fish-set02-blue-streak.png"},
+ {id:"fish-set03-emerald-paddlefish",name:"Emerald Paddlefish",icon:"🐟",value:57,difficulty:2,habitat:"deep",rarity:"common",art:"art/fishing/species/v2/fish-set03-emerald-paddlefish.png"},
+ {id:"fish-set03-candyline-minnow",name:"Candyline Minnow",icon:"🐟",value:92,difficulty:3,habitat:"river",rarity:"uncommon",art:"art/fishing/species/v2/fish-set03-candyline-minnow.png"},
+ {id:"fish-set03-tiger-jaw",name:"Tiger Jaw",icon:"🐟",value:141,difficulty:4,habitat:"deep",rarity:"uncommon",art:"art/fishing/species/v2/fish-set03-tiger-jaw.png"},
+ {id:"fish-set03-sakura-koi",name:"Sakura Koi",icon:"🐠",value:204,difficulty:5,habitat:"pond",rarity:"rare",art:"art/fishing/species/v2/fish-set03-sakura-koi.png"},
+ {id:"fish-set03-frost-darter",name:"Frost Darter",icon:"🐟",value:372,difficulty:7,habitat:"arcane",rarity:"epic",art:"art/fishing/species/v2/fish-set03-frost-darter.png"},
+ {id:"fish-set03-violet-catfish",name:"Violet Catfish",icon:"🐟",value:92,difficulty:3,habitat:"arcane",rarity:"uncommon",art:"art/fishing/species/v2/fish-set03-violet-catfish.png"},
+ {id:"fish-set03-teal-disc",name:"Teal Disc",icon:"🐠",value:92,difficulty:3,habitat:"pond",rarity:"uncommon",art:"art/fishing/species/v2/fish-set03-teal-disc.png"},
+ {id:"fish-set03-amber-whisker",name:"Amber Whisker",icon:"🐟",value:141,difficulty:4,habitat:"deep",rarity:"uncommon",art:"art/fishing/species/v2/fish-set03-amber-whisker.png"},
+ {id:"fish-set04-opal-runner",name:"Opal Runner",icon:"🐟",value:61,difficulty:2,habitat:"river",rarity:"common",art:"art/fishing/species/v2/fish-set04-opal-runner.png"},
+ {id:"fish-set04-sunburst-discus",name:"Sunburst Discus",icon:"🐟",value:145,difficulty:4,habitat:"arcane",rarity:"uncommon",art:"art/fishing/species/v2/fish-set04-sunburst-discus.png"},
+ {id:"fish-set04-scarlet-trout",name:"Scarlet Trout",icon:"🐟",value:145,difficulty:4,habitat:"river",rarity:"uncommon",art:"art/fishing/species/v2/fish-set04-scarlet-trout.png"},
+ {id:"fish-set04-lumen-eel",name:"Lumen Eel",icon:"🐟",value:285,difficulty:6,habitat:"arcane",rarity:"rare",art:"art/fishing/species/v2/fish-set04-lumen-eel.png"},
+ {id:"fish-set04-golden-pumpkinfish",name:"Golden Pumpkinfish",icon:"🐠",value:285,difficulty:6,habitat:"pond",rarity:"rare",art:"art/fishing/species/v2/fish-set04-golden-pumpkinfish.png"},
+ {id:"fish-set04-peacock-tail",name:"Peacock Tail",icon:"🐠",value:61,difficulty:2,habitat:"pond",rarity:"common",art:"art/fishing/species/v2/fish-set04-peacock-tail.png"},
+ {id:"fish-set04-speckle-cat",name:"Speckle Cat",icon:"🐟",value:96,difficulty:3,habitat:"deep",rarity:"uncommon",art:"art/fishing/species/v2/fish-set04-speckle-cat.png"},
+ {id:"fish-set04-jade-riverfish",name:"Jade Riverfish",icon:"🐟",value:145,difficulty:4,habitat:"river",rarity:"uncommon",art:"art/fishing/species/v2/fish-set04-jade-riverfish.png"},
+ {id:"fish-set05-midnight-darter",name:"Midnight Darter",icon:"🐟",value:100,difficulty:3,habitat:"river",rarity:"uncommon",art:"art/fishing/species/v2/fish-set05-midnight-darter.png"},
+ {id:"fish-set05-vermilion-fanfish",name:"Vermilion Fanfish",icon:"🐠",value:149,difficulty:4,habitat:"pond",rarity:"uncommon",art:"art/fishing/species/v2/fish-set05-vermilion-fanfish.png"},
+ {id:"fish-set05-leopard-whisker",name:"Leopard Whisker",icon:"🐟",value:212,difficulty:5,habitat:"deep",rarity:"rare",art:"art/fishing/species/v2/fish-set05-leopard-whisker.png"},
+ {id:"fish-set05-emerald-bass",name:"Emerald Bass",icon:"🐠",value:289,difficulty:6,habitat:"pond",rarity:"rare",art:"art/fishing/species/v2/fish-set05-emerald-bass.png"},
+ {id:"fish-set05-pearl-shiner",name:"Pearl Shiner",icon:"🐟",value:380,difficulty:7,habitat:"river",rarity:"epic",art:"art/fishing/species/v2/fish-set05-pearl-shiner.png"},
+ {id:"fish-set05-rusty-catfish",name:"Rusty Catfish",icon:"🐟",value:100,difficulty:3,habitat:"deep",rarity:"uncommon",art:"art/fishing/species/v2/fish-set05-rusty-catfish.png"},
+ {id:"fish-set05-prismatic-gourami",name:"Prismatic Gourami",icon:"🐟",value:212,difficulty:5,habitat:"arcane",rarity:"rare",art:"art/fishing/species/v2/fish-set05-prismatic-gourami.png"},
+ {id:"fish-set05-sunspot-trout",name:"Sunspot Trout",icon:"🐟",value:212,difficulty:5,habitat:"river",rarity:"rare",art:"art/fishing/species/v2/fish-set05-sunspot-trout.png"},
+ {id:"fish-set06-verdigris-perch",name:"Verdigris Perch",icon:"🐠",value:104,difficulty:3,habitat:"pond",rarity:"uncommon",art:"art/fishing/species/v2/fish-set06-verdigris-perch.png"},
+ {id:"fish-set06-royal-silkfin",name:"Royal Silkfin",icon:"🐟",value:216,difficulty:5,habitat:"arcane",rarity:"rare",art:"art/fishing/species/v2/fish-set06-royal-silkfin.png"},
+ {id:"fish-set06-crystal-flash",name:"Crystal Flash",icon:"🐟",value:293,difficulty:6,habitat:"arcane",rarity:"rare",art:"art/fishing/species/v2/fish-set06-crystal-flash.png"},
+ {id:"fish-set06-ember-maw",name:"Ember Maw",icon:"🐠",value:384,difficulty:7,habitat:"pond",rarity:"epic",art:"art/fishing/species/v2/fish-set06-ember-maw.png"},
+ {id:"fish-set06-painted-trout",name:"Painted Trout",icon:"🐟",value:153,difficulty:4,habitat:"river",rarity:"uncommon",art:"art/fishing/species/v2/fish-set06-painted-trout.png"},
+ {id:"fish-set06-lunar-longfin",name:"Lunar Longfin",icon:"🐟",value:293,difficulty:6,habitat:"arcane",rarity:"rare",art:"art/fishing/species/v2/fish-set06-lunar-longfin.png"},
+ {id:"fish-set07-blazing-crown",name:"Blazing Crown",icon:"🐠",value:157,difficulty:4,habitat:"pond",rarity:"uncommon",art:"art/fishing/species/v2/fish-set07-blazing-crown.png"},
+ {id:"fish-set07-banded-catfish",name:"Banded Catfish",icon:"🐟",value:220,difficulty:5,habitat:"deep",rarity:"rare",art:"art/fishing/species/v2/fish-set07-banded-catfish.png"},
+ {id:"fish-set07-silver-courier",name:"Silver Courier",icon:"🐟",value:297,difficulty:6,habitat:"river",rarity:"rare",art:"art/fishing/species/v2/fish-set07-silver-courier.png"},
+ {id:"fish-set07-blush-trout",name:"Blush Trout",icon:"🐟",value:388,difficulty:7,habitat:"river",rarity:"epic",art:"art/fishing/species/v2/fish-set07-blush-trout.png"},
+ {id:"fish-set07-emerald-drum",name:"Emerald Drum",icon:"🐠",value:493,difficulty:8,habitat:"pond",rarity:"epic",art:"art/fishing/species/v2/fish-set07-emerald-drum.png"},
+ {id:"fish-set07-gold-ribbon-koi",name:"Gold Ribbon Koi",icon:"🐠",value:157,difficulty:4,habitat:"pond",rarity:"uncommon",art:"art/fishing/species/v2/fish-set07-gold-ribbon-koi.png"},
+ {id:"fish-set07-violet-whisker",name:"Violet Whisker",icon:"🐟",value:297,difficulty:6,habitat:"arcane",rarity:"rare",art:"art/fishing/species/v2/fish-set07-violet-whisker.png"},
+ {id:"fish-set07-rose-reef",name:"Rose Reef",icon:"🐠",value:297,difficulty:6,habitat:"pond",rarity:"rare",art:"art/fishing/species/v2/fish-set07-rose-reef.png"},
+ {id:"fish-set08-sunset-koi",name:"Sunset Koi",icon:"🐠",value:161,difficulty:4,habitat:"pond",rarity:"uncommon",art:"art/fishing/species/v2/fish-set08-sunset-koi.png"},
+ {id:"fish-set08-diamond-puffer",name:"Diamond Puffer",icon:"🐟",value:301,difficulty:6,habitat:"arcane",rarity:"rare",art:"art/fishing/species/v2/fish-set08-diamond-puffer.png"},
+ {id:"fish-set08-green-reef-bass",name:"Green Reef Bass",icon:"🐠",value:301,difficulty:6,habitat:"pond",rarity:"rare",art:"art/fishing/species/v2/fish-set08-green-reef-bass.png"},
+ {id:"fish-set08-scarlet-stripe",name:"Scarlet Stripe",icon:"🐠",value:392,difficulty:7,habitat:"pond",rarity:"epic",art:"art/fishing/species/v2/fish-set08-scarlet-stripe.png"},
+ {id:"fish-set08-copper-crown",name:"Copper Crown",icon:"🐠",value:497,difficulty:8,habitat:"pond",rarity:"epic",art:"art/fishing/species/v2/fish-set08-copper-crown.png"},
+ {id:"fish-set08-crystal-runner",name:"Crystal Runner",icon:"🐟",value:224,difficulty:5,habitat:"arcane",rarity:"rare",art:"art/fishing/species/v2/fish-set08-crystal-runner.png"},
+ {id:"fish-set08-jade-longnose",name:"Jade Longnose",icon:"🐠",value:224,difficulty:5,habitat:"pond",rarity:"rare",art:"art/fishing/species/v2/fish-set08-jade-longnose.png"},
+ {id:"fish-set08-royal-ink-koi",name:"Royal Ink Koi",icon:"🐟",value:392,difficulty:7,habitat:"arcane",rarity:"epic",art:"art/fishing/species/v2/fish-set08-royal-ink-koi.png"},
+ {id:"fish-set09-dandelion-bluegill",name:"Dandelion Bluegill",icon:"🐠",value:228,difficulty:5,habitat:"pond",rarity:"rare",art:"art/fishing/species/v2/fish-set09-dandelion-bluegill.png"},
+ {id:"fish-set09-ruby-shiner",name:"Ruby Shiner",icon:"🐟",value:305,difficulty:6,habitat:"river",rarity:"rare",art:"art/fishing/species/v2/fish-set09-ruby-shiner.png"},
+ {id:"fish-set09-tin-fin-minnow",name:"Tin Fin Minnow",icon:"🐟",value:396,difficulty:7,habitat:"river",rarity:"epic",art:"art/fishing/species/v2/fish-set09-tin-fin-minnow.png"},
+ {id:"fish-set09-sunset-paddle",name:"Sunset Paddle",icon:"🐟",value:501,difficulty:8,habitat:"deep",rarity:"epic",art:"art/fishing/species/v2/fish-set09-sunset-paddle.png"},
+ {id:"fish-set09-ocean-crown",name:"Ocean Crown",icon:"🐠",value:620,difficulty:9,habitat:"pond",rarity:"legendary",art:"art/fishing/species/v2/fish-set09-ocean-crown.png"},
+ {id:"fish-set09-ember-spotted-cat",name:"Ember Spotted Cat",icon:"🐟",value:228,difficulty:5,habitat:"deep",rarity:"rare",art:"art/fishing/species/v2/fish-set09-ember-spotted-cat.png"},
+ {id:"fish-set09-violet-disc",name:"Violet Disc",icon:"🐟",value:396,difficulty:7,habitat:"arcane",rarity:"epic",art:"art/fishing/species/v2/fish-set09-violet-disc.png"},
+ {id:"fish-set09-royal-koi-tail",name:"Royal Koi Tail",icon:"🐟",value:501,difficulty:8,habitat:"arcane",rarity:"epic",art:"art/fishing/species/v2/fish-set09-royal-koi-tail.png"}
 ]);
 const BAITS=Object.freeze([
  {id:'worm',name:'Honest Worm',icon:'🪱',level:0,quality:0},
@@ -94,10 +162,14 @@ function craft(save,kind,now=Date.now()){
  return {valid:true,cost:price};
 }
 function rodModel(n){return ROD_BY_ID.get(n.equippedRod)||ROD_BY_ID.get(STARTER_ROD);}
+const HABITAT_AFFINITY=Object.freeze({woodland:['pond'],brass:['river'],gilded:['river'],carbon:['deep'],verdant:['pond','arcane'],coral:['pond','arcane'],industrial:['deep'],'royal-blue':['river','arcane'],pirate:['deep'],glacier:['river','deep'],storm:['arcane','deep'],magma:['deep','arcane'],sovereign:['arcane','pond'],astral:['arcane'],prismatic:['arcane','deep'],confection:['pond','arcane']});
+const DIFFICULTY_BANDS=Object.freeze([0,22,18,16,14,10,7,4,2.5,1.2]);
+// Keep rarity-band probability mass stable as more fish enter the catalog.
 function rodOdds(rodId,quality=0){
  const rod=ROD_BY_ID.get(rodId)||ROD_BY_ID.get(STARTER_ROD);
- const q=Math.max(0,Math.min(4,Number(quality)||0));
- const weights=FISH.map((fish,i)=>(18/Math.pow(1.35,i))*Math.pow(1+q*.08,fish.difficulty)*(rod.affinity.includes(fish.id)?rod.bias:1));
+ const q=Math.max(0,Math.min(4,Number(quality)||0)),counts=Array(10).fill(0);
+ for(const fish of FISH)counts[fish.difficulty]++;
+ const weights=FISH.map(fish=>(DIFFICULTY_BANDS[fish.difficulty]/counts[fish.difficulty])*Math.pow(1+q*.17,fish.difficulty-1)*(rod.affinity.includes(fish.id)?rod.bias:1)*(HABITAT_AFFINITY[rod.id]?.includes(fish.habitat)?1.6:1));
  const sum=weights.reduce((a,b)=>a+b,0);
  return FISH.map((fish,i)=>({id:fish.id,name:fish.name,probability:weights[i]/sum}));
 }

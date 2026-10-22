@@ -19,7 +19,7 @@ Go to Homestead → Fishing Wharf. Six Honest Worms are granted on the first log
 
 Only one active fight or caught-fish decision can be held at a time; both persist in the existing offline save. Navigation must not silently erase either. The fight is currently command-driven; true continuous arcade input and framed motion should be evaluated during the game-feel pass, not claimed as implemented prematurely.
 
-The 12 fish species are Penny Minnow, Bluegill Baron, Gilded Perch, Dividend Carp, Rainbow Trout, Bigmouth Bass, Tax Haven Catfish, Royal Koi, Inflation Puffer, Electric Eel, Imperial Sturgeon, and Nutvale Leviathan.
+The original 12 species remain. **68 additional illustrated fish** expand the catch pool to **80 species**, with art paths, tiers, and atlas provenance in `web/art/fishing/species/v2/manifest.json`. Four overlapping fish candidates are quarantined, without catch entries. Nine unique source atlases remain accessible from the ten-generation session; one was overwritten. Every available fish has positive catch probability, with rod habitat affinity and bait quality affecting the odds.
 
 ## Economy and improvements
 
