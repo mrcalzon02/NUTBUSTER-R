@@ -49,4 +49,42 @@ assert.ok(css.includes('.cell.nut-shaking .nut-visual')&&css.includes('.cell.nut
 const index=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');assert.ok(index.includes('src="fx.js"'));
 for(const file of Object.values(FX.assets))assert.ok(fs.existsSync(path.join(__dirname,'../web',file)),file);
 assert.equal(Object.keys(FX.assets).length,18,'All 18 sliced source effects must be registered');
+// Integration: actual deterministic engine cascades and all ten tools must report
+// exactly the nuts that physically disappeared. An ice/chain/chest hit must not
+// animate its still-present nut as if destroyed.
+const E=require('../web/engine.js');
+let verified=0,exploded=0,protectedHits=0;
+function verifyStages(stages,context){
+ for(const stage of stages||[]){
+  if(stage.kind!=='cascade')continue;
+  const plan=FX.planCascade(stage,2);
+  const expected=(stage.clear||[]).filter(i=>stage.before?.[i]?.type!==null&&stage.afterClear?.[i]?.type===null);
+  assert.deepEqual(Array.from(plan.removed,x=>x.index),expected,
+   'FX must follow actual engine removals: '+context);
+  for(const hit of plan.removed)assert.ok(!stage.afterClear[hit.index]?.type&&stage.afterClear[hit.index]?.type===null);
+  exploded+=expected.length;protectedHits+=(stage.clear||[]).length-expected.length;
+  verified++;
+ }
+}
+for(const level of [1,3,15,28,50,85,120,151,210,300,375,490]){
+ const g=E.create(level,level*343+7);
+ let pair=null;
+ for(let a=0;a<g.cells.length&&!pair;a++)for(const b of [a+1,a+g.cfg.width]){
+  if(!E.adjacent(g,a,b))continue;
+  const ca=g.cells[a],cb=g.cells[b];[ca.type,cb.type]=[cb.type,ca.type];
+  const hit=E.matches(g).hit.size>0;[ca.type,cb.type]=[cb.type,ca.type];
+  if(hit){pair=[a,b];break;}
+ }
+ if(pair)verifyStages(E.swap(g,...pair).stages,'swap level '+level);
+ for(const type of E.BOOSTERS){
+  const test=E.create(level,level*777+19);
+  if(type==='unlock'&&!test.cells.some(c=>c?.lock>0))continue;
+  const index=['extra','shuffle','unlock'].includes(type)?-1:test.cells.findIndex(c=>c&&c.type!==null);
+  const result=E.booster(test,type,index);
+  assert.equal(result.valid,true,'Real booster must work: '+type+' on level '+level);
+  verifyStages(result.stages,'booster '+type+' level '+level);
+ }
+}
+assert.ok(verified>100&&exploded>400&&protectedHits>100,'Exercise real cascades and layered blockers');
+console.log('PASS: '+verified+' deterministic cascade stages; '+exploded+' exact per-nut explosions; '+protectedHits+' shielded/blocked impacts');
 console.log('PASS: all 10 booster and both gravity-hold VFX; each removed nut shakes/explodes; shielded survivors unaffected; assets valid');
