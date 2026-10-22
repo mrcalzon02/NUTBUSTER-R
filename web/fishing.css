@@ -104,3 +104,60 @@
  .wharf-underwater-interface .fish-in-fight .fish-art{width:36px;height:32px}
  .wharf-underwater-interface .fish-hook{font-size:24px}
 }
+
+/* Nutvale Estate Aquarium: tier size grows in both dimensions; glass and fish
+   share the same bounded water space. Fish roam, slots are inventory only. */
+.aquarium-room{margin:6px auto 0;max-width:1420px;min-width:0}
+.aquarium-room-title{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap;color:#f6e8c9;font-size:12px;margin:4px 0 6px}
+.aquarium-room-title small{color:#b6dfe9}
+.aquarium-display{width:100%;min-width:0;display:flex;justify-content:center;align-items:center;padding:7px 5px 11px;border-radius:12px;background:radial-gradient(ellipse at center,#47788c45,#192f4650 70%,transparent)}
+.aquarium-display>.aquarium-tank{position:relative;flex:0 1 auto;max-width:100%;min-width:0;box-sizing:border-box;overflow:hidden;border:clamp(7px,1.1vw,16px) solid #94724c;border-bottom-width:clamp(14px,2.5vw,27px);border-radius:14px 14px 18px 18px;background:#13526e;box-shadow:inset 0 0 24px #052d4c,0 5px 0 #302d38,0 12px 24px #0008;transition:width .35s,height .35s}
+.aquarium-display>.aquarium-tank::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 45% 15%,#b6fcff35,transparent 55%),linear-gradient(180deg,transparent 55%,#0b385ca8);opacity:.8}
+.aquarium-display>.aquarium-tank::after{z-index:9;pointer-events:none;opacity:.5}
+.aquarium-back-water{position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(160deg,#7fdce170,#197d98 52%,#114761);transition:background .2s}
+.aquarium-back-glow{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 25% 14%,#d3fcff70,transparent 48%)}
+.aquarium-bg-river .aquarium-back-water{background:linear-gradient(158deg,#b0ddb450,#3487759c 45%,#2e6379),repeating-linear-gradient(90deg,#ffffff08 0 26px,transparent 28px 65px)}
+.aquarium-bg-reef .aquarium-back-water{background:radial-gradient(ellipse at 25% 25%,#81f5d8b5,transparent 45%),linear-gradient(150deg,#2eb3b7,#125c91 55%,#153a73)}
+.aquarium-bg-deep .aquarium-back-water{background:radial-gradient(ellipse at 65% 18%,#296eaa,#122854 55%,#07192f)}
+.aquarium-bg-arcane .aquarium-back-water{background:radial-gradient(ellipse at 35% 30%,#b16ed877,#174c9b 53%,#281d70),radial-gradient(ellipse at 65% 70%,#bed1ff55,transparent)}
+.aquarium-display .aquarium-floor{z-index:2;pointer-events:none;bottom:0;min-height:16%;padding:27px 5px 2px;text-align:center;font-size:clamp(14px,3vw,34px);letter-spacing:clamp(0px,1.7vw,20px);overflow:hidden;background:linear-gradient(0deg,#c0b182d4,#7b995d55 65%,transparent)}
+.aquarium-display .aquarium-light{z-index:8;pointer-events:none;opacity:.6}
+.aquarium-stamp{position:absolute;z-index:3;transform:translate(-50%,-50%);display:grid;place-items:center;width:clamp(28px,7%,68px);height:clamp(28px,11%,70px);padding:0;border:0;background:transparent;font-size:clamp(21px,3.3vw,45px);filter:drop-shadow(0 2px 3px #0a344a);line-height:1}
+.aquarium-stamp.removable{z-index:11;cursor:pointer;outline:1px dashed #d1faffaa;border-radius:7px}
+.aquarium-stamp.removable:focus-visible{outline:3px solid #fdf8b3}
+.aquarium-placement-canvas{position:absolute;inset:0;z-index:10;border:0;background:transparent;cursor:crosshair;touch-action:manipulation}
+.aquarium-tank.editing{outline:2px solid #d4ecb9;outline-offset:2px}
+.aquarium-display .aquarium-swimmer{position:absolute;left:0;top:0;z-index:6;width:var(--swim-width,54px);height:clamp(26px,7vw,66px);display:flex;align-items:center;justify-content:center;white-space:nowrap;animation:aquarium-roam var(--swim-speed,11s) ease-in-out var(--swim-delay,0s) infinite alternate;will-change:transform;pointer-events:none}
+.aquarium-swimmer .fish-art{width:100%;height:100%;object-fit:contain}
+@keyframes aquarium-roam{
+ 0%{transform:translate(2px,var(--swim-y,28%)) scaleX(1)}
+ 34%{transform:translate(calc((var(--swim-range,100cqw) - var(--swim-width,54px))*.72),var(--swim-y2,50%)) scaleX(1)}
+ 49%{transform:translate(calc(var(--swim-range,100cqw) - var(--swim-width,54px) - 4px),var(--swim-y2,50%)) scaleX(1)}
+ 50%{transform:translate(calc(var(--swim-range,100cqw) - var(--swim-width,54px) - 4px),var(--swim-y2,50%)) scaleX(-1)}
+ 85%{transform:translate(calc((var(--swim-range,100cqw) - var(--swim-width,54px))*.20),var(--swim-y,28%)) scaleX(-1)}
+ 100%{transform:translate(2px,var(--swim-y,28%)) scaleX(-1)}
+}
+/* Use the tank itself as the coordinate container; never animate outside glass. */
+.aquarium-display>.aquarium-tank{container-type:inline-size}
+.aquarium-display .aquarium-swimmer{--swim-range:100cqw}
+.aquarium-editor{margin:9px 0 12px;padding:9px;background:#1f3748;border:1px solid #7294a5;border-radius:9px;color:#f6e8d1}
+.aquarium-edit-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;margin:10px 0 5px}
+.aquarium-edit-head:first-child{margin-top:0}
+.aquarium-edit-head small{font-size:10px;color:#b7d9de}
+.aquarium-themes,.aquarium-stamp-palette,.aquarium-fish-slots{display:flex;flex-wrap:wrap;gap:5px;overflow-y:auto;max-height:192px;padding:4px 1px}
+.aquarium-theme,.aquarium-stamp-card,.aquarium-fish-slot{border:1px solid #7ea1ac;background:#31515f;border-radius:7px;color:#fff0d3;cursor:pointer;min-height:35px}
+.aquarium-theme{padding:5px 10px;font-size:11px}
+.aquarium-theme.chosen,.aquarium-stamp-card.selected,.aquarium-fish-slot.selected{border:2px solid #ffe7a2;background:#426b75}
+.aquarium-stamp-card{min-width:90px;max-width:130px;flex:1 1 90px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.aquarium-stamp-card span{font-size:24px}.aquarium-stamp-card b{font-size:10px}.aquarium-stamp-card small{font-size:9px}
+.aquarium-stamp-card:disabled,.aquarium-theme:disabled{opacity:.44;cursor:not-allowed}
+.aquarium-fish-slot{display:flex;align-items:center;gap:3px;min-width:94px;max-width:150px;flex:1 1 108px;text-align:left;font-size:10px;padding:3px 5px}
+.aquarium-fish-slot b{font-size:11px;color:#ffdb8b}
+.aquarium-fish-slot .fish-art{width:33px;height:31px}
+.aquarium-fish-slot small{font-size:9px;line-height:1.2}
+.aquarium-fish-slot.empty{border-style:dashed;color:#b7d6e2}
+.aquarium-footer{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}
+.aquarium-footer span{font-size:12px;font-weight:800}
+.aquarium-footer .btn{min-height:35px;font-size:11px;padding:6px 9px}
+@media(max-width:650px){.aquarium-room-title{font-size:11px}.aquarium-stamp{font-size:clamp(18px,5vw,36px)}.aquarium-display .aquarium-swimmer{height:37px}.aquarium-fish-slot{flex:1 1 84px;min-width:83px}}
+@media(prefers-reduced-motion:reduce){.aquarium-display .aquarium-swimmer{animation:none!important;transform:translate(20px,30px)}.aquarium-display .aquarium-tank{transition:none}}

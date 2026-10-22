@@ -351,6 +351,7 @@ function resolve(save,choice,now=Date.now()){
  if(!fish)return {valid:false,reason:'no-catch'};
  if(choice!=='keep'&&choice!=='sell'&&choice!=='release')return {valid:false,reason:'choice'};
  if(choice==='keep'&&n.fish.length>=capacity(n))return {valid:false,reason:'full'};
+ if(!n.aquarium.discovered.includes(fish.id))n.aquarium.discovered.push(fish.id);
  if(choice==='keep'){
   const claimed=new Set(n.fish.map(f=>f.slot)),slot=Array.from({length:capacity(n)},(_,i)=>i).find(i=>!claimed.has(i));
   n.fish.push({...fish,slot});
