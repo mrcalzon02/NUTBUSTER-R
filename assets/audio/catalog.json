@@ -162,6 +162,86 @@
       "sha256": "2b0e94522e36151a5c7b35ce94cf1c9842081b46538c186ae3abb7e1b101a451",
       "duration_seconds": 144.039,
       "transcoded_from_source": true
+    },
+    {
+      "source_name": "What a deal.mp3",
+      "filename": "what-a-deal.mp3",
+      "drive_file_id": "1_0lKgIAi_qRwoexSplN1yF8XgoJulNOk",
+      "kind": "announcer",
+      "size_bytes": 14604,
+      "sha256": "606f0c3a64c33339cbe2905447c2ec64b245bfc88885badb54f9759757659d5e",
+      "duration_seconds": 0.784,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "look out.mp3",
+      "filename": "look-out.mp3",
+      "drive_file_id": "156meKH56gQuKKPX2iyFeNMz1bIP_Ecwr",
+      "kind": "announcer",
+      "size_bytes": 24464,
+      "sha256": "b1416cbaad26ae0d8c4ec9f200761bfae3814aed1536adec5b205d9663edc7dc",
+      "duration_seconds": 1.28,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "NUTSPLOsion.mp3",
+      "filename": "nutsplosion.mp3",
+      "drive_file_id": "1SAxwChapNLeKkU8B_1-Up68T_uhayqJc",
+      "kind": "announcer",
+      "size_bytes": 24358,
+      "sha256": "f1903bd836cf37a074d3a185abb15dd280d9b4989199cfc5c7d079552c5206ab",
+      "duration_seconds": 1.306,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "HECKPACKAGE.mp3",
+      "filename": "heck-package.mp3",
+      "drive_file_id": "1ZshM79K5MNF5h6cGpSzpdY7bTY368J5W",
+      "kind": "announcer",
+      "size_bytes": 26517,
+      "sha256": "83fc2d17abcfc08a3eb889eb82aba59e29d45648afc9b1994496a0238967e227",
+      "duration_seconds": 1.541,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "Nutsselence.mp3",
+      "filename": "nutsselence.mp3",
+      "drive_file_id": "1-6uDUJ1lhjqHREAxrAzFkLLQA9pQ8onS",
+      "kind": "announcer",
+      "size_bytes": 24830,
+      "sha256": "241022323ba9c29f28273de7616154b87865562accf18acd876a606356fa96aa",
+      "duration_seconds": 1.28,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "Nut destruction.mp3",
+      "filename": "nut-destruction.mp3",
+      "drive_file_id": "1RBbsUrsFFjQnPi_Zlp-GXQrXTIbZjaY7",
+      "kind": "announcer",
+      "size_bytes": 27430,
+      "sha256": "d9e6c180711177b155af52d39875287645a0ee6ec26e9f9b7755f006b7b6c8de",
+      "duration_seconds": 1.541,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "Nutravaganza.mp3",
+      "filename": "nutravaganza.mp3",
+      "drive_file_id": "1Za-UjSP0Oook799iOSqRlv3IbQ0_F5JQ",
+      "kind": "announcer",
+      "size_bytes": 27143,
+      "sha256": "129fbbbc8ef3c105bf914015ac5ea45e6caa647be8b4b1695346c52e8ff219f4",
+      "duration_seconds": 1.541,
+      "transcoded_from_source": false
+    },
+    {
+      "source_name": "BUSTED.mp3",
+      "filename": "busted.mp3",
+      "drive_file_id": "1BDesHNalnKQIpo2lFnTiMNbCD0_xPec6",
+      "kind": "announcer",
+      "size_bytes": 10329,
+      "sha256": "01d000bbd18843e32b8d12b43bdd74693c91768e7569325eea2d85240301f686",
+      "duration_seconds": 0.549,
+      "transcoded_from_source": false
     }
   ]
 }

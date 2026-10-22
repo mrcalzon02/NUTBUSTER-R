@@ -16,6 +16,7 @@ const math=Object.create(Math);math.random=()=>.5; // Repeated random samples mu
 vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../web/audio.js'),'utf8'),{window,Date,Math:math});
 const a=window.NutAudio;
 assert.equal(created.length,3,'Separate voice/reaction/music channels');
+for(const key of ['deal','look-out','nutsplosion','heck-package','nutsselence','nut-destruction','nutravaganza','busted'])assert.ok(a.catalog[key],key+' missing from playable announcer catalog');
 assert.equal(created[2].loop,true);
 assert.equal(created[2].playCount,0,'No autoplay before a gesture');
 a.unlock();assert.equal(created[2].playCount,1);
@@ -65,4 +66,4 @@ for(const item of catalog.files){
  const digest=require('node:crypto').createHash('sha256').update(fs.readFileSync(target)).digest('hex');
  assert.equal(digest,item.sha256,item.filename+' corrupted');
 }
-console.log('PASS: audible voice/reaction variation, media-load reset recovery, music isolation, ducking, toggles, catalog integrity, all 16 audio files');
+console.log('PASS: audible voice/reaction variation, media-load reset recovery, music isolation, ducking, toggles, catalog integrity, all 24 audio files');

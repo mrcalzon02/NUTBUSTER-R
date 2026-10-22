@@ -55,8 +55,10 @@ function action(name,button,ctx){
  else if(['fish-left','fish-right','fish-reel','fish-slack'].includes(name))result=F.step(save,name.slice(5));
  else if(['fish-keep','fish-sell','fish-release'].includes(name))result=F.resolve(save,name.slice(5));
  else return false;
- if(!result.valid){notice(({dollars:'NOT ENOUGH NUTVALE DOLLARS',full:'AQUARIUM FULL · UPGRADE OR SELL',stock:'NO BAIT LEFT',busy:'FINISH THE CATCH FIRST',booster:'POWER-UP UNAVAILABLE'})[result.reason]||'ACTION UNAVAILABLE');return true;}
+ if(!result.valid){root.NutSFX?.play('invalid');notice(({dollars:'NOT ENOUGH NUTVALE DOLLARS',full:'AQUARIUM FULL · UPGRADE OR SELL',stock:'NO BAIT LEFT',busy:'FINISH THE CATCH FIRST',booster:'POWER-UP UNAVAILABLE'})[result.reason]||'ACTION UNAVAILABLE');return true;}
  persist();render();
+ const cue=result.status==='escaped'?'escaped':result.status==='caught'?'caught':name==='fish-cast'?'cast':name==='fish-reel'?'reel':name==='fish-slack'?'transport':name==='fish-left'||name==='fish-right'?'ui':result.choice==='sell'||name==='fish-upgrade'?'coin':result.choice==='keep'?'place':'select';
+ root.NutSFX?.play(cue);
  if(result.status==='escaped')notice(result.reason==='snapped'?'LINE SNAPPED!':'THE FISH GOT AWAY!');
  else if(result.status==='caught')notice('FISH CAUGHT · KEEP OR SELL?');
  else if(result.choice==='sell')notice('SOLD FOR N$ '+result.fish.value);

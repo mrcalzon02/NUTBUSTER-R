@@ -24,6 +24,7 @@
     const image=overlay?.querySelector('.blocker-sprite');
     return tile&&overlay&&image?{...h,tile,overlay,image}:null;
    }).filter(Boolean);
+   tiles.slice(0,12).forEach((hit,i)=>root.NutSFX?.play('ice',{delay:i*.018,pitch:hit.from>1?.82:1.15}));
    for(const hit of tiles){
     hit.overlay.dataset.strength=String(hit.from);
     hit.image.src=art+'ice-'+Math.min(2,hit.from)+'.png';

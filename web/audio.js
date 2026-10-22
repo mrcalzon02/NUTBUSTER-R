@@ -7,7 +7,10 @@ const catalog={
   'close':'that-was-close.mp3','nutbuster':'nutbuster-exclamation.mp3',
   'nutbuster-soft':'nutbuster-soft.mp3','package':'enormous-package.mp3',
   'premium':'premium-nuts-for-everyone.mp3','satisfaction':'satisfaction-guaranteed.mp3',
-  'oh-my':'oh-my.mp3'
+  'oh-my':'oh-my.mp3','deal':'what-a-deal.mp3','look-out':'look-out.mp3',
+  'nutsplosion':'nutsplosion.mp3','heck-package':'heck-package.mp3',
+  'nutsselence':'nutsselence.mp3','nut-destruction':'nut-destruction.mp3',
+  'nutravaganza':'nutravaganza.mp3','busted':'busted.mp3'
 };
 const hasAudio=typeof root.Audio==='function';
 const speaker=hasAudio?new root.Audio():null;
@@ -66,7 +69,7 @@ function setMusicEnabled(value){musicOn=!!value;if(!music)return musicOn;if(!mus
 function unlock(){unlocked=true;if(musicOn&&music?.paused&&!(root.document&&root.document.hidden))play(music);}
 function voice(key){if(!voicesOn||!speaker||!catalog[key])return false;
   // Always play wins and rewards. Ordinary mid-game voices have a brief spacing guard.
-  const now=Date.now(),high=['win','close','package','premium','satisfaction','nutbuster'].includes(key);
+  const now=Date.now(),high=['win','close','package','premium','satisfaction','nutbuster','deal','look-out','nutsplosion','heck-package','nutsselence','nut-destruction','nutravaganza','busted'].includes(key);
   if(!high&&now-lastVoice<750)return false;
   lastVoice=now;try{if(reaction)reaction.pause();speaker.pause();speaker.src=base+catalog[key];speaker.currentTime=0;voiceRate=varyPlayback(speaker,.09,voiceRate);if(music&&!music.paused)music.volume=musicLevel*.39;const accepted=play(speaker);if(!accepted)unduck();return accepted;}catch(_){unduck();return false;}
 }
