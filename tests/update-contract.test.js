@@ -25,7 +25,7 @@ assert.match(updates,/if \(actualSigner\.isEmpty\(\)\)/,'unreadable signing cert
 assert.match(updates,/if \(!signer\.equals\(actualSigner\)\)/,'a changed publisher key is still rejected');
 assert.match(updates,/candidateCode != release\.code/,'release version must match the downloaded APK');
 assert.match(updates,/Downloaded APK package name differs from installed app/,'package mismatch rejected');
-assert.match(updates,/version\(candidate\)<=currentCode/);
+assert.match(updates,/candidateCode <= currentCode/,'non-increasing updates must remain rejected');
 assert.match(updates,/manifestRelease\(expectedSigner\)/);
 assert.match(updates,/expectedSigner\.equals\(meta\.optString\("signerSha256"/);
 assert.match(updates,/!checksum\.matches\("sha256:/);
