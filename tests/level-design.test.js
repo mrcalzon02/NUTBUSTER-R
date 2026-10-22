@@ -4,7 +4,7 @@ const M=require('../web/campaign-maps.js'),P=require('../web/progression.js');
 assert.equal(L.ACTS.length,10);
 assert.equal(L.CHAPTER_ACTS.length,5);
 assert.ok(L.CHAPTER_ACTS.every(acts=>acts.length===10),'Every chapter has ten named acts');
-assert.equal(Object.keys(L.LESSONS).length,47);
+assert.equal(Object.keys(L.LESSONS).length,67);
 const family=new Set(),shapes=new Set(),formation=new Set(),tutorial=new Set();
 for(let level=1;level<=500;level++){
  const d=L.profile(level),cfg=E.makeLevel(level),g=E.create(level,level*91+7);
@@ -65,4 +65,31 @@ assert.ok(E.makeLevel(500).features.wind.length>=2,'Palace finale retains two wi
 assert.equal(E.makeLevel(201).design.chapter,3);
 assert.ok(E.makeLevel(1).moves>E.makeLevel(100).moves);
 assert.ok(E.makeLevel(200).moves>E.makeLevel(500).moves);
-console.log('PASS: 500 stage profiles, five chapter act books, 47 spotlight lessons, explicit finales, aligned map names and objective feasibility');
+// Content gate: every added spotlight is an actual level-book override, linked
+// to its campaign map and physically playable across more than one opening seed.
+const authoredSpots=[84,99,101,116,139,151,177,199,201,218,240,275,312,330,360,389,410,435,460,490];
+const expectedKinds={84:'chests',99:'dual',101:'collect',116:'jam',139:'ice',151:'dual',177:'locks',199:'dual',201:'collect',218:'dual',240:'ice',275:'dual',312:'locks',330:'dual',360:'jam',389:'dual',410:'chests',435:'dual',460:'dual',490:'dual'};
+for(const level of authoredSpots){
+ const d=L.profile(level),cfg=E.makeLevel(level);
+ assert.equal(d.lesson,true,'Authored spotlight '+level+' exists');
+ assert.equal(cfg.objectives[0].kind,d.kind==='dual'?'collect':d.kind,'Spotlight '+level+' has actual objective');
+ assert.equal(d.kind,expectedKinds[level],'Spotlight '+level+' uses intended pressure family');
+ assert.equal(M.nodes(d.chapter)[d.local-1].title.includes(d.name),true,'Spotlight '+level+' appears on its map');
+ for(const seed of [31,117,923]){
+  const g=E.create(level,level*1009+seed);
+  assert.ok(E.hasMove(g),'Spotlight '+level+' legal opening seed '+seed);
+  assert.equal(E.matches(g).hit.size,0,'Spotlight '+level+' starts without free match');
+  for(const objective of g.cfg.objectives){
+   const quantity=objective.kind==='ice'?g.cells.reduce((a,c)=>a+(c?.ice||0),0):
+    objective.kind==='locks'?g.cells.reduce((a,c)=>a+(c?.lock||0),0):
+    objective.kind==='chests'?g.cells.reduce((a,c)=>a+(c?.chest||0),0):
+    objective.kind==='jam'?g.cells.reduce((a,c)=>a+(c?.jam||0),0):Infinity;
+   assert.ok(objective.target<=quantity,'Spotlight '+level+' objective is physically reachable, seed '+seed);
+  }
+ }
+}
+assert.ok(E.makeLevel(139).features.conveyors.length>0,'Factory conveyor spotlight needs a conveyor');
+assert.ok(E.makeLevel(177).features.portals.length>0,'Portal-lock spotlight needs a portal');
+assert.ok(E.makeLevel(330).features.wind.length>0,'Autumn crosswind spotlight needs wind');
+assert.equal(E.makeLevel(490).features.wind.length,2,'Final palace vault needs two wind lanes');
+console.log('PASS: 500 stage profiles, five chapter act books, 67 spotlight lessons, explicit finales, aligned map names and objective feasibility');
