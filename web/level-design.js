@@ -1,11 +1,30 @@
 /* NUTBUSTER level design book. No DOM, randomness, or painted level markers.
    Explicit lessons teach booster purpose; all 500 levels retain deterministic seeds. */
 (function(root){'use strict';
-const ACTS=[
- 'Morning in the Meadows','Crackling Creek','Acorn Orchard','Bramble Trail',
- 'Sweet Shell Hollow','Sapling Switchbacks','Buttercup Crossing',
- 'Squirrel Lookout','Harvest Hollow','The Great Canopy'
+const CHAPTER_ACTS=[
+ [
+  'Morning in the Meadows','Crackling Creek','Acorn Orchard','Bramble Trail',
+  'Sweet Shell Hollow','Sapling Switchbacks','Buttercup Crossing',
+  'Squirrel Lookout','Harvest Hollow','The Great Canopy'
+ ],
+ [
+  'Receiving Bay','Roasting Floor','Grinding Hall','Mixing Line','Jarworks',
+  'Conveyor Annex','Quality Control','Packing Floor','Shipping Deck','Executive Vatroom'
+ ],
+ [
+  'Foothill Cache','Granite Switchbacks','Buried Pantry','Acorn Watch','Hoarder Pass',
+  'Chestbreaker Ridge','Fusefield','Cliffside Vaults','Crown Cache','Summit Hoard'
+ ],
+ [
+  'Copperleaf Road','Millrace Crossing','Gale Orchard','Sailhouse Row','Harvest Gusts',
+  'Cider Switchbacks','Turbine Fields','Storm Barns','Twilight Millworks','Maelstrom Hill'
+ ],
+ [
+  'Lantern Causeway','Mooncourt','Gilded Gallery','Royal Vaultwalk','Silver Gardens',
+  'Portal Court','Crown Hall','Midnight Treasury','Throne Approaches','Golden Apex'
+ ]
 ];
+const ACTS=CHAPTER_ACTS[0];
 const CHAPTERS=['Nutwood Meadows','Peanut Butter Factory','Squirrel Hoard Highlands','Autumn Windmill Vale','Moonlit Golden Palace'];
 // These are lessons, not purchases. The listed tool is earned on CLEAR of its milestone.
 // The next challenge demonstrates why the newly earned tool is helpful, but never required.
@@ -88,7 +107,7 @@ function profile(level){
  const moveAdjustment=n<=10?4:n<=30?2:n<=100?1:n<=200?0:-Math.min(4,Math.floor((n-201)/75)+1);
  return Object.freeze({
   id:n,chapter,local,act:act+1,beat:beat+1,
-  name:lesson?.name||ACTS[act]+' · '+['Trail','Clearing','Crossing','Hollow','Challenge','Switchback','Cache','Scramble','Vault','Finale'][beat],
+  name:lesson?.name||CHAPTER_ACTS[chapter-1][act]+' · '+['Trail','Clearing','Crossing','Hollow','Challenge','Switchback','Cache','Scramble','Vault','Finale'][beat],
   hint:lesson?.hint||(
    kind==='jam'?'Clear sticky peanut butter before it spreads to more tiles.':
    kind==='ice'?'Break the layered frost before your moves run out.':
@@ -105,7 +124,7 @@ function profile(level){
   moveAdjustment
  });
 }
-const api={ACTS,CHAPTERS,LESSONS,FORMATIONS,profile};
+const api={ACTS,CHAPTER_ACTS,CHAPTERS,LESSONS,FORMATIONS,profile};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutLevelDesign=api;
 })(typeof window!=='undefined'?window:globalThis);
