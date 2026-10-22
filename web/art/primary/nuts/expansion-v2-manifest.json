@@ -1,0 +1,197 @@
+{
+  "notes": "Additional distinct standard nut tile art; not automatically enabled in level pools. Rainbow nut remains special-only.",
+  "role": "optional-standard-match-nut-expansion",
+  "schema": 1,
+  "source": "assets/source/expansion/nut-varieties-v2.png",
+  "source_dimensions": [
+    1448,
+    1086
+  ],
+  "source_sha256": "90d867fcb58cf3c5ee6ed0ccf5bd31bc0aed958f64b9ba0425d6b55b95c76c4d",
+  "sprite_dimensions": [
+    192,
+    192
+  ],
+  "sprites": {
+    "beechnut": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/beechnut.png",
+      "sha256": "da811d5f12fabe0c0a1fb2082b4fb103a786907fb53eea7bdf02be532119f468",
+      "source_bbox": [
+        1117,
+        383,
+        1425,
+        696
+      ]
+    },
+    "brazil-nut": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/brazil-nut.png",
+      "sha256": "9afe5ca1876b45482efe8101975ba3d17afb4ca99aeb368f721c00284bed7b37",
+      "source_bbox": [
+        384,
+        36,
+        711,
+        351
+      ]
+    },
+    "candlenut": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/candlenut.png",
+      "sha256": "10ee6770d3215af4ed2c97e4d0fc94b0a137a68e2fdef4dd9283b85bc6777321",
+      "source_bbox": [
+        749,
+        724,
+        1070,
+        1036
+      ]
+    },
+    "chestnut": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/chestnut.png",
+      "sha256": "bba59be55400f4c7d35080f1da6bced61a2d768e6a80a970ca9a6b8979a7c640",
+      "source_bbox": [
+        754,
+        41,
+        1075,
+        355
+      ]
+    },
+    "coconut": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/coconut.png",
+      "sha256": "207317f0ce3e024d57db150bdbd01cac367b428b798cc41f74128973d7a22122",
+      "source_bbox": [
+        359,
+        371,
+        709,
+        705
+      ]
+    },
+    "ginkgo-nut": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/ginkgo-nut.png",
+      "sha256": "879b9067baceb4d9d6590e334cc30228a71c8012dde55d5733bae8158df7f8e4",
+      "source_bbox": [
+        396,
+        731,
+        695,
+        1024
+      ]
+    },
+    "hickory-nut": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/hickory-nut.png",
+      "sha256": "f645bb0391115604bf12a922641c702041d3e607c7d64c2d4ad350e5de9f2012",
+      "source_bbox": [
+        750,
+        377,
+        1071,
+        698
+      ]
+    },
+    "macadamia": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/macadamia.png",
+      "sha256": "7d3c2a2c9917107c6f603a8a486950ea13695b6bbf6da76370d0ab7c0d227b38",
+      "source_bbox": [
+        1114,
+        51,
+        1426,
+        351
+      ]
+    },
+    "pecan": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/pecan.png",
+      "sha256": "fc8c790eece53ffe94421d564068c24d964207f0c3a0139b27e360bf1e4b9a9c",
+      "source_bbox": [
+        30,
+        32,
+        341,
+        365
+      ]
+    },
+    "pili-nut": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/pili-nut.png",
+      "sha256": "ec1aeddeb9bbeb35fee368906602359d8e54ab821e93781b5441c3c772a152d0",
+      "source_bbox": [
+        41,
+        719,
+        316,
+        1030
+      ]
+    },
+    "pine-nut": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/pine-nut.png",
+      "sha256": "057491844dc95800b81a583a4ce4adf3f8a020ddce13e7ffa5759cdad005389c",
+      "source_bbox": [
+        42,
+        389,
+        301,
+        696
+      ]
+    },
+    "tiger-nut": {
+      "alpha_mode": "RGBA",
+      "dimensions": [
+        192,
+        192
+      ],
+      "path": "art/primary/nuts/tiger-nut.png",
+      "sha256": "0f10c8c13e5420320942cd2a6ff3642f584d952193c9ddec7638a29083fabe54",
+      "source_bbox": [
+        1127,
+        727,
+        1410,
+        1030
+      ]
+    }
+  }
+}
