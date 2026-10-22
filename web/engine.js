@@ -88,8 +88,10 @@ function makeLevel(number){
  const available=(kind)=>kind==='ice'?cfg.ice>0:kind==='locks'?cfg.locks>0:kind==='chests'?cfg.chests>0:kind==='jam'?cfg.jam>0:true;
  const kind=design.kind==='dual'?'dual':available(design.kind)?design.kind:'score';
  if(kind==='dual'){
-  const blocker=cfg.locks?'locks':cfg.chests?'chests':'ice';
-  cfg.objectives=[build('collect',Math.min(9,collect)),build(blocker,design.objectiveTarget||null)];
+  const requested=design.secondaryKind;
+  const blocker=requested&&available(requested)?requested:cfg.locks?'locks':cfg.chests?'chests':cfg.jam?'jam':'ice';
+  const secondaryTarget=design.secondaryTarget??design.objectiveTarget??null;
+  cfg.objectives=[build('collect',Math.min(9,collect)),build(blocker,secondaryTarget)];
  }else cfg.objectives=[build(kind,design.objectiveTarget)];
  cfg.features=FEATURES.make(n,cfg.mask,cfg.width,cfg.height);
  return cfg;
