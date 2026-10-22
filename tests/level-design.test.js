@@ -2,6 +2,8 @@ const assert=require('node:assert/strict');
 const E=require('../web/engine.js'),L=require('../web/level-design.js');
 const M=require('../web/campaign-maps.js'),P=require('../web/progression.js');
 assert.equal(L.ACTS.length,10);
+assert.equal(L.CHAPTER_ACTS.length,5);
+assert.ok(L.CHAPTER_ACTS.every(acts=>acts.length===10),'Every chapter has ten named acts');
 assert.equal(Object.keys(L.LESSONS).length,47);
 const family=new Set(),shapes=new Set(),formation=new Set(),tutorial=new Set();
 for(let level=1;level<=500;level++){
@@ -32,6 +34,15 @@ for(let level=1;level<=500;level++){
 }
 for(const kind of ['score','ice','locks','chests','collect','jam'])assert.ok(family.has(kind));
 assert.equal(shapes.size,10,'First campaign has 10 acts, not 100 identical levels');
+for(const [stage,chapter,actName] of [[101,2,'Receiving Bay'],[201,3,'Foothill Cache'],[301,4,'Windmill Welcome'],[401,5,'The Royal Tempest']]){
+ const d=L.profile(stage);
+ assert.equal(d.chapter,chapter);
+ if(!d.lesson)assert.ok(d.name.startsWith(actName),'Stage '+stage+' uses its chapter act book');
+}
+assert.ok(L.profile(112).name.startsWith('Roasting Floor'),'Factory generated stages use Factory act names');
+assert.ok(L.profile(412).name.startsWith('Mooncourt'),'Palace generated stages use Palace act names');
+assert.ok(!L.profile(112).name.includes('Meadows'),'Factory stage titles cannot leak Meadow naming');
+assert.ok(!L.profile(412).name.includes('Meadows'),'Palace stage titles cannot leak Meadow naming');
 const allMilestones=[1,5,10,18,26,37,49,62,77,92];
 for(const item of P.LADDER){
  assert.ok(tutorial.has(item.level),'Unlock stage '+item.level+' requires tutorial labeling');
@@ -54,4 +65,4 @@ assert.ok(E.makeLevel(500).features.wind.length>=2,'Palace finale retains two wi
 assert.equal(E.makeLevel(201).design.chapter,3);
 assert.ok(E.makeLevel(1).moves>E.makeLevel(100).moves);
 assert.ok(E.makeLevel(200).moves>E.makeLevel(500).moves);
-console.log('PASS: 500 authored stage profiles, 47 spotlight lessons, explicit chapter finales, aligned map names, blocker availability, gentle-to-cruel move ramp');
+console.log('PASS: 500 stage profiles, five chapter act books, 47 spotlight lessons, explicit finales, aligned map names and objective feasibility');
