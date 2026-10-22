@@ -10,6 +10,18 @@ function wharf(save,state,E,P){
   const cost=F.nextCost(id,n);
   return '<button class="btn secondary" data-action="fish-upgrade" data-kind="'+id+'" '+(cost===null||n.dollars<cost?'disabled':'')+'>'+name+' '+tier+'/'+max+' · '+(cost===null?'MAX':'N$ '+cost)+'</button>';
  }).join('');
+ const activeRod=F.rodModel(n),q=F.BAITS.find(b=>b.id===bait)?.quality||0;
+ const rodGallery=F.RODS.map(model=>{
+  const owned=Object.prototype.hasOwnProperty.call(n.rodStock,model.id),durability=owned?n.rodStock[model.id]:0;
+  const locked=n.rod<model.tier;
+  const favors=F.rodOdds(model.id,q).filter(e=>model.affinity.includes(e.id)).map(e=>e.name+' '+Math.round(e.probability*100)+'%').join(' · ');
+  const repairCost=model.id==='woodland'?0:Math.ceil((model.maxDurability-durability)*(1.2+model.tier*.4));
+  const action=owned?(durability===0?'fish-rod-repair':'fish-rod-equip'):'fish-rod-buy';
+  const disabled=locked||(!owned&&n.dollars<model.cost)||(owned&&durability===0&&n.dollars<repairCost);
+  const repair=owned&&durability>0&&durability<model.maxDurability?'<button data-action="fish-rod-repair" data-rod="'+model.id+'" '+(n.dollars<repairCost?'disabled':'')+' class="btn ghost">REPAIR N$ '+repairCost+'</button>':'';
+  return '<div class="fish-rod-card '+(activeRod.id===model.id?'selected':'')+'"><img src="'+model.art+'" alt="'+model.name+' fishing rod" loading="lazy"><div><b>'+model.name+'</b><small>Skill '+model.tier+' · '+(owned?durability+'/'+model.maxDurability+' condition':'Max '+model.maxDurability)+'</small><small>'+favors+'</small></div><div class="fish-rod-actions"><button class="btn secondary" data-action="'+action+'" data-rod="'+model.id+'" '+(disabled?'disabled':'')+'>'+(locked?'LOCKED':owned?(durability===0?'REPAIR N$ '+repairCost:'EQUIP'):'BUY N$ '+model.cost)+'</button>'+repair+'</div></div>';
+ }).join('');
+ const rodSection='<section class="fish-store fish-rods"><div class="fish-rod-heading"><b>FISHING RODS · '+activeRod.name+'</b><small>'+n.rodStock[activeRod.id]+'/'+activeRod.maxDurability+' DURABILITY</small></div><div class="fish-rod-list">'+rodGallery+'</div></section>';
  let play='';
  if(pending){
   const item=F.FISH.find(s=>s.id===pending.id);
@@ -28,7 +40,7 @@ function wharf(save,state,E,P){
   '<button class="fish-exchange" data-action="fish-trade" data-booster="'+id+'" '+(!P.count(save,id)?'disabled':'')+'>'+E.BOOSTER_META[id].label+' ×'+P.count(save,id)+' → '+F.BOOSTER_BAIT[id]+' 🪱</button>'
  ).join('')||'<small>Unlock power-ups in the campaign to exchange them for bait.</small>';
  const craft=n.baitTier>=1?'<div class="fish-actions"><button class="btn ghost" data-action="fish-craft" data-bait="glitter" '+(!n.baits.worm||n.dollars<35?'disabled':'')+'>GLITTER GRUB · 1 🪱 + N$35</button>'+(n.baitTier>=2?'<button class="btn ghost" data-action="fish-craft" data-bait="royal" '+(!n.baits.worm||n.dollars<100?'disabled':'')+'>ROYAL ROE · 1 🪱 + N$100</button>':'')+'</div>':'';
- return '<div class="nutravaganza-head"><h1>🎣 NUTVALE FISHING WHARF</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="aquarium">🐠 AQUARIUM '+n.fish.length+'/'+cap+'</button><button class="btn ghost" data-nav="homestead">← ESTATE</button></div></div><div class="fish-layout"><div class="fish-main"><div class="fish-dock" aria-hidden="true">🛶 MOONNUT WATERFRONT 🌊</div>'+play+'</div><aside class="fish-sidebar"><section class="fish-store"><h2>UPGRADES</h2><div class="fish-upgrades">'+upgrades+'</div>'+craft+'</section><section class="fish-store"><h2>POWER-UP → BAIT</h2><div class="fish-exchanges">'+exchanges+'</div></section></aside></div>';
+ return '<div class="nutravaganza-head"><h1>🎣 NUTVALE FISHING WHARF</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="aquarium">🐠 AQUARIUM '+n.fish.length+'/'+cap+'</button><button class="btn ghost" data-nav="homestead">← ESTATE</button></div></div><div class="fish-layout"><div class="fish-main"><div class="fish-dock" aria-hidden="true">🛶 MOONNUT WATERFRONT 🌊</div>'+play+'</div><aside class="fish-sidebar">'+rodSection+'<section class="fish-store"><h2>UPGRADES</h2><div class="fish-upgrades">'+upgrades+'</div>'+craft+'</section><section class="fish-store"><h2>POWER-UP → BAIT</h2><div class="fish-exchanges">'+exchanges+'</div></section></aside></div>';
 }
 function aquarium(save){
  const n=F.ensure(save),cap=F.capacity(n),cost=F.nextCost('tank',n);
@@ -48,14 +60,17 @@ function action(name,button,ctx){
   if(spec&&spec.level<=F.ensure(save).baitTier)state.fishBait=spec.id;
   render();return true;
  }
- if(name==='fish-upgrade')result=F.upgrade(save,button.dataset.kind);
+ if(name==='fish-rod-buy')result=F.buyRod(save,button.dataset.rod);
+ else if(name==='fish-rod-equip')result=F.equipRod(save,button.dataset.rod);
+ else if(name==='fish-rod-repair')result=F.repairRod(save,button.dataset.rod);
+ else if(name==='fish-upgrade')result=F.upgrade(save,button.dataset.kind);
  else if(name==='fish-trade')result=F.trade(save,button.dataset.booster,P);
  else if(name==='fish-craft')result=F.craft(save,button.dataset.bait);
  else if(name==='fish-cast')result=F.cast(save,state.fishBait||'worm',Math.floor(Math.random()*4294967296));
  else if(['fish-left','fish-right','fish-reel','fish-slack'].includes(name))result=F.step(save,name.slice(5));
  else if(['fish-keep','fish-sell','fish-release'].includes(name))result=F.resolve(save,name.slice(5));
  else return false;
- if(!result.valid){root.NutSFX?.play('invalid');notice(({dollars:'NOT ENOUGH NUTVALE DOLLARS',full:'AQUARIUM FULL · UPGRADE OR SELL',stock:'NO BAIT LEFT',busy:'FINISH THE CATCH FIRST',booster:'POWER-UP UNAVAILABLE'})[result.reason]||'ACTION UNAVAILABLE');return true;}
+ if(!result.valid){root.NutSFX?.play('invalid');notice(({dollars:'NOT ENOUGH NUTVALE DOLLARS',full:'AQUARIUM FULL · UPGRADE OR SELL',stock:'NO BAIT LEFT',busy:'FINISH THE CATCH FIRST',booster:'POWER-UP UNAVAILABLE',tier:'UPGRADE ROD SKILL FIRST','rod-broken':'ROD BROKEN · REPAIR BEFORE CASTING','not-owned':'PURCHASE THIS ROD FIRST'})[result.reason]||'ACTION UNAVAILABLE');return true;}
  persist();render();
  const cue=result.status==='escaped'?'escaped':result.status==='caught'?'caught':name==='fish-cast'?'cast':name==='fish-reel'?'reel':name==='fish-slack'?'transport':name==='fish-left'||name==='fish-right'?'ui':result.choice==='sell'||name==='fish-upgrade'?'coin':result.choice==='keep'?'place':'select';
  root.NutSFX?.play(cue);

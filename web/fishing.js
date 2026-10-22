@@ -2,6 +2,10 @@
    No services, purchases, advertisements, or cross-device state. */
 (function(root){
 'use strict';
+// Rod skill level remains 0-5; the sixteen purchasable rod models are independent.
+const RODS=Object.freeze([{"id":"woodland","name":"Woodland Twig","tier":0,"maxDurability":260,"cost":0,"affinity":["minnow","bluegill"],"bias":3,"art":"art/fishing/rods/v1/woodland.png"},{"id":"brass","name":"Brass Spinner","tier":0,"maxDurability":190,"cost":115,"affinity":["perch","carp"],"bias":3.4,"art":"art/fishing/rods/v1/brass.png"},{"id":"gilded","name":"Gilded Tackle","tier":1,"maxDurability":215,"cost":230,"affinity":["trout","bass"],"bias":3.7,"art":"art/fishing/rods/v1/gilded.png"},{"id":"carbon","name":"Carbon Striker","tier":1,"maxDurability":360,"cost":320,"affinity":["bass","catfish"],"bias":3.4,"art":"art/fishing/rods/v1/carbon.png"},{"id":"verdant","name":"Verdant Vine","tier":1,"maxDurability":255,"cost":280,"affinity":["carp","koi"],"bias":4.1,"art":"art/fishing/rods/v1/verdant.png"},{"id":"coral","name":"Coral Dancer","tier":2,"maxDurability":170,"cost":450,"affinity":["koi","puffer"],"bias":4.2,"art":"art/fishing/rods/v1/coral.png"},{"id":"industrial","name":"Iron Bastion","tier":2,"maxDurability":530,"cost":490,"affinity":["sturgeon","catfish"],"bias":4.2,"art":"art/fishing/rods/v1/industrial.png"},{"id":"royal-blue","name":"Royal Current","tier":2,"maxDurability":345,"cost":570,"affinity":["trout","eel"],"bias":4,"art":"art/fishing/rods/v1/royal-blue.png"},{"id":"pirate","name":"Buccaneer","tier":3,"maxDurability":245,"cost":680,"affinity":["catfish","bass"],"bias":4.7,"art":"art/fishing/rods/v1/pirate.png"},{"id":"glacier","name":"Glacier Fang","tier":3,"maxDurability":260,"cost":760,"affinity":["trout","sturgeon"],"bias":4.8,"art":"art/fishing/rods/v1/glacier.png"},{"id":"storm","name":"Stormcaller","tier":3,"maxDurability":235,"cost":790,"affinity":["eel","leviathan"],"bias":5.2,"art":"art/fishing/rods/v1/storm.png"},{"id":"magma","name":"Magma Hook","tier":4,"maxDurability":210,"cost":980,"affinity":["puffer","sturgeon"],"bias":4.9,"art":"art/fishing/rods/v1/magma.png"},{"id":"sovereign","name":"Crown Angler","tier":4,"maxDurability":410,"cost":1175,"affinity":["koi","leviathan"],"bias":5,"art":"art/fishing/rods/v1/sovereign.png"},{"id":"astral","name":"Moonlit Reel","tier":4,"maxDurability":275,"cost":1200,"affinity":["eel","koi"],"bias":5.3,"art":"art/fishing/rods/v1/astral.png"},{"id":"prismatic","name":"Prism Sovereign","tier":5,"maxDurability":325,"cost":1560,"affinity":["puffer","leviathan"],"bias":5.8,"art":"art/fishing/rods/v1/prismatic.png"},{"id":"confection","name":"Sugar Rush","tier":5,"maxDurability":155,"cost":1380,"affinity":["minnow","puffer"],"bias":6,"art":"art/fishing/rods/v1/confection.png"}].map(rod=>Object.freeze({...rod,affinity:Object.freeze(rod.affinity)})));
+const ROD_BY_ID=new Map(RODS.map(rod=>[rod.id,rod]));
+const STARTER_ROD='woodland';
 const FISH=Object.freeze([
  {id:'minnow',name:'Penny Minnow',icon:'🐟',value:15,weight:1,difficulty:1},
  {id:'bluegill',name:'Bluegill Baron',icon:'🐟',value:24,weight:3,difficulty:2},
@@ -30,6 +34,11 @@ function ensure(save,now=Date.now()){
  if(!save.nutravaganza||typeof save.nutravaganza!=='object'||Array.isArray(save.nutravaganza))save.nutravaganza={};
  const n=save.nutravaganza;
  n.dollars=limit(n.dollars);n.rod=Number.isInteger(n.rod)?Math.max(0,Math.min(5,n.rod)):0;
+ if(!n.rodStock||typeof n.rodStock!=='object'||Array.isArray(n.rodStock))n.rodStock={};
+ for(const model of RODS)if(Object.prototype.hasOwnProperty.call(n.rodStock,model.id))
+  n.rodStock[model.id]=Math.max(0,Math.min(model.maxDurability,Math.trunc(Number(n.rodStock[model.id])||0)));
+ if(!Object.prototype.hasOwnProperty.call(n.rodStock,STARTER_ROD))n.rodStock[STARTER_ROD]=ROD_BY_ID.get(STARTER_ROD).maxDurability;
+ if(typeof n.equippedRod!=='string'||!Object.prototype.hasOwnProperty.call(n.rodStock,n.equippedRod)||!ROD_BY_ID.has(n.equippedRod))n.equippedRod=STARTER_ROD;
  n.baitTier=Number.isInteger(n.baitTier)?Math.max(0,Math.min(2,n.baitTier)):0;
  n.tank=Number.isInteger(n.tank)?Math.max(0,Math.min(10,n.tank)):0;
  if(!n.baits||typeof n.baits!=='object'||Array.isArray(n.baits))n.baits={};
@@ -73,12 +82,51 @@ function craft(save,kind,now=Date.now()){
  n.dollars-=price;n.baits.worm--;n.baits[spec.id]++;
  return {valid:true,cost:price};
 }
-function chooseFish(seed,quality){
- // Public deterministic PRNG; better bait biases the upper catch bands, never guarantees rares.
+function rodModel(n){return ROD_BY_ID.get(n.equippedRod)||ROD_BY_ID.get(STARTER_ROD);}
+function rodOdds(rodId,quality=0){
+ const rod=ROD_BY_ID.get(rodId)||ROD_BY_ID.get(STARTER_ROD);
+ const q=Math.max(0,Math.min(4,Number(quality)||0));
+ const weights=FISH.map((fish,i)=>(18/Math.pow(1.35,i))*Math.pow(1+q*.08,fish.difficulty)*(rod.affinity.includes(fish.id)?rod.bias:1));
+ const sum=weights.reduce((a,b)=>a+b,0);
+ return FISH.map((fish,i)=>({id:fish.id,name:fish.name,probability:weights[i]/sum}));
+}
+function chooseFish(seed,quality,rodId=STARTER_ROD){
+ // Rod preferences and bait quality affect actual seeded probabilities.
  let x=(seed>>>0)^0x9e3779b9;x=(Math.imul(x,1664525)+1013904223)>>>0;
- const chance=x/4294967296;
- const rank=Math.min(FISH.length-1,Math.floor(Math.pow(chance,2.1)*FISH.length)+quality);
- return FISH[rank];
+ let roll=x/4294967296;
+ for(const entry of rodOdds(rodId,quality)){
+  roll-=entry.probability;
+  if(roll<0)return specimenId.get(entry.id);
+ }
+ return FISH[FISH.length-1];
+}
+function buyRod(save,id,now=Date.now()){
+ const n=ensure(save,now),rod=ROD_BY_ID.get(id);
+ if(!rod)return {valid:false,reason:'unknown'};
+ if(Object.prototype.hasOwnProperty.call(n.rodStock,id))return {valid:false,reason:'owned'};
+ if(n.rod<rod.tier)return {valid:false,reason:'tier'};
+ if(n.dollars<rod.cost)return {valid:false,reason:'dollars'};
+ n.dollars-=rod.cost;n.rodStock[id]=rod.maxDurability;n.equippedRod=id;
+ return {valid:true,id,durability:rod.maxDurability};
+}
+function equipRod(save,id,now=Date.now()){
+ const n=ensure(save,now),rod=ROD_BY_ID.get(id);
+ if(!rod)return {valid:false,reason:'unknown'};
+ if(!Object.prototype.hasOwnProperty.call(n.rodStock,id))return {valid:false,reason:'not-owned'};
+ if(n.rodStock[id]<=0)return {valid:false,reason:'rod-broken'};
+ n.equippedRod=id;return {valid:true,id,durability:n.rodStock[id]};
+}
+function repairRod(save,id,now=Date.now()){
+ const n=ensure(save,now),rod=ROD_BY_ID.get(id);
+ if(!rod)return {valid:false,reason:'unknown'};
+ if(!Object.prototype.hasOwnProperty.call(n.rodStock,id))return {valid:false,reason:'not-owned'};
+ const missing=rod.maxDurability-n.rodStock[id];
+ if(missing<=0)return {valid:false,reason:'full-durability'};
+ // Starter repairs stay free so an empty wallet never softlocks fishing.
+ const cost=id===STARTER_ROD?0:Math.ceil(missing*(1.2+rod.tier*.4));
+ if(n.dollars<cost)return {valid:false,reason:'dollars'};
+ n.dollars-=cost;n.rodStock[id]=rod.maxDurability;
+ return {valid:true,id,cost,durability:rod.maxDurability};
 }
 function cast(save,baitId,seed,now=Date.now()){
  const n=ensure(save,now),bait=BAITS.find(x=>x.id===baitId);
@@ -86,10 +134,13 @@ function cast(save,baitId,seed,now=Date.now()){
  if(n.pending||n.fight)return {valid:false,reason:'busy'};
  if(!n.baits[baitId])return {valid:false,reason:'stock'};
  if(!Number.isSafeInteger(seed)||seed<0||seed>4294967295)return {valid:false,reason:'seed'};
+ const rod=rodModel(n);
+ if(n.rodStock[rod.id]<=0)return {valid:false,reason:'rod-broken',id:rod.id};
  n.baits[baitId]--;
- const fish=chooseFish(seed,bait.quality);
- n.fight={id:fish.id,seed,turn:0,fish:45+seed%12,hook:50,progress:0,tension:10};
- return {valid:true,fish:fish.id,bait:baitId};
+ const fish=chooseFish(seed,bait.quality,rod.id);
+ n.rodStock[rod.id]=Math.max(0,n.rodStock[rod.id]-(fish.difficulty>=7?2:1));
+ n.fight={id:fish.id,seed,rodId:rod.id,turn:0,fish:45+seed%12,hook:50,progress:0,tension:10};
+ return {valid:true,fish:fish.id,bait:baitId,rod:rod.id,durability:n.rodStock[rod.id]};
 }
 function step(save,mode,now=Date.now()){
  const n=ensure(save,now),f=n.fight;
@@ -120,7 +171,11 @@ function step(save,mode,now=Date.now()){
   n.pending={id:f.id,size,value};n.fight=null;
   return {valid:true,status:'caught',catch:{...n.pending}};
  }
- if(f.tension>=100||f.turn>=34){n.fight=null;return {valid:true,status:'escaped',reason:f.tension>=100?'snapped':'exhausted'};}
+ if(f.tension>=100||f.turn>=34){
+  if(f.tension>=100&&f.rodId&&Object.prototype.hasOwnProperty.call(n.rodStock,f.rodId))
+   n.rodStock[f.rodId]=Math.max(0,n.rodStock[f.rodId]-2);
+  n.fight=null;return {valid:true,status:'escaped',reason:f.tension>=100?'snapped':'exhausted'};
+ }
  return {valid:true,status:'playing',fight:{...f}};
 }
 function resolve(save,choice,now=Date.now()){
@@ -133,7 +188,7 @@ function resolve(save,choice,now=Date.now()){
  n.pending=null;
  return {valid:true,choice,fish:{...fish},dollars:n.dollars};
 }
-const api={FISH,BAITS,BOOSTER_BAIT,DAILY,localDay,ensure,capacity,nextCost,upgrade,trade,craft,cast,step,resolve};
+const api={FISH,BAITS,RODS,BOOSTER_BAIT,DAILY,localDay,ensure,capacity,nextCost,upgrade,trade,craft,cast,step,resolve,rodModel,rodOdds,chooseFish,buyRod,equipRod,repairRod};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutFishing=api;
 })(typeof window!=='undefined'?window:globalThis);
