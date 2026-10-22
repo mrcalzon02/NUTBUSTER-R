@@ -14,6 +14,44 @@ const PRESETS=Object.freeze({
  escaped:[430,145,.32,'sine',.21],place:[360,590,.18,'triangle',.18]
 });
 let context=null,enabled=true,volume=.48,unlocked=false,lastPitch=1;
+
+const RECORDINGS=Object.freeze({
+ ui:['klick.mp3','snick.mp3'],select:['snick.mp3','klick.mp3'],
+ invalid:['sneck.mp3'],swap:['slice.mp3'],match:['snap.mp3','snick.mp3'],
+ crack:['krunk.mp3'],ice:['las.mp3','snick.mp3'],chain:['curlunk.mp3'],
+ chest:['cargothukl.mp3'],coin:['coinkilck.mp3','coinlerkilck.mp3'],
+ booster:['bash.mp3'],shuffle:['thrumthump.mp3'],
+ hazard:['lightning-crackle.mp3','thundering.mp3'],
+ portal:['plas.mp3','las.mp3'],transport:['slice.mp3'],
+ victory:['deng.mp3','coinlerkilck.mp3'],failure:['thrumthump.mp3','krunk.mp3'],
+ reel:['snick.mp3'],caught:['coinlerkilck.mp3'],escaped:['sneck.mp3'],
+ place:['curlunk.mp3']
+});
+const liveSamples=new Set();let clipIndex=0;
+function playbackSample(name,rate,delay,level){
+ const choices=RECORDINGS[name];
+ if(!choices||!root.Audio||liveSamples.size>=8)return false;
+ let sound;try{sound=new root.Audio('audio/sfx/'+choices[clipIndex++%choices.length]);}
+ catch(_){return false;}
+ liveSamples.add(sound);
+ let finished=false;
+ function finish(){if(finished)return;finished=true;liveSamples.delete(sound);}
+ sound.preload='auto';
+ sound.volume=Math.min(1,Math.max(.02,volume*level*1.5));
+ try{sound.preservesPitch=false;if('webkitPreservesPitch' in sound)sound.webkitPreservesPitch=false;}catch(_){}
+ sound.playbackRate=Math.max(.80,Math.min(1.20,rate));
+ sound.onended=finish;sound.onerror=finish;
+ function start(){
+  if(finished)return;
+  if(!enabled){finish();return;}
+  try{const result=sound.play();result?.catch?.(()=>{finish();synthesize(name,rate,0,level);});}
+  catch(_){finish();synthesize(name,rate,0,level);}
+ }
+ if(delay>0&&root.setTimeout)root.setTimeout(start,Math.round(Math.min(1,delay)*1000));
+ else start();
+ return true;
+}
+
 function getContext(){
  if(!unlocked)return null;
  if(!context){
@@ -25,18 +63,24 @@ function getContext(){
  return context;
 }
 function unlock(){unlocked=true;return !!getContext();}
-function setEnabled(value){enabled=!!value;return enabled;}
+function setEnabled(value){enabled=!!value;if(!enabled)for(const sound of [...liveSamples]){try{sound.pause();sound.onended?.();}catch(_){liveSamples.delete(sound);}}return enabled;}
 function setVolume(value){const v=Number(value);volume=Number.isFinite(v)?Math.max(0,Math.min(1,v)):.48;return volume;}
+function chooseShift(){
+ let shift=1+(Math.random()*2-1)*.055;
+ if(Math.abs(shift-lastPitch)<.03)shift=lastPitch>=1?.946:1.054;
+ lastPitch=shift;return shift;
+}
 function play(name,{delay=0,pitch=1,level=1}={}){
+ if(!PRESETS[name]||!unlocked||!enabled||volume<=0)return false;
+ const rate=pitch*chooseShift();
+ if(playbackSample(name,rate,delay,level))return true;
+ return synthesize(name,rate,delay,level);
+}
+function synthesize(name,pitch,delay=0,level=1){
  const spec=PRESETS[name],ctx=enabled&&volume>0?getContext():null;
  if(!spec||!ctx||typeof ctx.createOscillator!=='function')return false;
  try{
   const [from,to,duration,wave,strength]=spec;
-  // Every cue gets a slight fresh tonal/speed variation; never repeat identical pitches.
-  let shift=1+(Math.random()*2-1)*.055;
-  if(Math.abs(shift-lastPitch)<.03)shift=lastPitch>=1?.946:1.054;
-  lastPitch=shift;
-  pitch*=shift;
   const start=ctx.currentTime+Math.max(0,Math.min(1,delay));
   const osc=ctx.createOscillator(),gain=ctx.createGain(),peak=Math.max(.0001,Math.min(.30,strength*volume*level));
   osc.type=wave;osc.frequency.setValueAtTime(Math.max(20,from*pitch),start);
@@ -55,5 +99,5 @@ function burst(count){
  for(let i=0;i<n;i++)play('match',{delay:i*.012,pitch:.82+(i%7)*.065,level:n>18?.55:.72});
  return n;
 }
-root.NutSFX=Object.freeze({unlock,play,burst,setEnabled,setVolume,getState:()=>({enabled,volume,unlocked}),presets:PRESETS});
+root.NutSFX=Object.freeze({unlock,play,burst,setEnabled,setVolume,getState:()=>({enabled,volume,unlocked}),presets:PRESETS,recordings:RECORDINGS});
 })(window);
