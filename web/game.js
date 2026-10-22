@@ -5,7 +5,7 @@ const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);H.ensure(saved);A.ensure(saved);
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null};let toastHandle;
+let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});}
 function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch(_){}}
 function safeNum(n){return Number.isFinite(n)?Math.min(999999999,Math.max(0,Math.trunc(n))):0;}
@@ -18,7 +18,10 @@ function counters(){
 function boosterSummary(pack){return P.packText(pack,Object.fromEntries(E.BOOSTERS.map(id=>[id,E.BOOSTER_META[id].label])));}
 function inventorySummary(){return P.available(saved).map(id=>E.BOOSTER_META[id].label+' ×'+P.count(saved,id)).join(' · ');}
 function awardPack(kind){const pack=P.actualPack(saved,kind);P.grant(saved,pack);persist();return pack;}
-function refreshBoosters(){screen.querySelectorAll('[data-tool]').forEach(el=>{const id=el.dataset.tool,tag=el.querySelector('[data-stock]');if(tag)tag.textContent=P.unlocked(saved,id)?'×'+P.count(saved,id):'LV '+P.LEVEL_BY_TOOL[id];el.classList.toggle('empty',P.unlocked(saved,id)&&!P.count(saved,id));});}
+function refreshBoosters(){
+ screen.querySelectorAll('[data-tool]').forEach(el=>{const id=el.dataset.tool,tag=el.querySelector('[data-stock]');if(tag)tag.textContent=P.unlocked(saved,id)?'×'+P.count(saved,id):'LV '+P.LEVEL_BY_TOOL[id];el.classList.toggle('empty',P.unlocked(saved,id)&&!P.count(saved,id));});
+ screen.querySelectorAll('[data-hold-tool]').forEach(el=>{const qty=P.holdCount(saved,el.dataset.holdTool),tag=el.querySelector('[data-stock]');if(tag)tag.textContent=qty?'×'+qty:'BUY';el.classList.toggle('empty',!qty);});
+}
 function activateBooster(id,index){const meta=E.BOOSTER_META[id];
  if(!meta)return null;
  if(!P.unlocked(saved,id)){notice('CLEAR LEVEL '+P.LEVEL_BY_TOOL[id]+' TO UNLOCK '+meta.label.toUpperCase());return null;}
@@ -35,7 +38,7 @@ function nav(page){
  // Header currency buttons and bottom tabs may target the page already on screen.
  // Replacing #screen.innerHTML for a no-op navigation reloads sprites and visibly flashes on Android.
  if(state.page===page)return;
- state.epoch++;state.animating=false;state.page=page;state.selected=-1;state.tool=null;
+ state.epoch++;state.animating=false;state.page=page;state.selected=-1;state.tool=null;state.holdTool=null;
  if(page==='homestead'){state.homesteadEditing=false;state.homesteadSelection=null;}
  if(page==='campaign'&&state.game)state.chapter=M.chapterOf(state.game.level).id;
  render();}
@@ -74,7 +77,7 @@ function art(category,name,emoji,cls='art'){return `<span class="${cls}"><img cl
 function piece(type){if(type===null||type===undefined)return '';const name=E.TYPES[type];
  return `<img class="piece" src="art/primary/nuts/${name}.png" alt="" draggable="false" onload="this.classList.add('loaded')" onerror="this.style.display='none';this.nextElementSibling.style.visibility='visible'"><span class="fallback" aria-hidden="true">${icons[type]}</span>`;
 }
-function nutVisual(c){return `<span class="nut-visual">${piece(c.type)}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}</span>`;}
+function nutVisual(c){return `<span class="nut-visual">${piece(c.type)}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}${c.hold?`<span class="hold-marker" aria-hidden="true"><img src="art/additions/effects/focus-ring.png" alt="" draggable="false"><b>${c.hold}</b></span>`:''}</span>`;}
 function blockerVisual(c){
  // Existing original atlas sprites, never gray panels or emoji stand-ins.
  const sprite=c.ice?'ice-'+Math.min(2,c.ice):c.lock?'chain-'+Math.min(2,c.lock):c.chest?'chest':null;
@@ -86,7 +89,8 @@ function blockerVisual(c){
 function cellLabel(c,i,w){
  const nut=c.type===null?'empty':E.TYPES[c.type];
  const obstacle=c.ice?' ice '+c.ice+' layers':c.lock?' chain locked':c.chest?' chest '+c.chest+' layers':'';
- return nut+obstacle+' row '+(Math.floor(i/w)+1)+' column '+(i%w+1);
+ const hold=c.hold?' held for '+c.hold+' gravity drops':'';
+ return nut+obstacle+hold+' row '+(Math.floor(i/w)+1)+' column '+(i%w+1);
 }
 function featureVisual(features,i){
  if(!features)return '';
@@ -98,7 +102,7 @@ function featureVisual(features,i){
   (portal?'<span class="board-feature portal" aria-hidden="true">◎</span>':'')+
  (wind?`<span class="board-feature wind" data-wind-direction="${dir}" aria-hidden="true">${dir==='up'?'↑':'↓'}</span>`:'');
 }
-function nutKey(c){return c.type+':'+(c.special||'');}
+function nutKey(c){return c.type+':'+(c.special||'')+':'+(c.hold||0);}
 function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.jam||0)+':'+(c.fuse||0);}
 function cellMarkup(c,i,w){if(!c)return '<div class="cell void" aria-hidden="true"></div>';
  return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${cellLabel(c,i,w)}">${featureVisual(state.game.cfg.features,i)}${nutVisual(c)}${blockerVisual(c)}</button>`;
@@ -133,6 +137,9 @@ function toolButtons(){
  return E.BOOSTERS.map(tool=>{
   const d=E.BOOSTER_META[tool],earned=P.unlocked(saved,tool),qty=P.count(saved,tool);
   return `<button data-tool="${tool}" class="${earned?qty?'ready':'empty':'locked'}" title="${earned?d.tip:'Beat level '+P.LEVEL_BY_TOOL[tool]+' to unlock'}" aria-label="${d.label}: ${earned?qty+' stocked, '+d.tip:'unlocks after level '+P.LEVEL_BY_TOOL[tool]}">${boosterIcon(tool)}<span class="booster-label">${d.label}</span><small data-stock>${earned?'×'+qty:'LV '+P.LEVEL_BY_TOOL[tool]}</small></button>`;
+ }).join('')+Object.entries(P.HOLD_ITEMS).map(([id,item])=>{
+  const qty=P.holdCount(saved,id);
+  return `<button data-hold-tool="${id}" class="${qty?'ready':'empty'}" title="${item.tip}" aria-label="${item.label}: ${qty} stocked. ${item.tip}"><img class="hold-icon" src="${item.art}" alt="" draggable="false"><span class="booster-label">${id==='butter_hold'?'Butter':'Jam'} ${item.drops}↓</span><small data-stock>${qty?'×'+qty:'BUY'}</small></button>`;
  }).join('');
 }
 function game(){
@@ -213,7 +220,7 @@ function paintStats(){if(state.page!=='game'||!state.game)return;const g=state.g
 function selectCell(i){const old=screen.querySelector('.cell.selected');if(old)old.classList.remove('selected');
  state.selected=i;if(i>=0)screen.querySelector(`[data-cell="${i}"]`)?.classList.add('selected');
 }
-function updateTools(){screen.querySelectorAll('[data-tool]').forEach(el=>el.classList.toggle('active',el.dataset.tool===state.tool));}
+function updateTools(){screen.querySelectorAll('[data-tool]').forEach(el=>el.classList.toggle('active',el.dataset.tool===state.tool));screen.querySelectorAll('[data-hold-tool]').forEach(el=>el.classList.toggle('active',el.dataset.holdTool===state.holdTool));}
 function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
 function reducedMotion(){return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;}
 async function swapAnimation(pair,epoch){
@@ -345,7 +352,13 @@ function checkout(){const p=offers[state.checkout];if(!p)return '<p>Offer unavai
 const shopSprites=['golden-nuts','golden-nuts','gift','treasure','vip-crown','treasure'];
 const products=[['GIGANTIC NUT PACKAGE','🌰',50000,250,'$199.99'],['RIDICULOUSLY PREMIUM GEMS','💎',2000,2000,'$499.99'],['ROYAL SQUIRREL BUNDLE','🐿️',9999,500,'$99.99'],['HUNDRED YEAR CHEST','🧰',10000,150,'$79.99'],['ABSOLUTELY NECESSARY VIP','👑',1000,100,'$29.99/mo'],['MYSTERY NUT CRATE','🎲',3000,30,'$24.99']];
 const offers=[...products,['EMERGENCY HEART REFILL','❤️',0,0,'$4.99'],['EXTRA FIVE MOVES','➕',0,0,'$9.99'],['EXCLUSIVE ROYAL MANOR KIT','👑',0,0,'$499.99']];
-function shop(){return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2><span class="pill">VIP DEALS</span></div><p class="muted">Extraordinary bundles. Unbelievable prices. One last step before checkout.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item">${art('economy',shopSprites[i],p[1])}<h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><div class="offer-price">${p[4]}</div><button class="btn green" data-action="claim" data-item="${i}">BUY PACKAGE</button></div>`).join('')}</div>`;}
+function shop(){
+ const holdCards=Object.entries(P.HOLD_ITEMS).map(([id,item])=>{
+  const pending=state.holdOffer===id;
+  return `<div class="hold-offer"><img src="${item.art}" alt="" draggable="false"><div class="hold-offer-info"><b>${item.label}</b><small>${item.drops} gravity drop${item.drops===1?'':'s'} · held-nut matches ×3 · Owned ${P.holdCount(saved,id)}</small></div><div class="hold-offer-buy"><b>${item.gems} <img src="art/additions/economy/prismatic-acorn.png" alt="gems"></b><button class="btn secondary" data-action="hold-offer" data-hold-id="${id}">BUY</button></div>${pending?`<div class="hold-confirm" role="group" aria-label="Confirm ${item.label} purchase"><span>Spend ${item.gems} gems? Balance: ${saved.gems.toLocaleString()}</span><button class="btn green" data-action="hold-buy" data-hold-id="${id}">CONFIRM</button><button class="btn ghost" data-action="hold-cancel">CANCEL</button></div>`:''}</div>`;
+ }).join('');
+ return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">VIP DEALS</span>'}</div><div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div><p class="muted">Extraordinary bundles. Unbelievable prices. One last step before checkout.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item">${art('economy',shopSprites[i],p[1])}<h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><div class="offer-price">${p[4]}</div><button class="btn green" data-action="claim" data-item="${i}">BUY PACKAGE</button></div>`).join('')}</div>`;
+}
 function rewards(){const tiers=P.challengeRewards(saved),next=P.nextUnlock(saved);let mins=Math.max(0,Math.ceil((saved.chestReadyAt-Date.now())/60000));return `<div class="topline"><h2>REWARDS, REWARDS, REWARDS</h2></div><div class="panel reward-inventory"><b>BOOSTER VAULT</b><p class="muted">${inventorySummary()}</p>${next?'<p class="muted">Next power: '+E.BOOSTER_META[next.id].label+' · clear level '+next.level+'</p>':''}</div>
  <div class="panel challenge-rewards"><b>CHALLENGE REWARD TRACK</b><p class="muted">${P.challengeProgress(saved)}/25 challenge milestones cleared</p>
  <div class="challenge-tiers">${tiers.map(t=>`<div class="challenge-tier"><b>${t.requirement} ★</b><small>${boosterSummary(t.contents)}</small><button class="btn secondary" data-action="challenge-claim" data-tier="${t.index}" ${t.ready?'':'disabled'}>${t.claimed?'CLAIMED':t.ready?'CLAIM':'LOCKED'}</button></div>`).join('')}</div></div>
@@ -467,7 +480,7 @@ function render(){counters();document.getElementById('app')?.classList?.toggle('
 function start(n){state.epoch++;state.animating=false;
  if(saved.hearts<=0){saved.hearts=5;notice('ENERGY RESTORED!');}
  saved.hearts--;persist();const level=Math.min(500,Math.max(1,Number(n)||1));
- state.game=E.create(level,Math.floor(Math.random()*0xffffffff));state.page='game';state.selected=-1;state.tool=null;state.outcome=null;state.levelReward='';
+ state.game=E.create(level,Math.floor(Math.random()*0xffffffff));state.page='game';state.selected=-1;state.tool=null;state.holdTool=null;state.outcome=null;state.levelReward='';
  state.announcer=state.game.cfg.newNut?'NEW NUT: '+state.game.cfg.newNut.replace('-',' ').toUpperCase()+'!':'PREPARE TO BUST SOME NUTS!';render();window.NutAudio?.voice('nutbuster-soft');
  window.NutbusterUpdates?.autoCheck?.('level');
 }
@@ -512,10 +525,29 @@ function doSwap(a,b){if(state.animating||state.page!=='game')return;
  void applyMove(r);
 }
 function cell(i){if(!state.game||state.game.won||state.game.lost||state.animating)return;
+ if(state.holdTool){
+  const id=state.holdTool;
+  if(!P.holdCount(saved,id)){state.holdTool=null;updateTools();notice('BUY '+P.HOLD_ITEMS[id].label.toUpperCase()+' IN THE SHOP');return;}
+  const result=E.applyHold(state.game,id,i);
+  if(!result.valid){notice(result.reason==='already-held'?'THAT NUT IS ALREADY HELD':'CHOOSE A NUT TO HOLD');return;}
+  if(!P.spendHold(saved,id))throw new Error('Hold item inventory out of sync');
+  state.holdTool=null;persist();paintCells(E.snapshot(state.game).cells);refreshBoosters();updateTools();
+  notice(P.HOLD_ITEMS[id].label.toUpperCase()+' · '+result.drops+' GRAVITY DROPS · ×3 MATCH');
+  return;
+ }
  if(state.tool){const tool=state.tool;state.tool=null;updateTools();const result=activateBooster(tool,i);if(result)void applyMove(result);return;}
  if(state.selected<0){selectCell(i);return;}if(state.selected===i){selectCell(-1);return;}doSwap(state.selected,i);
 }
 function action(a,button){
+ if(a==='hold-offer'){const id=button.dataset.holdId;if(!P.HOLD_ITEMS[id])return;state.holdOffer=id;render();return;}
+ if(a==='hold-cancel'){state.holdOffer=null;render();return;}
+ if(a==='hold-buy'){
+  const id=button.dataset.holdId;
+  if(id!==state.holdOffer||!P.HOLD_ITEMS[id])return;
+  const result=P.buyHold(saved,id);
+  if(!result.valid){notice(result.reason==='gems'?'NOT ENOUGH GEMS · NEED '+result.short:'ITEM UNAVAILABLE');return;}
+  state.holdOffer=null;persist();render();notice(P.HOLD_ITEMS[id].label.toUpperCase()+' PURCHASED · ×'+result.stock);return;
+ }
  if(a==='check-updates'){window.NutbusterUpdates?.check();return;}
   if(a==='open-releases'){window.NutbusterUpdates?.openReleases();return;}
  if(a==='invite'){
@@ -631,14 +663,19 @@ function action(a,button){
 screen.addEventListener('click',e=>{window.NutAudio?.unlock();window.NutAudio?.grunt();if(Date.now()<swipeGuard)return;
  const target=e.target.closest('button');if(!target||state.animating)return;
  if(target.dataset.cell!==undefined){cell(Number(target.dataset.cell));return;}
- if(target.dataset.tool){const tool=target.dataset.tool;if(!state.game||state.page!=='game')return;
+ if(target.dataset.holdTool){
+   const id=target.dataset.holdTool;if(!state.game||state.page!=='game')return;
+   if(!P.holdCount(saved,id)){state.holdOffer=id;nav('shop');return;}
+   state.holdTool=state.holdTool===id?null:id;state.tool=null;selectCell(-1);updateTools();return;
+  }
+  if(target.dataset.tool){const tool=target.dataset.tool;if(!state.game||state.page!=='game')return;
   if(!P.unlocked(saved,tool)||!P.count(saved,tool)){activateBooster(tool,-1);return;}
   if(!E.BOOSTER_META[tool].targeted){
    const res=activateBooster(tool,-1);if(!res)return;
    state.tool=null;updateTools();
    if(res.stages?.length)void applyMove(res);else {paintCells(E.snapshot(state.game).cells);paintStats();}
    announce('UNLIMITED SATISFACTION!','oh-my');
-  }else{state.tool=state.tool===tool?null:tool;selectCell(-1);updateTools();}return;}
+  }else{state.tool=state.tool===tool?null:tool;state.holdTool=null;selectCell(-1);updateTools();}return;}
  if(target.dataset.chapter){state.chapter=Number(target.dataset.chapter);render();return;}
  if(target.dataset.action)action(target.dataset.action,target);else if(target.dataset.nav)nav(target.dataset.nav);
 });

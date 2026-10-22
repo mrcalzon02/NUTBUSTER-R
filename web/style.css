@@ -317,3 +317,24 @@
 @keyframes nut-ice-break{0%{transform:scale(1);opacity:.6}40%{transform:scale(1.12) rotate(3deg);opacity:.85}100%{transform:scale(.65) rotate(-5deg);opacity:0}}
 .nut-fx.ice-shatter{animation-duration:600ms;max-width:94px;max-height:94px}
 @media(prefers-reduced-motion:reduce){.cell .overlay.blocker-art.ice:is(.ice-hit,.ice-damaged,.ice-break) .blocker-sprite{animation:none!important}}
+
+/* Twelve tactical tools occupy the SAME two rows, with no extra header height. */
+#app.playing .game-active .boosters{grid-template-columns:repeat(6,minmax(0,1fr))}
+#app.playing .game-active .boosters .hold-icon{display:block;object-fit:contain;width:28px;height:28px;max-width:88%;margin:0 auto;filter:drop-shadow(0 1px 2px #1d091a)}
+#app.playing .game-active .boosters [data-hold-tool] .booster-label{font-size:7px!important;white-space:nowrap}
+.cell .hold-marker{pointer-events:none;position:absolute;left:1px;top:1px;width:19px;height:19px;z-index:4;display:grid;place-items:center;color:#fff7d7;text-shadow:0 1px 2px #1c1029;font-size:12px;line-height:1}
+.cell .hold-marker img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:.96}
+.cell .hold-marker b{position:relative;z-index:1;font-size:11px}
+.hold-store{padding:9px;margin:4px 0 10px}
+.hold-store-title{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:6px;color:#ffe09f}
+.hold-offer{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:7px;padding:5px 1px;border-top:1px solid #d9a97855}
+.hold-offer>img{width:32px;height:32px;object-fit:contain}
+.hold-offer-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.hold-offer-info b{font-size:12px}.hold-offer-info small{font-size:10px;line-height:1.25;color:#f5d9b9}
+.hold-offer-buy{display:flex;flex-direction:column;align-items:center;gap:2px}
+.hold-offer-buy b{display:flex;align-items:center;font-size:12px;gap:3px}
+.hold-offer-buy b img{width:13px;height:13px;object-fit:contain}
+.hold-offer-buy .btn{min-height:26px;padding:3px 9px;font-size:11px}
+.hold-confirm{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap;background:#241224bb;padding:5px;border-radius:7px;font-size:11px}
+.hold-confirm .btn{font-size:10px;min-height:28px;padding:4px 7px}
+@media (orientation:landscape) and (max-height:600px){#app.playing .game-active .boosters .hold-icon{width:21px;height:21px}}
