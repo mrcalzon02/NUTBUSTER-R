@@ -98,6 +98,81 @@ const DAILY=6;
 const WHARF_AD_REWARD=Object.freeze({bait:2,dollars:100});
 const limit=n=>Number.isSafeInteger(n)&&n>=0?Math.min(n,999999999):0;
 const specimenId=new Map(FISH.map(x=>[x.id,x]));
+
+// The estate aquarium is a collectible display, independent from the backyard.
+// Discovery is permanent within this save, even when the fish is sold or released.
+const STAMPS=Object.freeze([
+ ['coral','Coral Garden','🪸','minnow'],['seagrass','Seagrass','🌿','bluegill'],
+ ['shell','Pearl Shell','🐚','perch'],['stones','River Pebbles','🪨','carp'],
+ ['bubbles','Bubble Column','🫧','trout'],['anchor','Lost Anchor','⚓','bass'],
+ ['driftwood','Driftwood','🪵','catfish'],['pagoda','Koi Pagoda','⛩️','koi'],
+ ['starfish','Sea Star','⭐','puffer'],['lantern','Glow Lantern','🏮','eel'],
+ ['relic','Sunken Relic','🏺','sturgeon'],['wreck','Shipwreck','🚢','leviathan'],
+ ['blue-reeds','Blue Reeds','🌾','fish-set01-azure-darter'],
+ ['sea-flower','Sea Flower','🌺','fish-set01-copper-fin'],
+ ['royal-kelp','Royal Kelp','🌱','fish-set01-ribbon-koi'],
+ ['moss-rock','Moss Rock','🪴','fish-set01-moss-trout'],
+ ['starlight','Starlight','✨','fish-set01-constellation-gar'],
+ ['sunflower','Sea Sun','🌻','fish-set01-sunline-perch']
+ ].map(([id,name,icon,fish])=>Object.freeze({id,name,icon,fish})));
+const STAMP_BY_ID=new Map(STAMPS.map(x=>[x.id,x]));
+const BACKGROUNDS=Object.freeze([
+ {id:'lagoon',name:'Lagoon Glass',need:[]},
+ {id:'river',name:'Riverbed',need:['trout','fish-set01-azure-darter','fish-set01-moss-trout']},
+ {id:'reef',name:'Coral Reef',need:['koi','puffer','fish-set01-ribbon-koi']},
+ {id:'deep',name:'Midnight Depths',need:['catfish','sturgeon','fish-set01-sapphire-catfish']},
+ {id:'arcane',name:'Starwater',need:['eel','leviathan','fish-set01-constellation-gar']}
+ ].map(x=>Object.freeze({...x,need:Object.freeze(x.need)})));
+function stampCapacity(n){return 3+2*n.tank;}
+function stampUnlocked(n,id){const spec=STAMP_BY_ID.get(id);return !!spec&&n.aquarium.discovered.includes(spec.fish);}
+function backgroundUnlocked(n,id){const spec=BACKGROUNDS.find(x=>x.id===id);return !!spec&&(spec.need.length===0||spec.need.some(fish=>n.aquarium.discovered.includes(fish)));}
+function aquariumState(n){
+ if(!n.aquarium||typeof n.aquarium!=='object'||Array.isArray(n.aquarium))n.aquarium={};
+ const a=n.aquarium;
+ const found=Array.isArray(a.discovered)?a.discovered:[];
+ const saved=Array.isArray(n.fish)?n.fish.map(x=>x?.id):[];
+ a.discovered=[...new Set([...found,...saved].filter(id=>specimenId.has(id)))];
+ if(!backgroundUnlocked(n,a.background))a.background='lagoon';
+ const used=new Set;
+ a.stamps=(Array.isArray(a.stamps)?a.stamps:[]).filter(entry=>{
+  if(!entry||!stampUnlocked(n,entry.id)||!Number.isFinite(entry.x)||!Number.isFinite(entry.y))return false;
+  const key=entry.id+':'+Math.round(entry.x)+':'+Math.round(entry.y);
+  if(used.has(key)||used.size>=stampCapacity(n))return false;
+  used.add(key);entry.x=Math.max(6,Math.min(94,Math.round(entry.x)));entry.y=Math.max(12,Math.min(84,Math.round(entry.y)));
+  return true;
+ });
+ return a;
+}
+function placeStamp(save,id,x,y,now=Date.now()){
+ const n=ensure(save,now);
+ if(!stampUnlocked(n,id))return {valid:false,reason:'locked'};
+ if(!Number.isFinite(x)||!Number.isFinite(y)||x<0||x>100||y<0||y>100)return {valid:false,reason:'position'};
+ if(n.aquarium.stamps.length>=stampCapacity(n))return {valid:false,reason:'full'};
+ const entry={id,x:Math.max(6,Math.min(94,Math.round(x))),y:Math.max(12,Math.min(84,Math.round(y)))};
+ if(n.aquarium.stamps.some(item=>item.id===entry.id&&Math.abs(item.x-entry.x)<7&&Math.abs(item.y-entry.y)<7))return {valid:false,reason:'overlap'};
+ n.aquarium.stamps.push(entry);return {valid:true,entry,slots:stampCapacity(n)};
+}
+function removeStamp(save,index,now=Date.now()){
+ const n=ensure(save,now);
+ if(!Number.isInteger(index)||index<0||index>=n.aquarium.stamps.length)return {valid:false,reason:'index'};
+ return {valid:true,entry:n.aquarium.stamps.splice(index,1)[0]};
+}
+function chooseBackground(save,id,now=Date.now()){
+ const n=ensure(save,now);
+ if(!backgroundUnlocked(n,id))return {valid:false,reason:'locked'};
+ n.aquarium.background=id;return {valid:true,id};
+}
+function moveFish(save,from,to,now=Date.now()){
+ const n=ensure(save,now),max=capacity(n);
+ if(!Number.isInteger(from)||!Number.isInteger(to)||from<0||to<0||from>=max||to>=max)return {valid:false,reason:'slot'};
+ const moving=n.fish.find(f=>f.slot===from);
+ if(!moving)return {valid:false,reason:'empty'};
+ const other=n.fish.find(f=>f.slot===to);
+ if(other)other.slot=from;
+ moving.slot=to;
+ return {valid:true,from,to,swapped:!!other};
+}
+
 function localDay(now){const date=new Date(now);if(!Number.isFinite(date.getTime()))return null;return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');}
 function ensure(save,now=Date.now()){
  if(!save.nutravaganza||typeof save.nutravaganza!=='object'||Array.isArray(save.nutravaganza))save.nutravaganza={};
@@ -114,6 +189,15 @@ function ensure(save,now=Date.now()){
  for(const bait of BAITS)n.baits[bait.id]=limit(n.baits[bait.id]);
  if(!Array.isArray(n.fish))n.fish=[];
  n.fish=n.fish.filter(f=>f&&specimenId.has(f.id)&&Number.isInteger(f.size)&&f.size>=1&&f.size<=100&&Number.isInteger(f.value)&&f.value>=1&&f.value<=100000).slice(0,capacity(n));
+ // Preserve all older residents and upgrade into explicit independent display slots.
+ const claimedSlots=new Set;
+ for(const f of n.fish){
+  if(!Number.isInteger(f.slot)||f.slot<0||f.slot>=capacity(n)||claimedSlots.has(f.slot)){
+   f.slot=Array.from({length:capacity(n)},(_,i)=>i).find(i=>!claimedSlots.has(i));
+  }
+  claimedSlots.add(f.slot);
+ }
+ aquariumState(n);
  if(!n.pending||!specimenId.has(n.pending.id)||!Number.isInteger(n.pending.value)||n.pending.value<1||n.pending.value>100000||!Number.isInteger(n.pending.size)||n.pending.size<1||n.pending.size>100)n.pending=null;
  if(!n.fight||!specimenId.has(n.fight.id)||!Number.isSafeInteger(n.fight.seed)||n.fight.seed<0||n.fight.seed>4294967295||!Number.isInteger(n.fight.turn)||n.fight.turn<0||n.fight.turn>50||!Number.isFinite(n.fight.fish)||!Number.isFinite(n.fight.hook)||!Number.isFinite(n.fight.progress)||!Number.isFinite(n.fight.tension))n.fight=null;
  const today=localDay(now);
@@ -252,6 +336,7 @@ function step(save,mode,now=Date.now()){
  if(f.progress>=100){
   const size=20+(f.seed%81),value=Math.round(species.value*(.65+size/100));
   n.pending={id:f.id,size,value};n.fight=null;
+  if(!n.aquarium.discovered.includes(f.id))n.aquarium.discovered.push(f.id);
   return {valid:true,status:'caught',catch:{...n.pending}};
  }
  if(f.tension>=100||f.turn>=34){
@@ -266,12 +351,15 @@ function resolve(save,choice,now=Date.now()){
  if(!fish)return {valid:false,reason:'no-catch'};
  if(choice!=='keep'&&choice!=='sell'&&choice!=='release')return {valid:false,reason:'choice'};
  if(choice==='keep'&&n.fish.length>=capacity(n))return {valid:false,reason:'full'};
- if(choice==='keep')n.fish.push({...fish});
+ if(choice==='keep'){
+  const claimed=new Set(n.fish.map(f=>f.slot)),slot=Array.from({length:capacity(n)},(_,i)=>i).find(i=>!claimed.has(i));
+  n.fish.push({...fish,slot});
+ }
  if(choice==='sell')n.dollars=limit(n.dollars+fish.value);
  n.pending=null;
  return {valid:true,choice,fish:{...fish},dollars:n.dollars};
 }
-const api={FISH,BAITS,RODS,BOOSTER_BAIT,DAILY,WHARF_AD_REWARD,localDay,ensure,claimWharfAd,capacity,nextCost,upgrade,trade,craft,cast,step,resolve,rodModel,rodOdds,chooseFish,buyRod,equipRod,repairRod};
+const api={FISH,BAITS,RODS,STAMPS,BACKGROUNDS,BOOSTER_BAIT,DAILY,WHARF_AD_REWARD,localDay,ensure,claimWharfAd,capacity,stampCapacity,stampUnlocked,backgroundUnlocked,placeStamp,removeStamp,chooseBackground,moveFish,nextCost,upgrade,trade,craft,cast,step,resolve,rodModel,rodOdds,chooseFish,buyRod,equipRod,repairRod};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutFishing=api;
 })(typeof window!=='undefined'?window:globalThis);
