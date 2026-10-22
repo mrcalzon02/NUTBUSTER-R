@@ -6,6 +6,8 @@ const n=145,w=8,a=3*w+3,b=a+1;
 function start(left,right){
  const g=E.create(n,82331);
  assert.ok(g.cfg.mask.every(Boolean),'Special combo fixture must have no void');
+ // Special nuts are movable; existing ice, chest, and locked-walnut artwork represents immovable pieces.
+ for(const i of [a,b]){g.cells[i].ice=0;g.cells[i].lock=0;g.cells[i].chest=0;}
  g.cells[a].special=left;g.cells[b].special=right;
  return g;
 }
