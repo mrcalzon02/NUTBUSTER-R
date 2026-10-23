@@ -9,8 +9,10 @@ class FakeAudio{
  pause(){this.paused=true;}
 }
 const window={Audio:FakeAudio,NUTBUSTER_TTS_BRIDGE:bridge,addEventListener(){}},math=Object.create(Math);math.random=()=>.5;
+let testClock=Date.UTC(2026,9,22,12);
+class TestDate extends Date {static now(){testClock+=1000;return testClock;}}
 for(const file of ['announcer-lines.js','audio.js'])
- vm.runInNewContext(fs.readFileSync(path.join(ROOT,file),'utf8'),{window,Date,Math:math,console});
+ vm.runInNewContext(fs.readFileSync(path.join(ROOT,file),'utf8'),{window,Date:TestDate,Math:math,console});
 const A=window.NutAudio,L=window.NutAnnouncers;
 A.unlock(); // Start music after the simulated user gesture so speech ducking is observable.
 assert.equal(L.voices.length,2,'Only original and Auditor are currently selectable');
