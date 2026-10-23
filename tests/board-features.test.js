@@ -38,8 +38,12 @@ assert.ok(beltLevels>200&&portalLevels>150,'Transport covers a meaningful number
  assert.deepEqual(E.snapshot(g).cells.map(c=>c&&[c.ice,c.lock,c.chest,c.jam,c.fuse]),layers);
 }
 {
- const g=E.create(164,782),portal=g.cfg.features.portals[0],old=E.snapshot(g).cells;
+ const g=E.create(164,782),portal=g.cfg.features.portals[0];
  assert.ok(portal);
+ // Isolate the transport contract: a late-game rooted-vine aura or stone
+ // seal must stop the portal in production, not invalidate this free-pair test.
+ for(const i of portal.indices){const c=g.cells[i];c.ice=0;c.lock=0;c.chest=0;c.rock=0;c.frozen=0;if(c.aura==='nature-vines'){c.aura=null;c.auraTurns=0;}}
+ const old=E.snapshot(g).cells;
  const stages=F.advance(g,3,()=>E.snapshot(g).cells);
  assert.equal(stages.length,1);assert.equal(stages[0].mode,'portal');
  const [a,b]=portal.indices;
