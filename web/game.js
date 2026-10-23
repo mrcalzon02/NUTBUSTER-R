@@ -182,9 +182,9 @@ function piece(type){if(type===null||type===undefined)return '';const name=E.TYP
 function nutVisual(c){if(c.ice||c.lock||c.chest)return '';return `<span class="nut-visual">${piece(c.type)}${c.elemental?`<img class="elemental-emblem" src="art/primary/nuts/elemental/${c.elemental}.png" alt="" draggable="false">`:''}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}${c.hold?`<span class="hold-marker" aria-hidden="true"><img src="art/additions/effects/focus-ring.png" alt="" draggable="false"><b>${c.hold}</b></span>`:''}</span>`;}
 function blockerVisual(c){
  // The ordinary nut remains visible beneath translucent tile blockers.
- const sprite=c.ice?'frost':c.lock?'chain-lock':c.chest?'chest':null;
- const kind=c.ice?'ice':c.lock?'chain':c.chest?'chest':null;
- const strength=c.ice||c.lock||c.chest||0;
+ const sprite=c.ice?'frost':c.lock?'chain-lock':c.chest?'chest':c.rock?'void-rock':null;
+ const kind=c.ice?'ice':c.lock?'chain':c.chest?'chest':c.rock?'rock':null;
+ const strength=c.ice||c.lock||c.chest||c.rock||0;
  const spritePath=c.chest?'art/primary/blockers/chest.png':'art/primary/overlays/'+sprite+'.png';
  const layer=sprite?`<span class="overlay blocker-art ${kind}" data-strength="${strength}" aria-hidden="true"><img class="blocker-sprite" src="${spritePath}" alt="" draggable="false">${strength>1?`<b class="blocker-layer-count">${strength}</b>`:''}</span>`:'';
  // Approved tile-aura sprites sit over the square, not the traveling nut.
@@ -194,7 +194,7 @@ function blockerVisual(c){
 }
 function cellLabel(c,i,w){
  const nut=c.lock?'locked walnut':c.type===null?'empty':E.TYPES[c.type];
- const obstacle=c.ice?' pinned beneath ice '+c.ice+' hits remaining':c.lock?' pinned beneath a chain '+c.lock+' hits remaining':c.chest?' pinned beneath a chest '+c.chest+' hits remaining':'';
+ const obstacle=c.ice?' pinned beneath ice '+c.ice+' hits remaining':c.lock?' pinned beneath a chain '+c.lock+' hits remaining':c.chest?' pinned beneath a chest '+c.chest+' hits remaining':c.rock?' pinned beneath a stone seal '+c.rock+' hits remaining':'';
  const hazard=(c.jam?' sticky butter':'')+(c.fuse?' timed acorn '+c.fuse+' turns':'')+(c.poison?' poison '+c.poison+' turns':'')+(c.ward?' shadow ward '+c.ward+' turns':'')+(c.aura?' '+c.aura+' tile effect '+c.auraTurns+' turns':'');
  const hold=c.hold?' held for '+c.hold+' gravity drops':'';
  const elemental=c.elemental?' '+c.elemental+' elemental power: '+(E.ELEMENTAL_ABILITIES?.[c.elemental]||'activates on destruction'):'';
@@ -211,7 +211,7 @@ function featureVisual(features,i){
  (wind?`<span class="board-feature wind" data-wind-direction="${dir}" aria-hidden="true">${dir==='up'?'↑':'↓'}</span>`:'');
 }
 function nutKey(c){return c.type+':'+(c.special||'')+':'+(c.elemental||'')+':'+(c.hold||0)+':'+Number(!!(c.ice||c.lock||c.chest));}
-function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.jam||0)+':'+(c.fuse||0)+':'+(c.poison||0)+':'+(c.ward||0)+':'+(c.aura||'')+':'+(c.auraTurns||0);}
+function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.rock||0)+':'+(c.jam||0)+':'+(c.fuse||0)+':'+(c.poison||0)+':'+(c.ward||0)+':'+(c.aura||'')+':'+(c.auraTurns||0);}
 function cellMarkup(c,i,w){if(!c)return '<div class="cell void" aria-hidden="true"></div>';
  return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${cellLabel(c,i,w)}" title="${cellLabel(c,i,w)}">${featureVisual(state.game.cfg.features,i)}${nutVisual(c)}${blockerVisual(c)}</button>`;
 }
