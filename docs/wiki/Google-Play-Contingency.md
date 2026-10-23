@@ -75,3 +75,7 @@ https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.produc
 ## Swap criterion
 
 Only after all gates pass, explicitly authorize integration onto the production branch and configure a Play-distribution release. Preserve GitHub/self-hosted builds independently; never silently redirect existing APK installations to Play while their signing/update path is unresolved.
+
+## October 23 security continuation
+
+The branch now has purchase-bound Play Integrity standard attestations, server-side Play App Signing certificate checks, Google Play Games one-time server authorization, HMAC-pseudonymous optional accounts, signed short-lived sessions and tightened native WebView/network boundaries. **Financial and account data are protected more strongly than ordinary local game assets.** Exact implementation and outstanding launch gates are maintained in [Play Financial and Account Security](Play-Financial-And-Account-Security.md). Do not substitute this infrastructure for the pending real-device, Google-account, refund and delivery-recovery tests.
