@@ -36,7 +36,7 @@ android {
         if (integrityProject && !(integrityProject ==~ /[0-9]+/)) throw new GradleException('Invalid Play Integrity cloud project number')
         buildConfigField 'String', 'PLAY_INTEGRITY_PROJECT_NUMBER', '"' + integrityProject + '"'
         def oauthClient = (project.findProperty('nutbusterPlayServerClientId') ?: '').toString()
-        if (oauthClient && !(oauthClient ==~ /[0-9]+-[A-Za-z0-9_-]+\\.apps\\.googleusercontent\\.com/)) throw new GradleException('Invalid public PGS OAuth web client ID')
+        if (oauthClient && !(oauthClient ==~ /[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com/)) throw new GradleException('Invalid public PGS OAuth web client ID')
         buildConfigField 'String', 'PLAY_GAMES_SERVER_CLIENT_ID', '"' + oauthClient + '"'
         resValue 'string', 'game_services_project_id', gamesId ?: '0'
         resValue 'string', 'play_achievement_level_1', (project.findProperty('playAchievementLevel1') ?: '').toString()
