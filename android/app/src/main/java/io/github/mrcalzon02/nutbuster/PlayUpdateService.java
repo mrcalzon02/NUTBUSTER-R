@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.os.SystemClock;
 import com.google.android.play.core.appupdate.AppUpdateManager;
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.appupdate.AppUpdateOptions;
 import com.google.android.play.core.install.InstallStateUpdatedListener;
 import com.google.android.play.core.install.model.AppUpdateType;
 import com.google.android.play.core.install.model.InstallStatus;
@@ -40,7 +41,8 @@ final class PlayUpdateService {
             new AlertDialog.Builder(activity).setTitle("Google Play update available")
                 .setMessage("Google Play can download the update. You can keep playing while it downloads.")
                 .setPositiveButton("Update", (dialog, which) -> {
-                    try { manager.startUpdateFlowForResult(info, AppUpdateType.FLEXIBLE, activity, UPDATE_REQUEST_CODE); }
+                    try { manager.startUpdateFlowForResult(info, activity,
+                        AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(), UPDATE_REQUEST_CODE); }
                     catch (Exception error) { status.accept("Google Play could not start this update."); }
                 }).setNegativeButton("Later", null).show();
         }).addOnFailureListener(error -> { if (manually) status.accept("Could not check Google Play for updates."); });
