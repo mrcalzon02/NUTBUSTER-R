@@ -27,18 +27,11 @@ references only and never used as in-game backgrounds.
 - `web/art/nutvale/mining-tools/atlas-gloves.png`
 - `web/art/nutvale/mining-tools/manifest.json`
 
-These are visual variations **only**. The mining pickaxe has six mechanical
-upgrade states (0–5), affecting daily strike capacity, and survey gloves have
-six mechanical states (0–5), affecting scan capacity. There must not be 44 or
-42 distinct gameplay tiers by accident. Select the icon by cosmetic variant
-while the mechanics remain governed by
-`docs/wiki/Nutvale-Mines-Design-Lock.md`.
+40 pickaxes and 40 gloves now map to **40 mechanical states each (0–39)** in the authorized equipment amendment `docs/wiki/Nutvale-Mines-Equipment-v1.1.md`. The extra four pickaxe and two glove variants are reserved as cosmetics; no 44- or 42-stage gameplay tiers have been invented. Pickaxe upgrades add +5 strikes/day and gloves add +1 scan/day.
 
 ## Delivery / verification status
 
-The source atlas and **all 86 validated binaries** are in the downloadable
-archive `Nutvale_Mining_Tools_86_Transparent_Sprites.zip` supplied in the
-creation conversation. This repository document and slicer alone do **not**
+The source atlas and **all 86 validated binaries** were uploaded to the NUTBUSTER Google Drive folder in [Nutvale_Mining_Tools_86_Transparent_Sprites.zip](https://drive.google.com/file/d/1ySfEltY1N0rS5w2RWOSxFh0WbHXaY_l2/view?usp=drivesdk). This repository document and slicer alone do **not**
 mean the binary pack has been uploaded. The binary art requires unpacking at
 the repository root before the game can reference those paths.
 
