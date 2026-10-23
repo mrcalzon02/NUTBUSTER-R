@@ -34,10 +34,14 @@ function activateBooster(id,index){const meta=E.BOOSTER_META[id];
  if(!meta)return null;
  if(!P.unlocked(saved,id)){notice('CLEAR LEVEL '+P.LEVEL_BY_TOOL[id]+' TO UNLOCK '+meta.label.toUpperCase());return null;}
  if(!P.count(saved,id)){notice('OUT OF '+meta.label.toUpperCase()+' · CHECK YOUR PACKS');return null;}
+ const priorRefunds=state.game.elementalRefunds||0;
  const result=E.booster(state.game,id,index);
  if(!result.valid){notice(result.reason==='no-locks'?'No chains to unlock.':'Choose a valid target.');return null;}
  if(!P.spend(saved,id))throw new Error('Inventory desynchronized after power activation');
+ const earnedRefunds=Math.max(0,(state.game.elementalRefunds||0)-priorRefunds);
+ if(earnedRefunds)D.topUp(saved,earnedRefunds,Date.now(),dailyCap());
  if(id==='extra'){state.game.moves=D.topUp(saved,5,Date.now(),dailyCap());state.game.lost=false;}
+ else if(earnedRefunds){state.game.moves=movesLeft();state.game.lost=false;}
  // Successful activations always play their OWN visual, even if no nut is cleared.
  const target=index>=0?screen.querySelector(`[data-cell="${index}"]`):screen.querySelector('.board-wrap');
  window.NutFX?.booster?.(id,target);
@@ -697,9 +701,14 @@ function concludeMove(result){
 function doSwap(a,b){if(state.animating||state.page!=='game')return;
  if(movesLeft()<1){notice('DAILY MOVES EXHAUSTED · REFILLS TOMORROW');return;}
  state.game.moves=movesLeft();
+ const priorRefunds=state.game.elementalRefunds||0;
  const r=E.swap(state.game,a,b);if(!r.valid){playSFX('invalid');notice('Choose two adjacent nuts.');selectCell(-1);return;}
  const used=Math.min(movesLeft(),1+2*(r.hazards?.expired?.length||0));
- D.spend(saved,used,Date.now(),dailyCap());state.game.moves=movesLeft();
+ D.spend(saved,used,Date.now(),dailyCap());
+ const earnedRefunds=Math.max(0,(state.game.elementalRefunds||0)-priorRefunds);
+ if(earnedRefunds)D.topUp(saved,earnedRefunds,Date.now(),dailyCap());
+ state.game.moves=movesLeft();
+ if(earnedRefunds&&state.game.moves){state.game.lost=false;r.lost=false;}
  if(!r.won&&!state.game.moves){state.game.lost=true;r.lost=true;}
  persist();void applyMove(r);
 }

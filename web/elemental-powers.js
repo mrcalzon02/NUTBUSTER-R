@@ -27,7 +27,7 @@ function activate(g,record,ops){
  else if(kind==='lightning')strike(nearest().filter(i=>g.cells[i].type===color).slice(0,3));
  else if(kind==='nature'){
   const target=nearest().find(i=>g.cells[i].jam>0);
-  if(target!==undefined){wash([target]);g.moves++;}
+  if(target!==undefined){wash([target]);g.moves++;g.elementalRefunds=(g.elementalRefunds||0)+1;}
  }
  else if(kind==='poison')around.slice(0,2).forEach(i=>{g.cells[i].poison=Math.max(g.cells[i].poison||0,2);});
  else if(kind==='radiance'){

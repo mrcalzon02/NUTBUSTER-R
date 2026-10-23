@@ -175,7 +175,7 @@ function makeLevel(number){
 }
 function create(level=1,seed=level*7919){
  const cfg=makeLevel(level);let rand=rng(seed);const a=cfg.mask.map(v=>v?{type:0,ice:0,lock:0,chest:0,jam:0,fuse:0,special:null,hold:0,elemental:null,frozen:0,poison:0,ward:0}:null);
- const g={level:cfg.number,cfg,seed,rand,cells:a,score:0,moves:cfg.moves,won:false,lost:false,combos:0,history:[],boosterUsed:0,turns:0,progress:{ice:0,locks:0,chests:0,jam:0,bombs:0,colors:TYPES.map(()=>0)},uses:{},elementalQueue:[],magmaQueue:[],crystalCharge:0,elementalActivations:[]};
+ const g={level:cfg.number,cfg,seed,rand,cells:a,score:0,moves:cfg.moves,won:false,lost:false,combos:0,history:[],boosterUsed:0,turns:0,progress:{ice:0,locks:0,chests:0,jam:0,bombs:0,colors:TYPES.map(()=>0)},uses:{},elementalQueue:[],magmaQueue:[],crystalCharge:0,elementalActivations:[],elementalRefunds:0};
  for(let y=0;y<cfg.height;y++)for(let x=0;x<cfg.width;x++){
   const i=y*cfg.width+x;if(!a[i])continue;let opts=cfg.roster.filter(t=>!(x>=2&&a[i-1]&&a[i-2]&&a[i-1].type===t&&a[i-2].type===t)&&!(y>=2&&a[i-cfg.width]&&a[i-2*cfg.width]&&a[i-cfg.width].type===t&&a[i-2*cfg.width].type===t));a[i].type=opts[Math.floor(rand()*opts.length)];
  }
@@ -406,6 +406,7 @@ function collapse(g,first){let loops=0,removed=0,cracked=0;const stages=[];let f
  while(found.hit.size&&loops<60){loops++;let bonus=0;
   const before=snapshot(g).cells,ids=[...blockerNeighbors(g,expandSpecials(g,found.hit))],made=newSpecial(found.groups||[]);
   const summary={removed:0,cracked:0};
+  const crystalBonus=(g.crystalCharge||0)*200;g.crystalCharge=0;
   const heldMatches=ids.filter(i=>found.hit.has(i)&&g.cells[i]?.hold>0).length;
   for(const i of ids)damage(g,i,summary);
   const powered=resolveElementals(g,summary);
@@ -414,7 +415,7 @@ function collapse(g,first){let loops=0,removed=0,cracked=0;const stages=[];let f
    g.cells[made.at].type=before[made.at].type;
    g.cells[made.at].special=made.kind;g.cells[made.at].elemental=null;bonus+=100;
   }
-  g.score+=(ids.length*60+bonus+heldMatches*120)*Math.min(loops,6);
+  g.score+=(ids.length*60+bonus+heldMatches*120)*Math.min(loops,6)+crystalBonus;
   const afterClear=snapshot(g).cells,falls=[];gravity(g,falls);
   const magma=runMagma(g,summary);if(magma.length){gravity(g,falls);removed+=magma.length;}
   stages.push({kind:'cascade',before,afterClear,clear:[...new Set([...ids,...powered,...magma])],falls,cells:snapshot(g).cells});
