@@ -486,3 +486,8 @@
 .promo-redeem-controls button{flex:0 0 auto}
 .promo-redeem>small{display:block;font-size:10px;color:#dfc9da;line-height:1.4}
 @media(max-width:350px){.promo-redeem-controls{flex-wrap:wrap}.promo-redeem-controls button{width:100%}}
+
+/* Six equal, thumb-friendly bottom destinations; reuse the authored Wharf scene artwork. */
+.bottom{grid-template-columns:repeat(6,minmax(0,1fr))}
+.wharf-menu-icon{object-fit:cover;object-position:center;border-radius:5px}
+.bottom .nav-icon.wharf-menu-icon{object-fit:cover}
