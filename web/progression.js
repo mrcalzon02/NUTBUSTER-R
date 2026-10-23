@@ -20,6 +20,27 @@ const LADDER=Object.freeze([
  {id:'spectrum',level:330,starter:1},
  {id:'frostbreaker',level:420,starter:1}
 ]);
+
+/* Gameplay icon catalog. NUTDEX mirrors active controls, never "uses up" an asset. */
+const BOOSTER_ART=Object.freeze({
+ hammer:'art/primary/powerups/hammer.png',
+ row:'art/primary/powerups/row-clear.png',
+ column:'art/additions/effects/vertical-clear.png',
+ cross:'art/additions/effects/horizontal-clear.png',
+ blast:'art/primary/powerups/nut-burst.png',
+ color:'art/primary/powerups/rainbow.png',
+ shuffle:'art/additions/effects/shell-ring.png',
+ extra:'art/additions/economy/hourglass.png',
+ drill:'art/additions/effects/rocket-impact.png',
+ unlock:'art/additions/effects/chain-break.png',
+ quake:'art/additions/effects/shell-supernova.png',
+ 'triple-row':'art/primary/powerups/row-clear.png',
+ 'triple-column':'art/additions/effects/vertical-clear.png',
+ starburst:'art/additions/effects/sparkle-burst.png',
+ spectrum:'art/additions/effects/rainbow-pulse.png',
+ frostbreaker:'art/additions/effects/ice-shatter.png'
+});
+const BOOSTER_BADGES=Object.freeze({'triple-row':'×3','triple-column':'×3',spectrum:'×2'});
 const CHALLENGE_STEPS=Object.freeze([1,2,3,4,5,7,10,12,15,18,21,25]);
 const BUNDLES=Object.freeze({
  shop0:{hammer:3,extra:2,row:1},
@@ -41,8 +62,8 @@ const BUNDLES=Object.freeze({
 });
 const LEVEL_BY_TOOL=Object.freeze(Object.fromEntries(LADDER.map(item=>[item.id,item.level])));
 const HOLD_ITEMS=Object.freeze({
- butter_hold:Object.freeze({label:'Peanut Butter',drops:1,gems:15,art:'art/primary/nuts/peanut.png',tip:'Hold one nut for one actual gravity drop; held matches triple that nut\'s points'}),
- jam_hold:Object.freeze({label:'Jam',drops:2,gems:30,art:'art/additions/economy/hourglass.png',tip:'Hold one nut for two actual gravity drops; held matches triple that nut\'s points'})
+ butter_hold:Object.freeze({label:'Peanut Butter',drops:1,gems:15,art:'art/additions/effects/golden-acorn-glow.png',tip:'Hold one nut for one actual gravity drop; held matches triple that nut\'s points'}),
+ jam_hold:Object.freeze({label:'Jam',drops:2,gems:30,art:'art/additions/effects/royal-boost.png',tip:'Hold one nut for two actual gravity drops; held matches triple that nut\'s points'})
 });
 const nonnegative=n=>Number.isFinite(Number(n))?Math.max(0,Math.min(999999,Math.trunc(Number(n)))):0;
 function normalizedMap(input){const result={};if(input&&typeof input==='object'&&!Array.isArray(input))
@@ -172,7 +193,7 @@ function claimChallenge(save,index){
  grant(save,reward.contents);
  return {valid:true,contents:reward.contents};
 }
-const api={LADDER,CHALLENGE_STEPS,BUNDLES,LEVEL_BY_TOOL,HOLD_ITEMS,BOOSTER_PRICES,buyBooster,migrate,unlocked,available,nextUnlock,count,spend,holdCount,buyHold,spendHold,actualPack,grant,packText,kindForLevel,firstClear,challengeProgress,challengeRewards,claimChallenge};
+const api={LADDER,CHALLENGE_STEPS,BUNDLES,LEVEL_BY_TOOL,HOLD_ITEMS,BOOSTER_ART,BOOSTER_BADGES,BOOSTER_PRICES,buyBooster,migrate,unlocked,available,nextUnlock,count,spend,holdCount,buyHold,spendHold,actualPack,grant,packText,kindForLevel,firstClear,challengeProgress,challengeRewards,claimChallenge};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutProgress=api;
 })(typeof window!=='undefined'?window:globalThis);

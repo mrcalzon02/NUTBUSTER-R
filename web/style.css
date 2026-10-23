@@ -539,3 +539,9 @@
 .account-reset-warning input{width:100%;min-height:42px;padding:8px 12px;border:1px solid #ecab87;border-radius:7px;background:#201420;color:#fff}
 .btn.danger-outline{border:2px solid #d98878;background:#6b283d;color:#fff1e8}
 .btn.danger-outline:disabled{opacity:.42;cursor:not-allowed}
+
+/* Booster-family variants retain their real item icon, but are visibly distinct. */
+.booster-picture{position:relative;display:inline-grid;place-items:center;width:max-content;margin:0 auto}
+.booster-picture .booster-variant{position:absolute;right:-6px;bottom:-3px;z-index:2;font-size:10px;line-height:1;padding:2px 3px;border-radius:4px;background:#371732;color:#fff4c2;border:1px solid #f0bf6b;pointer-events:none}
+.codex-picture{position:relative}
+.codex-picture .codex-variant{position:absolute;right:1px;bottom:1px;font-size:12px;line-height:1;padding:3px 4px;border-radius:5px;background:#391d39;color:#ffecb6;border:1px solid #e1ab69}

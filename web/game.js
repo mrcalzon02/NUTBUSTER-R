@@ -228,28 +228,12 @@ function objectivePercent(g){
  return Math.round(100*status.reduce((sum,o)=>sum+Math.min(1,o.value/o.target),0)/status.length);
 }
 // Render owner-authored, already-shipped artwork, not generic substitute SVGs.
-const BOOSTER_ART=Object.freeze({
- hammer:'art/primary/powerups/hammer.png',
- row:'art/primary/powerups/row-clear.png',
- column:'art/additions/effects/vertical-clear.png',
- cross:'art/additions/effects/horizontal-clear.png',
- blast:'art/primary/powerups/nut-burst.png',
- color:'art/primary/powerups/rainbow.png',
- shuffle:'art/additions/effects/rainbow-pulse.png',
- extra:'art/additions/economy/hourglass.png',
- drill:'art/additions/effects/rocket-impact.png',
- unlock:'art/additions/effects/chain-break.png',
- quake:'art/primary/powerups/nut-burst.png',
- 'triple-row':'art/primary/powerups/row-clear.png',
- 'triple-column':'art/additions/effects/vertical-clear.png',
- starburst:'art/additions/effects/rocket-impact.png',
- spectrum:'art/primary/powerups/rainbow.png',
- frostbreaker:'art/additions/effects/chest-pop.png'
-});
+const BOOSTER_ART=P.BOOSTER_ART;
+
 function boosterIcon(id){
  const sprite=BOOSTER_ART[id];
  if(!sprite)throw new Error('Missing authored power-up art: '+id);
- return '<img class="booster-icon" src="'+sprite+'" alt="" draggable="false" aria-hidden="true">';
+ return '<span class="booster-picture"><img class="booster-icon" src="'+sprite+'" alt="" draggable="false" aria-hidden="true">'+(P.BOOSTER_BADGES[id]?'<b class="booster-variant">'+P.BOOSTER_BADGES[id]+'</b>':'')+'</span>';
 }
 function toolButtons(){
  return E.BOOSTERS.slice(0,10).map(tool=>{
@@ -699,7 +683,7 @@ function codex(inLevel=false){
   const search=(e.name+' '+e.effect+' '+e.rule).toLowerCase().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
   const art=e.art?'<img loading="lazy" src="'+e.art+'" alt="">':'<b>'+(e.symbol||'✦')+'</b>';
   return '<article class="codex-entry" data-codex-entry data-codex-search="'+search+'">'+
-   '<span class="codex-picture" aria-hidden="true">'+art+'</span><div class="codex-info"><div class="codex-entry-head"><b>'+e.name+
+   '<span class="codex-picture" aria-hidden="true">'+art+(e.badge?'<b class="codex-variant">'+e.badge+'</b>':'')+'</span><div class="codex-info"><div class="codex-entry-head"><b>'+e.name+
    '</b><small class="'+(e.live?'is-live':'is-preview')+'">'+(e.live?'IN GAME':'PREVIEW')+'</small></div>'+
    '<p>'+e.effect+'</p><small>'+e.rule+'</small></div></article>';
  }).join('');

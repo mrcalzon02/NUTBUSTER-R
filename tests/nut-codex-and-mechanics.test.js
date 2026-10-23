@@ -7,6 +7,23 @@ assert.equal(entries.filter(e=>e.group==='tile-effects').length,16,'All sixteen 
 assert.equal(entries.filter(e=>e.group==='tile-effects'&&e.live).length,16,'All sixteen approved overlays have live mechanics');
 assert.ok(entries.some(e=>e.id==='tile-chain-lock'&&e.live),'Pinned chain overlays must be indexed as live');
 assert.deepEqual(C.groups.map(g=>g[0]),['nuts','elemental','specials','blockers','tile-effects','hazards','board','boosters']);
+const P=require('../web/progression.js');
+const powers=entries.filter(e=>e.group==='boosters');
+assert.deepEqual(powers.map(e=>e.id).sort(),[...E.BOOSTERS,...Object.keys(P.HOLD_ITEMS)].sort(),'Index all sixteen boosters and both hold tools');
+for(const item of powers){
+ const activeArt=P.BOOSTER_ART[item.id]||P.HOLD_ITEMS[item.id]?.art;
+ assert.equal(item.art,activeArt,'Wiki must reflect actual in-game icon: '+item.id);
+ assert.ok(fs.existsSync(path.join(__dirname,'../web',item.art)),'Missing illustration '+item.art);
+ assert.equal(item.symbol,undefined,'Powerups must not show generic Unicode art: '+item.id);
+}
+for(const [id,source] of Object.entries({'line-h':P.BOOSTER_ART.row,'line-v':P.BOOSTER_ART.column,blast:P.BOOSTER_ART.blast,rainbow:P.BOOSTER_ART.color})){
+ const entry=entries.find(e=>e.group==='specials'&&e.id===id);
+ assert.equal(entry?.art,source,'Special entry must have its associated power-up image: '+id);
+}
+assert.equal(entries.find(e=>e.group==='hazards'&&e.id==='hold').art,'art/additions/effects/focus-ring.png');
+assert.equal(new Set(Object.values(P.BOOSTER_ART)).size,14,'Only related triple variants intentionally reuse their parent icon');
+assert.deepEqual(Object.keys(P.BOOSTER_BADGES).sort(),['spectrum','triple-column','triple-row']);
+
 const playableNuts=E.TYPES.filter(name=>!E.RETIRED_NUTS.includes(name));
 assert.equal(entries.filter(e=>e.group==='nuts'&&e.live).length,playableNuts.length);
 for(const name of playableNuts)assert.ok(entries.some(e=>e.id===name&&e.group==='nuts'&&e.live),'Missing live ordinary nut '+name);
@@ -74,6 +91,11 @@ for(const id of ['crate','rock'])assert.ok(entries.some(e=>e.id===id&&e.live===f
  assert.ok(stages.some(s=>s.mode==='wind'),'wind tunnel must transport real nut payloads');
 }
 const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
+assert.ok(game.includes('const BOOSTER_ART=P.BOOSTER_ART;'),'Gameplay uses the real image catalog, independent of Nutdex');
+assert.ok(game.includes('boosterIcon(tool)'),'Each gameplay booster draws from the catalog');
+assert.ok(game.includes('data-hold-tool=')&&game.includes('src="${item.art}"'),'Hold controls draw actual hold art');
+assert.ok(game.includes("e.badge?'<b class=")||game.includes('codex-variant'),'NUTDEX must show a matching variant badge');
+
 const html=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
 assert.ok(game.includes('function codex(inLevel=false)')&&game.includes('data-codex-filter'),'Codex must be a functional screen');
 assert.ok(game.includes('class="play-index"')&&game.includes('blocker-layer-count'),'Players need immediate help and visible chest hit counts');

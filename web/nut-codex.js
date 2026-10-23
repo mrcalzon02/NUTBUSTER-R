@@ -1,5 +1,6 @@
 /* Central, inspectable index of live mechanics versus elemental art previews. */
 (function(root){'use strict';
+const PROGRESS=typeof module!=='undefined'&&module.exports?require('./progression.js'):root.NutProgress;
 const ENTRIES=[
   {
     "id": "peanut",
@@ -714,6 +715,16 @@ ENTRIES.push(...[
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   }
 ]);
+// Already-playable advanced tools must be documented beside the original ten.
+ENTRIES.push(
+ {id:'quake',name:'Nutquake',group:'boosters',live:true,effect:'Hits a 5×5 area around the selected nut.',rule:'Inventory power; unlock level 120.'},
+ {id:'triple-row',name:'Triple Row',group:'boosters',live:true,effect:'Strikes the chosen row and the one above and below.',rule:'Inventory power; unlock level 160.'},
+ {id:'triple-column',name:'Triple Column',group:'boosters',live:true,effect:'Strikes the chosen column and the one to either side.',rule:'Inventory power; unlock level 205.'},
+ {id:'starburst',name:'Starburst',group:'boosters',live:true,effect:'Hits both diagonals through the selected nut.',rule:'Inventory power; unlock level 260.'},
+ {id:'spectrum',name:'Double Rainbow',group:'boosters',live:true,effect:'Hits the selected nut color and the next nut color.',rule:'Inventory power; unlock level 330.'},
+ {id:'frostbreaker',name:'Frostbreaker',group:'boosters',live:true,effect:'Shatters every ice layer on the board without destroying protected nuts.',rule:'Inventory power; unlock level 420.'}
+);
+const MATCH_ART=Object.freeze({'line-h':PROGRESS.BOOSTER_ART.row,'line-v':PROGRESS.BOOSTER_ART.column,blast:PROGRESS.BOOSTER_ART.blast,rainbow:PROGRESS.BOOSTER_ART.color});
 // Keep the Nutdex aligned with the engine's authoritative live effects.
 const ACTIVE_OVERLAY_DETAILS=Object.freeze({
  'tile-arcane':['At level 285, a two-turn rune transmutes its nut to the next active roster color.','LIVE · Turn-based transmutation; matching rules remain unchanged.'],
@@ -731,6 +742,20 @@ const ACTIVE_OVERLAY_DETAILS=Object.freeze({
 });
 const POWER_LEDGER=typeof module!=='undefined'&&module.exports?require('./elemental-powers.js').ABILITIES:root.NutElementalPowers?.ABILITIES;
 for(const entry of ENTRIES){
+ if(entry.group==='boosters'){
+  entry.art=PROGRESS.BOOSTER_ART[entry.id]||PROGRESS.HOLD_ITEMS[entry.id]?.art;
+  entry.badge=PROGRESS.BOOSTER_BADGES[entry.id]||null;
+  if(!entry.art)throw new Error('Missing real gameplay power-up icon: '+entry.id);
+  delete entry.symbol;
+ }
+ if(entry.group==='specials'){
+  entry.art=MATCH_ART[entry.id];
+  if(!entry.art)throw new Error('Missing match-special icon: '+entry.id);
+  delete entry.symbol;
+ }
+ if(entry.group==='hazards'&&entry.id==='hold'){
+  entry.art='art/additions/effects/focus-ring.png';delete entry.symbol;
+ }
  if(entry.group==='elemental'&&POWER_LEDGER?.[entry.id]){
   entry.effect=POWER_LEDGER[entry.id];
   entry.rule='LIVE · Triggers when the elemental-marked nut is destroyed, not when its blocker loses a layer. Destroying another elemental nut can chain its ability.';
