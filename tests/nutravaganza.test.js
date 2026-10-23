@@ -77,7 +77,7 @@ click({action:'purchase-confirm'});
 assert.equal(P.count(app.getSave(),'hammer'),held-1,'Confirmed exchange must spend exactly one booster');
 assert.ok(app.getSave().nutravaganza.baits.worm>baitBefore,'Confirmed exchange must deliver bait');
 app.nav('fishing');click({action:'fish-cast'});assert.ok(app.getSave().nutravaganza.fight);assert.match(html,/LINE TENSION/);
-app.nav('aquarium');assert.match(html,/NUTVALE AQUARIUM/);
+app.nav('aquarium');assert.match(html,/ESTATE AQUARIUM/,'Aquarium navigation opens the estate tank');
 app.nav('fishing');assert.match(html,/LINE TENSION/,'Navigating away does not discard active fish');
 assert.ok(local['nutbuster.v1'],'New state persists in existing save');
 console.log('PASS Nutravaganza: fishing, bait, economy, aquarium, 12 nut types and UI navigation');

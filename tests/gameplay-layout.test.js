@@ -8,9 +8,9 @@ const H=require('../web/homestead.js'),A=require('../web/avatar-art.js');
 const M=require('../web/campaign-maps.js'),F=require('../web/board-features.js');
 const index=read('web/index.html'),css=read('web/style.css');
 const navbar=index.match(/<nav class="bottom"[\s\S]*?<\/nav>/)?.[0]||'';
-assert.equal((navbar.match(/data-nav=/g)||[]).length,5,'There are five nav destinations');
-assert.equal((navbar.match(/<img class="nav-icon"/g)||[]).length,5,'Use original illustrated navigation art, not SVG substitutes');
-assert.match(css,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,'Footer should never wrap to a second row');
+assert.equal((navbar.match(/data-nav=/g)||[]).length,6,'Six reachable footer destinations');
+assert.equal((navbar.match(/<img class="nav-icon(?: [^"]+)?"/g)||[]).length,6,'All six tabs use authored image art');
+assert.match(css,/\.bottom\{grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/,'Six footer tabs must fit one row');
 assert.match(css,/\.boosters\{display:grid!important;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,
  'All ten tools should be visible in two grid rows');
 assert.match(css,/#app\.playing \.game-active \.boosters\{grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/,'12 powers must remain two compact rows');
@@ -62,4 +62,4 @@ assert.equal(masked,12,'level 14 has twelve masked-out tiles');
 assert.equal((html.match(/class="cell void"/g)||[]).length,masked,'all void cells must use the transparent slot style');
 assert.equal((html.match(/data-cell=/g)||[]).length,18,'only eighteen real tiles can receive input');
 app.nav('home');assert.equal(appPlaying,false,'Leaving the play screen restores normal navigation');
-console.log('PASS: compact full-height gameplay, ten visible power icons, five-column nav, responsive stage board geometry');
+console.log('PASS: compact full-height gameplay, ten visible power icons, six-column nav, responsive stage board geometry');
