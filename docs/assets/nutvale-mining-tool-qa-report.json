@@ -1,9 +1,47 @@
 {
-  "schema": 2,
   "status": "passed",
   "source_sha256": "feadd3e5ff57bd67dea318dec737e1c3d7daff2babdad46ec635a7006f487fed",
+  "source_dimensions": [
+    1536,
+    1024
+  ],
   "individual_rgba_png": 86,
+  "pickaxes": 44,
+  "gloves": 42,
+  "sprite_dimensions": [
+    192,
+    192
+  ],
+  "unique_sha256": 86,
+  "nontransparent_artwork_on_output_perimeter": 0,
   "all_output_alpha_corners_transparent": true,
-  "method": "Checked against committed Git blob hashes and independently decoded PNG scanline alpha in tests/nutvale-mining-tool-binaries.test.js",
-  "visual_review": "Requires device-scale art inspection; pixel transparency and integrity checked automatically"
+  "atlases": {
+    "pickaxes": {
+      "path": "art/nutvale/mining-tools/atlas-pickaxes.png",
+      "columns": 11,
+      "rows": 4,
+      "tile": [
+        192,
+        192
+      ],
+      "sha256": "1664f8c7234d058f16211afa03a11f742ba4fb9b245cff1e6e62c025779c8a97"
+    },
+    "gloves": {
+      "path": "art/nutvale/mining-tools/atlas-gloves.png",
+      "columns": 14,
+      "rows": 3,
+      "tile": [
+        192,
+        192
+      ],
+      "sha256": "15fafb837ac79ebc95b80eb75fab824e718d6e36743a3a1ab269466c63ffd2e7"
+    }
+  },
+  "notes": [
+    "Source sheet preserved byte-for-byte.",
+    "No on-sprite numbering or backgrounds.",
+    "Visible checkboard backgrounds exist only in QA preview sheets.",
+    "Generated with connected high-opacity seeds and nearest-seed assignment, not naive rectangular strips."
+  ]
 }
+

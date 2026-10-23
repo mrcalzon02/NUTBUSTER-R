@@ -1,974 +1,2389 @@
 {
-  "schema": 3,
+  "schema": 2,
   "role": "nutvale-mines-pickaxe-and-survey-glove-visuals",
+  "usage": "visual variants only; gameplay tier and capability must be assigned independently",
+  "source": "assets/source/expansion/nutvale-mining-pickaxes-gloves-original.png",
   "source_sha256": "feadd3e5ff57bd67dea318dec737e1c3d7daff2babdad46ec635a7006f487fed",
+  "source_dimensions": [
+    1536,
+    1024
+  ],
+  "layout": {
+    "columns_per_row": [
+      11,
+      11,
+      11,
+      11,
+      14,
+      14,
+      14
+    ],
+    "row_cuts": [
+      0,
+      145,
+      290,
+      436,
+      582,
+      717,
+      858,
+      1024
+    ]
+  },
+  "icon_dimensions": [
+    192,
+    192
+  ],
+  "alpha_method": "8-connected high-opacity cores + global nearest-core alpha assignment",
+  "slicer": "tools/slice_nutvale_mining_tools.py",
   "total": 86,
   "categories": {
     "pickaxes": 44,
     "gloves": 42
   },
+  "sprites": [
+    {
+      "id": "iron-prospector",
+      "category": "pickaxes",
+      "name": "Iron Prospector",
+      "path": "art/nutvale/mining-tools/pickaxes/iron-prospector.png",
+      "source_row": 0,
+      "source_column": 0,
+      "source_bbox": [
+        13,
+        2,
+        145,
+        151
+      ],
+      "core_bbox": [
+        22,
+        11,
+        136,
+        142
+      ],
+      "source_core_pixels": 5348,
+      "output_opaque_pixels": 7470,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "59a6e38225471ef8571dcc0ec0a0e739ec234e2ce4e5130717c600e236a7862c",
+      "size_bytes": 28719
+    },
+    {
+      "id": "acorn-bronze",
+      "category": "pickaxes",
+      "name": "Acorn Bronze",
+      "path": "art/nutvale/mining-tools/pickaxes/acorn-bronze.png",
+      "source_row": 0,
+      "source_column": 1,
+      "source_bbox": [
+        141,
+        0,
+        278,
+        152
+      ],
+      "core_bbox": [
+        150,
+        9,
+        269,
+        143
+      ],
+      "source_core_pixels": 6196,
+      "output_opaque_pixels": 8324,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "d2443187d73f6ddd0c8ea40ab21b100a67e6a8417c68b24cc7ed2967cb1e1dce",
+      "size_bytes": 30292
+    },
+    {
+      "id": "blossom-oak",
+      "category": "pickaxes",
+      "name": "Blossom Oak",
+      "path": "art/nutvale/mining-tools/pickaxes/blossom-oak.png",
+      "source_row": 0,
+      "source_column": 2,
+      "source_bbox": [
+        274,
+        0,
+        409,
+        153
+      ],
+      "core_bbox": [
+        283,
+        8,
+        400,
+        144
+      ],
+      "source_core_pixels": 7343,
+      "output_opaque_pixels": 9709,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "4ea2084d446a72dd9b9c085e7eceedffa84a99eafea648f39779543e1282d65b",
+      "size_bytes": 33755
+    },
+    {
+      "id": "pinecone-copper",
+      "category": "pickaxes",
+      "name": "Pinecone Copper",
+      "path": "art/nutvale/mining-tools/pickaxes/pinecone-copper.png",
+      "source_row": 0,
+      "source_column": 3,
+      "source_bbox": [
+        407,
+        1,
+        545,
+        152
+      ],
+      "core_bbox": [
+        416,
+        10,
+        536,
+        144
+      ],
+      "source_core_pixels": 6320,
+      "output_opaque_pixels": 8613,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "a23b85669cc47f82bdbcbf886d2cfbff818c02dd2e73b77fca842bd4afd95f4e",
+      "size_bytes": 31700
+    },
+    {
+      "id": "ropebound-steel",
+      "category": "pickaxes",
+      "name": "Ropebound Steel",
+      "path": "art/nutvale/mining-tools/pickaxes/ropebound-steel.png",
+      "source_row": 0,
+      "source_column": 4,
+      "source_bbox": [
+        543,
+        0,
+        678,
+        151
+      ],
+      "core_bbox": [
+        552,
+        5,
+        669,
+        143
+      ],
+      "source_core_pixels": 7191,
+      "output_opaque_pixels": 9743,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "d09cf3badaafdb3c41001d08d780387cd95bc93b3a19291876cdf26d7bbadd06",
+      "size_bytes": 35869
+    },
+    {
+      "id": "daisy-wreathed",
+      "category": "pickaxes",
+      "name": "Daisy Wreathed",
+      "path": "art/nutvale/mining-tools/pickaxes/daisy-wreathed.png",
+      "source_row": 0,
+      "source_column": 5,
+      "source_bbox": [
+        675,
+        0,
+        814,
+        153
+      ],
+      "core_bbox": [
+        685,
+        4,
+        805,
+        144
+      ],
+      "source_core_pixels": 7602,
+      "output_opaque_pixels": 10053,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "8fe76f2af75e8610fb09a75341a0b319ea2c0e6b775983139c99d400fe49aff8",
+      "size_bytes": 37750
+    },
+    {
+      "id": "froststeel",
+      "category": "pickaxes",
+      "name": "Froststeel",
+      "path": "art/nutvale/mining-tools/pickaxes/froststeel.png",
+      "source_row": 0,
+      "source_column": 6,
+      "source_bbox": [
+        806,
+        1,
+        946,
+        152
+      ],
+      "core_bbox": [
+        815,
+        10,
+        937,
+        143
+      ],
+      "source_core_pixels": 6479,
+      "output_opaque_pixels": 8783,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "f006d5e961411dadd8cdd065440a6618e129b54c37ac4b12a99ec66ad7d19347",
+      "size_bytes": 33538
+    },
+    {
+      "id": "gilded-crescent",
+      "category": "pickaxes",
+      "name": "Gilded Crescent",
+      "path": "art/nutvale/mining-tools/pickaxes/gilded-crescent.png",
+      "source_row": 0,
+      "source_column": 7,
+      "source_bbox": [
+        942,
+        1,
+        1086,
+        153
+      ],
+      "core_bbox": [
+        951,
+        9,
+        1077,
+        144
+      ],
+      "source_core_pixels": 7387,
+      "output_opaque_pixels": 9924,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "b420501aa7a481cca09ea6f85cc8e4e108443258b80a7bf18ad8057b7165e3ab",
+      "size_bytes": 36165
+    },
+    {
+      "id": "flamecrest-gold",
+      "category": "pickaxes",
+      "name": "Flamecrest Gold",
+      "path": "art/nutvale/mining-tools/pickaxes/flamecrest-gold.png",
+      "source_row": 0,
+      "source_column": 8,
+      "source_bbox": [
+        1077,
+        0,
+        1227,
+        153
+      ],
+      "core_bbox": [
+        1086,
+        6,
+        1218,
+        145
+      ],
+      "source_core_pixels": 7266,
+      "output_opaque_pixels": 9643,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "c154262f7ef679197fb35fcfb4445a6b764cc99e81f12f2c14233b72b874bff6",
+      "size_bytes": 34456
+    },
+    {
+      "id": "amethyst-sickle",
+      "category": "pickaxes",
+      "name": "Amethyst Sickle",
+      "path": "art/nutvale/mining-tools/pickaxes/amethyst-sickle.png",
+      "source_row": 0,
+      "source_column": 9,
+      "source_bbox": [
+        1222,
+        0,
+        1371,
+        152
+      ],
+      "core_bbox": [
+        1231,
+        6,
+        1362,
+        143
+      ],
+      "source_core_pixels": 7663,
+      "output_opaque_pixels": 10304,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "e9ba24471143722f93f1c20c1cd68543b892fe287bec17fb373efcfc7bc5d8be",
+      "size_bytes": 38347
+    },
+    {
+      "id": "azure-edge",
+      "category": "pickaxes",
+      "name": "Azure Edge",
+      "path": "art/nutvale/mining-tools/pickaxes/azure-edge.png",
+      "source_row": 0,
+      "source_column": 10,
+      "source_bbox": [
+        1376,
+        0,
+        1525,
+        152
+      ],
+      "core_bbox": [
+        1385,
+        9,
+        1516,
+        143
+      ],
+      "source_core_pixels": 6819,
+      "output_opaque_pixels": 9160,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "a2b3994b1a7a53374815f808e441e1775cd6ba32b550287b6cf5e0152345a747",
+      "size_bytes": 32962
+    },
+    {
+      "id": "riverstone-iron",
+      "category": "pickaxes",
+      "name": "Riverstone Iron",
+      "path": "art/nutvale/mining-tools/pickaxes/riverstone-iron.png",
+      "source_row": 1,
+      "source_column": 0,
+      "source_bbox": [
+        3,
+        139,
+        147,
+        294
+      ],
+      "core_bbox": [
+        12,
+        149,
+        136,
+        285
+      ],
+      "source_core_pixels": 6813,
+      "output_opaque_pixels": 8808,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "dfa86c603cd33b9e5be8ce66e027545a01bb5066735a6d6dd365ac87667f33d8",
+      "size_bytes": 32932
+    },
+    {
+      "id": "sapphire-shard",
+      "category": "pickaxes",
+      "name": "Sapphire Shard",
+      "path": "art/nutvale/mining-tools/pickaxes/sapphire-shard.png",
+      "source_row": 1,
+      "source_column": 1,
+      "source_bbox": [
+        136,
+        140,
+        277,
+        296
+      ],
+      "core_bbox": [
+        145,
+        149,
+        267,
+        288
+      ],
+      "source_core_pixels": 7697,
+      "output_opaque_pixels": 9807,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "7e02a3076a0ee672a78e996adba566c84d3865fac090a246550ae3452f7fd3a9",
+      "size_bytes": 36284
+    },
+    {
+      "id": "ruby-blaze",
+      "category": "pickaxes",
+      "name": "Ruby Blaze",
+      "path": "art/nutvale/mining-tools/pickaxes/ruby-blaze.png",
+      "source_row": 1,
+      "source_column": 2,
+      "source_bbox": [
+        270,
+        140,
+        413,
+        296
+      ],
+      "core_bbox": [
+        279,
+        150,
+        405,
+        287
+      ],
+      "source_core_pixels": 7270,
+      "output_opaque_pixels": 9247,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "8a61d0c4d9a7faf7b5e7b443303cf7efb4af916d86fb8828a8c506e55d16ef5a",
+      "size_bytes": 33309
+    },
+    {
+      "id": "glacier-shadow",
+      "category": "pickaxes",
+      "name": "Glacier Shadow",
+      "path": "art/nutvale/mining-tools/pickaxes/glacier-shadow.png",
+      "source_row": 1,
+      "source_column": 3,
+      "source_bbox": [
+        404,
+        140,
+        554,
+        296
+      ],
+      "core_bbox": [
+        413,
+        149,
+        545,
+        287
+      ],
+      "source_core_pixels": 7261,
+      "output_opaque_pixels": 9241,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "f6356b115715b3b59ac5ff961b5387a95402cb9969c24710cdf02bddefdc2781",
+      "size_bytes": 35125
+    },
+    {
+      "id": "honeygold",
+      "category": "pickaxes",
+      "name": "Honeygold",
+      "path": "art/nutvale/mining-tools/pickaxes/honeygold.png",
+      "source_row": 1,
+      "source_column": 4,
+      "source_bbox": [
+        538,
+        142,
+        679,
+        296
+      ],
+      "core_bbox": [
+        547,
+        152,
+        670,
+        288
+      ],
+      "source_core_pixels": 6604,
+      "output_opaque_pixels": 8610,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "22dc7ad635f6c1a51b9e818acdf10da8f23c7df489586b1b23a5670853984e82",
+      "size_bytes": 32332
+    },
+    {
+      "id": "mossbound-amber",
+      "category": "pickaxes",
+      "name": "Mossbound Amber",
+      "path": "art/nutvale/mining-tools/pickaxes/mossbound-amber.png",
+      "source_row": 1,
+      "source_column": 5,
+      "source_bbox": [
+        668,
+        141,
+        817,
+        297
+      ],
+      "core_bbox": [
+        677,
+        150,
+        808,
+        288
+      ],
+      "source_core_pixels": 7411,
+      "output_opaque_pixels": 9424,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "76dce8341e01785ed6174cd1f19970ae1267aaa40d5e4bd7815af3a9d0af78b6",
+      "size_bytes": 34076
+    },
+    {
+      "id": "thorn-garnet",
+      "category": "pickaxes",
+      "name": "Thorn Garnet",
+      "path": "art/nutvale/mining-tools/pickaxes/thorn-garnet.png",
+      "source_row": 1,
+      "source_column": 6,
+      "source_bbox": [
+        806,
+        143,
+        958,
+        298
+      ],
+      "core_bbox": [
+        815,
+        152,
+        949,
+        289
+      ],
+      "source_core_pixels": 7635,
+      "output_opaque_pixels": 9863,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "e75b1edb0710a9612a06043c4e226d35d540113d08617e575c494e2ab5579b29",
+      "size_bytes": 36239
+    },
+    {
+      "id": "strawberry-frosting",
+      "category": "pickaxes",
+      "name": "Strawberry Frosting",
+      "path": "art/nutvale/mining-tools/pickaxes/strawberry-frosting.png",
+      "source_row": 1,
+      "source_column": 7,
+      "source_bbox": [
+        944,
+        142,
+        1093,
+        297
+      ],
+      "core_bbox": [
+        952,
+        152,
+        1083,
+        289
+      ],
+      "source_core_pixels": 7204,
+      "output_opaque_pixels": 9289,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "03154ca3468068e50f58885479cfb847d29fd0f0802499a1011a5ec85d51beaf",
+      "size_bytes": 33641
+    },
+    {
+      "id": "caramel-drizzle",
+      "category": "pickaxes",
+      "name": "Caramel Drizzle",
+      "path": "art/nutvale/mining-tools/pickaxes/caramel-drizzle.png",
+      "source_row": 1,
+      "source_column": 8,
+      "source_bbox": [
+        1081,
+        138,
+        1238,
+        297
+      ],
+      "core_bbox": [
+        1090,
+        147,
+        1229,
+        288
+      ],
+      "source_core_pixels": 8257,
+      "output_opaque_pixels": 10105,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "b8a64ef5f9bee8d1f228a1d8c2029d2455d59006a7f565695dfc7cce04606f33",
+      "size_bytes": 35782
+    },
+    {
+      "id": "heart-cupcake",
+      "category": "pickaxes",
+      "name": "Heart Cupcake",
+      "path": "art/nutvale/mining-tools/pickaxes/heart-cupcake.png",
+      "source_row": 1,
+      "source_column": 9,
+      "source_bbox": [
+        1229,
+        138,
+        1381,
+        297
+      ],
+      "core_bbox": [
+        1239,
+        146,
+        1371,
+        288
+      ],
+      "source_core_pixels": 8678,
+      "output_opaque_pixels": 10623,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "78fa9ce547cd7e2cebb2e341ada56c33090d725567b79caf3a5297d7ef4c3a47",
+      "size_bytes": 36001
+    },
+    {
+      "id": "prism-star",
+      "category": "pickaxes",
+      "name": "Prism Star",
+      "path": "art/nutvale/mining-tools/pickaxes/prism-star.png",
+      "source_row": 1,
+      "source_column": 10,
+      "source_bbox": [
+        1373,
+        130,
+        1530,
+        297
+      ],
+      "core_bbox": [
+        1382,
+        145,
+        1522,
+        289
+      ],
+      "source_core_pixels": 8101,
+      "output_opaque_pixels": 9011,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "bad0a41cef99bfcc0e14b7db6fdc0ed1ae396a4c85efcc87b223f892e0341193",
+      "size_bytes": 34302
+    },
+    {
+      "id": "violet-skull",
+      "category": "pickaxes",
+      "name": "Violet Skull",
+      "path": "art/nutvale/mining-tools/pickaxes/violet-skull.png",
+      "source_row": 2,
+      "source_column": 0,
+      "source_bbox": [
+        5,
+        286,
+        153,
+        441
+      ],
+      "core_bbox": [
+        14,
+        295,
+        145,
+        432
+      ],
+      "source_core_pixels": 8722,
+      "output_opaque_pixels": 11237,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "295c899c51b1d17b0f3244c35b6133a52e1053c382a570dfe764fd4656d2e3b5",
+      "size_bytes": 39550
+    },
+    {
+      "id": "astral-comet",
+      "category": "pickaxes",
+      "name": "Astral Comet",
+      "path": "art/nutvale/mining-tools/pickaxes/astral-comet.png",
+      "source_row": 2,
+      "source_column": 1,
+      "source_bbox": [
+        135,
+        286,
+        284,
+        441
+      ],
+      "core_bbox": [
+        144,
+        295,
+        275,
+        432
+      ],
+      "source_core_pixels": 8103,
+      "output_opaque_pixels": 10426,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "770e2e7c047d7947ac96f8c065895614a281d9141156581fc83226a7aa1665ea",
+      "size_bytes": 38509
+    },
+    {
+      "id": "opal-sunrise",
+      "category": "pickaxes",
+      "name": "Opal Sunrise",
+      "path": "art/nutvale/mining-tools/pickaxes/opal-sunrise.png",
+      "source_row": 2,
+      "source_column": 2,
+      "source_bbox": [
+        269,
+        284,
+        421,
+        441
+      ],
+      "core_bbox": [
+        278,
+        294,
+        412,
+        432
+      ],
+      "source_core_pixels": 7308,
+      "output_opaque_pixels": 9155,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "73a719cd984c3c8751f2586082865ffd50b4aa3f88dce65c401cff54379b8c13",
+      "size_bytes": 35359
+    },
+    {
+      "id": "amber-crown",
+      "category": "pickaxes",
+      "name": "Amber Crown",
+      "path": "art/nutvale/mining-tools/pickaxes/amber-crown.png",
+      "source_row": 2,
+      "source_column": 3,
+      "source_bbox": [
+        413,
+        287,
+        555,
+        442
+      ],
+      "core_bbox": [
+        422,
+        296,
+        546,
+        433
+      ],
+      "source_core_pixels": 7790,
+      "output_opaque_pixels": 10049,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "616ed1bdff9999721e375d3e6dcd73feb3d47546e44543c64222a437f1c70601",
+      "size_bytes": 36832
+    },
+    {
+      "id": "arcane-wraith",
+      "category": "pickaxes",
+      "name": "Arcane Wraith",
+      "path": "art/nutvale/mining-tools/pickaxes/arcane-wraith.png",
+      "source_row": 2,
+      "source_column": 4,
+      "source_bbox": [
+        541,
+        285,
+        690,
+        444
+      ],
+      "core_bbox": [
+        550,
+        294,
+        680,
+        435
+      ],
+      "source_core_pixels": 7745,
+      "output_opaque_pixels": 9493,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "8af9633e2eb9b6cdc5e6365a253d232b748842424f21f9b55ccf05fa2b6d8d2f",
+      "size_bytes": 35125
+    },
+    {
+      "id": "bloodmoon-crystal",
+      "category": "pickaxes",
+      "name": "Bloodmoon Crystal",
+      "path": "art/nutvale/mining-tools/pickaxes/bloodmoon-crystal.png",
+      "source_row": 2,
+      "source_column": 5,
+      "source_bbox": [
+        667,
+        285,
+        826,
+        445
+      ],
+      "core_bbox": [
+        676,
+        294,
+        818,
+        436
+      ],
+      "source_core_pixels": 8090,
+      "output_opaque_pixels": 9788,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "f6288a7bf33c28a1d1682bf1179ede7282b008466af40a59a46c1b0341b79e97",
+      "size_bytes": 34917
+    },
+    {
+      "id": "silver-sunstone",
+      "category": "pickaxes",
+      "name": "Silver Sunstone",
+      "path": "art/nutvale/mining-tools/pickaxes/silver-sunstone.png",
+      "source_row": 2,
+      "source_column": 6,
+      "source_bbox": [
+        806,
+        288,
+        961,
+        445
+      ],
+      "core_bbox": [
+        815,
+        297,
+        952,
+        436
+      ],
+      "source_core_pixels": 7688,
+      "output_opaque_pixels": 9674,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "1dc2c02c7158db404ed755c5ce474cf535ea25fbfa2b63be0c2dd3d30a270817",
+      "size_bytes": 35685
+    },
+    {
+      "id": "spring-blossom",
+      "category": "pickaxes",
+      "name": "Spring Blossom",
+      "path": "art/nutvale/mining-tools/pickaxes/spring-blossom.png",
+      "source_row": 2,
+      "source_column": 7,
+      "source_bbox": [
+        949,
+        287,
+        1098,
+        452
+      ],
+      "core_bbox": [
+        958,
+        296,
+        1090,
+        436
+      ],
+      "source_core_pixels": 8871,
+      "output_opaque_pixels": 10246,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "235175e717bfe409f7134ce6504308f7da2900dc543ff9f8d4299e11fa4cfc19",
+      "size_bytes": 36594
+    },
+    {
+      "id": "lionheart-gold",
+      "category": "pickaxes",
+      "name": "Lionheart Gold",
+      "path": "art/nutvale/mining-tools/pickaxes/lionheart-gold.png",
+      "source_row": 2,
+      "source_column": 8,
+      "source_bbox": [
+        1093,
+        286,
+        1239,
+        449
+      ],
+      "core_bbox": [
+        1102,
+        295,
+        1230,
+        436
+      ],
+      "source_core_pixels": 7210,
+      "output_opaque_pixels": 8484,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "1b34cc1265712836a4747b923774043d0297f8dfbc6c3c28a882b8cd1d190b2f",
+      "size_bytes": 31012
+    },
+    {
+      "id": "sunburst-royal",
+      "category": "pickaxes",
+      "name": "Sunburst Royal",
+      "path": "art/nutvale/mining-tools/pickaxes/sunburst-royal.png",
+      "source_row": 2,
+      "source_column": 9,
+      "source_bbox": [
+        1228,
+        285,
+        1376,
+        446
+      ],
+      "core_bbox": [
+        1237,
+        295,
+        1367,
+        436
+      ],
+      "source_core_pixels": 7836,
+      "output_opaque_pixels": 9399,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "102524b1a962dcc846a5bde9dfc706e89d8275e341cf464d8b5252b71bf0a01b",
+      "size_bytes": 33970
+    },
+    {
+      "id": "golden-dawn",
+      "category": "pickaxes",
+      "name": "Golden Dawn",
+      "path": "art/nutvale/mining-tools/pickaxes/golden-dawn.png",
+      "source_row": 2,
+      "source_column": 10,
+      "source_bbox": [
+        1365,
+        283,
+        1527,
+        447
+      ],
+      "core_bbox": [
+        1374,
+        292,
+        1519,
+        436
+      ],
+      "source_core_pixels": 7810,
+      "output_opaque_pixels": 9032,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "467a585374dd4b36866f5343f2923fce7e2ce6d33a002b0e7c4852dd90d8bc7c",
+      "size_bytes": 33628
+    },
+    {
+      "id": "ocean-lantern",
+      "category": "pickaxes",
+      "name": "Ocean Lantern",
+      "path": "art/nutvale/mining-tools/pickaxes/ocean-lantern.png",
+      "source_row": 3,
+      "source_column": 0,
+      "source_bbox": [
+        10,
+        433,
+        157,
+        583
+      ],
+      "core_bbox": [
+        19,
+        442,
+        149,
+        574
+      ],
+      "source_core_pixels": 7373,
+      "output_opaque_pixels": 10112,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "82cf02eb710905565733fa1a1d7ccb163354680c7e880b856508d651e7e3dac7",
+      "size_bytes": 36425
+    },
+    {
+      "id": "starfall-amethyst",
+      "category": "pickaxes",
+      "name": "Starfall Amethyst",
+      "path": "art/nutvale/mining-tools/pickaxes/starfall-amethyst.png",
+      "source_row": 3,
+      "source_column": 1,
+      "source_bbox": [
+        140,
+        426,
+        296,
+        584
+      ],
+      "core_bbox": [
+        149,
+        436,
+        288,
+        575
+      ],
+      "source_core_pixels": 7403,
+      "output_opaque_pixels": 9187,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "ef1bb79701f60b9ab4abb248a4dd7a86733e9283cd8c1fcea4dbc028dddf1897",
+      "size_bytes": 33227
+    },
+    {
+      "id": "tideglass-cyan",
+      "category": "pickaxes",
+      "name": "Tideglass Cyan",
+      "path": "art/nutvale/mining-tools/pickaxes/tideglass-cyan.png",
+      "source_row": 3,
+      "source_column": 2,
+      "source_bbox": [
+        274,
+        433,
+        423,
+        583
+      ],
+      "core_bbox": [
+        283,
+        442,
+        414,
+        575
+      ],
+      "source_core_pixels": 7750,
+      "output_opaque_pixels": 10690,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "c9a0899de77dad244801d10d1309542a4fd6b1a8f7d3816a99aa9b3c187cf39d",
+      "size_bytes": 37660
+    },
+    {
+      "id": "forest-prism",
+      "category": "pickaxes",
+      "name": "Forest Prism",
+      "path": "art/nutvale/mining-tools/pickaxes/forest-prism.png",
+      "source_row": 3,
+      "source_column": 3,
+      "source_bbox": [
+        407,
+        433,
+        560,
+        584
+      ],
+      "core_bbox": [
+        416,
+        442,
+        551,
+        575
+      ],
+      "source_core_pixels": 7747,
+      "output_opaque_pixels": 10259,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "d32837f7303aca66802d6ca4c3df2b4c05012addeb6030570bd979e61fe7d0e8",
+      "size_bytes": 37514
+    },
+    {
+      "id": "ruby-ice",
+      "category": "pickaxes",
+      "name": "Ruby Ice",
+      "path": "art/nutvale/mining-tools/pickaxes/ruby-ice.png",
+      "source_row": 3,
+      "source_column": 4,
+      "source_bbox": [
+        542,
+        434,
+        693,
+        587
+      ],
+      "core_bbox": [
+        551,
+        443,
+        684,
+        578
+      ],
+      "source_core_pixels": 7639,
+      "output_opaque_pixels": 10137,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "bbbe44a2d021fff331f25379613c5aa549e99f2f6f1d0bf4e8e6bb9dc321c60f",
+      "size_bytes": 37609
+    },
+    {
+      "id": "molten-star",
+      "category": "pickaxes",
+      "name": "Molten Star",
+      "path": "art/nutvale/mining-tools/pickaxes/molten-star.png",
+      "source_row": 3,
+      "source_column": 5,
+      "source_bbox": [
+        674,
+        427,
+        818,
+        587
+      ],
+      "core_bbox": [
+        683,
+        436,
+        808,
+        578
+      ],
+      "source_core_pixels": 7194,
+      "output_opaque_pixels": 8679,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "f7d51977492398ce36d7807b0387a3e8c8251adc1fdb21f8e34a4ea848b88628",
+      "size_bytes": 31020
+    },
+    {
+      "id": "winter-berry",
+      "category": "pickaxes",
+      "name": "Winter Berry",
+      "path": "art/nutvale/mining-tools/pickaxes/winter-berry.png",
+      "source_row": 3,
+      "source_column": 6,
+      "source_bbox": [
+        807,
+        414,
+        958,
+        586
+      ],
+      "core_bbox": [
+        816,
+        436,
+        949,
+        577
+      ],
+      "source_core_pixels": 8555,
+      "output_opaque_pixels": 9135,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "9592944a708da03ab3f587fc2a5d91f1010e3ca28476bea5891756c319c8913e",
+      "size_bytes": 33142
+    },
+    {
+      "id": "holly-star",
+      "category": "pickaxes",
+      "name": "Holly Star",
+      "path": "art/nutvale/mining-tools/pickaxes/holly-star.png",
+      "source_row": 3,
+      "source_column": 7,
+      "source_bbox": [
+        950,
+        435,
+        1098,
+        590
+      ],
+      "core_bbox": [
+        959,
+        446,
+        1089,
+        582
+      ],
+      "source_core_pixels": 7739,
+      "output_opaque_pixels": 9969,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "94eac4d51505f7680930af5b64ce49d00df7ad3dcdebbf8f636afa3e36d5064c",
+      "size_bytes": 35543
+    },
+    {
+      "id": "brass-anthem",
+      "category": "pickaxes",
+      "name": "Brass Anthem",
+      "path": "art/nutvale/mining-tools/pickaxes/brass-anthem.png",
+      "source_row": 3,
+      "source_column": 8,
+      "source_bbox": [
+        1090,
+        437,
+        1241,
+        590
+      ],
+      "core_bbox": [
+        1099,
+        446,
+        1232,
+        582
+      ],
+      "source_core_pixels": 7586,
+      "output_opaque_pixels": 10054,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "4e1e250396a06a5bcde7beeaf53daf5d6876bf76b42307266da043ed413302a4",
+      "size_bytes": 35655
+    },
+    {
+      "id": "deepsea-orb",
+      "category": "pickaxes",
+      "name": "Deepsea Orb",
+      "path": "art/nutvale/mining-tools/pickaxes/deepsea-orb.png",
+      "source_row": 3,
+      "source_column": 9,
+      "source_bbox": [
+        1226,
+        436,
+        1374,
+        588
+      ],
+      "core_bbox": [
+        1235,
+        445,
+        1366,
+        579
+      ],
+      "source_core_pixels": 6980,
+      "output_opaque_pixels": 9325,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "df762926db21900d6918135b2b057f167fccdd37f214b8ab8948a1110d970b96",
+      "size_bytes": 34710
+    },
+    {
+      "id": "moonlit-silver",
+      "category": "pickaxes",
+      "name": "Moonlit Silver",
+      "path": "art/nutvale/mining-tools/pickaxes/moonlit-silver.png",
+      "source_row": 3,
+      "source_column": 10,
+      "source_bbox": [
+        1365,
+        440,
+        1519,
+        587
+      ],
+      "core_bbox": [
+        1374,
+        449,
+        1510,
+        578
+      ],
+      "source_core_pixels": 7787,
+      "output_opaque_pixels": 10155,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "5db0e73dbd1e56b271426b37f443c5c40f978546ff7d28d20934f728186ab338",
+      "size_bytes": 37143
+    },
+    {
+      "id": "russet-leather",
+      "category": "gloves",
+      "name": "Russet Leather",
+      "path": "art/nutvale/mining-tools/gloves/russet-leather.png",
+      "source_row": 4,
+      "source_column": 0,
+      "source_bbox": [
+        7,
+        579,
+        122,
+        723
+      ],
+      "core_bbox": [
+        16,
+        587,
+        114,
+        714
+      ],
+      "source_core_pixels": 7989,
+      "output_opaque_pixels": 11970,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "f4386c238cd2c5f7f3b44af5aca1648291953c7dd4328308daf02055fe506d91",
+      "size_bytes": 34386
+    },
+    {
+      "id": "apprentice-leather",
+      "category": "gloves",
+      "name": "Apprentice Leather",
+      "path": "art/nutvale/mining-tools/gloves/apprentice-leather.png",
+      "source_row": 4,
+      "source_column": 1,
+      "source_bbox": [
+        112,
+        579,
+        230,
+        724
+      ],
+      "core_bbox": [
+        120,
+        588,
+        222,
+        715
+      ],
+      "source_core_pixels": 8541,
+      "output_opaque_pixels": 12560,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "2432bc64672ba1f724968df7088eff5643169143c3c6f276319955d4dfca9194",
+      "size_bytes": 36106
+    },
+    {
+      "id": "autumn-leaves",
+      "category": "gloves",
+      "name": "Autumn Leaves",
+      "path": "art/nutvale/mining-tools/gloves/autumn-leaves.png",
+      "source_row": 4,
+      "source_column": 2,
+      "source_bbox": [
+        220,
+        579,
+        344,
+        727
+      ],
+      "core_bbox": [
+        229,
+        588,
+        335,
+        715
+      ],
+      "source_core_pixels": 8706,
+      "output_opaque_pixels": 12273,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "83bc82c2f1393eee02c7b99e3db827d6bcdebfd44077634fb1aa36f893e7574e",
+      "size_bytes": 38575
+    },
+    {
+      "id": "verdant-wool",
+      "category": "gloves",
+      "name": "Verdant Wool",
+      "path": "art/nutvale/mining-tools/gloves/verdant-wool.png",
+      "source_row": 4,
+      "source_column": 3,
+      "source_bbox": [
+        333,
+        577,
+        453,
+        727
+      ],
+      "core_bbox": [
+        342,
+        586,
+        444,
+        715
+      ],
+      "source_core_pixels": 8381,
+      "output_opaque_pixels": 11549,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "5a7c292d1912033337dc05528c2786bd963e26810695a586c419d43e298bbc31",
+      "size_bytes": 35547
+    },
+    {
+      "id": "acorn-gardener",
+      "category": "gloves",
+      "name": "Acorn Gardener",
+      "path": "art/nutvale/mining-tools/gloves/acorn-gardener.png",
+      "source_row": 4,
+      "source_column": 4,
+      "source_bbox": [
+        436,
+        577,
+        560,
+        724
+      ],
+      "core_bbox": [
+        445,
+        587,
+        551,
+        713
+      ],
+      "source_core_pixels": 8532,
+      "output_opaque_pixels": 12193,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "809f6bad1455f596233efbfdb2a433a9e0adb3354411c21bf220539aa006c972",
+      "size_bytes": 38694
+    },
+    {
+      "id": "frostfur-forager",
+      "category": "gloves",
+      "name": "Frostfur Forager",
+      "path": "art/nutvale/mining-tools/gloves/frostfur-forager.png",
+      "source_row": 4,
+      "source_column": 5,
+      "source_bbox": [
+        553,
+        578,
+        676,
+        727
+      ],
+      "core_bbox": [
+        562,
+        588,
+        667,
+        715
+      ],
+      "source_core_pixels": 8685,
+      "output_opaque_pixels": 12088,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "e1483770c1082165ed56e6e813b9c337fb8a2996cd6e2aad9543fa5c037bf25b",
+      "size_bytes": 39813
+    },
+    {
+      "id": "oak-traveler",
+      "category": "gloves",
+      "name": "Oak Traveler",
+      "path": "art/nutvale/mining-tools/gloves/oak-traveler.png",
+      "source_row": 4,
+      "source_column": 6,
+      "source_bbox": [
+        656,
+        576,
+        779,
+        728
+      ],
+      "core_bbox": [
+        665,
+        585,
+        771,
+        716
+      ],
+      "source_core_pixels": 8276,
+      "output_opaque_pixels": 11069,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "212c5336381c5e4f5540cdaea243f66a6cfa098354617d2285873414bc350c3e",
+      "size_bytes": 35469
+    },
+    {
+      "id": "winter-stone",
+      "category": "gloves",
+      "name": "Winter Stone",
+      "path": "art/nutvale/mining-tools/gloves/winter-stone.png",
+      "source_row": 4,
+      "source_column": 7,
+      "source_bbox": [
+        774,
+        576,
+        894,
+        724
+      ],
+      "core_bbox": [
+        783,
+        585,
+        886,
+        713
+      ],
+      "source_core_pixels": 9175,
+      "output_opaque_pixels": 13012,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "6f8ce24d1233afddfe23cfffa8b6afa247b5ff81e915c8bdd64c0cfc1807c9e4",
+      "size_bytes": 39652
+    },
+    {
+      "id": "copper-clockwork",
+      "category": "gloves",
+      "name": "Copper Clockwork",
+      "path": "art/nutvale/mining-tools/gloves/copper-clockwork.png",
+      "source_row": 4,
+      "source_column": 8,
+      "source_bbox": [
+        878,
+        578,
+        1000,
+        726
+      ],
+      "core_bbox": [
+        887,
+        586,
+        991,
+        714
+      ],
+      "source_core_pixels": 8223,
+      "output_opaque_pixels": 11627,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "cbb1106c675a34e7c8fe0cb20ad85e6ae8f791dd8998d9f0a6c81f02646d3bf8",
+      "size_bytes": 39102
+    },
+    {
+      "id": "brass-clockwork",
+      "category": "gloves",
+      "name": "Brass Clockwork",
+      "path": "art/nutvale/mining-tools/gloves/brass-clockwork.png",
+      "source_row": 4,
+      "source_column": 9,
+      "source_bbox": [
+        987,
+        578,
+        1110,
+        722
+      ],
+      "core_bbox": [
+        996,
+        587,
+        1099,
+        712
+      ],
+      "source_core_pixels": 8085,
+      "output_opaque_pixels": 12043,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "0648ccebc8625e91af32cee412736037a22762435b197ce128d3255e79085b8e",
+      "size_bytes": 39925
+    },
+    {
+      "id": "sapphire-royal",
+      "category": "gloves",
+      "name": "Sapphire Royal",
+      "path": "art/nutvale/mining-tools/gloves/sapphire-royal.png",
+      "source_row": 4,
+      "source_column": 10,
+      "source_bbox": [
+        1090,
+        578,
+        1211,
+        723
+      ],
+      "core_bbox": [
+        1099,
+        587,
+        1202,
+        714
+      ],
+      "source_core_pixels": 8336,
+      "output_opaque_pixels": 12295,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "2f83137e3442fdd6a5e67dcef6c2c6eb61bd3c0bed5b96294fe917058a226077",
+      "size_bytes": 39997
+    },
+    {
+      "id": "solar-gilt",
+      "category": "gloves",
+      "name": "Solar Gilt",
+      "path": "art/nutvale/mining-tools/gloves/solar-gilt.png",
+      "source_row": 4,
+      "source_column": 11,
+      "source_bbox": [
+        1204,
+        578,
+        1321,
+        728
+      ],
+      "core_bbox": [
+        1213,
+        588,
+        1313,
+        715
+      ],
+      "source_core_pixels": 8531,
+      "output_opaque_pixels": 11715,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "51989aa57f2e92400f369cd43df3198aa8906434d3ce4e405ba835dc75fc9a9d",
+      "size_bytes": 38352
+    },
+    {
+      "id": "orchid-bloom",
+      "category": "gloves",
+      "name": "Orchid Bloom",
+      "path": "art/nutvale/mining-tools/gloves/orchid-bloom.png",
+      "source_row": 4,
+      "source_column": 12,
+      "source_bbox": [
+        1315,
+        577,
+        1434,
+        722
+      ],
+      "core_bbox": [
+        1324,
+        586,
+        1425,
+        714
+      ],
+      "source_core_pixels": 8593,
+      "output_opaque_pixels": 12609,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "0433134852402128a0e77d0c68407d59c22b79e37872e578147163fd1faabaa2",
+      "size_bytes": 39778
+    },
+    {
+      "id": "holly-blossom",
+      "category": "gloves",
+      "name": "Holly Blossom",
+      "path": "art/nutvale/mining-tools/gloves/holly-blossom.png",
+      "source_row": 4,
+      "source_column": 13,
+      "source_bbox": [
+        1419,
+        580,
+        1536,
+        725
+      ],
+      "core_bbox": [
+        1428,
+        589,
+        1530,
+        714
+      ],
+      "source_core_pixels": 7947,
+      "output_opaque_pixels": 11697,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "32973b7d2d4c4fde560e5afa4b1a5470965ad442d50d1587203d7dd16f9347b5",
+      "size_bytes": 36581
+    },
+    {
+      "id": "pink-confection",
+      "category": "gloves",
+      "name": "Pink Confection",
+      "path": "art/nutvale/mining-tools/gloves/pink-confection.png",
+      "source_row": 5,
+      "source_column": 0,
+      "source_bbox": [
+        7,
+        712,
+        132,
+        859
+      ],
+      "core_bbox": [
+        15,
+        721,
+        122,
+        850
+      ],
+      "source_core_pixels": 9314,
+      "output_opaque_pixels": 13382,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "b17d9f3f74f6f7f38761dcebe95ea64e200a473fc9aac641012a6c65c91c90ac",
+      "size_bytes": 42689
+    },
+    {
+      "id": "rainbow-icing",
+      "category": "gloves",
+      "name": "Rainbow Icing",
+      "path": "art/nutvale/mining-tools/gloves/rainbow-icing.png",
+      "source_row": 5,
+      "source_column": 1,
+      "source_bbox": [
+        121,
+        712,
+        246,
+        859
+      ],
+      "core_bbox": [
+        130,
+        721,
+        233,
+        850
+      ],
+      "source_core_pixels": 8905,
+      "output_opaque_pixels": 12805,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "acda8dcff7fc79ad218c4a6d4c14ba83f1b761fe8f4b8ea8c85ffdc2fd80fe7d",
+      "size_bytes": 41601
+    },
+    {
+      "id": "confetti-star",
+      "category": "gloves",
+      "name": "Confetti Star",
+      "path": "art/nutvale/mining-tools/gloves/confetti-star.png",
+      "source_row": 5,
+      "source_column": 2,
+      "source_bbox": [
+        232,
+        710,
+        356,
+        858
+      ],
+      "core_bbox": [
+        241,
+        722,
+        343,
+        849
+      ],
+      "source_core_pixels": 8843,
+      "output_opaque_pixels": 12453,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "34ee7fbedca264d9c70f2ef2b1201492a0aaae5790e90222fd13a177ee1426b0",
+      "size_bytes": 40639
+    },
+    {
+      "id": "candy-party",
+      "category": "gloves",
+      "name": "Candy Party",
+      "path": "art/nutvale/mining-tools/gloves/candy-party.png",
+      "source_row": 5,
+      "source_column": 3,
+      "source_bbox": [
+        336,
+        711,
+        456,
+        858
+      ],
+      "core_bbox": [
+        346,
+        723,
+        447,
+        849
+      ],
+      "source_core_pixels": 8385,
+      "output_opaque_pixels": 12048,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "7ce484f187d0042f86715a0d11fa51022149282294ba2e04326b06b891b9c16b",
+      "size_bytes": 38830
+    },
+    {
+      "id": "violet-nebula",
+      "category": "gloves",
+      "name": "Violet Nebula",
+      "path": "art/nutvale/mining-tools/gloves/violet-nebula.png",
+      "source_row": 5,
+      "source_column": 4,
+      "source_bbox": [
+        448,
+        711,
+        562,
+        859
+      ],
+      "core_bbox": [
+        457,
+        722,
+        552,
+        850
+      ],
+      "source_core_pixels": 8596,
+      "output_opaque_pixels": 12189,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "00e58bd508720de69de26adfac75a3485452178a66c90d1a3ee57252adbef733",
+      "size_bytes": 38613
+    },
+    {
+      "id": "spectral-skull",
+      "category": "gloves",
+      "name": "Spectral Skull",
+      "path": "art/nutvale/mining-tools/gloves/spectral-skull.png",
+      "source_row": 5,
+      "source_column": 5,
+      "source_bbox": [
+        552,
+        710,
+        674,
+        861
+      ],
+      "core_bbox": [
+        560,
+        721,
+        665,
+        852
+      ],
+      "source_core_pixels": 9459,
+      "output_opaque_pixels": 12818,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "6b7c475617d08562f44f3eb6298e5b2b7a104853bbbbbb16d8c37d37de3dac9c",
+      "size_bytes": 40915
+    },
+    {
+      "id": "starlight-void",
+      "category": "gloves",
+      "name": "Starlight Void",
+      "path": "art/nutvale/mining-tools/gloves/starlight-void.png",
+      "source_row": 5,
+      "source_column": 6,
+      "source_bbox": [
+        662,
+        709,
+        782,
+        859
+      ],
+      "core_bbox": [
+        671,
+        719,
+        773,
+        851
+      ],
+      "source_core_pixels": 8999,
+      "output_opaque_pixels": 12418,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "aacc41d3316528fe64f4d1537fe5c4cc6723b99f35ecd163710b9f5263174936",
+      "size_bytes": 36502
+    },
+    {
+      "id": "golden-cabochon",
+      "category": "gloves",
+      "name": "Golden Cabochon",
+      "path": "art/nutvale/mining-tools/gloves/golden-cabochon.png",
+      "source_row": 5,
+      "source_column": 7,
+      "source_bbox": [
+        762,
+        708,
+        894,
+        860
+      ],
+      "core_bbox": [
+        771,
+        719,
+        885,
+        851
+      ],
+      "source_core_pixels": 9313,
+      "output_opaque_pixels": 12488,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "7b1871078863d780b42b1c8dc40ebc11f389ab36a46e3cd72e70586513606e0d",
+      "size_bytes": 39786
+    },
+    {
+      "id": "silver-sunburst",
+      "category": "gloves",
+      "name": "Silver Sunburst",
+      "path": "art/nutvale/mining-tools/gloves/silver-sunburst.png",
+      "source_row": 5,
+      "source_column": 8,
+      "source_bbox": [
+        874,
+        708,
+        1000,
+        860
+      ],
+      "core_bbox": [
+        883,
+        720,
+        991,
+        851
+      ],
+      "source_core_pixels": 8812,
+      "output_opaque_pixels": 11819,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "339fca4640c8f51f23d47daee567ace444180d5436358ee5cdeadabe2b3a5f49",
+      "size_bytes": 40387
+    },
+    {
+      "id": "arcane-geode",
+      "category": "gloves",
+      "name": "Arcane Geode",
+      "path": "art/nutvale/mining-tools/gloves/arcane-geode.png",
+      "source_row": 5,
+      "source_column": 9,
+      "source_bbox": [
+        988,
+        707,
+        1109,
+        865
+      ],
+      "core_bbox": [
+        998,
+        717,
+        1099,
+        856
+      ],
+      "source_core_pixels": 8917,
+      "output_opaque_pixels": 11077,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "c9e3ba8964a6545550b479b7b0c62253a4f6230a54d5b60a6bf182973ea36813",
+      "size_bytes": 37893
+    },
+    {
+      "id": "industrial-gear",
+      "category": "gloves",
+      "name": "Industrial Gear",
+      "path": "art/nutvale/mining-tools/gloves/industrial-gear.png",
+      "source_row": 5,
+      "source_column": 10,
+      "source_bbox": [
+        1095,
+        711,
+        1221,
+        859
+      ],
+      "core_bbox": [
+        1104,
+        720,
+        1212,
+        850
+      ],
+      "source_core_pixels": 8815,
+      "output_opaque_pixels": 12472,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "5279d98e43469c7897d757c58a08083f7fefdb7259a33928917848d7e205a9dc",
+      "size_bytes": 41613
+    },
+    {
+      "id": "glacier-mechanist",
+      "category": "gloves",
+      "name": "Glacier Mechanist",
+      "path": "art/nutvale/mining-tools/gloves/glacier-mechanist.png",
+      "source_row": 5,
+      "source_column": 11,
+      "source_bbox": [
+        1209,
+        709,
+        1326,
+        858
+      ],
+      "core_bbox": [
+        1217,
+        720,
+        1317,
+        849
+      ],
+      "source_core_pixels": 8529,
+      "output_opaque_pixels": 11881,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "44ca7c2720ee24f0cd4bdf24f98a38f91d29dedd5b5f8c6e59501eb645979b74",
+      "size_bytes": 39794
+    },
+    {
+      "id": "sunstone-alchemist",
+      "category": "gloves",
+      "name": "Sunstone Alchemist",
+      "path": "art/nutvale/mining-tools/gloves/sunstone-alchemist.png",
+      "source_row": 5,
+      "source_column": 12,
+      "source_bbox": [
+        1316,
+        712,
+        1431,
+        858
+      ],
+      "core_bbox": [
+        1325,
+        721,
+        1422,
+        850
+      ],
+      "source_core_pixels": 8580,
+      "output_opaque_pixels": 12515,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "bc737994d46c1fc31a5cc1e14b26fc603399f27cbd7aca11e66eae8faafd675b",
+      "size_bytes": 39501
+    },
+    {
+      "id": "sunflower-garden",
+      "category": "gloves",
+      "name": "Sunflower Garden",
+      "path": "art/nutvale/mining-tools/gloves/sunflower-garden.png",
+      "source_row": 5,
+      "source_column": 13,
+      "source_bbox": [
+        1413,
+        710,
+        1536,
+        861
+      ],
+      "core_bbox": [
+        1422,
+        720,
+        1530,
+        852
+      ],
+      "source_core_pixels": 8977,
+      "output_opaque_pixels": 12168,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "56aba410ae37b98e4923e275993566c275c0ed999f24fa12c7dceccf4bdad7bb",
+      "size_bytes": 39000
+    },
+    {
+      "id": "lava-fissure",
+      "category": "gloves",
+      "name": "Lava Fissure",
+      "path": "art/nutvale/mining-tools/gloves/lava-fissure.png",
+      "source_row": 6,
+      "source_column": 0,
+      "source_bbox": [
+        7,
+        856,
+        123,
+        1005
+      ],
+      "core_bbox": [
+        16,
+        865,
+        115,
+        996
+      ],
+      "source_core_pixels": 8286,
+      "output_opaque_pixels": 11569,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "631f51e9e543aecfa7696c73e8e0d3bea2bd883b701e0bd4f8797765aa864f75",
+      "size_bytes": 36469
+    },
+    {
+      "id": "flameheart",
+      "category": "gloves",
+      "name": "Flameheart",
+      "path": "art/nutvale/mining-tools/gloves/flameheart.png",
+      "source_row": 6,
+      "source_column": 1,
+      "source_bbox": [
+        113,
+        852,
+        235,
+        1004
+      ],
+      "core_bbox": [
+        122,
+        861,
+        225,
+        995
+      ],
+      "source_core_pixels": 9793,
+      "output_opaque_pixels": 13096,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "16b5555ccd4dcbd829685f0dfca59ae32b37fec03c4e8531e4d12f07b815a530",
+      "size_bytes": 36633
+    },
+    {
+      "id": "riveted-steel",
+      "category": "gloves",
+      "name": "Riveted Steel",
+      "path": "art/nutvale/mining-tools/gloves/riveted-steel.png",
+      "source_row": 6,
+      "source_column": 2,
+      "source_bbox": [
+        219,
+        856,
+        344,
+        1004
+      ],
+      "core_bbox": [
+        228,
+        864,
+        334,
+        996
+      ],
+      "source_core_pixels": 8797,
+      "output_opaque_pixels": 12474,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "e59baf8955fd43954781fb9757340d1ff828f9070858aaff7bb693b4c7102e37",
+      "size_bytes": 40590
+    },
+    {
+      "id": "winter-rune",
+      "category": "gloves",
+      "name": "Winter Rune",
+      "path": "art/nutvale/mining-tools/gloves/winter-rune.png",
+      "source_row": 6,
+      "source_column": 3,
+      "source_bbox": [
+        330,
+        857,
+        448,
+        1004
+      ],
+      "core_bbox": [
+        339,
+        866,
+        439,
+        996
+      ],
+      "source_core_pixels": 8173,
+      "output_opaque_pixels": 11682,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "b1cbc68da2ba81b70233a2b1d80fbbc8d6fa503473d8390b30aa9bfb187a5f93",
+      "size_bytes": 39173
+    },
+    {
+      "id": "shadow-amethyst",
+      "category": "gloves",
+      "name": "Shadow Amethyst",
+      "path": "art/nutvale/mining-tools/gloves/shadow-amethyst.png",
+      "source_row": 6,
+      "source_column": 4,
+      "source_bbox": [
+        434,
+        855,
+        554,
+        1002
+      ],
+      "core_bbox": [
+        443,
+        864,
+        545,
+        993
+      ],
+      "source_core_pixels": 8599,
+      "output_opaque_pixels": 12336,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "e0aa80cddaa215e8e780ea6fd35c87cb8ae255023513cc21b28be247a98ccec2",
+      "size_bytes": 37421
+    },
+    {
+      "id": "aether-machinery",
+      "category": "gloves",
+      "name": "Aether Machinery",
+      "path": "art/nutvale/mining-tools/gloves/aether-machinery.png",
+      "source_row": 6,
+      "source_column": 5,
+      "source_bbox": [
+        548,
+        854,
+        679,
+        1007
+      ],
+      "core_bbox": [
+        558,
+        863,
+        669,
+        998
+      ],
+      "source_core_pixels": 9682,
+      "output_opaque_pixels": 12820,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "8db7fc5a374b4072751fa3495d49cba98d8e06d8d53e308752dd5ffdbd27f436",
+      "size_bytes": 44541
+    },
+    {
+      "id": "fresh-spring",
+      "category": "gloves",
+      "name": "Fresh Spring",
+      "path": "art/nutvale/mining-tools/gloves/fresh-spring.png",
+      "source_row": 6,
+      "source_column": 6,
+      "source_bbox": [
+        659,
+        858,
+        788,
+        1006
+      ],
+      "core_bbox": [
+        668,
+        867,
+        779,
+        997
+      ],
+      "source_core_pixels": 9046,
+      "output_opaque_pixels": 12764,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "7e31a315c129131f05207ba35dd1a2d63eb4f958c5cf098a625b4ac7f885b19b",
+      "size_bytes": 39469
+    },
+    {
+      "id": "woodland-hide",
+      "category": "gloves",
+      "name": "Woodland Hide",
+      "path": "art/nutvale/mining-tools/gloves/woodland-hide.png",
+      "source_row": 6,
+      "source_column": 7,
+      "source_bbox": [
+        774,
+        856,
+        892,
+        1007
+      ],
+      "core_bbox": [
+        783,
+        865,
+        883,
+        998
+      ],
+      "source_core_pixels": 8736,
+      "output_opaque_pixels": 11892,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "92bf0420562028ebfddda935ad30b6692c65722db55cef8226c026dfc23b8d5d",
+      "size_bytes": 38603
+    },
+    {
+      "id": "golden-gears",
+      "category": "gloves",
+      "name": "Golden Gears",
+      "path": "art/nutvale/mining-tools/gloves/golden-gears.png",
+      "source_row": 6,
+      "source_column": 8,
+      "source_bbox": [
+        883,
+        854,
+        1013,
+        1008
+      ],
+      "core_bbox": [
+        892,
+        863,
+        1003,
+        999
+      ],
+      "source_core_pixels": 9973,
+      "output_opaque_pixels": 13067,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "162cf324591d75e9308736e81ed720a65a8e448ee9b77ddc84a32d5b10e5c49e",
+      "size_bytes": 42168
+    },
+    {
+      "id": "pumpkin-gold",
+      "category": "gloves",
+      "name": "Pumpkin Gold",
+      "path": "art/nutvale/mining-tools/gloves/pumpkin-gold.png",
+      "source_row": 6,
+      "source_column": 9,
+      "source_bbox": [
+        1003,
+        857,
+        1122,
+        1006
+      ],
+      "core_bbox": [
+        1012,
+        866,
+        1113,
+        997
+      ],
+      "source_core_pixels": 8768,
+      "output_opaque_pixels": 12255,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "f3404280d96be434d086579d89219fe348f6409b112b83847e2491fbc49dd999",
+      "size_bytes": 38276
+    },
+    {
+      "id": "holiday-holly",
+      "category": "gloves",
+      "name": "Holiday Holly",
+      "path": "art/nutvale/mining-tools/gloves/holiday-holly.png",
+      "source_row": 6,
+      "source_column": 10,
+      "source_bbox": [
+        1110,
+        856,
+        1229,
+        1007
+      ],
+      "core_bbox": [
+        1119,
+        865,
+        1220,
+        998
+      ],
+      "source_core_pixels": 9186,
+      "output_opaque_pixels": 12502,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "56dcc311f47a9bc18269561a39cd9de0e395c35368a58676109fb6a01fc078a5",
+      "size_bytes": 37614
+    },
+    {
+      "id": "fur-trapper",
+      "category": "gloves",
+      "name": "Fur Trapper",
+      "path": "art/nutvale/mining-tools/gloves/fur-trapper.png",
+      "source_row": 6,
+      "source_column": 11,
+      "source_bbox": [
+        1217,
+        857,
+        1338,
+        1003
+      ],
+      "core_bbox": [
+        1226,
+        865,
+        1325,
+        994
+      ],
+      "source_core_pixels": 8561,
+      "output_opaque_pixels": 12449,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "1d01e05414e11c5eebbfa8aa48008d50eedd4ef440e8756791d9df560f258af8",
+      "size_bytes": 38336
+    },
+    {
+      "id": "harvest-petal",
+      "category": "gloves",
+      "name": "Harvest Petal",
+      "path": "art/nutvale/mining-tools/gloves/harvest-petal.png",
+      "source_row": 6,
+      "source_column": 12,
+      "source_bbox": [
+        1318,
+        855,
+        1438,
+        1005
+      ],
+      "core_bbox": [
+        1327,
+        864,
+        1429,
+        996
+      ],
+      "source_core_pixels": 8872,
+      "output_opaque_pixels": 12232,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "676a06acf90d57104ac84923905856fd88ead91dfbb3bc88271070053140cfde",
+      "size_bytes": 39146
+    },
+    {
+      "id": "jackolantern",
+      "category": "gloves",
+      "name": "Jackolantern",
+      "path": "art/nutvale/mining-tools/gloves/jackolantern.png",
+      "source_row": 6,
+      "source_column": 13,
+      "source_bbox": [
+        1420,
+        856,
+        1536,
+        1004
+      ],
+      "core_bbox": [
+        1430,
+        865,
+        1530,
+        995
+      ],
+      "source_core_pixels": 8450,
+      "output_opaque_pixels": 11928,
+      "width": 192,
+      "height": 192,
+      "alpha": "straight-RGBA",
+      "sha256": "14f69614ecff8ab8f6ee560ffcd8ae0fc3b32d4122e09671bccb32ffd6eedc0e",
+      "size_bytes": 35121
+    }
+  ],
   "atlases": {
     "pickaxes": {
       "path": "art/nutvale/mining-tools/atlas-pickaxes.png",
       "columns": 11,
       "rows": 4,
-      "git_blob_sha": "6a266f4d029e5a6de508757d363208d399837079",
-      "bytes": 1526249
+      "tile": [
+        192,
+        192
+      ],
+      "sha256": "1664f8c7234d058f16211afa03a11f742ba4fb9b245cff1e6e62c025779c8a97"
     },
     "gloves": {
       "path": "art/nutvale/mining-tools/atlas-gloves.png",
       "columns": 14,
       "rows": 3,
-      "git_blob_sha": "6cf26c4107a682f31f43d095ba2dea518037b384",
-      "bytes": 1620212
+      "tile": [
+        192,
+        192
+      ],
+      "sha256": "15fafb837ac79ebc95b80eb75fab824e718d6e36743a3a1ab269466c63ffd2e7"
     }
-  },
-  "sprites": [
-    {
-      "id": "iron-prospector",
-      "name": "Iron Prospector",
-      "image": "art/nutvale/mining-tools/pickaxes/iron-prospector.png",
-      "column": 0,
-      "row": 0,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/iron-prospector.png",
-      "git_blob_sha": "f899c4ea50f81db7c6ce68b59c937794de258861",
-      "bytes": 28719
-    },
-    {
-      "id": "acorn-bronze",
-      "name": "Acorn Bronze",
-      "image": "art/nutvale/mining-tools/pickaxes/acorn-bronze.png",
-      "column": 1,
-      "row": 0,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/acorn-bronze.png",
-      "git_blob_sha": "85bcdaf1eaec34a2102b28a501404cf0e47631dd",
-      "bytes": 30292
-    },
-    {
-      "id": "blossom-oak",
-      "name": "Blossom Oak",
-      "image": "art/nutvale/mining-tools/pickaxes/blossom-oak.png",
-      "column": 2,
-      "row": 0,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/blossom-oak.png",
-      "git_blob_sha": "5b93b68ef9cf39e85f3cf0e691a5f57722e598cf",
-      "bytes": 33755
-    },
-    {
-      "id": "pinecone-copper",
-      "name": "Pinecone Copper",
-      "image": "art/nutvale/mining-tools/pickaxes/pinecone-copper.png",
-      "column": 3,
-      "row": 0,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/pinecone-copper.png",
-      "git_blob_sha": "03badfda538d951b22c850fa4bef2ef26deb0a81",
-      "bytes": 31700
-    },
-    {
-      "id": "ropebound-steel",
-      "name": "Ropebound Steel",
-      "image": "art/nutvale/mining-tools/pickaxes/ropebound-steel.png",
-      "column": 4,
-      "row": 0,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/ropebound-steel.png",
-      "git_blob_sha": "6abd900d402966ba13c725fee04021914bfbe53b",
-      "bytes": 35869
-    },
-    {
-      "id": "daisy-wreathed",
-      "name": "Daisy Wreathed",
-      "image": "art/nutvale/mining-tools/pickaxes/daisy-wreathed.png",
-      "column": 5,
-      "row": 0,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/daisy-wreathed.png",
-      "git_blob_sha": "5b0b1f5ea7cc6ee2a986c064f3f5b1e20d34ffad",
-      "bytes": 37750
-    },
-    {
-      "id": "froststeel",
-      "name": "Froststeel",
-      "image": "art/nutvale/mining-tools/pickaxes/froststeel.png",
-      "column": 6,
-      "row": 0,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/froststeel.png",
-      "git_blob_sha": "ee3aa43fb7e2e3afb228ed9bc08a48fa05c9491a",
-      "bytes": 33538
-    },
-    {
-      "id": "gilded-crescent",
-      "name": "Gilded Crescent",
-      "image": "art/nutvale/mining-tools/pickaxes/gilded-crescent.png",
-      "column": 7,
-      "row": 0,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/gilded-crescent.png",
-      "git_blob_sha": "4f5db0dc96035002a36e830b83d4674358dd560d",
-      "bytes": 36165
-    },
-    {
-      "id": "flamecrest-gold",
-      "name": "Flamecrest Gold",
-      "image": "art/nutvale/mining-tools/pickaxes/flamecrest-gold.png",
-      "column": 8,
-      "row": 0,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/flamecrest-gold.png",
-      "git_blob_sha": "ecc4415625aca7ad39fc0563a88ecc5b1d9d3779",
-      "bytes": 34456
-    },
-    {
-      "id": "amethyst-sickle",
-      "name": "Amethyst Sickle",
-      "image": "art/nutvale/mining-tools/pickaxes/amethyst-sickle.png",
-      "column": 9,
-      "row": 0,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/amethyst-sickle.png",
-      "git_blob_sha": "261243efa142bfabf2039d8fb3e9339996e26afe",
-      "bytes": 38347
-    },
-    {
-      "id": "azure-edge",
-      "name": "Azure Edge",
-      "image": "art/nutvale/mining-tools/pickaxes/azure-edge.png",
-      "column": 10,
-      "row": 0,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/azure-edge.png",
-      "git_blob_sha": "514010cf60f8101e9631453f9845fa1d60d52e48",
-      "bytes": 32962
-    },
-    {
-      "id": "riverstone-iron",
-      "name": "Riverstone Iron",
-      "image": "art/nutvale/mining-tools/pickaxes/riverstone-iron.png",
-      "column": 0,
-      "row": 1,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/riverstone-iron.png",
-      "git_blob_sha": "f859f5e5416e0fd05ebdf8f879db917501879144",
-      "bytes": 32932
-    },
-    {
-      "id": "sapphire-shard",
-      "name": "Sapphire Shard",
-      "image": "art/nutvale/mining-tools/pickaxes/sapphire-shard.png",
-      "column": 1,
-      "row": 1,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/sapphire-shard.png",
-      "git_blob_sha": "605a2fca004e3ca6cfc18ecedab5b404a30d9112",
-      "bytes": 36284
-    },
-    {
-      "id": "ruby-blaze",
-      "name": "Ruby Blaze",
-      "image": "art/nutvale/mining-tools/pickaxes/ruby-blaze.png",
-      "column": 2,
-      "row": 1,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/ruby-blaze.png",
-      "git_blob_sha": "065d531321496f191f008f1d7c7300097af112f6",
-      "bytes": 33309
-    },
-    {
-      "id": "glacier-shadow",
-      "name": "Glacier Shadow",
-      "image": "art/nutvale/mining-tools/pickaxes/glacier-shadow.png",
-      "column": 3,
-      "row": 1,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/glacier-shadow.png",
-      "git_blob_sha": "8c0dac1b74dae0b219fcb8a89fc2b3fb207a2308",
-      "bytes": 35125
-    },
-    {
-      "id": "honeygold",
-      "name": "Honeygold",
-      "image": "art/nutvale/mining-tools/pickaxes/honeygold.png",
-      "column": 4,
-      "row": 1,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/honeygold.png",
-      "git_blob_sha": "36f79f7d3101bac9fb1d0da24a0e0ff64bdfce1a",
-      "bytes": 32332
-    },
-    {
-      "id": "mossbound-amber",
-      "name": "Mossbound Amber",
-      "image": "art/nutvale/mining-tools/pickaxes/mossbound-amber.png",
-      "column": 5,
-      "row": 1,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/mossbound-amber.png",
-      "git_blob_sha": "c75c1649cd6bf825c03d185897aae9cf64e0c297",
-      "bytes": 34076
-    },
-    {
-      "id": "thorn-garnet",
-      "name": "Thorn Garnet",
-      "image": "art/nutvale/mining-tools/pickaxes/thorn-garnet.png",
-      "column": 6,
-      "row": 1,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/thorn-garnet.png",
-      "git_blob_sha": "ddf2f29ea9c4e4d30f56f614afa74d45219f1c3d",
-      "bytes": 36239
-    },
-    {
-      "id": "strawberry-frosting",
-      "name": "Strawberry Frosting",
-      "image": "art/nutvale/mining-tools/pickaxes/strawberry-frosting.png",
-      "column": 7,
-      "row": 1,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/strawberry-frosting.png",
-      "git_blob_sha": "c5b74d9c7292b4376d4988898733915f0a4c2073",
-      "bytes": 33641
-    },
-    {
-      "id": "caramel-drizzle",
-      "name": "Caramel Drizzle",
-      "image": "art/nutvale/mining-tools/pickaxes/caramel-drizzle.png",
-      "column": 8,
-      "row": 1,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/caramel-drizzle.png",
-      "git_blob_sha": "a9a715b74619a8b366c28147b20fb587f347a811",
-      "bytes": 35782
-    },
-    {
-      "id": "heart-cupcake",
-      "name": "Heart Cupcake",
-      "image": "art/nutvale/mining-tools/pickaxes/heart-cupcake.png",
-      "column": 9,
-      "row": 1,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/heart-cupcake.png",
-      "git_blob_sha": "b7862e0b61186c357238dcfd2a7bc532f86684a1",
-      "bytes": 36001
-    },
-    {
-      "id": "prism-star",
-      "name": "Prism Star",
-      "image": "art/nutvale/mining-tools/pickaxes/prism-star.png",
-      "column": 10,
-      "row": 1,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/prism-star.png",
-      "git_blob_sha": "ce01ba4ad1128915f373249dd331983217a0b75c",
-      "bytes": 34302
-    },
-    {
-      "id": "violet-skull",
-      "name": "Violet Skull",
-      "image": "art/nutvale/mining-tools/pickaxes/violet-skull.png",
-      "column": 0,
-      "row": 2,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/violet-skull.png",
-      "git_blob_sha": "0358f7247399291f95c4ac59fcffdb4fedf7a0a5",
-      "bytes": 39550
-    },
-    {
-      "id": "astral-comet",
-      "name": "Astral Comet",
-      "image": "art/nutvale/mining-tools/pickaxes/astral-comet.png",
-      "column": 1,
-      "row": 2,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/astral-comet.png",
-      "git_blob_sha": "340de3d6c485124448fbeb2d5749506d27840106",
-      "bytes": 38509
-    },
-    {
-      "id": "opal-sunrise",
-      "name": "Opal Sunrise",
-      "image": "art/nutvale/mining-tools/pickaxes/opal-sunrise.png",
-      "column": 2,
-      "row": 2,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/opal-sunrise.png",
-      "git_blob_sha": "c6745242371723b0b93cbe195d689ed27774bbe1",
-      "bytes": 35359
-    },
-    {
-      "id": "amber-crown",
-      "name": "Amber Crown",
-      "image": "art/nutvale/mining-tools/pickaxes/amber-crown.png",
-      "column": 3,
-      "row": 2,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/amber-crown.png",
-      "git_blob_sha": "e6ce3893316e89562f4cc416155b396df2d6b8ba",
-      "bytes": 36832
-    },
-    {
-      "id": "arcane-wraith",
-      "name": "Arcane Wraith",
-      "image": "art/nutvale/mining-tools/pickaxes/arcane-wraith.png",
-      "column": 4,
-      "row": 2,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/arcane-wraith.png",
-      "git_blob_sha": "7127b66af9d2899d91c06012d2902d94d1ead9ab",
-      "bytes": 35125
-    },
-    {
-      "id": "bloodmoon-crystal",
-      "name": "Bloodmoon Crystal",
-      "image": "art/nutvale/mining-tools/pickaxes/bloodmoon-crystal.png",
-      "column": 5,
-      "row": 2,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/bloodmoon-crystal.png",
-      "git_blob_sha": "af4130af4e6ec8890d27056cb954509856783fe8",
-      "bytes": 34917
-    },
-    {
-      "id": "silver-sunstone",
-      "name": "Silver Sunstone",
-      "image": "art/nutvale/mining-tools/pickaxes/silver-sunstone.png",
-      "column": 6,
-      "row": 2,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/silver-sunstone.png",
-      "git_blob_sha": "655f21095f2fc8ef868dcc21ba406bba927d7bc9",
-      "bytes": 35685
-    },
-    {
-      "id": "spring-blossom",
-      "name": "Spring Blossom",
-      "image": "art/nutvale/mining-tools/pickaxes/spring-blossom.png",
-      "column": 7,
-      "row": 2,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/spring-blossom.png",
-      "git_blob_sha": "b87ce32b12bb22b6979e1c4d18ad009a02694020",
-      "bytes": 36594
-    },
-    {
-      "id": "lionheart-gold",
-      "name": "Lionheart Gold",
-      "image": "art/nutvale/mining-tools/pickaxes/lionheart-gold.png",
-      "column": 8,
-      "row": 2,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/lionheart-gold.png",
-      "git_blob_sha": "e3bcaa834585a7b0b8b8e489953307a427e00730",
-      "bytes": 31012
-    },
-    {
-      "id": "sunburst-royal",
-      "name": "Sunburst Royal",
-      "image": "art/nutvale/mining-tools/pickaxes/sunburst-royal.png",
-      "column": 9,
-      "row": 2,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/sunburst-royal.png",
-      "git_blob_sha": "10588da5205e0870f2c51a30f9caf02f7fba6dd8",
-      "bytes": 33970
-    },
-    {
-      "id": "golden-dawn",
-      "name": "Golden Dawn",
-      "image": "art/nutvale/mining-tools/pickaxes/golden-dawn.png",
-      "column": 10,
-      "row": 2,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/golden-dawn.png",
-      "git_blob_sha": "51ae649be42406192a0f00412544bdb58ecea0cb",
-      "bytes": 33628
-    },
-    {
-      "id": "ocean-lantern",
-      "name": "Ocean Lantern",
-      "image": "art/nutvale/mining-tools/pickaxes/ocean-lantern.png",
-      "column": 0,
-      "row": 3,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/ocean-lantern.png",
-      "git_blob_sha": "ae4b4f72248f0df39fc115156d3bb6838579bb49",
-      "bytes": 36425
-    },
-    {
-      "id": "starfall-amethyst",
-      "name": "Starfall Amethyst",
-      "image": "art/nutvale/mining-tools/pickaxes/starfall-amethyst.png",
-      "column": 1,
-      "row": 3,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/starfall-amethyst.png",
-      "git_blob_sha": "e6b621e1f9169c3225eedb9599310c5f62e2f40f",
-      "bytes": 33227
-    },
-    {
-      "id": "tideglass-cyan",
-      "name": "Tideglass Cyan",
-      "image": "art/nutvale/mining-tools/pickaxes/tideglass-cyan.png",
-      "column": 2,
-      "row": 3,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/tideglass-cyan.png",
-      "git_blob_sha": "4029ac91f85fc14458175724628a1f7dcf17fe26",
-      "bytes": 37660
-    },
-    {
-      "id": "forest-prism",
-      "name": "Forest Prism",
-      "image": "art/nutvale/mining-tools/pickaxes/forest-prism.png",
-      "column": 3,
-      "row": 3,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/forest-prism.png",
-      "git_blob_sha": "8ed9c336cdc8f51cc265bbcefb4d56e55d7c68b8",
-      "bytes": 37514
-    },
-    {
-      "id": "ruby-ice",
-      "name": "Ruby Ice",
-      "image": "art/nutvale/mining-tools/pickaxes/ruby-ice.png",
-      "column": 4,
-      "row": 3,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/ruby-ice.png",
-      "git_blob_sha": "72fca69ceb7ac10a6b0bb336fa7898cd5a0d675e",
-      "bytes": 37609
-    },
-    {
-      "id": "molten-star",
-      "name": "Molten Star",
-      "image": "art/nutvale/mining-tools/pickaxes/molten-star.png",
-      "column": 5,
-      "row": 3,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/molten-star.png",
-      "git_blob_sha": "b90f0a4d079c023c9e7a20f8dfa0b10afb495c02",
-      "bytes": 31020
-    },
-    {
-      "id": "winter-berry",
-      "name": "Winter Berry",
-      "image": "art/nutvale/mining-tools/pickaxes/winter-berry.png",
-      "column": 6,
-      "row": 3,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/winter-berry.png",
-      "git_blob_sha": "2b6b1c86d401069bd75010eda656ec770a0b1d16",
-      "bytes": 33142
-    },
-    {
-      "id": "holly-star",
-      "name": "Holly Star",
-      "image": "art/nutvale/mining-tools/pickaxes/holly-star.png",
-      "column": 7,
-      "row": 3,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/holly-star.png",
-      "git_blob_sha": "a0860d7e4dc1e3720ddf90131424259dc8d2a552",
-      "bytes": 35543
-    },
-    {
-      "id": "brass-anthem",
-      "name": "Brass Anthem",
-      "image": "art/nutvale/mining-tools/pickaxes/brass-anthem.png",
-      "column": 8,
-      "row": 3,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/brass-anthem.png",
-      "git_blob_sha": "ce4eb56fa738f52eb1582826e2853ba0db2d553e",
-      "bytes": 35655
-    },
-    {
-      "id": "deepsea-orb",
-      "name": "Deepsea Orb",
-      "image": "art/nutvale/mining-tools/pickaxes/deepsea-orb.png",
-      "column": 9,
-      "row": 3,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/deepsea-orb.png",
-      "git_blob_sha": "abb64f5c901dba44b01173ccfb2b1dcbe5c48988",
-      "bytes": 34710
-    },
-    {
-      "id": "moonlit-silver",
-      "name": "Moonlit Silver",
-      "image": "art/nutvale/mining-tools/pickaxes/moonlit-silver.png",
-      "column": 10,
-      "row": 3,
-      "category": "pickaxes",
-      "path": "art/nutvale/mining-tools/pickaxes/moonlit-silver.png",
-      "git_blob_sha": "287547e089001b50e90bb4f2644f20a50760d191",
-      "bytes": 37143
-    },
-    {
-      "id": "russet-leather",
-      "name": "Russet Leather",
-      "image": "art/nutvale/mining-tools/gloves/russet-leather.png",
-      "column": 0,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/russet-leather.png",
-      "git_blob_sha": "ba9dea8576d47ca035a1a9ffaa3631bdd4e69ca2",
-      "bytes": 34386
-    },
-    {
-      "id": "apprentice-leather",
-      "name": "Apprentice Leather",
-      "image": "art/nutvale/mining-tools/gloves/apprentice-leather.png",
-      "column": 1,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/apprentice-leather.png",
-      "git_blob_sha": "e48aaf267b69f5597b5a8c5f005b83fa7d9ee172",
-      "bytes": 36106
-    },
-    {
-      "id": "autumn-leaves",
-      "name": "Autumn Leaves",
-      "image": "art/nutvale/mining-tools/gloves/autumn-leaves.png",
-      "column": 2,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/autumn-leaves.png",
-      "git_blob_sha": "c7bfd69b62183a1540aebf945d281adbc4a8f149",
-      "bytes": 38575
-    },
-    {
-      "id": "verdant-wool",
-      "name": "Verdant Wool",
-      "image": "art/nutvale/mining-tools/gloves/verdant-wool.png",
-      "column": 3,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/verdant-wool.png",
-      "git_blob_sha": "eca61ec0eeac06a5981ef5b4a9c5ca70c67aa2d9",
-      "bytes": 35547
-    },
-    {
-      "id": "acorn-gardener",
-      "name": "Acorn Gardener",
-      "image": "art/nutvale/mining-tools/gloves/acorn-gardener.png",
-      "column": 4,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/acorn-gardener.png",
-      "git_blob_sha": "8f0d07a8e46e6a5035960dc6df853636c4227721",
-      "bytes": 38694
-    },
-    {
-      "id": "frostfur-forager",
-      "name": "Frostfur Forager",
-      "image": "art/nutvale/mining-tools/gloves/frostfur-forager.png",
-      "column": 5,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/frostfur-forager.png",
-      "git_blob_sha": "a5c6d324150c06e4e6c55e210554febd14b1cf53",
-      "bytes": 39813
-    },
-    {
-      "id": "oak-traveler",
-      "name": "Oak Traveler",
-      "image": "art/nutvale/mining-tools/gloves/oak-traveler.png",
-      "column": 6,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/oak-traveler.png",
-      "git_blob_sha": "94d9b0873886a775cec5481788faf4bf7014375f",
-      "bytes": 35469
-    },
-    {
-      "id": "winter-stone",
-      "name": "Winter Stone",
-      "image": "art/nutvale/mining-tools/gloves/winter-stone.png",
-      "column": 7,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/winter-stone.png",
-      "git_blob_sha": "55780234da61166ac325703f17736eb75f52d77f",
-      "bytes": 39652
-    },
-    {
-      "id": "copper-clockwork",
-      "name": "Copper Clockwork",
-      "image": "art/nutvale/mining-tools/gloves/copper-clockwork.png",
-      "column": 8,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/copper-clockwork.png",
-      "git_blob_sha": "bb9eb3ff6d3058ed7f736e74633c595f943e6ccc",
-      "bytes": 39102
-    },
-    {
-      "id": "brass-clockwork",
-      "name": "Brass Clockwork",
-      "image": "art/nutvale/mining-tools/gloves/brass-clockwork.png",
-      "column": 9,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/brass-clockwork.png",
-      "git_blob_sha": "d78ecfd361fbf782f212bd3280487326031162ce",
-      "bytes": 39925
-    },
-    {
-      "id": "sapphire-royal",
-      "name": "Sapphire Royal",
-      "image": "art/nutvale/mining-tools/gloves/sapphire-royal.png",
-      "column": 10,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/sapphire-royal.png",
-      "git_blob_sha": "7cc6697d948e632852c922f9c6156dabe42505cd",
-      "bytes": 39997
-    },
-    {
-      "id": "solar-gilt",
-      "name": "Solar Gilt",
-      "image": "art/nutvale/mining-tools/gloves/solar-gilt.png",
-      "column": 11,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/solar-gilt.png",
-      "git_blob_sha": "d4653bf6852561a6caf7cb4a32091512c8ddf1eb",
-      "bytes": 38352
-    },
-    {
-      "id": "orchid-bloom",
-      "name": "Orchid Bloom",
-      "image": "art/nutvale/mining-tools/gloves/orchid-bloom.png",
-      "column": 12,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/orchid-bloom.png",
-      "git_blob_sha": "9ba4ad4a4e196c280ce1f6e75d0671f4865260b1",
-      "bytes": 39778
-    },
-    {
-      "id": "holly-blossom",
-      "name": "Holly Blossom",
-      "image": "art/nutvale/mining-tools/gloves/holly-blossom.png",
-      "column": 13,
-      "row": 0,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/holly-blossom.png",
-      "git_blob_sha": "8364956b00eab09e073e94095b1204f83b28039e",
-      "bytes": 36581
-    },
-    {
-      "id": "pink-confection",
-      "name": "Pink Confection",
-      "image": "art/nutvale/mining-tools/gloves/pink-confection.png",
-      "column": 0,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/pink-confection.png",
-      "git_blob_sha": "e6224605be399926c07ed0d78a7f5e04535bd2a1",
-      "bytes": 42689
-    },
-    {
-      "id": "rainbow-icing",
-      "name": "Rainbow Icing",
-      "image": "art/nutvale/mining-tools/gloves/rainbow-icing.png",
-      "column": 1,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/rainbow-icing.png",
-      "git_blob_sha": "93f4e0f5ffaccb346aae1af209f7fb85dc6ab385",
-      "bytes": 41601
-    },
-    {
-      "id": "confetti-star",
-      "name": "Confetti Star",
-      "image": "art/nutvale/mining-tools/gloves/confetti-star.png",
-      "column": 2,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/confetti-star.png",
-      "git_blob_sha": "f9a2aa7f2cfa0e99caf5cdc6c9ee337a9576e86b",
-      "bytes": 40639
-    },
-    {
-      "id": "candy-party",
-      "name": "Candy Party",
-      "image": "art/nutvale/mining-tools/gloves/candy-party.png",
-      "column": 3,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/candy-party.png",
-      "git_blob_sha": "fd31223e9e4c764b71c5a4c00e3e3e3af7cc3051",
-      "bytes": 38830
-    },
-    {
-      "id": "violet-nebula",
-      "name": "Violet Nebula",
-      "image": "art/nutvale/mining-tools/gloves/violet-nebula.png",
-      "column": 4,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/violet-nebula.png",
-      "git_blob_sha": "52efd58ee1a6ea876d049b0015ad4f328b608a07",
-      "bytes": 38613
-    },
-    {
-      "id": "spectral-skull",
-      "name": "Spectral Skull",
-      "image": "art/nutvale/mining-tools/gloves/spectral-skull.png",
-      "column": 5,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/spectral-skull.png",
-      "git_blob_sha": "14dc611336d0e0b32937c884cf5a998487bccf5c",
-      "bytes": 40915
-    },
-    {
-      "id": "starlight-void",
-      "name": "Starlight Void",
-      "image": "art/nutvale/mining-tools/gloves/starlight-void.png",
-      "column": 6,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/starlight-void.png",
-      "git_blob_sha": "b887089c2359ad1e436acdd5a664722cbaeaf6a4",
-      "bytes": 36502
-    },
-    {
-      "id": "golden-cabochon",
-      "name": "Golden Cabochon",
-      "image": "art/nutvale/mining-tools/gloves/golden-cabochon.png",
-      "column": 7,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/golden-cabochon.png",
-      "git_blob_sha": "d6e4f25081bd41aa8e204a4b4c85ea2e0860c908",
-      "bytes": 39786
-    },
-    {
-      "id": "silver-sunburst",
-      "name": "Silver Sunburst",
-      "image": "art/nutvale/mining-tools/gloves/silver-sunburst.png",
-      "column": 8,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/silver-sunburst.png",
-      "git_blob_sha": "c1a6ca9c665e38a02e68e3c72efe9aceeb882173",
-      "bytes": 40387
-    },
-    {
-      "id": "arcane-geode",
-      "name": "Arcane Geode",
-      "image": "art/nutvale/mining-tools/gloves/arcane-geode.png",
-      "column": 9,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/arcane-geode.png",
-      "git_blob_sha": "9f82d57cf5bac0b7695c6133afd0c02d3351aa69",
-      "bytes": 37893
-    },
-    {
-      "id": "industrial-gear",
-      "name": "Industrial Gear",
-      "image": "art/nutvale/mining-tools/gloves/industrial-gear.png",
-      "column": 10,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/industrial-gear.png",
-      "git_blob_sha": "d1ac604fa0517baf40f35de99928bcb51c49b05c",
-      "bytes": 41613
-    },
-    {
-      "id": "glacier-mechanist",
-      "name": "Glacier Mechanist",
-      "image": "art/nutvale/mining-tools/gloves/glacier-mechanist.png",
-      "column": 11,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/glacier-mechanist.png",
-      "git_blob_sha": "e4ba70e1d0ac53d04123705aa3124fc4b3ba06a8",
-      "bytes": 39794
-    },
-    {
-      "id": "sunstone-alchemist",
-      "name": "Sunstone Alchemist",
-      "image": "art/nutvale/mining-tools/gloves/sunstone-alchemist.png",
-      "column": 12,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/sunstone-alchemist.png",
-      "git_blob_sha": "032150040869a81e49ba175a377487a0b042f24f",
-      "bytes": 39501
-    },
-    {
-      "id": "sunflower-garden",
-      "name": "Sunflower Garden",
-      "image": "art/nutvale/mining-tools/gloves/sunflower-garden.png",
-      "column": 13,
-      "row": 1,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/sunflower-garden.png",
-      "git_blob_sha": "386ea938a156e02f0bd35e43f3b0221e3a02fd4a",
-      "bytes": 39000
-    },
-    {
-      "id": "lava-fissure",
-      "name": "Lava Fissure",
-      "image": "art/nutvale/mining-tools/gloves/lava-fissure.png",
-      "column": 0,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/lava-fissure.png",
-      "git_blob_sha": "e5961f44eea4ce19caef65a789d9a61561f62e77",
-      "bytes": 36469
-    },
-    {
-      "id": "flameheart",
-      "name": "Flameheart",
-      "image": "art/nutvale/mining-tools/gloves/flameheart.png",
-      "column": 1,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/flameheart.png",
-      "git_blob_sha": "96ac717e887caa5874f5ab2464d628df80dbc4a3",
-      "bytes": 36633
-    },
-    {
-      "id": "riveted-steel",
-      "name": "Riveted Steel",
-      "image": "art/nutvale/mining-tools/gloves/riveted-steel.png",
-      "column": 2,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/riveted-steel.png",
-      "git_blob_sha": "779945721fa5736115e596e270dbc4e38f2a42fe",
-      "bytes": 40590
-    },
-    {
-      "id": "winter-rune",
-      "name": "Winter Rune",
-      "image": "art/nutvale/mining-tools/gloves/winter-rune.png",
-      "column": 3,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/winter-rune.png",
-      "git_blob_sha": "3971bd33374ebb7721e2b04f8cba21e9ece62435",
-      "bytes": 39173
-    },
-    {
-      "id": "shadow-amethyst",
-      "name": "Shadow Amethyst",
-      "image": "art/nutvale/mining-tools/gloves/shadow-amethyst.png",
-      "column": 4,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/shadow-amethyst.png",
-      "git_blob_sha": "8ccb7729ec41e9b8b70846d6c13f9b808efeebf7",
-      "bytes": 37421
-    },
-    {
-      "id": "aether-machinery",
-      "name": "Aether Machinery",
-      "image": "art/nutvale/mining-tools/gloves/aether-machinery.png",
-      "column": 5,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/aether-machinery.png",
-      "git_blob_sha": "e5c5d870a993c33986b1832d43706128d4c309d9",
-      "bytes": 44541
-    },
-    {
-      "id": "fresh-spring",
-      "name": "Fresh Spring",
-      "image": "art/nutvale/mining-tools/gloves/fresh-spring.png",
-      "column": 6,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/fresh-spring.png",
-      "git_blob_sha": "7b0386f1a1b7925e60db1886301b105b1d3cd8e6",
-      "bytes": 39469
-    },
-    {
-      "id": "woodland-hide",
-      "name": "Woodland Hide",
-      "image": "art/nutvale/mining-tools/gloves/woodland-hide.png",
-      "column": 7,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/woodland-hide.png",
-      "git_blob_sha": "f0171074822dab99446cc3e62875dd8e4484314f",
-      "bytes": 38603
-    },
-    {
-      "id": "golden-gears",
-      "name": "Golden Gears",
-      "image": "art/nutvale/mining-tools/gloves/golden-gears.png",
-      "column": 8,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/golden-gears.png",
-      "git_blob_sha": "4cbb43c0a2790abb901133d5b7913fe27e06a7f7",
-      "bytes": 42168
-    },
-    {
-      "id": "pumpkin-gold",
-      "name": "Pumpkin Gold",
-      "image": "art/nutvale/mining-tools/gloves/pumpkin-gold.png",
-      "column": 9,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/pumpkin-gold.png",
-      "git_blob_sha": "9a4ec22e31be5a7be13a770cfdcaa1df2c61bc62",
-      "bytes": 38276
-    },
-    {
-      "id": "holiday-holly",
-      "name": "Holiday Holly",
-      "image": "art/nutvale/mining-tools/gloves/holiday-holly.png",
-      "column": 10,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/holiday-holly.png",
-      "git_blob_sha": "cefc34122cc6fb84859fa68d393203fbc84b4e5d",
-      "bytes": 37614
-    },
-    {
-      "id": "fur-trapper",
-      "name": "Fur Trapper",
-      "image": "art/nutvale/mining-tools/gloves/fur-trapper.png",
-      "column": 11,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/fur-trapper.png",
-      "git_blob_sha": "c929223e1ce9e5cd9d3485183f61ab20c3115e3d",
-      "bytes": 38336
-    },
-    {
-      "id": "harvest-petal",
-      "name": "Harvest Petal",
-      "image": "art/nutvale/mining-tools/gloves/harvest-petal.png",
-      "column": 12,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/harvest-petal.png",
-      "git_blob_sha": "01357daf94179614b2f50e0c1408448056757b6a",
-      "bytes": 39146
-    },
-    {
-      "id": "jackolantern",
-      "name": "Jackolantern",
-      "image": "art/nutvale/mining-tools/gloves/jackolantern.png",
-      "column": 13,
-      "row": 2,
-      "category": "gloves",
-      "path": "art/nutvale/mining-tools/gloves/jackolantern.png",
-      "git_blob_sha": "326f96591756eb709dfcfc54ea84eb3933ac17f4",
-      "bytes": 35121
-    }
-  ]
+  }
 }
