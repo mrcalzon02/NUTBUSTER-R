@@ -402,12 +402,23 @@ function checkout(){const p=offers[state.checkout];if(!p)return '<p>Offer unavai
 const shopSprites=['golden-nuts','golden-nuts','gift','treasure','vip-crown','treasure'];
 const products=[['GIGANTIC NUT PACKAGE','🌰',50000,250,'$199.99'],['RIDICULOUSLY PREMIUM GEMS','💎',2000,2000,'$499.99'],['ROYAL SQUIRREL BUNDLE','🐿️',9999,500,'$99.99'],['HUNDRED YEAR CHEST','🧰',10000,150,'$79.99'],['ABSOLUTELY NECESSARY VIP','👑',1000,100,'$29.99/mo'],['MYSTERY NUT CRATE','🎲',3000,30,'$24.99']];
 const offers=[...products,['EMERGENCY HEART REFILL','❤️',0,0,'$4.99'],['EXTRA FIVE MOVES','➕',0,0,'$9.99'],['EXCLUSIVE ROYAL MANOR KIT','👑',0,0,'$499.99']];
+function nutToBoosterShop(){
+ const cards=E.BOOSTERS.map(id=>{
+  const price=P.BOOSTER_PRICES[id],unlocked=P.unlocked(saved,id),stock=P.count(saved,id),available=unlocked&&stock<999999&&saved.coins>=price;
+  return '<div class="nut-booster-offer"><b>'+E.BOOSTER_META[id].label+'</b><small>×'+stock+' owned · '+(unlocked?FRate(id)+' 🪱 / booster':'LV '+P.LEVEL_BY_TOOL[id]+' to unlock')+'</small>'+
+   '<button class="btn secondary" data-action="booster-buy" data-booster="'+id+'" '+(available?'':'disabled')+'>BUY · '+price.toLocaleString()+' GOLDEN NUTS</button></div>';
+ }).join('');
+ return '<details class="nut-booster-shop"><summary><b>🥜 GOLDEN NUTS → BOOSTERS</b><small>'+saved.coins.toLocaleString()+' Golden Nuts · Spend to stock fishing power-ups</small></summary>'+
+ '<div class="nut-booster-grid">'+cards+'</div><small>Buy a booster with earned Golden Nuts, exchange it for Honest Worms, then fish for Wharf Dollars.</small>'+
+ '<button class="btn ghost" data-nav="bait-shop">→ WHARF BAIT SHOP</button></details>';
+}
+function FRate(id){return window.NutFishing?.BOOSTER_BAIT?.[id]||0;}
 function shop(){
  const holdCards=Object.entries(P.HOLD_ITEMS).map(([id,item])=>{
   const pending=state.holdOffer===id;
   return `<div class="hold-offer"><img src="${item.art}" alt="" draggable="false"><div class="hold-offer-info"><b>${item.label}</b><small>${item.drops} gravity drop${item.drops===1?'':'s'} · held-nut matches ×3 · Owned ${P.holdCount(saved,id)}</small></div><div class="hold-offer-buy"><b>${item.gems} <img src="art/additions/economy/prismatic-acorn.png" alt="gems"></b><button class="btn secondary" data-action="hold-offer" data-hold-id="${id}">BUY</button></div>${pending?`<div class="hold-confirm" role="group" aria-label="Confirm ${item.label} purchase"><span>Spend ${item.gems} gems? Balance: ${saved.gems.toLocaleString()}</span><button class="btn green" data-action="hold-buy" data-hold-id="${id}">CONFIRM</button><button class="btn ghost" data-action="hold-cancel">CANCEL</button></div>`:''}</div>`;
  }).join('');
- return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">VIP DEALS</span>'}</div><div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div>${window.NutFishingUI?.exchangeSheet?.(saved,E,P,false)||''}<p class="muted">Extraordinary bundles. Unbelievable prices. One last step before checkout.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item">${art('economy',shopSprites[i],p[1])}<h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><div class="offer-price">${p[4]}</div><button class="btn green" data-action="claim" data-item="${i}">BUY PACKAGE</button></div>`).join('')}</div>`;
+ return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">VIP DEALS</span>'}</div><div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div>${nutToBoosterShop()}${window.NutFishingUI?.exchangeSheet?.(saved,E,P,false)||''}<p class="muted">Extraordinary bundles. Unbelievable prices. One last step before checkout.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item">${art('economy',shopSprites[i],p[1])}<h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><div class="offer-price">${p[4]}</div><button class="btn green" data-action="claim" data-item="${i}">BUY PACKAGE</button></div>`).join('')}</div>`;
 }
 function rewards(){const tiers=P.challengeRewards(saved),next=P.nextUnlock(saved),elemental=R.summary(saved);let mins=Math.max(0,Math.ceil((saved.chestReadyAt-Date.now())/60000));return `<div class="topline"><h2>REWARDS, REWARDS, REWARDS</h2></div><div class="panel reward-inventory"><b>BOOSTER VAULT</b><p class="muted">${inventorySummary()}</p>${next?'<p class="muted">Next power: '+E.BOOSTER_META[next.id].label+' · clear level '+next.level+'</p>':''}</div>
  <div class="panel challenge-rewards"><b>ELEMENTAL TRIAL REWARDS</b><p class="muted">${elemental.completed}/150 trials · ${elemental.relics.length}/15 relics · ${movesLeft()} daily moves left</p><div class="elemental-relics">${elemental.relics.map(id=>'<img src="art/primary/nuts/elemental/'+id+'.png" alt="'+id+' relic" title="'+id+' relic" loading="lazy">').join('')}</div></div><div class="panel challenge-rewards"><b>CHALLENGE REWARD TRACK</b><p class="muted">${P.challengeProgress(saved)}/25 challenge milestones cleared</p>
@@ -731,6 +742,16 @@ function action(a,button){
  if(a==='codex-back'){nav(state.codexBack&&state.codexBack!=='codex'?state.codexBack:'home');return;}
  if(a==='nutdex-open'){openNutdex();return;}
  if(a==='nutdex-close'){closeNutdex();return;}
+ if(a==='booster-buy'){
+  if(state.page!=='shop'){notice('BOOSTERS CAN BE BOUGHT AT THE NUT EMPORIUM');return;}
+  const result=P.buyBooster(saved,button.dataset.booster);
+  if(!result.valid){
+   notice(result.reason==='coins'?'NOT ENOUGH GOLDEN NUTS':result.reason==='locked'?'CLEAR THE REQUIRED LEVEL FIRST':'BOOSTER PURCHASE UNAVAILABLE');return;
+  }
+  persist();render();playSFX('coin');
+  notice('BOUGHT '+E.BOOSTER_META[result.id].label.toUpperCase()+' · '+result.cost+' GOLDEN NUTS');
+  return;
+ }
  if(a==='ad-daily'){startFakeAd('daily');return;}
  if(a==='ad-wharf'){startFakeAd('wharf');return;}
  if(a==='ad-discount'){startFakeAd('discount');return;}

@@ -203,3 +203,29 @@
 .fish-balance-container{padding:0;border:0;background:transparent}
 .fish-balance-container .fish-balance-sheet{margin:0}
 @media(max-width:540px){.fish-balance-table{font-size:10px}.fish-balance-table th,.fish-balance-table td{padding:4px 3px}.fish-exchange-btn{padding:4px}}
+
+/* Compact store tiers and real bait transactions; not a new oversized page. */
+.fish-bait-catalog{min-width:0}
+.fish-bait-catalog-list{display:flex;flex-direction:column;gap:5px;max-height:560px;overflow-y:auto;margin:7px 0}
+.fish-bait-offer{display:grid;grid-template-columns:30px minmax(0,1fr);gap:4px 7px;align-items:center;padding:7px;border:1px solid #638993;border-radius:6px;background:#214655;min-width:0}
+.fish-bait-offer.locked{background:#273e4a;border-color:#4c6473}
+.fish-bait-icon{font-size:26px;text-align:center}
+.fish-bait-copy{min-width:0}
+.fish-bait-copy b{display:block;font-size:11px;color:#ffeebc}
+.fish-bait-copy small{display:block;font-size:10px;line-height:1.35;color:#d0e2e4}
+.fish-bait-offer.locked .fish-bait-copy small:first-of-type{color:#ffdc9d}
+.fish-bait-purchase{grid-column:1/-1;display:flex;gap:4px;flex-wrap:wrap}
+.fish-bait-purchase .btn{flex:1 1 75px;min-height:31px;font-size:9px;padding:5px 6px}
+.fish-bait-purchase .btn:disabled{opacity:.46}
+.fish-bait-catalog>small{display:block;color:#c2dee0;font-size:10px;line-height:1.35}
+.nut-booster-shop{margin:8px 0;border:1px solid #b59a64;border-radius:8px;background:#2b333d;color:#f7eac6}
+.nut-booster-shop>summary{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;cursor:pointer;padding:9px 11px;font-size:12px}
+.nut-booster-shop>summary small{color:#e1d6ba;font-size:10px}
+.nut-booster-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:5px;padding:5px}
+.nut-booster-offer{display:flex;flex-direction:column;gap:4px;padding:7px;border:1px solid #897c65;border-radius:6px;background:#434544;font-size:11px}
+.nut-booster-offer small{font-size:10px;color:#e4d7be}
+.nut-booster-offer .btn{font-size:10px;min-height:32px;padding:5px}
+.nut-booster-offer .btn:disabled{opacity:.42}
+.nut-booster-shop>small{display:block;padding:5px 9px;font-size:10px}
+.nut-booster-shop>.btn{margin:5px}
+@media(max-width:440px){.fish-bait-catalog-list{max-height:380px}.fish-bait-purchase .btn{flex-basis:70px}}

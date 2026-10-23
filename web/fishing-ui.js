@@ -10,7 +10,7 @@ function hub(save){
   '<div class="wharf-hub-scene" aria-label="Nutvale Valley Wharf with Fishing on the left and Bait Shop on the right"><img class="wharf-landscape" src="art/wharf/nutvale-valley-wharf-hub.webp" alt="Sunlit Nutvale Valley Wharf: fishing shelter on the left, bait shop on the right, and boats in the bay" width="1672" height="941" draggable="false">'+
   '<button class="wharf-hub-hotspot wharf-hub-fishing" data-nav="fishing" aria-label="Go fishing at the waterfront"><span>🎣 GO FISHING</span></button>'+
   '<button class="wharf-hub-hotspot wharf-hub-shop" data-nav="bait-shop" aria-label="Enter the bait and tackle shop"><span>🪱 BAIT SHOP</span></button></div>'+
-  '<div class="wharf-hub-foot"><span>🪱 '+n.baits.worm+' worms · 🎣 '+active.name+' · '+n.rodStock[active.id]+'/'+active.maxDurability+' durability</span><button class="btn ghost" data-nav="aquarium">VIEW AQUARIUM →</button></div>';
+  '<div class="wharf-hub-foot"><span>WHARF TIER '+n.wharfTier+'/5 · 🪱 '+n.baits.worm+' worms · 🎣 '+active.name+' · '+n.rodStock[active.id]+'/'+active.maxDurability+' durability</span><button class="btn ghost" data-nav="aquarium">VIEW AQUARIUM →</button></div>';
 }
 function wharf(save,state,E,P){
  const n=F.ensure(save),fight=n.fight,pending=n.pending;
