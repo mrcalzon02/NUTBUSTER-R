@@ -3,12 +3,12 @@ const E=window.NutEngine, M=window.NutCampaignMaps, P=window.NutProgress, H=wind
 const icons=['🥜','🌰','🌰','🥜','🌰','🟢','🌟'];
 const D=window.NutDailyMoves, B=window.NutBenefits, T=window.NutElementalChallenges, R=window.NutElementalRewards;
 if(!D||!T||!R)throw new Error('Daily moves and elemental reward modules must load before gameplay');
-const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,levels:{voice:.9,music:.28,reactions:.38,sfx:.48},effects:true,completed:0};
+const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,announcerVoice:'original',levels:{voice:.9,music:.28,reactions:.38,sfx:.48},effects:true,completed:0};
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
-P.migrate(saved);R.ensure(saved);H.ensure(saved);A.ensure(saved);D.ensure(saved,Date.now(),E.makeLevel(Math.min(500,Math.max(1,saved.unlocked||1))).moves);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
+P.migrate(saved);R.ensure(saved);H.ensure(saved);A.ensure(saved);if(!['original','auditor'].includes(saved.announcerVoice))saved.announcerVoice='original';D.ensure(saved,Date.now(),E.makeLevel(Math.min(500,Math.max(1,saved.unlocked||1))).moves);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
 let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null};let toastHandle;
-if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});}
+if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});window.NutAudio.setAnnouncerVoice?.(saved.announcerVoice);}
 if(window.NutSFX){window.NutSFX.setEnabled(state.effects);window.NutSFX.setVolume(saved.levels.sfx);}
 function playSFX(name,opts){window.NutSFX?.play(name,opts);}
 const Ads=window.NutFakeAds, Purchases=window.NutPurchases, Promos=window.NutPromo;let adTicker=null,promoBusy=false;
@@ -73,7 +73,7 @@ function activateBooster(id,index){const meta=E.BOOSTER_META[id];
  persist();refreshBoosters();playSFX(id==='unlock'?'chain':id==='shuffle'?'shuffle':'booster');return result;
 }
 function notice(message){const n=document.getElementById('toast');n.textContent=message;n.classList.add('show');clearTimeout(toastHandle);toastHandle=setTimeout(()=>n.classList.remove('show'),2300);}
-function announce(txt,clip){state.announcer=txt;const el=document.getElementById('announcer');if(el)el.textContent=txt;if(state.sound&&clip)window.NutAudio?.voice(clip);}
+function announce(txt,clip){state.announcer=clip?(window.NutAudio?.caption?.(clip,txt)||txt):txt;const el=document.getElementById('announcer');if(el)el.textContent=state.announcer;if(state.sound&&clip)window.NutAudio?.voice(clip);}
 const $=(selector)=>document.querySelector(selector);
 function nav(page){
  // Header currency buttons and bottom tabs may target the page already on screen.
@@ -753,7 +753,18 @@ function finishFakeAd(){
  state.page=destination||'rewards';
  render();playSFX('coin');
 }
-function settings(){const lev=saved.levels||{voice:.9,music:.28,reactions:.38,sfx:.48};return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings"><p class="muted">Independent volume controls for speech, music, reactions and gameplay effects.</p>${[['voice','Announcer'],['music','Music'],['reactions','Match reactions'],['sfx','Game effects']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}<div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div><div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>`;}
+function settings(){
+ const lev=saved.levels||{voice:.9,music:.28,reactions:.38,sfx:.48};
+ const announcers=window.NutAnnouncers?.voices||[{id:'original',label:'The Original Hype Man',description:'Original recordings'},{id:'auditor',label:'The Nutvale Auditor',description:'Offline text-to-speech'}];
+ const choices=announcers.map(v=>`<button class="announcer-choice ${saved.announcerVoice===v.id?'selected':''}" type="button" data-action="announcer-set" data-voice-id="${v.id}" aria-pressed="${saved.announcerVoice===v.id?'true':'false'}"><strong>${saved.announcerVoice===v.id?'● ':'○ '}${v.label}</strong><small>${v.description}</small></button>`).join('');
+ const status=window.NutAudio?.ttsStatus?.();
+ return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings">
+ <div class="announcer-picker" role="group" aria-label="Select announcer"><b>ANNOUNCER VOICE</b><div class="announcer-choices">${choices}</div><div class="announcer-preview"><button class="btn secondary" data-action="announcer-preview">▶ PREVIEW SELECTED VOICE</button><small>${saved.announcerVoice==='auditor'?(status==='ready'?'Offline speech ready':status==='initializing'?'Starting device speech engine':'Offline English TTS voice unavailable on this device'):'Original recording · default'}</small></div></div>
+ <p class="muted">Independent volume controls for speech, music, reactions and gameplay effects.</p>
+ ${[['voice','Announcer'],['music','Music'],['reactions','Match reactions'],['sfx','Game effects']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}
+ <div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div>
+ <div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>`;
+}
 function render(){syncDaily();if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');document.getElementById('app')?.classList?.toggle('fake-ad-active',state.page==='fake-ad');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
  screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');screen.classList?.toggle('codex-active',state.page==='codex');
  screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='homestead'?homestead():state.page==='wharf'?window.NutFishingUI.hub(saved):state.page==='fishing'?window.NutFishingUI.wharf(saved,state,E,P):state.page==='bait-shop'?window.NutFishingUI.baitShop(saved,state,E,P):state.page==='aquarium'?window.NutFishingUI.aquarium(saved,state):state.page==='fish-records'?window.NutFishingUI.trophyHall(saved):state.page==='codex'?codex():state.page==='settings'?settings():state.page==='vip-benefits'?vipBenefits():state.page==='checkout'?checkout():state.page==='fake-ad'?fakeAdScreen():state.page==='outcome'?outcome():rewards();
@@ -773,7 +784,7 @@ function start(n){state.epoch++;state.animating=false;
  if(saved.hearts<=0){notice('NO HEARTS · FREE REFILL RETURNS 12 HOURS AFTER REDEMPTION');return;}
  saved.hearts--;persist();const level=trial?requested:Math.min(500,Math.max(1,requested));
  closeNutdex();state.game=E.create(level,Math.floor(Math.random()*0xffffffff));state.game.moves=movesLeft();state.page='game';state.selected=-1;state.tool=null;state.holdTool=null;state.outcome=null;state.levelReward='';
- playSFX('ui');state.announcer=state.game.cfg.newNut?'NEW NUT: '+state.game.cfg.newNut.replace('-',' ').toUpperCase()+'!':'PREPARE TO BUST SOME NUTS!';render();window.NutAudio?.voice('nutbuster-soft');
+ playSFX('ui');state.announcer=window.NutAudio?.caption?.('nutbuster-soft',state.game.cfg.newNut?'NEW NUT: '+state.game.cfg.newNut.replace('-',' ').toUpperCase()+'!':'PREPARE TO BUST SOME NUTS!')||'PREPARE TO BUST SOME NUTS!';render();window.NutAudio?.voice('nutbuster-soft');
  window.NutbusterUpdates?.autoCheck?.('level');
 }
 function concludeMove(result){
@@ -853,6 +864,19 @@ function cell(i){if(!state.game||state.game.won||state.game.lost||state.animatin
  if(state.selected<0){selectCell(i);return;}if(state.selected===i){selectCell(-1);return;}doSwap(state.selected,i);
 }
 function action(a,button){
+ if(a==='announcer-set'){
+  const id=button?.dataset?.voiceId;
+  if(!['original','auditor'].includes(id)||!window.NutAudio?.setAnnouncerVoice?.(id))return;
+  saved.announcerVoice=id;persist();render();return;
+ }
+ if(a==='announcer-preview'){
+  if(!state.sound){notice('UNMUTE VOICE TO PREVIEW');return;}
+  if(!window.NutAudio?.voice?.('deal')){
+   const status=window.NutAudio?.ttsStatus?.();
+   notice(status==='initializing'?'SPEECH ENGINE STARTING · TRY AGAIN':status==='offline-voice-missing'?'INSTALL AN OFFLINE ENGLISH SPEECH VOICE':'ANNOUNCER PREVIEW UNAVAILABLE');
+  }else notice(window.NutAudio?.caption?.('deal','WHAT A DEAL!')||'WHAT A DEAL!');
+  return;
+ }
  if(a==='promo-open'){
   const form=screen.querySelector?.('#shop-promo-form');
   if(!form)return;
