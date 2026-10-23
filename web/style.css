@@ -581,3 +581,106 @@
 .release-news-details ul{padding:4px 14px 12px 29px;margin:0;color:#e8dfe8;white-space:normal;line-height:1.45}.release-news-details li+li{margin-top:5px}
 @keyframes nut-release-marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media(prefers-reduced-motion:reduce){.release-news-ticker{animation:none;min-width:0}.release-news-viewport{overflow:auto}.release-news-stream[aria-hidden=true]{display:none}.release-news-stream{display:flex;flex-wrap:wrap;white-space:normal}}
+
+/* Artwork-faced tactical buttons: keep the established 6x2 grid, 51px/46px
+   button footprints, hit targets, order, stock hooks, and unlock behavior.
+   Only the visual composition inside each existing button changes. */
+#app.playing .game-active .boosters button{
+  background:transparent;
+  border:0;
+  box-shadow:none;
+  padding:0;
+  isolation:isolate;
+}
+#app.playing .game-active .boosters .booster-picture{
+  position:absolute;
+  inset:0 0 10px;
+  display:grid;
+  place-items:center;
+  width:100%;
+  height:auto;
+  margin:0;
+  pointer-events:none;
+}
+#app.playing .game-active .boosters .booster-icon{
+  display:block;
+  width:100%;
+  height:100%;
+  min-height:0;
+  max-width:100%;
+  object-fit:contain;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:none;
+  margin:0;
+  filter:drop-shadow(0 2px 3px #1d091ab8);
+  pointer-events:none;
+}
+#app.playing .game-active .boosters .hold-icon{
+  position:absolute;
+  top:0;
+  left:0;
+  display:block;
+  width:100%;
+  height:calc(100% - 10px);
+  max-width:100%;
+  object-fit:contain;
+  margin:0;
+  filter:drop-shadow(0 2px 3px #1d091ab8);
+  pointer-events:none;
+}
+#app.playing .game-active .boosters .booster-label{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:2;
+  display:block;
+  width:100%;
+  max-width:100%;
+  margin:0;
+  padding:1px 0 0;
+  font-size:9px!important;
+  font-weight:900;
+  line-height:1.05;
+  text-align:center;
+  color:#fff2d9;
+  text-shadow:0 1px 2px #140c17,0 0 4px #140c17;
+  pointer-events:none;
+}
+#app.playing .game-active .boosters [data-hold-tool] .booster-label{
+  font-size:8px!important;
+  white-space:nowrap;
+}
+#app.playing .game-active .boosters button [data-stock]{
+  position:absolute;
+  top:1px;
+  right:1px;
+  z-index:3;
+  min-width:17px;
+  padding:1px 3px;
+  border:1px solid #dbaf77;
+  border-radius:10px;
+  background:#29152de8;
+  color:#fff0c8;
+  font-size:9px;
+  font-weight:900;
+  line-height:1.1;
+  white-space:nowrap;
+  text-shadow:0 1px #17091b;
+  pointer-events:none;
+}
+#app.playing .game-active .boosters .booster-picture .booster-variant{
+  right:1px;
+  bottom:3px;
+  font-size:9px;
+}
+#app.playing .game-active .boosters button:is(:active,.active){
+  outline:2px solid #7fefff;
+  outline-offset:-2px;
+}
+@media (orientation:portrait) and (max-height:560px){
+  #app.playing .game-active .boosters .booster-picture{bottom:9px}
+  #app.playing .game-active .boosters .hold-icon{height:calc(100% - 9px)}
+}
