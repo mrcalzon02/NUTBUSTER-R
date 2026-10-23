@@ -50,7 +50,7 @@ const TILE_OVERLAY_UNLOCKS=Object.freeze([
  {kind:'shadow',level:245,turns:2},{kind:'arcane',level:285,turns:2},
  {kind:'water',level:325,turns:2},{kind:'radiance',level:365,turns:2},
  {kind:'lightning',level:425,turns:2},{kind:'storm',level:525,turns:2},
- {kind:'magma',level:625,turns:2}
+ {kind:'magma',level:625,turns:2},{kind:'void-rock',level:745,turns:2}
 ].map(x=>Object.freeze(x)));
 function overlayPlan(level){
  const n=Math.max(1,Math.min(1000,Math.trunc(level)||1)),pool=TILE_OVERLAY_UNLOCKS.filter(x=>n>=x.level);
@@ -197,7 +197,7 @@ function makeLevel(number){
  return cfg;
 }
 function create(level=1,seed=level*7919){
- const cfg=makeLevel(level);let rand=rng(seed);const a=cfg.mask.map(v=>v?{type:0,ice:0,lock:0,chest:0,jam:0,fuse:0,special:null,hold:0,elemental:null,frozen:0,poison:0,ward:0,aura:null,auraTurns:0}:null);
+ const cfg=makeLevel(level);let rand=rng(seed);const a=cfg.mask.map(v=>v?{type:0,ice:0,lock:0,chest:0,jam:0,fuse:0,special:null,hold:0,elemental:null,frozen:0,poison:0,ward:0,rock:0,aura:null,auraTurns:0}:null);
  const g={level:cfg.number,cfg,seed,rand,cells:a,score:0,moves:cfg.moves,won:false,lost:false,combos:0,history:[],boosterUsed:0,turns:0,progress:{ice:0,locks:0,chests:0,jam:0,bombs:0,colors:TYPES.map(()=>0)},uses:{},elementalQueue:[],magmaQueue:[],crystalCharge:0,elementalActivations:[],elementalRefunds:0};
  for(let y=0;y<cfg.height;y++)for(let x=0;x<cfg.width;x++){
   const i=y*cfg.width+x;if(!a[i])continue;let opts=cfg.roster.filter(t=>!(x>=2&&a[i-1]&&a[i-2]&&a[i-1].type===t&&a[i-2].type===t)&&!(y>=2&&a[i-cfg.width]&&a[i-2*cfg.width]&&a[i-cfg.width].type===t&&a[i-2*cfg.width].type===t));a[i].type=opts[Math.floor(rand()*opts.length)];
@@ -262,7 +262,7 @@ function create(level=1,seed=level*7919){
  }
  return g;
 }
-function pinned(c){return !!(c&&(c.ice>0||c.lock>0||c.chest>0||c.frozen>0||(c.aura==='nature-vines'&&c.auraTurns>0)));}
+function pinned(c){return !!(c&&(c.ice>0||c.lock>0||c.chest>0||c.rock>0||c.frozen>0||(c.aura==='nature-vines'&&c.auraTurns>0)));}
 function matches(g){const hit=new Set(),groups=[];const {width:w,height:h}=g.cfg;function run(indices){if(indices.length>=3){groups.push(indices);indices.forEach(i=>hit.add(i));}}
  for(let y=0;y<h;y++){let active=[],prev=null;for(let x=0;x<=w;x++){const i=y*w+x,c=x<w?g.cells[i]:null,t=c&&!pinned(c)?c.type:null;if(t!==null&&t===prev)active.push(i);else{run(active);active=t!==null?[i]:[];prev=t;}}}
  for(let x=0;x<w;x++){let active=[],prev=null;for(let y=0;y<=h;y++){const i=y*w+x,c=y<h?g.cells[i]:null,t=c&&!pinned(c)?c.type:null;if(t!==null&&t===prev)active.push(i);else{run(active);active=t!==null?[i]:[];prev=t;}}}
@@ -328,6 +328,7 @@ function damage(g,i,summary){
  const c=g.cells[i];if(!c||c.type===null)return;
  if(c.ward>0||c.aura==='shadow'){c.ward=0;if(c.aura==='shadow'){c.aura=null;c.auraTurns=0;}summary.cracked++;return;}
  if(c.jam>0){c.jam--;g.progress.jam++;summary.cracked++;return;}
+ if(c.rock>0){c.rock--;summary.cracked++;return;}
  if(c.ice>0){c.ice--;g.progress.ice++;summary.cracked++;return;}
  if(c.lock>0){c.lock--;g.progress.locks++;summary.cracked++;return;}
  if(c.chest>0){c.chest--;g.progress.chests++;summary.cracked++;return;}
@@ -370,6 +371,7 @@ function resolveTileAura(g,at,kind,summary){
  else if(kind==='lightning')strike(nearest.filter(i=>g.cells[i].type===c.type).slice(0,3));
  else if(kind==='storm')strike(nearest.slice(0,4));
  else if(kind==='magma')strike(g.cells.map((v,i)=>valid(i)&&i%w===x?i:-1).filter(i=>i>=0));
+ else if(kind==='void-rock')c.rock=Math.max(c.rock||0,2);
 }
 function resolveElementals(g,summary){
  const hit=[],seen=new Set();let limit=g.cells.length*3;
@@ -692,6 +694,6 @@ function booster(g,type,index){
  return {...r,valid:true,type,removed:r.removed+summary.removed,cracked:r.cracked+summary.cracked,
   won:g.won,lost:g.lost,stages:[stage,...r.stages],objectives:objectiveState(g)};
 }
-function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,turns:g.turns,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,jam:c.jam,fuse:c.fuse,special:c.special,hold:c.hold||0,elemental:c.elemental||null,frozen:c.frozen||0,poison:c.poison||0,ward:c.ward||0,aura:c.aura||null,auraTurns:c.auraTurns||0}:null)};}
+function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,turns:g.turns,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,jam:c.jam,fuse:c.fuse,special:c.special,hold:c.hold||0,elemental:c.elemental||null,frozen:c.frozen||0,poison:c.poison||0,ward:c.ward||0,rock:c.rock||0,aura:c.aura||null,auraTurns:c.auraTurns||0}:null)};}
 const api={TYPES,ORIGINAL,NEW,RETIRED_NUTS,NEW_INTRODUCTIONS,TILE_OVERLAY_UNLOCKS,overlayPlan,ELEMENTAL_ABILITIES:POWERS.ABILITIES,rosterForLevel,difficultyAt,BOOSTERS,BOOSTER_META,HOLD_DROPS,makeLevel,create,matches,adjacent,hasMove,gravity,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,applyHold,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
 })(typeof window!=='undefined'?window:globalThis);
