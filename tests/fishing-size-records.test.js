@@ -5,6 +5,8 @@ const day=Date.UTC(2031,3,4,13);
 const fish=F.FISH;
 assert.equal(fish.length,80);
 assert.equal(new Set(fish.map(x=>x.id)).size,fish.length);
+assert.ok(fish.slice(0,12).every(spec=>spec.name.endsWith(' Fry')),'Original twelve species must be labeled as fry');
+assert.ok(fish.slice(12).every(spec=>!spec.name.endsWith(' Fry')),'Only the original twelve species are fry');
 assert.equal(new Set(fish.map(x=>x.maxSize)).size,fish.length,'Each species must have a different maximum length');
 for(const spec of fish){
  assert.ok(Number.isInteger(spec.maxSize)&&spec.maxSize>=1,'Invalid max '+spec.id);
