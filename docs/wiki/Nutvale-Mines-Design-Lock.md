@@ -1,5 +1,7 @@
 # Nutvale Mines — Mining & Industrial Economy Design Lock v1.0
 
+**2026-10-22 equipment amendment:** the owner explicitly approved extending Pickaxe and Survey Gloves to 40 mechanically meaningful states each. Their 0–5 level limits, N$ costs and daily maxima in this historical document are superseded by [Equipment v1.1](Nutvale-Mines-Equipment-v1.1.md). The 500-stage Campaign II mode remains unimplemented; the new mines phase-one screen and equipment/workshop are source-integrated. All other lock provisions remain in force.
+
 **Status: DESIGN LOCKED / IMPLEMENTATION PENDING.** This is the approved product contract, **not** proof that the current game has the finished mining minigame. All changes to the HARD rules require explicit owner approval. Machine-readable authority: [nutvale-mines-design-lock.v1.json](../economy/nutvale-mines-design-lock.v1.json).
 
 ## Concept and player loop
