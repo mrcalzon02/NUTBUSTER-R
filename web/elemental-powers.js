@@ -50,7 +50,7 @@ function activate(g,record,ops){
  }
  else if(kind==='poison')around.slice(0,2).forEach(i=>{g.cells[i].poison=Math.max(g.cells[i].poison||0,2);});
  else if(kind==='radiance'){
-  const targets=nearest().filter(i=>{const c=g.cells[i];return c.jam||c.ice||c.lock||c.fuse;})
+  const targets=nearest().filter(i=>{const c=g.cells[i];return c.jam||c.poison||c.ice||c.lock||c.fuse||c.aura==='shadow';})
    .sort((a,b)=>Number(!!g.cells[b].jam)-Number(!!g.cells[a].jam)||distance(a)-distance(b)||a-b).slice(0,3);
   for(const i of targets){const c=g.cells[i];if(c.jam||c.poison)wash([i]);else if(c.aura==='shadow'){c.aura=null;c.auraTurns=0;}else ops.damage(g,i,ops.summary);}
   const seed=nearest().find(i=>!ops.pinned(g.cells[i]));if(seed!==undefined)ops.markAura(g,seed,'radiance');
