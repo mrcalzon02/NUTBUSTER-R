@@ -60,6 +60,8 @@ For a later genuinely monetized release, voucher/receipt claims must not depend 
 - `web/promo-codes.js`: P-256 signed code validation and deterministic reward application with save-local ledger
 - `web/game.js`, `web/style.css`, `web/index.html`: integrated compact offline redemption interface
 - `tests/promo-codes.test.js`: real Node P-256/WebCrypto sign+verify and tamper/replay tests
+- `tests/promo-issuer.test.js`: private/public key separation and CLI-issued codes verified with WebCrypto
+- `tests/promo-ui.test.js`: actual Shop redemption event, local persistence, duplicate rejection and tampered-code rejection
 - `tests/benefits-and-claim-clocks.test.js`: independent 12h manual claims and VIP daily 24h grants
 
 A signed-code source test is not evidence that the APK's real WebView can import keys in its installed origin; complete that gate before calling promo code redemption production-ready.
