@@ -140,7 +140,7 @@ function aquariumState(n){
  const found=Array.isArray(a.discovered)?a.discovered:[];
  const saved=Array.isArray(n.fish)?n.fish.map(x=>x?.id):[];
  a.discovered=[...new Set([...found,...saved].filter(id=>specimenId.has(id)))];
- if(!backgroundUnlocked(n,a.background))a.background='lagoon';
+ if(!backgroundUnlocked(n,a.background))a.background='plain-seafloor';
  const used=new Set;
  a.stamps=(Array.isArray(a.stamps)?a.stamps:[]).filter(entry=>{
   if(!entry||!stampUnlocked(n,entry.id)||!Number.isFinite(entry.x)||!Number.isFinite(entry.y))return false;

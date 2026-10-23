@@ -34,7 +34,7 @@ assert.equal(s.app.getState().aquariumFishFrom,0);
 s.click({action:'fish-aqua-slot',slot:'3'});
 assert.equal(n.fish.find(f=>f.id==='minnow').slot,3);
 s.click({action:'fish-aqua-background',background:'arcane'});
-assert.equal(n.aquarium.background,'lagoon','Locked themes must not be selectable');
+assert.equal(n.aquarium.background,'plain-seafloor','Locked themes must not be selectable; new tanks start on the approved open water scene');
 s.click({action:'fish-upgrade',kind:'tank'});
 assert.equal(n.tank,1);assert.equal(F.capacity(n),7);assert.equal(F.stampCapacity(n),5);
 assert.match(s.html(),/width:min\(100%,550px\)/);

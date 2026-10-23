@@ -73,4 +73,4 @@ assert.ok(css.includes('.estate-aquarium-preview'),'Tank belongs to the estate')
 assert.ok(game.includes('window.NutFishingUI?.aquariumPreview?.(saved)'));
 assert.ok(game.includes('window.NutFishingUI.aquarium(saved,state)'));
 assert.ok(game.includes('fish-aqua-stamp-place')&&game.includes('getBoundingClientRect'));
-console.log('PASS 11 tiers, fish slot moves, 18 catch-unlocked stamps, five themes, persisted editing, estate preview and tank sizing');
+console.log('PASS 11 tiers, fish slot moves, 18 catch-unlocked stamps, eleven themes, persisted editing, estate preview and tank sizing');

@@ -28,6 +28,7 @@ for(const scene of manifest.scenes){
 const now=new Date(2030,7,15).getTime();
 const save={coins:141,gems:9,nutravaganza:{dollars:450,fish:[{id:'minnow',size:42,value:15},{id:'bluegill',size:50,value:24}]}};
 let n=F.ensure(save,now);
+assert.equal(n.aquarium.background,'plain-seafloor','New tanks should use the approved empty stage by default');
 assert.ok(F.backgroundUnlocked(n,'plain-seafloor')&&F.backgroundUnlocked(n,'plain-kelp-lagoon'),'Open scenes available from first tank');
 assert.ok(F.backgroundUnlocked(n,'plain-kelp-canyon'),'Bluegill discovery opens canyon');
 assert.equal(F.backgroundUnlocked(n,'plain-coral'),false,'Do not pre-unlock rare reef scenery');
