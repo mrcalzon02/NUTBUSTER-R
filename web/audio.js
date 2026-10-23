@@ -106,15 +106,20 @@ function speakAuditor(key){
  const high=['win','close','package','premium','satisfaction','nutbuster','deal','look-out','nutsplosion','heck-package','nutsselence','nut-destruction','nutravaganza','busted'].includes(key);
  if(!high&&now-lastVoice<750)return false;
  if(ttsStatus()!=='ready')return false; // NEVER fall back to the wrong character or online TTS.
- lastVoice=now;
  stopAnnouncer();
  const token='auditor-'+(++ttsToken);
  const bridge=speechBridge();
  if(bridge&&typeof bridge.speak==='function'){
+  // Establish the active ID *before* the bridge can synchronously report
+  // completion (or error). Otherwise music may remain ducked indefinitely.
+  activeSpeech=token;duck();
   try{
-   if(!bridge.speak(token,line,voiceLevel))return false;
-   activeSpeech=token;duck();return true;
-  }catch(_){unduck();return false;}
+   if(!bridge.speak(token,line,voiceLevel)){
+    if(activeSpeech===token){activeSpeech=null;unduck();}
+    return false;
+   }
+   lastVoice=now;return true;
+  }catch(_){if(activeSpeech===token){activeSpeech=null;unduck();}return false;}
  }
  const synth=root.speechSynthesis,Voice=root.SpeechSynthesisUtterance,voice=localBrowserVoice();
  if(!synth||!voice||typeof Voice!=='function')return false;
@@ -123,8 +128,8 @@ function speakAuditor(key){
   utterance.voice=voice;utterance.lang=voice.lang;
   utterance.rate=.88;utterance.pitch=.88;utterance.volume=voiceLevel;
   utterance.onend=()=>ttsFinished(token);utterance.onerror=()=>ttsFinished(token);
-  activeSpeech=token;duck();synth.speak(utterance);return true;
- }catch(_){activeSpeech=null;unduck();return false;}
+  activeSpeech=token;duck();synth.speak(utterance);lastVoice=now;return true;
+ }catch(_){if(activeSpeech===token){activeSpeech=null;unduck();}return false;}
 }
 function voice(key){
  if(!voicesOn)return false;
