@@ -184,6 +184,9 @@
 /* Approved elemental tile auras: readable turns without hiding the nut. */
 .cell .hazard.tile-status.aura{z-index:3;opacity:.8;filter:drop-shadow(0 0 3px #d8d6a366)}
 .cell .hazard.tile-status.aura .status-art{width:86%;height:86%;margin:7%}
+@keyframes nut-tile-aura-pop{0%{filter:brightness(1)}45%{filter:brightness(2.1) drop-shadow(0 0 7px #f7d587)}100%{filter:brightness(1)}}
+.cell.aura-trigger{animation:nut-tile-aura-pop .18s ease-out both}
+@media(prefers-reduced-motion:reduce){.cell.aura-trigger{animation:none}}
 .cell .hazard.tile-status .aura-count{position:absolute;left:1px;top:1px;display:grid;place-items:center;min-width:16px;height:16px;padding:1px 3px;background:#28172cdb;border:1px solid #c6c38c;border-radius:5px;color:#fff7d3;font-size:10px;font-weight:900;line-height:1;text-shadow:0 1px #000a}
 .cell .hazard.tile-status.aura-nature-vines{opacity:.94}
 .cell .hazard.tile-status.aura-fire,.cell .hazard.tile-status.aura-magma{filter:drop-shadow(0 0 4px #db763b88)}
