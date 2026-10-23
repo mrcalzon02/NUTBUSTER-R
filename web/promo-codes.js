@@ -3,7 +3,20 @@
    Issuer private keys must NEVER be packaged or committed. */
 (function(root){'use strict';
 const PREFIX='NBR1',MAX_LENGTH=1024,MAX_RECORDS=5000;
-const BOOSTERS=new Set(['hammer','extra','row','shuffle','column','blast','cross','color','drill','unlock']);
+const BOOSTERS=new Set(['hammer','extra','row','shuffle','column','blast','cross','color','drill','unlock','quake','triple-row','triple-column','starburst','spectrum','frostbreaker']);
+// Immutable promo SKUs use the same quantities and booster bundles as the live store.
+// The signed token references a SKU; the player cannot edit it without invalidating the signature.
+const PACKAGE_GRANTS=Object.freeze({
+ shop0:Object.freeze({nuts:50000,gems:250,bundle:'shop0'}),
+ shop1:Object.freeze({nuts:2000,gems:2000,bundle:'shop1'}),
+ shop2:Object.freeze({nuts:9999,gems:500,bundle:'shop2'}),
+ shop3:Object.freeze({nuts:10000,gems:150,bundle:'shop3'}),
+ shop4:Object.freeze({nuts:1000,gems:100,bundle:'shop4',vip:true}),
+ shop5:Object.freeze({nuts:3000,gems:30,bundle:'shop5'}),
+ hearts:Object.freeze({refillHearts:true}),
+ moves:Object.freeze({moves:5}),
+ manor:Object.freeze({royalManor:true})
+});
 const integers=(n,max)=>Number.isSafeInteger(n)&&n>=0&&n<=max;
 const nowValue=n=>Number.isFinite(Number(n))?Math.max(0,Math.trunc(Number(n))):Date.now();
 const cleanCode=v=>String(v||'').trim().replace(/\s+/g,'');
@@ -43,6 +56,10 @@ function validate(payload){
  if(payload.exp!==0&&payload.exp<=payload.nbf)return false;
  const g=payload.grant;
  if(!g||typeof g!=='object'||Array.isArray(g))return false;
+ if(Object.prototype.hasOwnProperty.call(g,'package')){
+  return Object.keys(g).length===1&&typeof g.package==='string'&&
+   Object.prototype.hasOwnProperty.call(PACKAGE_GRANTS,g.package);
+ }
  for(const key of Object.keys(g))if(!['nuts','gems','moves','hearts','vip','boosters'].includes(key))return false;
  if(!integers(g.nuts||0,100000)||!integers(g.gems||0,10000)||!integers(g.moves||0,50)||!integers(g.hearts||0,5))return false;
  if(g.vip!==undefined&&typeof g.vip!=='boolean')return false;
@@ -73,14 +90,18 @@ function ledger(save){
  if(!save.promoRedemptions||typeof save.promoRedemptions!=='object'||Array.isArray(save.promoRedemptions))save.promoRedemptions={};
  return save.promoRedemptions;
 }
-function apply(save,verified,{P,D,B,at=Date.now(),cap=36}={}){
+function apply(save,verified,{P,D,B,H,at=Date.now(),cap=36}={}){
  if(!verified?.valid||!validate(verified.payload))return {valid:false,reason:'unverified'};
  const p=verified.payload,history=ledger(save);
  if(Object.prototype.hasOwnProperty.call(history,p.nonce))return {valid:false,reason:'already-redeemed'};
  if(Object.keys(history).length>=MAX_RECORDS)return {valid:false,reason:'ledger-full'};
  if(!P?.available||!P?.grant||!D?.topUp)return {valid:false,reason:'integration'};
- const grant=p.grant,active=P.available(save);
- const pack={};
+ const packageId=p.grant.package||null;
+ const grant=packageId?PACKAGE_GRANTS[packageId]:p.grant,active=P.available(save);
+ if(packageId&&grant.bundle&&typeof P.actualPack!=='function')return {valid:false,reason:'integration'};
+ if(grant.royalManor&&(!H?.ensure||!H?.purchase))return {valid:false,reason:'integration'};
+ if(grant.royalManor&&H.ensure(save).purchases['royal-estate']===true)return {valid:false,reason:'already-owned'};
+ const pack=grant.bundle?P.actualPack(save,grant.bundle):{};
  for(const [id,n] of Object.entries(grant.boosters||{})){
   const target=P.unlocked(save,id)?id:active[active.length-1];
   if(!target)return {valid:false,reason:'locked'};
@@ -89,25 +110,26 @@ function apply(save,verified,{P,D,B,at=Date.now(),cap=36}={}){
  const alreadyVip=!!save.vip;
  if(grant.vip&&alreadyVip&&!grant.nuts&&!grant.gems&&!grant.moves&&!grant.hearts&&!Object.keys(pack).length)return {valid:false,reason:'already-owned'};
  const hearts=Number.isFinite(Number(save.hearts))?Math.max(0,Math.min(5,Math.trunc(Number(save.hearts)))):0;
- if(grant.hearts&&hearts>=5&&!grant.nuts&&!grant.gems&&!grant.moves&&!grant.vip&&!Object.keys(pack).length)return {valid:false,reason:'hearts-full'};
+ if((grant.hearts||grant.refillHearts)&&hearts>=5&&!grant.nuts&&!grant.gems&&!grant.moves&&!grant.vip&&!Object.keys(pack).length)return {valid:false,reason:'hearts-full'};
  const before=Object.fromEntries(Object.keys(pack).map(id=>[id,P.count(save,id)]));
  const received=P.grant(save,pack);
  if(received!==Object.values(pack).reduce((a,b)=>a+b,0))throw Error('Promo booster inventory desynchronized');
  if(grant.moves)D.topUp(save,grant.moves,at,cap);
- if(grant.hearts)save.hearts=Math.min(5,hearts+grant.hearts);
+ if(grant.hearts||grant.refillHearts)save.hearts=grant.refillHearts?5:Math.min(5,hearts+grant.hearts);
  if(grant.nuts)save.coins=Math.min(999999999,Math.max(0,Math.trunc(Number(save.coins)||0))+grant.nuts);
  if(grant.gems)save.gems=Math.min(999999999,Math.max(0,Math.trunc(Number(save.gems)||0))+grant.gems);
  let vipDaily=null;
  if(grant.vip&&!alreadyVip){save.vip=true;vipDaily=B?.applyVipDaily?.(save,at,cap,D,P)||null;}
+ if(grant.royalManor&&!H.purchase(save,'royal-estate'))throw Error('Royal Manor promo grant rejected');
  history[p.nonce]={at:nowValue(at),kid:p.kid};
- return {valid:true,nuts:grant.nuts||0,gems:grant.gems||0,moves:grant.moves||0,hearts:save.hearts-hearts,boosters:pack,boosterBefore:before,vipActivated:!!grant.vip&&!alreadyVip,vipDaily,remaining:D.left(save,at,cap)};
+ return {valid:true,packageId,nuts:grant.nuts||0,gems:grant.gems||0,moves:grant.moves||0,hearts:save.hearts-hearts,boosters:pack,boosterBefore:before,vipActivated:!!grant.vip&&!alreadyVip,royalManor:!!grant.royalManor,vipDaily,remaining:D.left(save,at,cap)};
 }
 async function redeem(save,code,context){
  const result=await verify(code,context);
  if(!result.valid)return result;
  return apply(save,result,context);
 }
-const api=Object.freeze({PREFIX,MAX_LENGTH,MAX_RECORDS,BOOSTERS,format,validate,verify,redeem});
+const api=Object.freeze({PREFIX,MAX_LENGTH,MAX_RECORDS,BOOSTERS,PACKAGE_GRANTS,format,validate,verify,redeem});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutPromo=api;
 })(typeof window!=='undefined'?window:globalThis);
