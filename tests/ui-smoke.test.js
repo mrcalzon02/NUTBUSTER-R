@@ -21,7 +21,7 @@ handlers.click({target:{closest:()=>({dataset:{action:'checkout-review'}})}});
 assert.match(html,/TOTAL DUE/);assert.match(html,/FREE/);
 handlers.click({target:{closest:()=>({dataset:{action:'checkout-complete'}})}});
 assert.equal(window.NutbusterApp.getSave().coins,50250);assert.equal(window.NutbusterApp.getSave().gems,275);
-assert.ok(audioCalls.includes('voice:package'),'Premium claim must trigger recorded announcer');
+assert.ok(audioCalls.includes('voice:heck-package'),'Premium claim must trigger the actual recorded checkout announcer');
 handlers.click({target:{closest:()=>({dataset:{action:'music'}})}});
 assert.equal(window.NutbusterApp.getSave().music,false);assert.ok(audioCalls.includes('music:false'));
 window.NutbusterApp.nav('rewards');assert.match(html,/I AM MY OWN FRIEND/);
