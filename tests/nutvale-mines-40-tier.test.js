@@ -67,6 +67,8 @@ assert.deepEqual(M.stats(normal,day).odds,[50,35,11,4]);
 assert.equal(M.survey(normal,1,0,day).valid,true);
 assert.equal(M.survey(normal,1,0,day).reason,'scanned');
 assert.equal(M.stats(normal,day).scansLeft,0);
+assert.equal(M.upgrade(normal,'cartTier',day).valid,true,'Cart upgrades are purchasable when funded');
+normal.nutravaganza.dollars=0;
 assert.equal(M.upgrade(normal,'cartTier',day).reason,'funds','Upgrades cannot overspend');
 const all=unlocked(1000000);M.ensure(all,day);
 assert.equal(M.survey(all,0,0,day).reason,'scans');
