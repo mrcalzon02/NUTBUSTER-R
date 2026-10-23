@@ -139,7 +139,8 @@ final class PlayBillingCoordinator implements PurchasesUpdatedListener {
             connection.setRequestMethod("POST"); connection.setDoOutput(true);
             connection.setRequestProperty("Content-Type", "application/json");
             JSONObject request = new JSONObject().put("packageName", activity.getPackageName())
-                .put("productId", sku).put("purchaseToken", purchase.getPurchaseToken());
+                .put("productId", sku).put("purchaseToken", purchase.getPurchaseToken())
+                .put("installId", installId());
             try (OutputStream out = connection.getOutputStream()) {
                 out.write(request.toString().getBytes(StandardCharsets.UTF_8));
             }
@@ -156,6 +157,15 @@ final class PlayBillingCoordinator implements PurchasesUpdatedListener {
                 + index + "," + JSONObject.quote(receiptId) + ")");
         } catch (Exception e) { status("Receipt validation incomplete. Your order will be checked again; no duplicate reward will be issued."); }
         finally { if (connection != null) connection.disconnect(); }
+    }
+    /** Stable per-install pseudonym, not an advertising ID or account identifier. */
+    private String installId() {
+        android.content.SharedPreferences store = activity.getSharedPreferences("nutbuster.play.receipts", 0);
+        String id = store.getString("installId", "");
+        if (id.matches("[0-9a-f-]{36}")) return id;
+        id = UUID.randomUUID().toString();
+        store.edit().putString("installId", id).apply();
+        return id;
     }
     private static byte[] readLimited(InputStream in, int limit) throws Exception {
         java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
