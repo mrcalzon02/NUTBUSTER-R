@@ -76,8 +76,10 @@ assert(game.includes("['play-wallet',saved.coins]")&&game.includes("['play-gems'
 assert(html.includes('id="wallet"')&&html.includes('id="gems"'),'Header currency counters changed');
 assert(html.includes('art/primary/economy/golden-nuts.png')&&html.includes('art/additions/economy/prismatic-acorn.png'),
  'Header currency images changed');
-assert(game.includes('TOTAL DUE')&&game.includes('$0.00')&&game.includes('COMPLETE ORDER · FREE'),
- 'Free final parody checkout changed');
+assert(game.includes('FREE PACKAGE')&&game.includes('$0.00')&&game.includes('CLAIM FREE PACKAGE'),
+ 'Non-VIP Play shop bundles must remain free');
+assert(game.includes('vipSupportPurchased')&&game.includes('ENTIRELY OPTIONAL'),
+ 'Real-money VIP must require verified supporter receipt and explicit optional disclosure');
 assert(fishing.includes('n.dollars='),'Fishing dollars balance missing');
 assert(!fishing.includes('save.coins=')&&!fishing.includes('save.gems='),'Fishing overwrites main balances');
 const expectedNuts=['peanut','walnut','almond','cashew','hazelnut','pistachio','gold-acorn',

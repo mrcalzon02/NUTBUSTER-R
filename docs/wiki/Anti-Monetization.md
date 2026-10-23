@@ -1,5 +1,8 @@
 # Anti-monetization and satire contract
 
+**Google Play contingency branch exception (October 23, 2026):** This page records the original zero-dollar parody checkout on `main`; the Play build keeps all other bundles free at the outset, while offering **one optional real-money, one-time Lifetime VIP supporter package** through Google Play. The Play build never charges for nuts, gems, crates, boosters, Royal Manor or standard gameplay. VIP asks the player to support development if they enjoyed the game, with explicit pricing and an easy decline. See [Google Play Contingency](Google-Play-Contingency.md) for the binding Play-branch policy.
+
+
 The game **parodies** a free-to-play premium shop without copying its most exploitative pricing. From 2026-10-22 onward, fictional optional package stickers range from **$0.99 to $9.99**, the VIP unlock is unambiguously **one-time and permanent**, and emergency hearts / five extra moves are free even at first review. There are no real subscriptions, fabricated “was” markdowns, artificial offer countdowns, or payment pressure after a defeat. The satirical surprise remains the final checkout's **TOTAL DUE: FREE ($0.00)**. Avoid spoiling that reveal in normal store cards, but never conceal or misstate a price if real payments are introduced in a separately authorized future release.
 
 ## Transaction fiction

@@ -1,5 +1,8 @@
 # Nutbuster — Fair Pricing Preview & Future Monetization Gate
 
+**Google Play contingency branch exception (October 23, 2026):** The table below is historical pricing research for the parody on `main`, NOT the live Play-branch price schedule. In `feature/google-play-contingency`, only Lifetime VIP (index 4, starting plan $2.99 but with Google's localized catalog price authoritative) can charge real money. **Every other pack is FREE ($0.00)**, including Royal Manor. There are no paid loot crates or currency packs and no real-money discount ads. See [Google Play Contingency](Google-Play-Contingency.md).
+
+
 **Status (2026-10-22):** Fictional price-preview revision implemented. **No payment collection is enabled or approved.** Every package continues to end in a clearly disclosed **FREE / $0.00** checkout and grants only local entitlements. No Play Billing, other purchase SDK, subscriptions, payment credentials, analytics, or real ad SDK have been added.
 
 ## Display-price ladder

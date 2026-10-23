@@ -39,9 +39,9 @@ async function run(){
  assert.equal(state().page,'shop');assert.equal(renders,initialRenders+1,'First counter tap navigates to the shop');
  currencyLinks[1].tap();assert.equal(renders,initialRenders+1,'Other counter must not rerender the open shop');
  app.nav('shop');assert.equal(renders,initialRenders+1,'Same-page navigation must not rebuild DOM');
- assert.ok(html.includes('BUY PACKAGE'));assert.ok(!html.includes('TOTAL DUE'));
- click({action:'claim',item:'0'});assert.equal(state().page,'checkout');assert.ok(!html.includes('TOTAL DUE'));
- click({action:'checkout-review'});assert.ok(html.includes('TOTAL DUE'));assert.ok(html.includes('$0.00'));
+ assert.ok(html.includes('CLAIM FREE PACKAGE'));assert.ok(html.includes('COMPLETELY OPTIONAL'));
+ click({action:'claim',item:'0'});assert.equal(state().page,'checkout');assert.ok(html.includes('FREE PACKAGE'));
+ click({action:'checkout-review'});assert.ok(html.includes('CLAIM FREE PACKAGE'));assert.ok(html.includes('$0.00'));
  let coins=app.getSave().coins;click({action:'checkout-complete'});
  assert.equal(app.getSave().coins,coins+50000);assert.equal(state().page,'shop');
  app.start(1);attach();assert.ok(html.includes('--cols:4'));
