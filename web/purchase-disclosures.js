@@ -43,7 +43,7 @@ function describe(action,data,{save,P,E,F,H,state}){
   const quantity=offer.kind==='hearts'?Math.min(offer.amount,5-current):offer.amount;
   return {name:offer.name,lines:[
    'Pay exactly '+money(offer.cost)+' '+(offer.currency==='gems'?'Gems':'Golden Nuts')+'.',
-   offer.kind==='hearts'?'Receive '+quantity+' life'+(quantity===1?'':'s')+' now; five is the maximum. Current lives: '+current+'/5.':'Receive exactly '+quantity+' additional daily-wallet moves, immediately available in the current puzzle.',
+   offer.kind==='hearts'?'Receive '+quantity+' '+(quantity===1?'life':'lives')+' now; five is the maximum. Current lives: '+current+'/5.':'Receive exactly '+quantity+' additional daily-wallet moves, immediately available in the current puzzle.',
    'Current '+(offer.currency==='gems'?'Gems':'Golden Nuts')+': '+money(save[offer.currency])+'.',
    'No real-money transaction, no cooldown, no chance involved. Balance and capacity checked again when confirmed.'
   ]};

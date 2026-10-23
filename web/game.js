@@ -548,7 +548,7 @@ function currencyExchangeShop(){
  const offers=Object.entries(P.SHOP_EXCHANGES).map(([id,offer])=>{
   const owned=offer.kind==='hearts'?Math.max(0,Math.min(5,Number(saved.hearts)||0)):movesLeft();
   const gain=offer.kind==='hearts'?Math.max(0,Math.min(offer.amount,5-owned)):offer.amount;
-  const amountText=offer.kind==='hearts'?(id==='heart-gems'?'REFILL TO FIVE · '+gain+' LIFE'+(gain===1?'':'S'):'+'+gain+' LIFE'):'+'+gain+' MOVES';
+  const amountText=offer.kind==='hearts'?(id==='heart-gems'?'REFILL TO FIVE · '+gain+' '+(gain===1?'LIFE':'LIVES'):'+'+gain+' '+(gain===1?'LIFE':'LIVES')):'+'+gain+' MOVES';
   const currencyName=offer.currency==='gems'?'GEMS':'GOLDEN NUTS';
   const funds=Number(saved[offer.currency]||0)>=offer.cost;
   const disabled=gain<1||!funds;
@@ -1031,7 +1031,7 @@ function action(a,button){
    if(state.game.lost&&state.game.moves>0){state.game.lost=false;state.outcome=null;}
   }
   persist();render();playSFX('coin');window.NutFX?.emit('coin-shower');
-  notice('PURCHASED '+result.granted+' '+(result.kind==='hearts'?'LIVES':'MOVES')+' · PAID '+result.cost+' '+(result.currency==='gems'?'GEMS':'GOLDEN NUTS'));
+  notice('PURCHASED '+result.granted+' '+(result.kind==='hearts'?(result.granted===1?'LIFE':'LIVES'):'MOVES')+' · PAID '+result.cost+' '+(result.currency==='gems'?'GEMS':'GOLDEN NUTS'));
   return;
  }
  if(a==='booster-gems-buy'){
