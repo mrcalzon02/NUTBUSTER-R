@@ -25,13 +25,14 @@ const original=[{type:0,ice:0,lock:0,chest:0,jam:0,fuse:0,special:null},
  {type:1,ice:1,lock:0,chest:0,jam:0,fuse:0,special:null},
  {type:2,ice:0,lock:1,chest:0,jam:0,fuse:0,special:null},
  {type:3,ice:0,lock:0,chest:2,jam:0,fuse:0,special:null},
- {type:4,ice:0,lock:0,chest:0,jam:0,fuse:0,special:'line-h'}];
+ {type:4,ice:0,lock:0,chest:0,jam:0,fuse:0,special:'line-h'},
+ {type:5,ice:0,lock:0,chest:0,rock:2,jam:0,fuse:0,special:null}];
 const cleared=original.map(x=>({...x}));
-cleared[0].type=null;cleared[1].ice=0;cleared[2].lock=0;cleared[3].chest=1;cleared[4].type=null;
-const stage={kind:'cascade',before:original,afterClear:cleared,clear:[0,1,2,3,4]};
+cleared[0].type=null;cleared[1].ice=0;cleared[2].lock=0;cleared[3].chest=1;cleared[4].type=null;cleared[5].rock=1;
+const stage={kind:'cascade',before:original,afterClear:cleared,clear:[0,1,2,3,4,5]};
 const plan=FX.planCascade(stage,2);
 assert.deepEqual(Array.from(plan.removed,x=>x.index),[0,4],'Only actually removed nuts may shake and pop');
-assert.deepEqual(Array.from(plan.blockers,x=>x.kind),['chain-break','shell-crack']);
+assert.deepEqual(Array.from(plan.blockers,x=>x.kind),['chain-break','shell-crack','shell-crack']);
 assert.deepEqual(Array.from(plan.specials,x=>x.kind),['horizontal-clear']);
 const board={querySelector(s){const i=Number(s.match(/\d+/)[0]);return {getBoundingClientRect(){return {left:i*50,top:40,width:45,height:45};}};}};
 assert.equal(FX.hazard({kind:'hazard',expired:[],spread:[]},board),0,'Fuse countdown must not fake a detonation');
@@ -41,7 +42,7 @@ assert.ok(images[beforeHazards].src.endsWith('shell-supernova.png'),'Bomb expiry
 assert.ok(images[beforeHazards+1].src.endsWith('shell-ring.png'),'Butter spread must animate the target tile');
 assert.equal(FX.hazard({kind:'repair',expired:[1]},board),0,'Unrelated stages must not emit hazards');
 const count=FX.burstCascade(stage,board,2);
-assert.equal(count,5,'Every removed nut plus non-ice blocker and activated special gets an individual FX');
+assert.equal(count,6,'Every removed nut, damaged stone seal, lock and chest plus special must animate');
 const fresh=images.slice(-count);assert.ok(fresh.every(x=>x.className.includes('tile')));
 assert.ok(fresh.every(x=>x.style.width==='78.75px'));
 for(const tick of timers)tick();assert.ok(images.every(x=>x.removed),'FX nodes must be removed after timeout');

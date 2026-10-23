@@ -96,6 +96,7 @@
    }
    // Ice has its own layered shake/crack/shatter animation in ice-effects.js.
    if((before.lock||0)>(after.lock||0))blockers.push({index:i,kind:'chain-break'});
+   if((before.rock||0)>(after.rock||0))blockers.push({index:i,kind:'shell-crack'});
    if((before.chest||0)>(after.chest||0))blockers.push({index:i,kind:(after.chest||0)===0?'chest-open':'shell-crack'});
    if((before.jam||0)>(after.jam||0))blockers.push({index:i,kind:'shell-ring'});
    if((before.fuse||0)>(after.fuse||0))blockers.push({index:i,kind:'sparkle-burst'});
