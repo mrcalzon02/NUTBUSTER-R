@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "project": "NUTBUSTER-R",
+  "source": "Approved Nutvale plain aquarium texture run",
+  "artStyle": "1672x941 landscape 3D painted undersea backgrounds",
+  "purpose": "standalone scenic backgrounds below catch-unlocked stamp and animated fish layers",
+  "scaling": "100% 100% - full artwork retained inside tank glass",
+  "scenes": [
+    {
+      "id": "plain-kelp-canyon",
+      "name": "Sunlit Kelp Canyon",
+      "source": "sunlit_underwater_kelp_canyon.png",
+      "need": [
+        "bluegill"
+      ],
+      "file": "plain-kelp-canyon.png",
+      "path": "web/art/aquarium/backgrounds/v1/plain-kelp-canyon.png",
+      "sha": "fe8f0968b2cc0ff5de8064c2c964cd3b6fa370c1"
+    },
+    {
+      "id": "plain-kelp-lagoon",
+      "name": "Open Kelp Lagoon",
+      "source": "sunlit_kelp_lagoon_seascape.png",
+      "need": [],
+      "file": "plain-kelp-lagoon.png",
+      "path": "web/art/aquarium/backgrounds/v1/plain-kelp-lagoon.png",
+      "sha": "32ba6f2270d869918dfc4cfbdc39e74ee540ede6"
+    },
+    {
+      "id": "plain-ruins",
+      "name": "Quiet Ruins",
+      "source": "serene_underwater_ruins_aquarium_backdrop.png",
+      "need": [
+        "perch",
+        "carp"
+      ],
+      "file": "plain-ruins.png",
+      "path": "web/art/aquarium/backgrounds/v1/plain-ruins.png",
+      "sha": "c1949c9af349910bf3883fae980f9a8c551b3d27"
+    },
+    {
+      "id": "plain-kelp-forest",
+      "name": "Gentle Kelp Forest",
+      "source": "tranquil_underwater_kelp_forest_panorama.png",
+      "need": [
+        "trout"
+      ],
+      "file": "plain-kelp-forest.png",
+      "path": "web/art/aquarium/backgrounds/v1/plain-kelp-forest.png",
+      "sha": "5a53f8938af43d5f876875495ac9d72dd890be77"
+    },
+    {
+      "id": "plain-coral",
+      "name": "Coral Window",
+      "source": "sunlit_coral_reef_aquarium_backdrop.png",
+      "need": [
+        "koi",
+        "puffer"
+      ],
+      "file": "plain-coral.png",
+      "path": "web/art/aquarium/backgrounds/v1/plain-coral.png",
+      "sha": "a1c2a850abf20594f4118ea3cfcfba6bdbb36e6f"
+    },
+    {
+      "id": "plain-seafloor",
+      "name": "Open Seafloor",
+      "source": "sunlit_underwater_seafloor_panorama.png",
+      "need": [],
+      "file": "plain-seafloor.png",
+      "path": "web/art/aquarium/backgrounds/v1/plain-seafloor.png",
+      "sha": "4d6933317b6b236a000a4762a5da9846d7a38129"
+    }
+  ]
+}
