@@ -29,7 +29,7 @@ assert.equal(releaseViews,1,'Browser fallback requires explicit player action');
 android.NutbusterUpdates.receive('Signed release found');
 assert.equal(statusEl.textContent,'Signed release found');
 vm.runInNewContext(invite,{window:android,document:doc});
-const publicUrl='https://github.com/mrcalzon02/NUTBUSTER-R/releases';
+const publicUrl='https://play.google.com/store/apps/details?id=io.github.mrcalzon02.nutbuster';
 assert.equal(android.NutbusterInvite.url,publicUrl);
 const androidInvite=android.NutbusterInvite.share();
 assert.equal(shares,1,'Native sharesheet is invoked without account access');
