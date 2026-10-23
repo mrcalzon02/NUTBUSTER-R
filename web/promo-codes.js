@@ -107,7 +107,7 @@ async function redeem(save,code,context){
  if(!result.valid)return result;
  return apply(save,result,context);
 }
-const api=Object.freeze({PREFIX,MAX_LENGTH,MAX_RECORDS,BOOSTERS,format,validate,verify,ledger,apply,redeem});
+const api=Object.freeze({PREFIX,MAX_LENGTH,MAX_RECORDS,BOOSTERS,format,validate,verify,redeem});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutPromo=api;
 })(typeof window!=='undefined'?window:globalThis);
