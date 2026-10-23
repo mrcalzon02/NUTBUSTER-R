@@ -641,7 +641,7 @@
   max-width:100%;
   margin:0;
   padding:1px 0 0;
-  font-size:9px!important;
+  font-size:10px!important;
   font-weight:900;
   line-height:1.05;
   text-align:center;
@@ -650,7 +650,7 @@
   pointer-events:none;
 }
 #app.playing .game-active .boosters [data-hold-tool] .booster-label{
-  font-size:8px!important;
+  font-size:9px!important;
   white-space:nowrap;
 }
 #app.playing .game-active .boosters button [data-stock]{
