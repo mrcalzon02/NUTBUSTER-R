@@ -4,7 +4,7 @@ const base=path.join(__dirname,'../web/art/primary/nuts/elemental');
 const entries=C.entries,elemental=entries.filter(e=>e.group==='elemental');
 assert.equal(elemental.length,15,'only approved 3×5 art is registered');
 assert.equal(entries.filter(e=>e.group==='tile-effects').length,16,'All sixteen tile overlay sprites need a Nutdex entry');
-assert.equal(entries.filter(e=>e.group==='tile-effects'&&e.live).length,15,'All tile overlays except void-rock have real active mechanics');
+assert.equal(entries.filter(e=>e.group==='tile-effects'&&e.live).length,16,'All sixteen approved overlays have live mechanics');
 assert.ok(entries.some(e=>e.id==='tile-chain-lock'&&e.live),'Pinned chain overlays must be indexed as live');
 assert.deepEqual(C.groups.map(g=>g[0]),['nuts','elemental','specials','blockers','tile-effects','hazards','board','boosters']);
 const playableNuts=E.TYPES.filter(name=>!E.RETIRED_NUTS.includes(name));
