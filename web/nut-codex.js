@@ -714,6 +714,31 @@ ENTRIES.push(...[
     "rule": "ART READY / RULE NOT ENABLED · tile overlay art cannot move or change whole-piece blockers on its own."
   }
 ]);
+// Keep the Nutdex aligned with the engine's authoritative live effects.
+const ACTIVE_OVERLAY_DETAILS=Object.freeze({
+ 'tile-arcane':['At level 285, a two-turn rune transmutes its nut to the next active roster color.','LIVE · Turn-based transmutation; matching rules remain unchanged.'],
+ 'tile-poison':['At level 115, a two-turn poison mark becomes sticky butter. Poison Nuts can mark two neighbors.','LIVE · Poison sits on the tile, not on a traveling nut.'],
+ 'tile-radiance':['At level 365, a two-turn glow cleanses up to three nearby butter, poison, chain or ice hazards.','LIVE · Purification and protection removal.'],
+ 'tile-nature-vines':['At level 155, roots anchor one nut for two turns, then recolor one adjacent free nut to match it.','LIVE · Plant, hold, then grow a matching neighbor.'],
+ 'tile-shadow':['At level 245, a two-turn ward absorbs one hit, including a booster strike, then fades.','LIVE · Temporary protective shadow, fixed to its square.'],
+ 'tile-fire':['At level 45, a burning tile counts down two turns, then hits itself and up to four neighboring tiles.','LIVE · Delayed surface-layer burn; can destroy elemental nuts.'],
+ 'tile-water':['At level 325, a two-turn wave removes butter, poison and fire across its row.','LIVE · Cleanses square-attached hazards, not ordinary nut identities.'],
+ 'tile-storm':['At level 525, a two-turn storm strikes up to four closest nuts.','LIVE · Scheduled multi-target storm damage.'],
+ 'tile-lightning':['At level 425, a charged tile zaps the three nearest nuts of its matching color after two turns.','LIVE · Matching-color electric chain damage.'],
+ 'tile-magma':['At level 625, two-turn magma strikes every occupied nut in its column.','LIVE · Delayed column pressure.'],
+ 'tile-crystal':['At level 195, a crystal tile charges the next scoring cascade and gives its nut two held gravity drops.','LIVE · Delayed scoring and hold effect.']
+});
+const POWER_LEDGER=typeof module!=='undefined'&&module.exports?require('./elemental-powers.js').ABILITIES:root.NutElementalPowers?.ABILITIES;
+for(const entry of ENTRIES){
+ if(entry.group==='elemental'&&POWER_LEDGER?.[entry.id]){
+  entry.effect=POWER_LEDGER[entry.id];
+  entry.rule='LIVE · Triggers when the elemental-marked nut is destroyed, not when its blocker loses a layer. Destroying another elemental nut can chain its ability.';
+ }
+ if(ACTIVE_OVERLAY_DETAILS[entry.id]){
+  const [effect,rule]=ACTIVE_OVERLAY_DETAILS[entry.id];
+  Object.assign(entry,{live:true,effect,rule});
+ }
+}
 const GROUPS=[['nuts','Nuts'],['elemental','Elemental'],['specials','Matches'],['blockers','Blockers'],['tile-effects','Tile FX'],['hazards','Statuses'],['board','Board'],['boosters','Tools']];
 const api=Object.freeze({entries:Object.freeze(ENTRIES.map(x=>Object.freeze(x))),groups:Object.freeze(GROUPS.map(x=>Object.freeze(x))),byGroup:group=>ENTRIES.filter(x=>x.group===group)});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
