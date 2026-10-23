@@ -79,5 +79,23 @@ async function importBatch(tools,{start,limit=8,extras=false,repository="mrcalzo
  if(!updated.result.success)throw Error("Branch update not confirmed");
  return {commit,start,count:jobs.length,expected:files.length,bytes:uploaded.reduce((s,x)=>s+x.bytes,0),lastPath:jobs[jobs.length-1].path};
 }
-const api={fromBase64,toBase64,unzip,inflate,importBatch};
+async function importSourceChunks(tools,{repository="mrcalzon02/NUTBUSTER-R"}={}){
+ const drive=await tools.mcp__Google_Drive__fetch({url:"https://drive.google.com/file/d/1ySfEltY1N0rS5w2RWOSxFh0WbHXaY_l2/view",download_raw_file:true,include_base64:true});
+ const entry=unzip(fromBase64(drive.result.b64_string)).find(x=>x.name==="assets/source/expansion/nutvale-mining-pickaxes-gloves-original.png");
+ if(!entry||entry.data.length!==3158710)throw Error("Original artwork source size differs");
+ const pieces=[],size=Math.ceil(entry.data.length/4),folder="assets/source/expansion/nutvale-mining-pickaxes-gloves-original.png.part-";
+ for(let i=0;i<4;i++){
+ const body=entry.data.subarray(i*size,Math.min(entry.data.length,(i+1)*size));
+ const uploaded=await tools.mcp__GitHub__create_blob({repository_full_name:repository,content:toBase64(body),encoding:"base64"});
+ pieces.push({path:folder+String(i+1).padStart(2,"0"),sha:uploaded.result.sha,length:body.length});
+ }
+ const head=JSON.parse((await tools.mcp__GitHub__fetch({url:"https://api.github.com/repos/"+repository+"/git/ref/heads/main"})).result.content).object.sha;
+ const tree=JSON.parse((await tools.mcp__GitHub__fetch({url:"https://api.github.com/repos/"+repository+"/git/commits/"+head})).result.content).tree.sha;
+ const next=(await tools.mcp__GitHub__create_tree({repository_full_name:repository,base_tree_sha:tree,tree_elements:pieces.map(x=>({path:x.path,mode:"100644",type:"blob",sha:x.sha}))})).result.sha;
+ const commit=(await tools.mcp__GitHub__create_commit({repository_full_name:repository,tree_sha:next,parent_sha:head,message:"assets(nutvale): preserve original 3.1MB source in four lossless Git blobs"})).result.sha;
+ const ack=await tools.mcp__GitHub__update_ref({repository_full_name:repository,branch_name:"main",sha:commit,expected_sha:head});
+ if(!ack.result.success)throw Error("Branch update failed");
+ return {commit,pieces,sourceBytes:entry.data.length};
+}
+const api={fromBase64,toBase64,unzip,inflate,importBatch,importSourceChunks};
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
