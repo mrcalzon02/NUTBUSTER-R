@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const E=require('../web/engine.js'),P=require('../web/progression.js'),H=require('../web/homestead.js'),A=require('../web/avatar-art.js'),M=require('../web/campaign-maps.js');
-const G=require('../web/nutvale-mining-gear.js'),N=require('../web/nutvale-mines.js'),U=require('../web/nutvale-mines-ui.js');
+const G=require('../web/nutvale-mining-gear.js'),N=require('../web/nutvale-mines.js'),Art=require('../web/nutvale-economy-art.js'),U=require('../web/nutvale-mines-ui.js');
 const script=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
 const store={};
 function session(){
@@ -10,7 +10,7 @@ function session(){
  const document={getElementById:id=>({screen,app:{classList:classes},toast:{classList:classes,textContent:''},wallet:{},gems:{}})[id]||null,
    querySelector(){return null;},querySelectorAll(){return [];}};
  const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),
- NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutMiningGear:G,NutvaleMines:N,NutvaleMinesUI:U,addEventListener(){}};
+ NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutMiningGear:G,NutvaleMines:N,NutvaleEconomyArt:Art,NutvaleMinesUI:U,addEventListener(){}};
  vm.runInNewContext(script,{window,document,localStorage:{getItem:k=>store[k]||null,setItem:(k,v)=>{store[k]=v;}},setTimeout(){return 0;},clearTimeout(){},console});
  const click=dataset=>handlers.click({target:{closest:()=>({dataset})}});
  return {app:window.NutbusterApp,click,html:()=>html};
