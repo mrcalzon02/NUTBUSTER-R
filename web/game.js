@@ -187,15 +187,17 @@ function blockerVisual(c){
  const strength=c.ice||c.lock||c.chest||0;
  const spritePath=c.chest?'art/primary/blockers/chest.png':'art/primary/overlays/'+sprite+'.png';
  const layer=sprite?`<span class="overlay blocker-art ${kind}" data-strength="${strength}" aria-hidden="true"><img class="blocker-sprite" src="${spritePath}" alt="" draggable="false">${strength>1?`<b class="blocker-layer-count">${strength}</b>`:''}</span>`:'';
- // Surface hazards layer over the ordinary nut and any pinned cell blocker.
- return layer+(c.jam?'<span class="hazard tile-status jam" aria-hidden="true"><img class="status-art" src="art/primary/overlays/sticky-butter.png" alt="" draggable="false"></span>':'')+(c.fuse?`<span class="hazard tile-status fuse" aria-hidden="true"><img class="status-art" src="art/primary/overlays/bomb.png" alt="" draggable="false"><b class="status-count">${c.fuse}</b></span>`:'');
+ // Approved tile-aura sprites sit over the square, not the traveling nut.
+ const auraKind=c.aura||(c.poison>0?'poison':c.ward>0?'shadow':null);
+ const aura=auraKind?`<span class="hazard tile-status aura aura-${auraKind}" aria-hidden="true"><img class="status-art" src="art/primary/overlays/${auraKind}.png" alt="" draggable="false"><b class="aura-count">${c.auraTurns||c.poison||c.ward}</b></span>`:'';
+ return layer+aura+(c.jam?'<span class="hazard tile-status jam" aria-hidden="true"><img class="status-art" src="art/primary/overlays/sticky-butter.png" alt="" draggable="false"></span>':'')+(c.fuse?`<span class="hazard tile-status fuse" aria-hidden="true"><img class="status-art" src="art/primary/overlays/bomb.png" alt="" draggable="false"><b class="status-count">${c.fuse}</b></span>`:'');
 }
 function cellLabel(c,i,w){
  const nut=c.lock?'locked walnut':c.type===null?'empty':E.TYPES[c.type];
  const obstacle=c.ice?' pinned beneath ice '+c.ice+' hits remaining':c.lock?' pinned beneath a chain '+c.lock+' hits remaining':c.chest?' pinned beneath a chest '+c.chest+' hits remaining':'';
- const hazard=(c.jam?' sticky butter':'')+(c.fuse?' timed acorn '+c.fuse+' turns':'');
+ const hazard=(c.jam?' sticky butter':'')+(c.fuse?' timed acorn '+c.fuse+' turns':'')+(c.poison?' poison '+c.poison+' turns':'')+(c.ward?' shadow ward '+c.ward+' turns':'')+(c.aura?' '+c.aura+' tile effect '+c.auraTurns+' turns':'');
  const hold=c.hold?' held for '+c.hold+' gravity drops':'';
- const elemental=c.elemental?' '+c.elemental+' elemental power':'';
+ const elemental=c.elemental?' '+c.elemental+' elemental power: '+(E.ELEMENTAL_ABILITIES?.[c.elemental]||'activates on destruction'):'';
  return nut+elemental+obstacle+hazard+hold+' row '+(Math.floor(i/w)+1)+' column '+(i%w+1);
 }
 function featureVisual(features,i){
@@ -209,7 +211,7 @@ function featureVisual(features,i){
  (wind?`<span class="board-feature wind" data-wind-direction="${dir}" aria-hidden="true">${dir==='up'?'↑':'↓'}</span>`:'');
 }
 function nutKey(c){return c.type+':'+(c.special||'')+':'+(c.elemental||'')+':'+(c.hold||0)+':'+Number(!!(c.ice||c.lock||c.chest));}
-function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.jam||0)+':'+(c.fuse||0);}
+function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.jam||0)+':'+(c.fuse||0)+':'+(c.poison||0)+':'+(c.ward||0)+':'+(c.aura||'')+':'+(c.auraTurns||0);}
 function cellMarkup(c,i,w){if(!c)return '<div class="cell void" aria-hidden="true"></div>';
  return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${cellLabel(c,i,w)}" title="${cellLabel(c,i,w)}">${featureVisual(state.game.cfg.features,i)}${nutVisual(c)}${blockerVisual(c)}</button>`;
 }
@@ -677,7 +679,7 @@ function codex(inLevel=false){
  return '<section class="codex-page"><div class="codex-head"><button class="btn ghost" data-action="'+(inLevel?'nutdex-close':'codex-back')+'">'+(inLevel?'← LEVEL':'← BACK')+'</button><h2>'+(inLevel?'NUTDEX':'NUT INDEX')+'</h2><small>'+live+' LIVE · '+(C.entries.length-live)+' PREVIEWS</small></div>'+
   '<nav class="codex-tabs" aria-label="Indexed game mechanics">'+groups+'</nav>'+
   '<label class="codex-search">FIND <input type="search" data-codex-filter placeholder="Filter '+group+'…" aria-label="Filter index entries" autocomplete="off"></label>'+
-  '<p class="codex-help">'+(group==='elemental'?'Elemental chains are PREVIEW: another elemental activates only when the prior power actually destroys its nut. Cosmetic effects, movement and shield hits do not chain. Elemental nuts do not yet spawn.':'Live mechanics match engine behavior. Unimplemented art is marked PREVIEW.')+'</p>'+
+  '<p class="codex-help">'+(group==='elemental'?'LIVE ELEMENTAL NUTS · Match their underlying nut color to destroy them and fire the listed ability. Hit blockers first; only actual nut destruction triggers the effect. Destructive powers can chain to other elemental nuts.':'Live mechanics match engine behavior. Unimplemented art is marked PREVIEW.')+'</p>'+
   '<div class="codex-list">'+cards+'</div><p class="codex-empty" hidden>No matching entries.</p></section>';
 }
 function openNutdex(){
