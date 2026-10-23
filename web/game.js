@@ -397,6 +397,19 @@ async function cascadeAnimation(stage,epoch,wave=1){
  if(state.page!=='game'||epoch!==state.epoch)return;
  if(stage.kind==='repair'||stage.kind==='hazard'){playSFX(stage.kind==='repair'?'shuffle':stage.expired?.length?'hazard':'crack');paintCells(stage.cells);return;}
  if(stage.kind==='transport'){playSFX(stage.mode==='portal'?'portal':'transport');await transportAnimation(stage,epoch);return;}
+ if(stage.kind==='aura'){
+  const board=screen.querySelector('.board');
+  paintCells(stage.before);
+  const pulses=(stage.expired||[]).map(item=>board?.querySelector(`[data-cell="${item.at}"]`)).filter(Boolean);
+  playSFX(stage.expired?.some(item=>['fire','magma','storm','lightning'].includes(item.kind))?'hazard':'crack');
+  if(!reducedMotion()){
+   pulses.forEach(tile=>tile.classList.add('aura-trigger'));
+   await sleep(180);
+   pulses.forEach(tile=>tile.classList.remove('aura-trigger'));
+  }
+  if(epoch!==state.epoch||state.page!=='game')return;
+  paintCells(stage.cells);return;
+ }
  const board=screen.querySelector('.board');if(!board)return;
  // Never fade an ice-shielded nut that survived the hit.
  // Only nuts ACTUALLY removed shake and explode. Cracked-but-surviving nuts stay
