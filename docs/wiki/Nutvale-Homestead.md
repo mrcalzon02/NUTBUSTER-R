@@ -19,7 +19,7 @@ Play campaign → earn stars and a true high score → unlock decorations, avata
 A 12-plot garden with a fixed cottage; 28 decoration definitions (26 earned, 2 premium), 8 avatars (7 earned, 1 premium), and 11 award definitions. Milestones include 1/5/10/20/25/50/100/200/300/400/500 (other intervening decorations add more granular rewards). Medal cabinet aggregates completed levels, stars, best recorded level score, three-star finishes, and high score records. Completion at level 500 awards the capstone "Legend of Nutvale" monument.
 
 ## Satirical premium exchange
-Advertise the "Exclusive Royal Manor Kit" at a ludicrous fictional price. Show order review using existing checkout route and hide final price there; next screen discounts to FREE $0.00 without accepting payment details. Completing order records royal-estate=true, granting Platinum Royal avatar, Platinum Fountain, and Diamond Throne once. Store/reward claims should never introduce a genuine premium lock or a deadline that destroys collectibles.
+Advertise the "Exclusive Royal Manor Kit" with a modest one-time fictional $2.99 sticker price. Show order review using existing checkout route and hide final price there; next screen discounts to FREE $0.00 without accepting payment details. Completing order records royal-estate=true, granting Platinum Royal avatar, Platinum Fountain, and Diamond Throne once. Store/reward claims should never introduce a genuine premium lock or a deadline that destroys collectibles.
 
 ## Phase 2 implementation: Nutvale becomes a proper estate
 
@@ -106,7 +106,7 @@ The offline game is intentionally not resistant to manual local save editing; se
 1. Keep the 40 produced WebP houses as the architectural baseline while replacing remaining emoji decorations and flat scenic grounds with optimized, matching sprites. Preserve semantic button hitboxes and fallback rendering.
 2. Add personal profile themes, estate title plates, custom appearance permutations, and a collectible achievement gallery.
 3. Add a local screenshot/image share path for the prestige card without an account dependency; do not claim other people's estates can be visited until a real, consent-based distribution backend exists.
-4. Expand parody cosmetics and false scarcity only where missed collections have accessible archive/catch-up paths; every final checkout must remain $0.
+4. Expand optional seasonal cosmetics with accessible archives/catch-up paths; do not introduce paid time pressure or permanent FOMO. Every current final checkout remains $0.
 5. Connect estate trophies to campaign finale cinematics, non-purchasable high-score distinctions, and post-500 prestige routes. Never confuse purchased cosmetics with genuine milestones.
 
 ## Release gate additions for phase 2
