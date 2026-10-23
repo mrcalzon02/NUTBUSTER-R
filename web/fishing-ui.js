@@ -198,6 +198,8 @@ function action(name,button,ctx){
  else if(result.status==='caught')notice('FISH CAUGHT · KEEP OR SELL?');
  else if(result.choice==='sell')notice('SOLD FOR N$ '+result.fish.value);
  else if(result.choice==='keep')notice('NEW AQUARIUM RESIDENT!');
+ else if(name==='fish-trade')notice('EXCHANGED ONE '+(button.dataset.booster||'BOOSTER').toUpperCase()+' · +'+result.amount+' HONEST WORMS');
+ else if(name==='fish-craft')notice('BAIT CRAFTED · -N$'+result.cost+' · -1 HONEST WORM');
  return true;
 }
 const api={hub,wharf,baitShop,aquarium,aquariumPreview,exchangeSheet,action};
