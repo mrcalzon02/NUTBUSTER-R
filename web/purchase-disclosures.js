@@ -26,6 +26,16 @@ function offer(index,products,pack,E){
 }
 function describe(action,data,{save,P,E,F,H,state}){
  const n=F?.ensure(save);
+ if(action==='crate-open'){
+  const C=root.NutCrates,info=C?.odds(save,data.crate),crate=C?.CRATES[data.crate];
+  if(!info||!crate)return null;
+  const price=info.currency==='dollars'?'Wharf Dollars '+money(info.cost):money(info.cost)+' Golden Nuts';
+  return {name:'Open '+crate.name,lines:['Price: '+price+'.','One random outcome from the itemized odds table.',
+   ...(info.fixed?[info.fixed]:[]),'All listed chances sum to 100%.',
+   'Duplicate outfits pay +600 Golden Nuts; capped upgrades pay N$800.',
+   'Bait won before its shop tier is unlocked remains stocked until usable.',
+   'In-game currency only; no actual payment.'],odds:info.odds.map(o=>({name:o.label,probability:o.percent/100}))};
+ }
  if(action==='booster-buy'){
   const id=data.booster,price=P.BOOSTER_PRICES[id],meta=E.BOOSTER_META[id];
   if(!meta||!price)return null;
