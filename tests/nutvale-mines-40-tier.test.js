@@ -79,6 +79,7 @@ assert.equal(M.upgrade(all,'gloves',day).valid,true);
 assert.equal(M.survey(all,0,0,day).valid,true);
 const oreOnScan=M.currentBoard(all,day).find(c=>c.key==='0,0');
 assert.ok(oreOnScan.survey===null||['ore','barren'].includes(oreOnScan.survey));
+for(let i=0;i<8;i++)assert.equal(M.upgrade(all,'pickaxe',day).valid,true,'Enough strikes to finish the site');
 for(let i=0;i<16;i++){
  const x=i%4,y=Math.floor(i/4),c=M.currentBoard(all,day).find(xy=>xy.x===x&&xy.y===y);
  const hits=c.hardness;for(let h=0;h<hits;h++)M.excavate(all,x,y,day);
