@@ -21,7 +21,7 @@ for(const [id,source] of Object.entries({'line-h':P.BOOSTER_ART.row,'line-v':P.B
  assert.equal(entry?.art,source,'Special entry must have its associated power-up image: '+id);
 }
 assert.equal(entries.find(e=>e.group==='hazards'&&e.id==='hold').art,'art/additions/effects/focus-ring.png');
-assert.equal(new Set(Object.values(P.BOOSTER_ART)).size,14,'Only related triple variants intentionally reuse their parent icon');
+assert.equal(new Set(Object.values(P.BOOSTER_ART)).size,13,'Original ten immutable icons plus three distinctive advanced effects; family variants are labeled');
 assert.deepEqual(Object.keys(P.BOOSTER_BADGES).sort(),['spectrum','triple-column','triple-row']);
 
 const playableNuts=E.TYPES.filter(name=>!E.RETIRED_NUTS.includes(name));

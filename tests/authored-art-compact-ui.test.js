@@ -15,13 +15,15 @@ assert.match(css,/#app\.playing \.top\{display:none\}/,'banner must disappear du
 assert.match(css,/\.money button\{[^}]*background:transparent;border:0/,'currency displays must have no giant pills');
 assert.match(css,/\.play-wallet button\{[^}]*background:none/,'play currency buttons use tiny unboxed controls');
 assert.doesNotMatch(source,/BOOSTER_ICON_PATHS|return '<svg class="booster-icon"/,'no hand-drawn substitute symbols');
-const art=source.match(/const BOOSTER_ART=Object\.freeze\(\{([\s\S]*?)\}\)/)?.[1];
-assert.ok(art,'booster art mapping missing');
-const paths=[...art.matchAll(/^\s*['"]?([\w-]+)['"]?:'([^']+)'/gm)];
-assert.equal(paths.length,16,'all sixteen tactical boosters have authored sprite maps');
-for(const [,id,src] of paths)assert.ok(fs.existsSync(path.join(root,'web',src)),id+' missing original art: '+src);
+const P=require('../web/progression.js');
+assert.match(source,/const BOOSTER_ART=P\.BOOSTER_ART;/,'The actual gameplay button catalog is authoritative');
+const paths=Object.entries(P.BOOSTER_ART);
+assert.equal(paths.length,16,'All sixteen tactical boosters have usable artwork');
+for(const [id,src] of paths)assert.ok(fs.existsSync(path.join(root,'web',src)),id+' missing authored art: '+src);
+for(const id of ['hammer','row','column','cross','blast','color','shuffle','extra','drill','unlock'])
+ assert.ok(P.BOOSTER_ART[id],'Hard-locked original booster missing: '+id);
 assert.match(css,/#app\.playing \.game-active \.boosters \.booster-icon\{[^}]*object-fit:contain/);
-const E=require('../web/engine.js'),P=require('../web/progression.js');
+const E=require('../web/engine.js');
 const H=require('../web/homestead.js'),A=require('../web/avatar-art.js');
 const M=require('../web/campaign-maps.js'),F=require('../web/board-features.js');
 let html='',playing=false;

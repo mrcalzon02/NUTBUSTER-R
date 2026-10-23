@@ -29,7 +29,7 @@ const BOOSTER_ART=Object.freeze({
  cross:'art/additions/effects/horizontal-clear.png',
  blast:'art/primary/powerups/nut-burst.png',
  color:'art/primary/powerups/rainbow.png',
- shuffle:'art/additions/effects/shell-ring.png',
+ shuffle:'art/additions/effects/rainbow-pulse.png',
  extra:'art/additions/economy/hourglass.png',
  drill:'art/additions/effects/rocket-impact.png',
  unlock:'art/additions/effects/chain-break.png',
@@ -37,7 +37,7 @@ const BOOSTER_ART=Object.freeze({
  'triple-row':'art/primary/powerups/row-clear.png',
  'triple-column':'art/additions/effects/vertical-clear.png',
  starburst:'art/additions/effects/sparkle-burst.png',
- spectrum:'art/additions/effects/rainbow-pulse.png',
+ spectrum:'art/primary/powerups/rainbow.png',
  frostbreaker:'art/additions/effects/ice-shatter.png'
 });
 const BOOSTER_BADGES=Object.freeze({'triple-row':'×3','triple-column':'×3',spectrum:'×2'});

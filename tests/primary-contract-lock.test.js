@@ -103,14 +103,15 @@ for(const [id,art] of boosts){
  const matches=rows.filter(r=>r.domain==='booster'&&r.stable_id===id);
  assert.equal(matches.length,1,'Booster lock missing '+id);
  assert.equal(matches[0].image_path,'web/'+art,'Booster icon mapping changed '+id);
- assert(game.includes(id+":'"+art+"'"),'Runtime icon mapping changed '+id);
+ assert.equal(require('../web/progression.js').BOOSTER_ART[id],art,'Runtime icon mapping changed '+id);
 }
+assert(game.includes('const BOOSTER_ART=P.BOOSTER_ART;'),'Gameplay buttons must use the catalog tested against the hard asset locks');
 const ladder=require('../web/progression.js').LADDER;
 for(const item of ladder){
  if(boosts.some(([id])=>id===item.id))continue;
  const extras=['quake','triple-row','triple-column','starburst','spectrum','frostbreaker'];
  assert.ok(extras.includes(item.id),'Unknown advanced unlock: '+item.id);
- assert.ok(game.includes(item.id+":'")||game.includes("'"+item.id+"':"),'Advanced power art mapping absent: '+item.id);
+ assert.ok(require('../web/progression.js').BOOSTER_ART[item.id],'Advanced power art mapping absent: '+item.id);
 }
 assert.equal(rows.filter(r=>r.domain==='avatar-outfit').length,60);
 assert.equal(rows.filter(r=>r.domain==='homestead-tier').length,40);
