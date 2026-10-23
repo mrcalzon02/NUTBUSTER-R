@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Gameplay and saves are offline. Native update checks may use network; downloads and installs require explicit consent. -->
+    <!-- Android 11+ package visibility: discover installed OFFLINE TTS engines. -->
+    <queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <application android:label="NUTBUSTER" android:icon="@drawable/nutbuster_icon"
