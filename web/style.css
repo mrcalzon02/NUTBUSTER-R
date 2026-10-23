@@ -562,3 +562,22 @@
 .nut-booster-offer .booster-shop-prices{display:grid;gap:4px;margin-top:6px}
 .nut-booster-offer .booster-shop-prices button{min-height:28px;padding:4px;font-size:10px;white-space:normal}
 @media(max-width:480px){.currency-offer-grid{grid-template-columns:1fr}.currency-offer{padding:7px}.currency-offer>img{width:38px;height:38px}}
+
+/* Home-only teaser and genuinely release-backed compact news. */
+.rr-banner{display:block;margin:10px auto 8px;max-width:950px;border:2px solid #bf9b57;border-radius:14px;overflow:hidden;box-shadow:0 5px 16px #0007;background:#182a36}
+.rr-banner img{display:block;width:100%;height:auto;aspect-ratio:4 / 1;object-fit:cover}
+.release-news{margin:8px 0 14px;border:1px solid #8b83a6;border-radius:12px;background:linear-gradient(125deg,#1e203e,#241932);overflow:hidden;box-shadow:inset 0 1px #ffffff21}
+.release-news-label{padding:8px 11px;display:flex;align-items:center;justify-content:space-between;gap:9px;font-size:11px;letter-spacing:.4px}
+.release-news-label b{color:#ffe6a0;white-space:nowrap}
+.release-news-label span{color:#c5bed8;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.release-news-viewport{overflow:hidden;white-space:nowrap;border-top:1px solid #ffffff22;border-bottom:1px solid #ffffff22;background:#121a31;padding:7px 0;color:#e4edff;font-size:12px}
+.release-news-ticker{display:flex;min-width:max-content;animation:nut-release-marquee 38s linear infinite}
+.release-news-stream{display:inline-flex;align-items:center;gap:22px;padding-inline:11px;flex-shrink:0}
+.release-news-item{display:inline-block}.release-news-item b{color:#b9f198}
+.release-news-dot{color:#ffd57c}
+.release-news:hover .release-news-ticker,.release-news:focus-within .release-news-ticker{animation-play-state:paused}
+.release-news-details{font-size:11px}.release-news-details summary{padding:7px 11px;cursor:pointer;color:#ffe1a4;font-weight:800}
+.release-news-details summary:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+.release-news-details ul{padding:4px 14px 12px 29px;margin:0;color:#e8dfe8;white-space:normal;line-height:1.45}.release-news-details li+li{margin-top:5px}
+@keyframes nut-release-marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.release-news-ticker{animation:none;min-width:0}.release-news-viewport{overflow:auto}.release-news-stream[aria-hidden=true]{display:none}.release-news-stream{display:flex;flex-wrap:wrap;white-space:normal}}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-labelledby="title desc">
+<title id="title">Rupee Rush coming soon!</title><desc id="desc">A bright gemstone adventure coming to Nut Buster, with green and violet faceted jewels, sparkling gold, and jungle ornament.</desc>
+<defs><linearGradient id="night" x2="1" y2="1"><stop stop-color="#132541"/><stop offset=".5" stop-color="#203a40"/><stop offset="1" stop-color="#421f51"/></linearGradient><linearGradient id="jade" x2=".1" y2="1"><stop stop-color="#efff97"/><stop offset=".35" stop-color="#85ed5e"/><stop offset="1" stop-color="#139a79"/></linearGradient><linearGradient id="gold" x2="0" y2="1"><stop stop-color="#fff9b8"/><stop offset=".46" stop-color="#ffd55a"/><stop offset="1" stop-color="#c37125"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="12"/></filter></defs>
+<rect width="1200" height="300" rx="28" fill="url(#night)"/><path d="M0 240Q190 95 355 215T790 110T1200 240V300H0" fill="#307b60" opacity=".26"/><path d="M0 80Q190 195 360 52T790 155T1200 55" stroke="#82c461" stroke-width="9" opacity=".19" fill="none"/>
+<g opacity=".6" fill="#79fcaa" filter="url(#glow)"><circle cx="140" cy="120" r="48"/><circle cx="1070" cy="110" r="56"/></g>
+<g transform="translate(120 141) rotate(-15)"><path d="M0-106 72-50 76 51 0 111-76 51-72-50Z" fill="url(#jade)" stroke="#b9ffe7" stroke-width="9"/><path d="M0-106V111M-72-50H72M-76 51H76M-72-50 0 111 72-50" stroke="#147c71" opacity=".55" stroke-width="5" fill="none"/></g>
+<g transform="translate(1060 148) rotate(14)"><path d="M0-108 78-46 80 48 0 115-80 48-78-46Z" fill="#b581ff" stroke="#efe0ff" stroke-width="9"/><path d="M0-108V115M-78-46H78M-80 48H80M-78-46 0 115 78-46" stroke="#5c3296" opacity=".65" stroke-width="5" fill="none"/></g>
+<g fill="#ffde80"><path d="m255 53 8 16 18 4-18 5-8 17-7-17-18-5 18-4Z"/><path d="m924 214 8 16 18 4-18 5-8 17-7-17-18-5 18-4Z"/><circle cx="980" cy="52" r="5"/><circle cx="248" cy="214" r="5"/></g>
+<text x="600" y="64" text-anchor="middle" font-family="Trebuchet MS,Arial,sans-serif" font-weight="900" letter-spacing="5" font-size="24" fill="#ffe9b1">A NEW GEM-FILLED ADVENTURE</text>
+<text x="600" y="165" text-anchor="middle" font-family="Trebuchet MS,Arial,sans-serif" font-weight="1000" letter-spacing="-2" font-size="94" stroke="#12342e" stroke-width="10" paint-order="stroke" fill="url(#jade)">RUPEE RUSH</text>
+<rect x="390" y="184" width="420" height="66" rx="25" fill="#342049" stroke="#ffc75a" stroke-width="5"/>
+<text x="600" y="230" text-anchor="middle" font-family="Trebuchet MS,Arial,sans-serif" font-weight="900" letter-spacing="3" font-size="38" fill="url(#gold)">COMING SOON!</text>
+</svg>

@@ -43,6 +43,19 @@ jobs:
             exit 1
           fi
           echo "All JavaScript suites, manifest checks, and difficulty audits passed."
+      - name: Require fresh, source-backed release news
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          LAST_TAG="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName,isDraft,publishedAt --jq '[.[] | select(.isDraft == false)] | sort_by(.publishedAt) | last | .tagName // empty')"
+          if [[ -n "$LAST_TAG" ]]; then
+            git fetch --no-tags origin "refs/tags/$LAST_TAG:refs/tags/$LAST_TAG"
+            NUTBUSTER_RELEASE_BASE="$LAST_TAG" node tools/release-news.js --check
+          else
+            node tools/release-news.js --check
+          fi
 
       - name: Retain structural and automated player-proxy reports
         if: always()
@@ -61,6 +74,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Embed exact release notes in desktop launchers
+        run: node tools/release-news.js --generate "nutbuster-phone-test-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}" "$GITHUB_SHA"
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23'
@@ -109,6 +124,8 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+      - name: Embed exact release notes in Android debug preview
+        run: node tools/release-news.js --generate "nutbuster-phone-test-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}" "$GITHUB_SHA"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -230,6 +247,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Embed exact release news in the signed APK
+        run: node tools/release-news.js --generate "nutbuster-phone-test-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}" "$GITHUB_SHA"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -311,9 +330,9 @@ jobs:
           cp release/desktop/NUTBUSTER-Linux-x64 release/publish/
           python3 scripts/generate_update_manifest.py "$TAG" '${{ steps.signed.outputs.code }}' '${{ steps.signing.outputs.sha }}'
           (cd release/publish && sha256sum NUTBUSTER-* > SHA256SUMS.txt)
-          NOTES="$(printf 'NUTBUSTER testing release.\n\nAndroid versionCode: %s\nSource revision: %s\nNUTBUSTER publisher signer SHA-256: %s\n\nOnly the permanent NUTBUSTER publisher signing key is accepted. Android updates require an installed APK signed with this same key.\n' '${{ steps.signed.outputs.code }}' "$GITHUB_SHA" '${{ steps.signing.outputs.sha }}')"
-          gh release create "$TAG" --draft --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes "$NOTES"
-          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/NUTBUSTER-update.json release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
+          node tools/release-news.js --notes '${{ steps.signed.outputs.code }}' '${{ steps.signing.outputs.sha }}' > "$RUNNER_TEMP/nutbuster-release-notes.md"
+          gh release create "$TAG" --draft --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes-file "$RUNNER_TEMP/nutbuster-release-notes.md"
+          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/NUTBUSTER-update.json release/publish/NUTBUSTER-news.json release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
           # GitHub computes SHA-256 for release assets. Refuse to publish until its digest matches our local artifact.
           # Draft tags may not exist yet. Resolve the draft ID through gh, which
           # can find unpublished releases, then read its assets by release ID.
