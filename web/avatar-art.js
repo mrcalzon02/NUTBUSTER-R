@@ -24,6 +24,9 @@ function owned(save,id){
  const item=Object.prototype.hasOwnProperty.call(IDS,id)?IDS[id]:null;
  if(!item)return false;
  if(item.level===0)return true;
+ // Seasonal outfits remain earned through campaign progress OR their
+ // individually awarded cosmetic crates; a duplicate never revokes ownership.
+ if(item.category==='seasonal'&&save?.homestead?.lootCostumes?.[item.id]===true)return true;
  const stars=save?.stars||{};
  return Number(stars[item.level])>0;
 }
