@@ -1,9 +1,11 @@
 (function(){'use strict';
 const E=window.NutEngine, M=window.NutCampaignMaps, P=window.NutProgress, H=window.NutHomestead, A=window.NutAvatarArt, screen=document.getElementById('screen');
 const icons=['🥜','🌰','🌰','🥜','🌰','🟢','🌟'];
+const D=window.NutDailyMoves, T=window.NutElementalChallenges, R=window.NutElementalRewards;
+if(!D||!T||!R)throw new Error('Daily moves and elemental reward modules must load before gameplay');
 const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,levels:{voice:.9,music:.28,reactions:.38,sfx:.48},effects:true,completed:0};
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
-P.migrate(saved);H.ensure(saved);A.ensure(saved);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
+P.migrate(saved);R.ensure(saved);H.ensure(saved);A.ensure(saved);D.ensure(saved,Date.now(),E.makeLevel(Math.min(500,Math.max(1,saved.unlocked||1))).moves);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
 let state={page:'home',chapter:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});}
@@ -12,6 +14,8 @@ function playSFX(name,opts){window.NutSFX?.play(name,opts);}
 const Ads=window.NutFakeAds;let adTicker=null;
 const adNow=()=>typeof performance!=='undefined'&&typeof performance.now==='function'?performance.now():Date.now();
 function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch(_){}}
+function dailyCap(){return E.makeLevel(Math.min(500,Math.max(1,saved.unlocked||1))).moves;}
+function movesLeft(){return D.left(saved,Date.now(),dailyCap());}
 function safeNum(n){return Number.isFinite(n)?Math.min(999999999,Math.max(0,Math.trunc(n))):0;}
 function gain(coins=0,gems=0){saved.coins=safeNum(saved.coins+coins);saved.gems=safeNum(saved.gems+gems);persist();counters();}
 function counters(){
@@ -33,6 +37,7 @@ function activateBooster(id,index){const meta=E.BOOSTER_META[id];
  const result=E.booster(state.game,id,index);
  if(!result.valid){notice(result.reason==='no-locks'?'No chains to unlock.':'Choose a valid target.');return null;}
  if(!P.spend(saved,id))throw new Error('Inventory desynchronized after power activation');
+ if(id==='extra'){state.game.moves=D.topUp(saved,5,Date.now(),dailyCap());state.game.lost=false;}
  // Successful activations always play their OWN visual, even if no nut is cleared.
  const target=index>=0?screen.querySelector(`[data-cell="${index}"]`):screen.querySelector('.board-wrap');
  window.NutFX?.booster?.(id,target);
@@ -57,7 +62,7 @@ function nav(page){
 function banner(title,sub){return `<div class="panel hero"><h1>${title}</h1><p>${sub}</p></div>`;}
 function uiIcon(name,alt=''){return `<img src="art/additions/ui/${name}.png" class="ui-icon" alt="${alt}">`;}
 function home(){return `${banner('WELCOME TO NUTBUSTER','The match-three game with every premium feature ever invented. An offer this irresistible can only end one way.')}
- <div class="space"></div><div class="actions"><button class="btn green" data-action="play" data-level="${Math.min(500,saved.unlocked)}">${uiIcon('play')}PLAY NOW</button><button class="btn secondary" data-nav="campaign">${uiIcon('campaign-map')}LEVEL MAP</button><button class="btn secondary" data-nav="homestead">🏡 NUTVALE HOMESTEAD</button><button class="btn secondary" data-nav="codex">📖 NUT INDEX</button><button class="btn secondary" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="shop">${uiIcon('store')}SHOP</button><button class="btn secondary" data-nav="settings">${uiIcon('settings')}SETTINGS</button><button class="btn ghost" data-action="sound">${state.sound?'🔊 Voice On':'🔇 Voice Off'}</button><button class="btn ghost" data-action="music">${state.music?'♫ Music On':'♫ Music Off'}</button><button class="btn ghost" data-action="effects">${state.effects?'Effects On':'Effects Off'}</button></div>
+ <p class="daily-move-indicator">DAILY MOVES ${movesLeft()} / ${saved.dailyMoves.base}</p><div class="space"></div><div class="actions"><button class="btn green" data-action="play" data-level="${Math.min(500,saved.unlocked)}">${uiIcon('play')}PLAY NOW</button><button class="btn secondary" data-nav="campaign">${uiIcon('campaign-map')}LEVEL MAP</button><button class="btn secondary" data-nav="homestead">🏡 NUTVALE HOMESTEAD</button><button class="btn secondary" data-nav="codex">📖 NUT INDEX</button><button class="btn secondary" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="shop">${uiIcon('store')}SHOP</button><button class="btn secondary" data-nav="settings">${uiIcon('settings')}SETTINGS</button><button class="btn ghost" data-action="sound">${state.sound?'🔊 Voice On':'🔇 Voice Off'}</button><button class="btn ghost" data-action="music">${state.music?'♫ Music On':'♫ Music Off'}</button><button class="btn ghost" data-action="effects">${state.effects?'Effects On':'Effects Off'}</button></div>
  <h2 class="section">Your entirely unnecessary privileges</h2><div class="tiles-row"><div class="panel mini-card"><span class="icon">❤️</span><b>${saved.hearts}/5 Lives</b><button class="btn ghost" data-action="refill">REFILL NOW</button></div><div class="panel mini-card"><span class="icon">👑</span><b>${saved.vip?'VIP ACTIVE':'VIP STATUS'}</b><button class="btn ghost" data-action="vip">${saved.vip?'VIP BENEFITS':'BECOME VIP'}</button></div><div class="panel mini-card"><span class="icon">🎁</span><b>Daily Loot</b><button class="btn ghost" data-action="daily">CLAIM BONUS</button><button class="btn secondary" data-action="ad-daily" ${saved.fakeAdDailyDay===Ads?.dayKey()?"disabled":""}>${saved.fakeAdDailyDay===Ads?.dayKey()?"📺 AD BONUS CLAIMED":"📺 WATCH · 750 NUTS + HAMMER"}</button></div></div>
  <div class="panel center"><b>LIMITED-TIME EXCLUSIVE OFFER</b><p class="muted">Unmissable deals, luxury upgrades, and important-looking countdowns await in the Nut Emporium.</p><button class="btn secondary" data-nav="shop">EXPLORE OFFERS</button></div>`;}
 function campaign(){
@@ -166,7 +171,7 @@ function game(){
    <button class="play-back" data-nav="campaign" aria-label="Return to level map" title="Level map">‹</button>
    <div class="play-title" title="${g.cfg.stageTitle}" aria-label="LEVEL ${g.level}: ${g.cfg.stageTitle}"><b>LV ${g.level}</b><span>${g.cfg.stageTitle}</span></div>
    <div class="play-count" aria-label="Score"><span>SCORE</span><b data-stat="score">${g.score.toLocaleString()}</b></div>
-   <div class="play-count" aria-label="Moves left"><span>MOVES</span><b data-stat="moves">${g.moves}</b></div>
+   <div class="play-count" aria-label="Moves left"><span>DAILY</span><b data-stat="moves">${g.moves}</b></div>
    <button class="play-index" data-action="nutdex-open" aria-label="Open in-level Nutdex mechanics" title="NUTDEX">?</button><details class="play-menu"><summary aria-label="Game options" title="Game options">⋮</summary><div class="play-menu-panel">
     <button class="btn secondary" data-action="restart">Restart</button>
     <button class="btn secondary" data-nav="shop">Shop</button><button class="btn secondary" data-action="nutdex-open">NUTDEX</button>
@@ -393,8 +398,8 @@ function shop(){
  }).join('');
  return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">VIP DEALS</span>'}</div><div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div>${window.NutFishingUI?.exchangeSheet?.(saved,E,P,false)||''}<p class="muted">Extraordinary bundles. Unbelievable prices. One last step before checkout.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item">${art('economy',shopSprites[i],p[1])}<h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><div class="offer-price">${p[4]}</div><button class="btn green" data-action="claim" data-item="${i}">BUY PACKAGE</button></div>`).join('')}</div>`;
 }
-function rewards(){const tiers=P.challengeRewards(saved),next=P.nextUnlock(saved);let mins=Math.max(0,Math.ceil((saved.chestReadyAt-Date.now())/60000));return `<div class="topline"><h2>REWARDS, REWARDS, REWARDS</h2></div><div class="panel reward-inventory"><b>BOOSTER VAULT</b><p class="muted">${inventorySummary()}</p>${next?'<p class="muted">Next power: '+E.BOOSTER_META[next.id].label+' · clear level '+next.level+'</p>':''}</div>
- <div class="panel challenge-rewards"><b>CHALLENGE REWARD TRACK</b><p class="muted">${P.challengeProgress(saved)}/25 challenge milestones cleared</p>
+function rewards(){const tiers=P.challengeRewards(saved),next=P.nextUnlock(saved),elemental=R.summary(saved);let mins=Math.max(0,Math.ceil((saved.chestReadyAt-Date.now())/60000));return `<div class="topline"><h2>REWARDS, REWARDS, REWARDS</h2></div><div class="panel reward-inventory"><b>BOOSTER VAULT</b><p class="muted">${inventorySummary()}</p>${next?'<p class="muted">Next power: '+E.BOOSTER_META[next.id].label+' · clear level '+next.level+'</p>':''}</div>
+ <div class="panel challenge-rewards"><b>ELEMENTAL TRIAL REWARDS</b><p class="muted">${elemental.completed}/150 trials · ${elemental.relics.length}/15 relics · ${movesLeft()} daily moves left</p><div class="elemental-relics">${elemental.relics.map(id=>'<img src="art/primary/nuts/elemental/'+id+'.png" alt="'+id+' relic" title="'+id+' relic" loading="lazy">').join('')}</div></div><div class="panel challenge-rewards"><b>CHALLENGE REWARD TRACK</b><p class="muted">${P.challengeProgress(saved)}/25 challenge milestones cleared</p>
  <div class="challenge-tiers">${tiers.map(t=>`<div class="challenge-tier"><b>${t.requirement} ★</b><small>${boosterSummary(t.contents)}</small><button class="btn secondary" data-action="challenge-claim" data-tier="${t.index}" ${t.ready?'':'disabled'}>${t.claimed?'CLAIMED':t.ready?'CLAIM':'LOCKED'}</button></div>`).join('')}</div></div>
  <div class="reward-lines"><div class="panel">${art('economy','piggy-bank','🐷')}<b>PIGGY BANK</b><p class="muted">Your vault is bursting. Premium extraction available.</p><button class="btn green" data-action="pig">SMASH PIG</button></div><div class="panel">${art('economy','treasure','🧰')}<b>3-HOUR TREASURE CHEST</b><p class="muted">${mins===0?'Timer complete!':mins+' minutes remaining. Instant unlock available.'}</p><button class="btn green" data-action="chest">${mins===0?'OPEN CHEST':'OPEN INSTANTLY'}</button></div><div class="panel">${art('economy','gift','💌')}<b>FRIEND REFERRAL</b><p class="muted">Invite a friend. Or nominate yourself.</p><button class="btn green" data-action="friend">I AM MY OWN FRIEND</button></div><div class="panel">${art('economy','vip-crown','🎟️')}<b>ELITE PREMIUM SEASON PASS</b><p class="muted">Premium track, supreme track, and downright suspicious track.</p><button class="btn green" data-action="pass">UNLOCK PREMIUM</button></div><div class="panel"><span class="art">📺</span><b>PARODY REWARDED AD</b><p class="muted">Watch a squirrel commercial for 750 Golden Nuts and one Hammer. One ad bonus per day. No real advertisers.</p><button class="btn green" data-action="ad-daily" ${saved.fakeAdDailyDay===Ads?.dayKey()?"disabled":""}>${saved.fakeAdDailyDay===Ads?.dayKey()?"CLAIMED TODAY":"WATCH AND EARN"}</button></div><div class="panel"><span class="art">📅</span><b>DAILY LOGIN STREAK</b><p class="muted">Streak: ${saved.streak} · Missed days are forgiven.</p><button class="btn green" data-action="daily">CLAIM TODAY</button></div><div class="panel"><span class="art">🎰</span><b>CHOICE LOOT BOX</b><p class="muted">The odds have never been so promising.</p><button class="btn green" data-action="loot">GIVE ME THE GOOD ONE</button></div></div><p class="tip">Premium rewards refresh whenever you need another hit of excitement.</p>`;}
 
@@ -615,7 +620,7 @@ function finishFakeAd(){
  render();playSFX('coin');
 }
 function settings(){const lev=saved.levels||{voice:.9,music:.28,reactions:.38,sfx:.48};return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings"><p class="muted">Independent volume controls for speech, music, reactions and gameplay effects.</p>${[['voice','Announcer'],['music','Music'],['reactions','Match reactions'],['sfx','Game effects']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}<div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div><div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>`;}
-function render(){if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');document.getElementById('app')?.classList?.toggle('fake-ad-active',state.page==='fake-ad');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
+function render(){const previousDay=saved.dailyMoves?.day;D.ensure(saved,Date.now(),dailyCap());if(saved.dailyMoves.day!==previousDay)persist();if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');document.getElementById('app')?.classList?.toggle('fake-ad-active',state.page==='fake-ad');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
  screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');screen.classList?.toggle('codex-active',state.page==='codex');
  screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='homestead'?homestead():state.page==='wharf'?window.NutFishingUI.hub(saved):state.page==='fishing'?window.NutFishingUI.wharf(saved,state,E,P):state.page==='bait-shop'?window.NutFishingUI.baitShop(saved,state,E,P):state.page==='aquarium'?window.NutFishingUI.aquarium(saved,state):state.page==='codex'?codex():state.page==='settings'?settings():state.page==='checkout'?checkout():state.page==='fake-ad'?fakeAdScreen():state.page==='outcome'?outcome():rewards();
  window.NutbusterUpdates?.syncStatus?.();
@@ -626,9 +631,10 @@ function render(){if(window.NutFishing){const oldDay=saved.nutravaganza?.day;win
  }
 }
 function start(n){state.epoch++;state.animating=false;
+ if(movesLeft()<1){notice('DAILY MOVES EXHAUSTED · REFILLS TOMORROW');return;}
  if(saved.hearts<=0){saved.hearts=5;notice('ENERGY RESTORED!');}
  saved.hearts--;persist();const level=Math.min(500,Math.max(1,Number(n)||1));
- closeNutdex();state.game=E.create(level,Math.floor(Math.random()*0xffffffff));state.page='game';state.selected=-1;state.tool=null;state.holdTool=null;state.outcome=null;state.levelReward='';
+ closeNutdex();state.game=E.create(level,Math.floor(Math.random()*0xffffffff));state.game.moves=movesLeft();state.page='game';state.selected=-1;state.tool=null;state.holdTool=null;state.outcome=null;state.levelReward='';
  playSFX('ui');state.announcer=state.game.cfg.newNut?'NEW NUT: '+state.game.cfg.newNut.replace('-',' ').toUpperCase()+'!':'PREPARE TO BUST SOME NUTS!';render();window.NutAudio?.voice('nutbuster-soft');
  window.NutbusterUpdates?.autoCheck?.('level');
 }
@@ -673,8 +679,13 @@ function concludeMove(result){
  if(result.won||result.lost){state.outcome=result.won?'win':'loss';state.page='outcome';render();}
 }
 function doSwap(a,b){if(state.animating||state.page!=='game')return;
+ if(movesLeft()<1){notice('DAILY MOVES EXHAUSTED · REFILLS TOMORROW');return;}
+ state.game.moves=movesLeft();
  const r=E.swap(state.game,a,b);if(!r.valid){playSFX('invalid');notice('Choose two adjacent nuts.');selectCell(-1);return;}
- void applyMove(r);
+ const used=Math.min(movesLeft(),1+2*(r.hazards?.expired?.length||0));
+ D.spend(saved,used,Date.now(),dailyCap());state.game.moves=movesLeft();
+ if(!r.won&&!state.game.moves){state.game.lost=true;r.lost=true;}
+ persist();void applyMove(r);
 }
 function cell(i){if(!state.game||state.game.won||state.game.lost||state.animating)return;
  if(state.holdTool){
@@ -804,7 +815,7 @@ function action(a,button){
  if(a==='checkout-complete'){if(state.checkoutStep!==1||state.checkout===null)return;
   const i=state.checkout,p=offers[i];const dest=state.checkoutFrom;
   if(i===6){saved.hearts=5;persist();} else if(i===8){H.purchase(saved,'royal-estate');persist();}
-  else if(i===7){if(state.game){E.booster(state.game,'extra',-1);}}
+  else if(i===7){const bank=D.topUp(saved,5,Date.now(),dailyCap());if(state.game){state.game.moves=bank;state.game.lost=false;}}
   else {P.grant(saved,state.checkoutPack);gain(p[2],p[3]);if(i===4)saved.vip=true;persist();}
   state.checkout=null;state.checkoutPack=null;state.checkoutStep=0;state.discountOffer=null;notice('ORDER COMPLETE · TOTAL PAID $0.00');
   playSFX('coin');if(i===0||i===3)announce('HECK OF A PACKAGE!','heck-package');else announce('WHAT A DEAL!','deal');
