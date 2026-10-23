@@ -1,12 +1,12 @@
 # Elemental Nut Rules and Nut Index
 
 ## Status
-The approved first 3x5 artwork provides 15 elemental variants, available as transparent 192x192 PNG assets. The rejected second 8x5 sheet is not in use. Elemental gameplay is **not enabled**: the Nut Index presents the following as proposed rules, never as mechanics already functioning.
+The approved first 3x5 artwork provides 15 elemental variants, available as transparent 192x192 PNG assets. The rejected second 8x5 sheet is not in use. Elemental gameplay is **enabled**: powers attach to unlocked new nut varieties without changing their underlying match colors, including the 150 optional trial boards.
 
 ## Shared activation contract
 An elemental variant retains its underlying ordinary color for matching. When its nut is finally removed, after any shielding is cleared, its ability activates once. Resolve effects in deterministic cell order; never trigger from merely damaging a shield. Hazards and new effects require visible icons, accessible descriptions and tests before being enabled.
 
-| Variant | Proposed distinct ability |
+| Variant | Active distinct ability |
 |---|---|
 | Fire | Damage one surface layer on each orthogonal neighbor |
 | Ice | Freeze two adjacent movable pieces for one turn |
@@ -29,10 +29,10 @@ Ice blockers ordinarily begin with two layers, but high-pressure stages can seed
 
 Conveyors rotate payloads beginning at level 125, portals exchange payloads at 164, and wind tunnels begin at 301. Tile statuses stay in their cells while whole-piece blockers interrupt transport. Void cells and occupied whole-piece blockers break gravity into segments. Rock and crate images are present but are not active blockers.
 
-Current core nut identities: 19 registry entries, with one retired closed-pistachio lookalike. Eleven approved expansion varieties enter progressively from level 15; the elemental family remains preview-only.
+Current core nut identities: 19 registry entries, with one retired closed-pistachio lookalike. Eleven approved expansion varieties enter progressively from level 15; fifteen elemental variants are live on eligible new nut pieces.
 
 ## Evidence and follow-up
-The existing engine passed 14 focused behavioral checks for layered ice, chains, butter, timed acorns, portal movement, wind, and animation planning. The new automated test checks the index status labels and sprite-file contract as well as actual engine behavior. Elemental effects and Android index UX are not certified or enabled yet.
+The existing engine passed 14 focused behavioral checks for layered ice, chains, butter, timed acorns, portal movement, wind, and animation planning. The new automated test checks the index status labels and sprite-file contract as well as actual engine behavior. All fifteen elemental effects passed targeted activation checks and a 650-stage seeded structural audit. Full Android endurance and human completion-rate testing remain outstanding.
 
 The source atlas is retained in the Nutbuster Google Drive folder at https://drive.google.com/file/d/13lBWifXqDQuD34WjVLLi-IjkQcBR07UZ/view . To re-slice, save it as assets/source/expansion/elemental-nuts-3x5.png and run python tools/slice_elemental_3x5.py.
 
@@ -42,9 +42,9 @@ The source illustrated `ice-1.png`, `ice-2.png`, `chain-1.png`, `chain-2.png` an
 
 The upcoming **tile status** atlas belongs to a different layer: jam/sticky butter, timed fuses, future status effects, and other square-attached mechanics. Status effects may remain when nut payloads move. Do not substitute or overwrite the reserved original replacement-nut art with the new tile-overlay icons until the new sprite assets are committed and validated.
 
-### Elemental Nut Chain — proposed system (not yet active)
+### Elemental Nut Chain — active system
 
-The approved fifteen elemental nut sprites form a separate *whole-nut power family*, each with an underlying match color. A fully destroyed elemental nut releases its named power once, and may trigger a second elemental nut only if the first power **actually destroys** it. Shield damage, purely cosmetic effects, tile-status changes and moving an unbroken elemental nut do not count. Process activations in deterministic cell order with one activation per nut per resolution, never unbounded loops. Proposed demonstrable chain: **Fire → Lightning → Storm**, provided Fire actually destroys an adjacent exposed Lightning nut and Lightning destroys a same-color Storm nut; Storm can then fork to additional targets. An **Earth → Magma → Storm** assault chain is possible under the same destroyed-nut conditions. **Water + Nature + Radiance** is a recovery *synergy*, not an activation chain, because cleansing a tile status does not destroy another elemental nut. The exact elemental effects, activation targets and unlock progression remain design-only pending implementation and live test coverage. The Nutdex identifies all fifteen as **PREVIEW**, never LIVE.
+The approved fifteen elemental nut sprites form a separate *whole-nut power family*, each with an underlying match color. A fully destroyed elemental nut releases its named power once, and may trigger a second elemental nut only if the first power **actually destroys** it. Shield damage, purely cosmetic effects, tile-status changes and moving an unbroken elemental nut do not count. Process activations in deterministic cell order with one activation per nut per resolution, never unbounded loops. Proposed demonstrable chain: **Fire → Lightning → Storm**, provided Fire actually destroys an adjacent exposed Lightning nut and Lightning destroys a same-color Storm nut; Storm can then fork to additional targets. An **Earth → Magma → Storm** assault chain is possible under the same destroyed-nut conditions. **Water + Nature + Radiance** is a recovery *synergy*, not an activation chain, because cleansing a tile status does not destroy another elemental nut. The effects are implemented in `web/elemental-powers.js` and activated by the bounded worklist in `web/engine.js`. All fifteen are marked **LIVE** in Nutdex. The original 500 stages remain intact, alongside 150 optional harder trials in IDs 501–650.
 
 ## Tile status overlay sprites — verified import (2026-10-22)
 
@@ -58,3 +58,12 @@ The remaining fourteen images (fire, frost, lightning, water, nature-vines, pois
 ## Earlier, stronger 500-level campaign pressure (October 2026)
 
 In response to early tester reports, levels 1–40 now use five times their old score target and request roughly five times as many collection or blocker hits. Blocker levels are backed by real, countable durability (up to five visible layers per shield), not phantom objectives. This is an aggressive challenge target and requires actual human completion-rate testing. Subsequent chapters preserve all board-size thresholds and increase absolute objectives while reducing the move allowance gradually, eliminating the former nine-move plateau from levels 301–500. The numeral on ice/chain/chest overlays represents the remaining **hits**, not a separate nut type. The fifteen elemental whole-nut powers and optional trials remain in development; their saved game and in-board wiring are not certified by the difficulty audit.
+
+
+## Reward flow and shared daily moves (October 2026)
+
+Optional trials 501–650 are divided into thirty stages per area, with three ten-trial elemental families in each area. Each trial requires both campaign progress and the preceding trial in its area. Trial clears do not change the main campaign star ladder. First clears award Golden Nuts and Gems; each fifth trial awards boosters and each tenth unlocks the corresponding permanent elemental relic. Rewards are atomically recorded under `elementalTrials` and `elementalRelics` and cannot be repeatedly claimed. The original 20-stage challenge reward track remains separate.
+
+The game uses one shared local-calendar-day move bank under `dailyMoves`. The daily base is the current main-campaign stage's revised move budget (36 at the beginning, declining toward 13 late in the campaign), locked when that day begins. Successful swaps cost one move; timed acorns deduct their penalty. Retries, level changes, and closing/reopening the app do not refill moves. The next local day resets the base; device-clock rollback does not. Explicit +5 Moves items/offers and successful Nature cleanses may add to the shared balance, but no stage-entry reset is permitted. The save is local only, not synchronized between devices.
+
+Structural legality and all fifteen power activation tests have passed. Android install, visual gameplay, device daily rollover, and endurance testing remain release gates.
