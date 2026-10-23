@@ -99,7 +99,7 @@ function fresh(){const save={unlocked:500,stars:{},coins:10000,gems:200,hearts:0
  const document={getElementById:id=>({screen,app:{classList:classes},toast:{textContent:'',classList:classes},wallet:{textContent:''},gems:{textContent:''}})[id]||null,
   querySelector(){return null},querySelectorAll(){return []}};
  const window={
-  NutDailyMoves:D,NutBenefits:B,NutPurchases:Purchases,
+  NutDailyMoves:D,NutBenefits:B,NutPurchases:Purchases,NutFishing:require('../web/fishing.js'),
   NutElementalChallenges:require('../web/elemental-challenges.js'),
   NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutProgress:P,
   NutHomestead:require('../web/homestead.js'),NutAvatarArt:require('../web/avatar-art.js'),
