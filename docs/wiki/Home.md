@@ -18,3 +18,5 @@
 - Owner source artwork is supplied in a separate asset archive; copy it into the repo to make APK/desktop art complete.
 
 These pages live under `docs/wiki/` until explicitly published to the separate GitHub Wiki. The wiki being enabled does not itself prove its page content is published.
+
+- **Nutvale Mines (phase 1):** 40 pickaxe levels, 40 survey glove levels, persistent excavation, refinery and Writ Office. See [[Nutvale-Mines-Equipment-v1.1]] and [[Nutvale-Mining-Tool-Art]]. The 500 second-campaign stages are not enabled yet.
