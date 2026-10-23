@@ -50,7 +50,7 @@ const document={getElementById(id){return ({
  screen,app:{classList:cssFlags},wallet:{},gems:{},
  toast:{classList:cssFlags,textContent:''}})[id]||null;},
  querySelector(){return null;},querySelectorAll(){return []}};
-const window={NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutBoardFeatures:F,NutCodex:C,addEventListener(){}};
+const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutBoardFeatures:F,NutCodex:C,addEventListener(){}};
 vm.runInNewContext(game,{window,document,localStorage:{getItem(){return null;},setItem(){}},setTimeout(){},clearTimeout(){},console});
 const app=window.NutbusterApp;app.start(110);const board=app.getState().game;
 const free=board.cells.findIndex(c=>c&&!c.ice&&!c.lock&&!c.chest&&c.type!==null);

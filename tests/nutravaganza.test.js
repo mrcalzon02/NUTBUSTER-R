@@ -63,7 +63,7 @@ let html='',handlers={},local={};
 const screen={classList:{toggle(){}},get innerHTML(){return html;},set innerHTML(s){html=s;},addEventListener:(id,fn)=>{handlers[id]=fn;},querySelector:()=>null,querySelectorAll:()=>[]};
 const els={screen,app:{classList:{toggle(){}}},wallet:{textContent:''},gems:{textContent:''},toast:{textContent:'',classList:{add(){},remove(){}}}};
 const document={getElementById:id=>els[id]||null,querySelectorAll:()=>[],querySelector:()=>null};
-const window={NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutFishing:F,NutFishingUI:U,addEventListener(){}};
+const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutFishing:F,NutFishingUI:U,addEventListener(){}};
 vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8'),{window,document,localStorage:{getItem:k=>local[k],setItem:(k,v)=>{local[k]=v;}},setTimeout:()=>1,clearTimeout(){},console});
 const app=window.NutbusterApp,click=dataset=>handlers.click({target:{closest:()=>({dataset})}});
 app.nav('homestead');assert.match(html,/data-nav="fishing"/);

@@ -33,7 +33,7 @@ function harness(storage){
  let html='',time=0,hidden=false,serial=1;const listeners={},timers=new Map(),flags={toggle(){},add(){},remove(){}};
  const screen={classList:flags,addEventListener(k,fn){listeners[k]=fn;},get innerHTML(){return html;},set innerHTML(v){html=v;},querySelector(){return null;},querySelectorAll(){return [];}};
  const document={get hidden(){return hidden;},addEventListener(){},getElementById(id){return ({screen,toast:{classList:flags,textContent:''},app:{classList:flags},wallet:{},gems:{}})[id]||null;},querySelector(){return null;},querySelectorAll(){return [];}};
- const window={NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutCodex:C,NutFakeAds:Ads,NutFishing:F,NutFishingUI:UI,innerWidth:360,addEventListener(){}};
+ const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutCodex:C,NutFakeAds:Ads,NutFishing:F,NutFishingUI:UI,innerWidth:360,addEventListener(){}};
  vm.runInNewContext(source,{window,document,localStorage:{getItem(k){return storage[k]||null;},setItem(k,v){storage[k]=v;}},performance:{now(){return time;}},setInterval(fn){const i=serial++;timers.set(i,fn);return i;},clearInterval(i){timers.delete(i);},setTimeout(){return 0;},clearTimeout(){},console});
  return {app:window.NutbusterApp,html:()=>html,timers:()=>timers.size,click:d=>listeners.click({target:{closest(){return {dataset:d};}}}),hide(){hidden=true;time+=600000;for(const fn of [...timers.values()])fn();hidden=false;},advance(seconds){for(let i=0;i<seconds;i++){time+=1000;for(const fn of [...timers.values()])fn();}}};
 }
