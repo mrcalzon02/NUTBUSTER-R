@@ -179,7 +179,7 @@ function art(category,name,emoji,cls='art'){return `<span class="${cls}"><img cl
 function piece(type){if(type===null||type===undefined)return '';const name=E.TYPES[type];
  return `<img class="piece" src="art/primary/nuts/${name}.png" alt="" draggable="false" onload="this.classList.add('loaded')" onerror="this.style.display='none';this.nextElementSibling.style.visibility='visible'"><span class="fallback" aria-hidden="true">${icons[type]||'🌰'}</span>`;
 }
-function nutVisual(c){if(c.ice||c.lock||c.chest)return '';return `<span class="nut-visual">${piece(c.type)}${c.elemental?`<img class="elemental-emblem" src="art/primary/nuts/elemental/${c.elemental}.png" alt="" draggable="false">`:''}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}${c.hold?`<span class="hold-marker" aria-hidden="true"><img src="art/additions/effects/focus-ring.png" alt="" draggable="false"><b>${c.hold}</b></span>`:''}</span>`;}
+function nutVisual(c){return `<span class="nut-visual">${piece(c.type)}${c.elemental?`<img class="elemental-emblem" src="art/primary/nuts/elemental/${c.elemental}.png" alt="" draggable="false">`:''}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}${c.hold?`<span class="hold-marker" aria-hidden="true"><img src="art/additions/effects/focus-ring.png" alt="" draggable="false"><b>${c.hold}</b></span>`:''}</span>`;}
 function blockerVisual(c){
  // The ordinary nut remains visible beneath translucent tile blockers.
  const sprite=c.ice?'frost':c.lock?'chain-lock':c.chest?'chest':c.rock?'void-rock':null;
@@ -190,12 +190,14 @@ function blockerVisual(c){
  // Approved tile-aura sprites sit over the square, not the traveling nut.
  const auraKind=c.aura||(c.poison>0?'poison':c.ward>0?'shadow':null);
  const aura=auraKind?`<span class="hazard tile-status aura aura-${auraKind}" aria-hidden="true"><img class="status-art" src="art/primary/overlays/${auraKind}.png" alt="" draggable="false"><b class="aura-count">${c.auraTurns||c.poison||c.ward}</b></span>`:'';
- return layer+aura+(c.jam?'<span class="hazard tile-status jam" aria-hidden="true"><img class="status-art" src="art/primary/overlays/sticky-butter.png" alt="" draggable="false"></span>':'')+(c.fuse?`<span class="hazard tile-status fuse" aria-hidden="true"><img class="status-art" src="art/primary/overlays/bomb.png" alt="" draggable="false"><b class="status-count">${c.fuse}</b></span>`:'');
+ // A temporary elemental freeze is also a tile effect, with its own countdown.
+ const frozen=c.frozen>0&&!c.ice?`<span class="hazard tile-status aura frozen" aria-hidden="true"><img class="status-art" src="art/primary/overlays/frost.png" alt="" draggable="false"><b class="aura-count">${c.frozen}</b></span>`:'';
+ return layer+frozen+aura+(c.jam?'<span class="hazard tile-status jam" aria-hidden="true"><img class="status-art" src="art/primary/overlays/sticky-butter.png" alt="" draggable="false"></span>':'')+(c.fuse?`<span class="hazard tile-status fuse" aria-hidden="true"><img class="status-art" src="art/primary/overlays/bomb.png" alt="" draggable="false"><b class="status-count">${c.fuse}</b></span>`:'');
 }
 function cellLabel(c,i,w){
  const nut=c.lock?'locked walnut':c.type===null?'empty':E.TYPES[c.type];
  const obstacle=c.ice?' pinned beneath ice '+c.ice+' hits remaining':c.lock?' pinned beneath a chain '+c.lock+' hits remaining':c.chest?' pinned beneath a chest '+c.chest+' hits remaining':c.rock?' pinned beneath a stone seal '+c.rock+' hits remaining':'';
- const hazard=(c.jam?' sticky butter':'')+(c.fuse?' timed acorn '+c.fuse+' turns':'')+(c.poison?' poison '+c.poison+' turns':'')+(c.ward?' shadow ward '+c.ward+' turns':'')+(c.aura?' '+c.aura+' tile effect '+c.auraTurns+' turns':'');
+ const hazard=(c.frozen?' frozen for '+c.frozen+' turns':'')+(c.jam?' sticky butter':'')+(c.fuse?' timed acorn '+c.fuse+' turns':'')+(c.poison?' poison '+c.poison+' turns':'')+(c.ward?' shadow ward '+c.ward+' turns':'')+(c.aura?' '+c.aura+' tile effect '+c.auraTurns+' turns':'');
  const hold=c.hold?' held for '+c.hold+' gravity drops':'';
  const elemental=c.elemental?' '+c.elemental+' elemental power: '+(E.ELEMENTAL_ABILITIES?.[c.elemental]||'activates on destruction'):'';
  return nut+elemental+obstacle+hazard+hold+' row '+(Math.floor(i/w)+1)+' column '+(i%w+1);
@@ -211,7 +213,7 @@ function featureVisual(features,i){
  (wind?`<span class="board-feature wind" data-wind-direction="${dir}" aria-hidden="true">${dir==='up'?'↑':'↓'}</span>`:'');
 }
 function nutKey(c){return c.type+':'+(c.special||'')+':'+(c.elemental||'')+':'+(c.hold||0)+':'+Number(!!(c.ice||c.lock||c.chest));}
-function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.rock||0)+':'+(c.jam||0)+':'+(c.fuse||0)+':'+(c.poison||0)+':'+(c.ward||0)+':'+(c.aura||'')+':'+(c.auraTurns||0);}
+function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.rock||0)+':'+(c.frozen||0)+':'+(c.jam||0)+':'+(c.fuse||0)+':'+(c.poison||0)+':'+(c.ward||0)+':'+(c.aura||'')+':'+(c.auraTurns||0);}
 function cellMarkup(c,i,w){if(!c)return '<div class="cell void" aria-hidden="true"></div>';
  return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${cellLabel(c,i,w)}" title="${cellLabel(c,i,w)}">${featureVisual(state.game.cfg.features,i)}${nutVisual(c)}${blockerVisual(c)}</button>`;
 }
@@ -298,7 +300,7 @@ function paintCells(cells){
  for(let i=0;i<cells.length;i++){const c=cells[i];if(!c)continue;
   const el=board.querySelector(`[data-cell="${i}"]`);if(!el)continue;
   const nk=nutKey(c),bk=blockKey(c);
-  if(el.dataset.nutKey!==nk){const vis=el.querySelector('.nut-visual');if(vis)vis.outerHTML=nutVisual(c);else if(!(c.ice||c.lock||c.chest))el.insertAdjacentHTML('beforeend',nutVisual(c));el.dataset.nutKey=nk;}
+  if(el.dataset.nutKey!==nk){const vis=el.querySelector('.nut-visual');if(vis)vis.outerHTML=nutVisual(c);else el.insertAdjacentHTML('beforeend',nutVisual(c));el.dataset.nutKey=nk;}
   if(el.dataset.blockKey!==bk){el.querySelectorAll('.overlay, .hazard').forEach(node=>node.remove());el.insertAdjacentHTML('beforeend',blockerVisual(c));el.dataset.blockKey=bk;}
   el.setAttribute('aria-label',cellLabel(c,i,g.cfg.width));
  }
@@ -313,11 +315,11 @@ function reconcileBoardNuts(){
  for(let i=0;i<cells.length;i++){
   const c=cells[i];if(!c)continue;
   const tile=board.querySelector(`[data-cell="${i}"]`),vis=tile?.querySelector('.nut-visual');
-  if(!vis)continue;
+  if(!vis){tile?.insertAdjacentHTML('afterbegin',nutVisual(c));continue;}
   vis.style.visibility='';
   // A late transport/fall frame may leave an old image in a reused fixed tile.
   const image=vis.querySelector?.('.piece');
-  const expected=c.type===null||c.ice||c.lock||c.chest?null:'art/primary/nuts/'+E.TYPES[c.type]+'.png';
+  const expected=c.type===null?null:'art/primary/nuts/'+E.TYPES[c.type]+'.png';
   if(!expected&&image)vis.outerHTML=nutVisual(c);
   else if(expected&&(!image||image.getAttribute('src')!==expected))vis.outerHTML=nutVisual(c);
   else if(image?.complete&&image.naturalWidth>0)image.classList.add('loaded');
