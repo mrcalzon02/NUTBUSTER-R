@@ -87,7 +87,16 @@ const FISH=Object.freeze([
  {id:"fish-set09-ember-spotted-cat",name:"Ember Spotted Cat",icon:"🐟",value:228,difficulty:5,habitat:"deep",rarity:"rare",art:"art/fishing/species/v2/fish-set09-ember-spotted-cat.png"},
  {id:"fish-set09-violet-disc",name:"Violet Disc",icon:"🐟",value:396,difficulty:7,habitat:"arcane",rarity:"epic",art:"art/fishing/species/v2/fish-set09-violet-disc.png"},
  {id:"fish-set09-royal-koi-tail",name:"Royal Koi Tail",icon:"🐟",value:501,difficulty:8,habitat:"arcane",rarity:"epic",art:"art/fishing/species/v2/fish-set09-royal-koi-tail.png"}
-]);
+].map(spec=>{
+ // Distinct maximum lengths per species; classic species use individually
+ // chosen bounds, and added fish get stable differences by ID/difficulty.
+ const classics={minnow:32,bluegill:48,perch:55,carp:125,trout:110,bass:95,
+  catfish:190,koi:115,puffer:65,eel:225,sturgeon:475,leviathan:1300};
+ let hash=2166136261;
+ for(let i=0;i<spec.id.length;i++)hash=Math.imul(hash^spec.id.charCodeAt(i),16777619)>>>0;
+ const cap=classics[spec.id]||(28+spec.difficulty*spec.difficulty*6+(hash%30));
+ return Object.freeze({...spec,maxSize:cap});
+}));
 // The wharf shop tier determines which real, playable bait species it stocks.
 // Existing three SKUs and their original quality/recipe values stay unchanged.
 const BAITS=Object.freeze([
@@ -127,6 +136,28 @@ const DAILY=6;
 const WHARF_AD_REWARD=Object.freeze({bait:2,dollars:100});
 const limit=n=>Number.isSafeInteger(n)&&n>=0?Math.min(n,999999999):0;
 const specimenId=new Map(FISH.map(x=>[x.id,x]));
+// Records are earned on a successful catch, not when fish are kept. The
+// collection is independent from aquarium capacity and persists after sales.
+function trophyStatus(save,now=Date.now()){
+ const n=ensure(save,now),entries=FISH.filter(spec=>n.trophyRecords[spec.id]);
+ return {collected:entries.length,total:FISH.length,
+  totalCatches:entries.reduce((count,spec)=>count+n.trophyRecords[spec.id].catches,0),
+  records:entries.map(spec=>({species:spec,...n.trophyRecords[spec.id]}))};
+}
+function recordCatch(n,spec,size,now){
+ const old=n.trophyRecords[spec.id],newRecord=!old||size>old.size,day=localDay(now);
+ const entry=old?{...old}:{size:0,catches:0,firstCaught:day,lastCaught:day,recordDate:day};
+ entry.catches=Math.min(999999999,entry.catches+1);
+ if(!entry.firstCaught)entry.firstCaught=day;
+ entry.lastCaught=day;
+ if(newRecord){entry.size=size;entry.recordDate=day;}
+ n.trophyRecords[spec.id]=entry;
+ return {newSpecies:!old,newRecord,previous:old?.size||0,size,maxSize:spec.maxSize,catches:entry.catches};
+}
+function generatedSize(spec,seed){
+ const mixed=(Math.imul((seed>>>0)^0xa511e9b3,1664525)+1013904223)>>>0;
+ return Math.max(1,Math.min(spec.maxSize,Math.round(spec.maxSize*(.26+.74*mixed/4294967295))));
+}
 
 // The estate aquarium is a collectible display, independent from the backyard.
 // Discovery is permanent within this save, even when the fish is sold or released.
@@ -223,6 +254,16 @@ function ensure(save,now=Date.now()){
  n.baitTier=Number.isInteger(n.baitTier)?Math.max(0,Math.min(5,n.baitTier)):0;
  n.wharfTier=Number.isInteger(n.wharfTier)?Math.max(0,Math.min(5,n.wharfTier)):0;
  n.tank=Number.isInteger(n.tank)?Math.max(0,Math.min(10,n.tank)):0;
+ if(!n.trophyRecords||typeof n.trophyRecords!=='object'||Array.isArray(n.trophyRecords))n.trophyRecords={};
+ for(const [id,raw] of Object.entries(n.trophyRecords)){
+  const spec=specimenId.get(id);
+  if(!spec||!raw||typeof raw!=='object'||!Number.isInteger(raw.size)||raw.size<1){
+   delete n.trophyRecords[id];continue;
+  }
+  raw.size=Math.min(spec.maxSize,raw.size);
+  raw.catches=Number.isInteger(raw.catches)&&raw.catches>0?Math.min(999999999,raw.catches):1;
+  for(const k of ['firstCaught','lastCaught','recordDate'])if(typeof raw[k]!=='string')raw[k]=null;
+ }
  if(!n.baits||typeof n.baits!=='object'||Array.isArray(n.baits))n.baits={};
  for(const bait of BAITS)n.baits[bait.id]=limit(n.baits[bait.id]);
  if(!Array.isArray(n.fish))n.fish=[];
@@ -236,6 +277,12 @@ function ensure(save,now=Date.now()){
   claimedSlots.add(f.slot);
  }
  aquariumState(n);
+ // For existing early saves, register surviving aquarium and pending fish
+ // once, without adding fictitious repeat catches on every render.
+ for(const fish of [...n.fish,...(n.pending?[n.pending]:[])]){
+  if(specimenId.has(fish.id)&&!n.trophyRecords[fish.id]&&Number.isInteger(fish.size)&&fish.size>0)
+   n.trophyRecords[fish.id]={size:Math.min(specimenId.get(fish.id).maxSize,fish.size),catches:1,firstCaught:null,lastCaught:null,recordDate:null};
+ }
  if(!n.pending||!specimenId.has(n.pending.id)||!Number.isInteger(n.pending.value)||n.pending.value<1||n.pending.value>100000||!Number.isInteger(n.pending.size)||n.pending.size<1||n.pending.size>100)n.pending=null;
  if(!n.fight||!specimenId.has(n.fight.id)||!Number.isSafeInteger(n.fight.seed)||n.fight.seed<0||n.fight.seed>4294967295||!Number.isInteger(n.fight.turn)||n.fight.turn<0||n.fight.turn>50||!Number.isFinite(n.fight.fish)||!Number.isFinite(n.fight.hook)||!Number.isFinite(n.fight.progress)||!Number.isFinite(n.fight.tension))n.fight=null;
  const today=localDay(now);
@@ -388,10 +435,11 @@ function step(save,mode,now=Date.now()){
  }
  f.tension=Math.min(100,Math.max(0,f.tension));f.progress=Math.max(0,Math.min(100,f.progress));
  if(f.progress>=100){
-  const size=20+(f.seed%81),value=Math.round(species.value*(.65+size/100));
+  const size=generatedSize(species,f.seed),value=Math.round(species.value*(.65+.65*size/species.maxSize));
+  const trophy=recordCatch(n,species,size,now);
   n.pending={id:f.id,size,value};n.fight=null;
   if(!n.aquarium.discovered.includes(f.id))n.aquarium.discovered.push(f.id);
-  return {valid:true,status:'caught',catch:{...n.pending}};
+  return {valid:true,status:'caught',catch:{...n.pending},trophy};
  }
  if(f.tension>=100||f.turn>=34){
   if(f.tension>=100&&f.rodId&&Object.prototype.hasOwnProperty.call(n.rodStock,f.rodId))
@@ -414,7 +462,7 @@ function resolve(save,choice,now=Date.now()){
  n.pending=null;
  return {valid:true,choice,fish:{...fish},dollars:n.dollars};
 }
-const api={FISH,BAITS,RODS,STAMPS,BACKGROUNDS,BOOSTER_BAIT,BAIT_RECIPES,buyBait,dailyBait,saleBonus,exchangeQuote,exchangeBalance,DAILY,WHARF_AD_REWARD,localDay,ensure,claimWharfAd,capacity,stampCapacity,stampUnlocked,backgroundUnlocked,placeStamp,removeStamp,chooseBackground,moveFish,nextCost,upgrade,trade,craft,cast,step,resolve,rodModel,rodOdds,chooseFish,buyRod,equipRod,repairRod};
+const api={FISH,BAITS,RODS,STAMPS,BACKGROUNDS,trophyStatus,generatedSize,BOOSTER_BAIT,BAIT_RECIPES,buyBait,dailyBait,saleBonus,exchangeQuote,exchangeBalance,DAILY,WHARF_AD_REWARD,localDay,ensure,claimWharfAd,capacity,stampCapacity,stampUnlocked,backgroundUnlocked,placeStamp,removeStamp,chooseBackground,moveFish,nextCost,upgrade,trade,craft,cast,step,resolve,rodModel,rodOdds,chooseFish,buyRod,equipRod,repairRod};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutFishing=api;
 })(typeof window!=='undefined'?window:globalThis);
