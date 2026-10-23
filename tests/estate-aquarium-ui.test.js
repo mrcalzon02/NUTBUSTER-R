@@ -36,6 +36,8 @@ assert.equal(n.fish.find(f=>f.id==='minnow').slot,3);
 s.click({action:'fish-aqua-background',background:'arcane'});
 assert.equal(n.aquarium.background,'plain-seafloor','Locked themes must not be selectable; new tanks start on the approved open water scene');
 s.click({action:'fish-upgrade',kind:'tank'});
+assert.match(s.html(),/CONFIRM PURCHASE/,'Tank expansion now requires explicit purchase consent');
+s.click({action:'purchase-confirm'});
 assert.equal(n.tank,1);assert.equal(F.capacity(n),7);assert.equal(F.stampCapacity(n),5);
 assert.match(s.html(),/width:min\(100%,550px\)/);
 s.click({action:'fish-aqua-edit'});

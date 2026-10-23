@@ -28,7 +28,8 @@ const localStorage={getItem:()=>null,setItem(){}};
 vm.runInNewContext(read('web/game.js'),{window,document,localStorage,setTimeout(){},clearTimeout(){},console});
 const app=window.NutbusterApp;
 for(const level of [1,10,30,70,100,200,500]){
- app.start(level);const g=app.getState().game;
+ // Independent layout fixture: reset the finite heart allowance between stages.
+ app.getSave().hearts=5;app.start(level);const g=app.getState().game;
  assert.ok(appPlaying,'Play layout flag should be present');
  assert.match(html,new RegExp('aria-label="LEVEL '+level+':'));
  assert.equal((html.match(/data-tool=/g)||[]).length,16,'Ten primary and six advanced boosters present for level '+level);

@@ -57,7 +57,7 @@ const seen=new Set();for(let level=1;level<=500;level++){
  assert.ok(g.cfg.objectives.every(o=>o.kind!=='collect'||roster.includes(o.color)));
  for(const id of roster)if(id>=7)seen.add(E.TYPES[id]);
 }
-assert.deepEqual([...seen].sort(),E.NEW.slice().sort(),'All 12 illustrated nuts must appear in real pools');
+assert.deepEqual([...seen].sort(),E.NEW.filter(name=>!E.RETIRED_NUTS.includes(name)).sort(),'All eleven active expansion nuts must appear; retired Ginkgo remains artwork-only');
 for(const name of E.NEW)assert.ok(fs.existsSync(path.join(__dirname,'../web/art/primary/nuts',name+'.png')),'Missing art '+name);
 let html='',handlers={},local={};
 const screen={classList:{toggle(){}},get innerHTML(){return html;},set innerHTML(s){html=s;},addEventListener:(id,fn)=>{handlers[id]=fn;},querySelector:()=>null,querySelectorAll:()=>[]};

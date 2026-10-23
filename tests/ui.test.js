@@ -50,7 +50,7 @@ async function run(){
  click({cell:String(swap[1])});await settle();assert.equal(g.moves,moves-1);assert.equal(renders,before);
  swap=findSwap(g,true);const score=g.score;click({cell:String(swap[0])});click({cell:String(swap[1])});
  await settle();assert.ok(g.score>score);assert.equal(renders,before);
- app.start(1);attach();g=state().game;g.moves=1;swap=findSwap(g,false);
+ app.start(1);attach();g=state().game;app.getSave().dailyMoves.remaining=1;g.moves=1;swap=findSwap(g,false);
  click({cell:String(swap[0])});click({cell:String(swap[1])});await settle();
  assert.equal(state().page,'outcome');assert.ok(html.includes('OUT OF MOVES!'));
  click({action:'continue-level'});assert.equal(state().page,'checkout');

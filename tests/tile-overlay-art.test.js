@@ -63,7 +63,7 @@ const regular=tile(free),shielded=tile(covered);
 assert.match(regular,/class="piece"/,'Free nut is visible under a sticky overlay');
 assert.match(regular,/art\/primary\/overlays\/sticky-butter.png/);
 assert.doesNotMatch(regular,/blocker-sprite/,'Status must not fabricate a whole-piece blocker');
-assert.match(shielded,/class="piece"/,'Pinned nut must remain visible under translucent ring');
+assert.doesNotMatch(shielded,/class="piece"/,'Whole-piece blockers replace the nut image until cracked');
 assert.match(shielded,/blocker-sprite/,'Original immovable blocker image remains visible');
 assert.match(shielded,/art\/primary\/overlays\/sticky-butter.png/,'Tile status can coexist with whole-piece blocker');
 app.start(210);

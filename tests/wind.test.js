@@ -23,6 +23,9 @@ assert.equal(autumn,100);assert.equal(palace,100);assert.ok(covered===300);
  // Isolate the wind inverse property: overlapping conveyors and portals deliberately
  // alter the same payloads and must be verified in the full integration test below.
  g.cfg.features.conveyors=[];g.cfg.features.portals=[];
+ // Isolate a complete, unblocked wind lane; blocker-segmented gusts are
+ // validated separately by whole-piece-blockers and transport tests.
+ for(const i of lane.indices){g.cells[i].ice=0;g.cells[i].lock=0;g.cells[i].chest=0;g.cells[i].frozen=0;}
  assert.equal(F.nextWindDirection(lane,0),'up');
  assert.equal(F.windDirection(lane,2),'up');
  assert.equal(F.nextWindDirection(lane,2),'down');
