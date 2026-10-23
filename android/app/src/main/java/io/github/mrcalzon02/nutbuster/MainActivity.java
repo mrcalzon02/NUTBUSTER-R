@@ -16,11 +16,19 @@ import org.json.JSONObject;
 public final class MainActivity extends Activity {
     private WebView game;
     private NutUpdateService updater;
+    private PlayUpdateService playUpdater;
+    private PlayBillingCoordinator billing;
+    private PlaySocialService social;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        updater = new NutUpdateService(this, this::showUpdateStatus);
+        if (BuildConfig.PLAY_DISTRIBUTION) playUpdater = new PlayUpdateService(this, this::showUpdateStatus);
+        else updater = new NutUpdateService(this, this::showUpdateStatus);
         game = new WebView(this);
-        game.setWebViewClient(new WebViewClient());
+        game.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view, String url) {
+                if (billing != null) { billing.refreshCatalog(); billing.restorePurchases(); }
+            }
+        });
         WebSettings s = game.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
@@ -30,13 +38,21 @@ public final class MainActivity extends Activity {
         s.setSupportMultipleWindows(false);
         s.setBlockNetworkLoads(true); // The web game cannot make network requests.
         game.addJavascriptInterface(new Object() {
-            @JavascriptInterface public void checkForUpdates() { updater.checkForUpdates(); }
-            @JavascriptInterface public void checkForUpdatesAutomatically() { updater.checkForUpdatesAutomatically(); }
+            @JavascriptInterface public void checkForUpdates() {
+                if (BuildConfig.PLAY_DISTRIBUTION) runOnUiThread(() -> playUpdater.check(true));
+                else updater.checkForUpdates();
+            }
+            @JavascriptInterface public void checkForUpdatesAutomatically() {
+                if (BuildConfig.PLAY_DISTRIBUTION) runOnUiThread(() -> playUpdater.check(false));
+                else updater.checkForUpdatesAutomatically();
+            }
             @JavascriptInterface public void openReleases() {
                 runOnUiThread(() -> {
                     try {
                         startActivity(new Intent(Intent.ACTION_VIEW,
-                            Uri.parse("https://github.com/mrcalzon02/NUTBUSTER-R/releases")));
+                            Uri.parse(BuildConfig.PLAY_DISTRIBUTION
+                            ? "https://play.google.com/store/apps/details?id=" + getPackageName()
+                            : "https://github.com/mrcalzon02/NUTBUSTER-R/releases")));
                     } catch (ActivityNotFoundException unavailable) {
                         showUpdateStatus("No browser available to open GitHub Releases.");
                     }
@@ -51,14 +67,34 @@ public final class MainActivity extends Activity {
                     send.putExtra(Intent.EXTRA_SUBJECT, "NUTBUSTER — Join the Nut Odyssey");
                     send.putExtra(Intent.EXTRA_TEXT,
                         "Come bust some nuts in NUTBUSTER! Get the latest game release here:\n" +
-                        "https://github.com/mrcalzon02/NUTBUSTER-R/releases");
+                        (BuildConfig.PLAY_DISTRIBUTION
+                            ? "https://play.google.com/store/apps/details?id=" + getPackageName()
+                            : "https://github.com/mrcalzon02/NUTBUSTER-R/releases"));
                     startActivity(Intent.createChooser(send, "Invite a friend to NUTBUSTER"));
                 });
             }
         }, "NUTBUSTER_SHARE_BRIDGE");
+        if (BuildConfig.PLAY_DISTRIBUTION) {
+            billing = new PlayBillingCoordinator(this, this::sendPlayScript);
+            social = new PlaySocialService(this, this::showUpdateStatus);
+            game.addJavascriptInterface(new Object() {
+                @JavascriptInterface public void buy(int index) { billing.purchase(index); }
+                @JavascriptInterface public void confirmFulfillment(String receiptId) {
+                    runOnUiThread(() -> billing.confirmFulfillment(receiptId));
+                }
+                @JavascriptInterface public void refreshCatalog() { runOnUiThread(() -> billing.refreshCatalog()); }
+                @JavascriptInterface public void restorePurchases() { runOnUiThread(() -> billing.restorePurchases()); }
+                @JavascriptInterface public void achievements() { runOnUiThread(() -> social.showAchievements()); }
+                @JavascriptInterface public void achievementUnlocked(String key) { runOnUiThread(() -> social.unlock(key)); }
+                @JavascriptInterface public void friends() { runOnUiThread(() -> social.friends()); }
+            }, "NUTBUSTER_PLAY_BRIDGE");
+        }
         game.setOverScrollMode(View.OVER_SCROLL_NEVER);
         setContentView(game);
         game.loadUrl("file:///android_asset/index.html");
+    }
+    private void sendPlayScript(String script) {
+        runOnUiThread(() -> { if (game != null) game.evaluateJavascript(script, null); });
     }
     private void showUpdateStatus(String message) {
         runOnUiThread(() -> {
@@ -67,11 +103,22 @@ public final class MainActivity extends Activity {
                 JSONObject.quote(message) + ")", null);
         });
     }
+    @Override protected void onResume() {
+        super.onResume();
+        if (playUpdater != null) playUpdater.onResume();
+        if (billing != null) billing.restorePurchases();
+    }
+    @Override protected void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data);
+        if (social != null) social.onActivityResult(request, result);
+    }
     @Override public void onBackPressed() {
         if (game != null) game.evaluateJavascript("window.NutbusterApp && window.NutbusterApp.nav('campaign')", null);
     }
     @Override protected void onDestroy() {
         if (updater != null) updater.close();
+        if (playUpdater != null) playUpdater.close();
+        if (billing != null) billing.close();
         if (game != null) { game.destroy(); game = null; }
         super.onDestroy();
     }

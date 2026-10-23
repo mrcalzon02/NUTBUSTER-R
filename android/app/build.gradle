@@ -25,6 +25,19 @@ android {
         buildConfigField 'String', 'DISTRIBUTION_SIGNER_SHA256', '"' + signerHash + '"'
         buildConfigField 'boolean', 'UPDATE_CHANNEL_ENABLED', (haveSigning && signerHash == pinnedSigner).toString()
     }
+        // Play branch: unset integration IDs fail closed, never free-grant a paid product.
+        buildConfigField 'boolean', 'PLAY_DISTRIBUTION', 'true'
+        def verifier = (project.findProperty('nutbusterPlayVerifierUrl') ?: '').toString()
+        def gamesId = (project.findProperty('nutbusterPlayGamesProjectId') ?: '').toString()
+        if (verifier && !verifier.startsWith('https://')) throw new GradleException('Play verifier must use HTTPS')
+        if (gamesId && !(gamesId ==~ /[0-9]+/)) throw new GradleException('Invalid Play Games project ID')
+        buildConfigField 'String', 'PLAY_VERIFICATION_ENDPOINT', '"' + verifier + '"'
+        buildConfigField 'String', 'PLAY_GAMES_PROJECT_ID', '"' + gamesId + '"'
+        resValue 'string', 'game_services_project_id', gamesId ?: '0'
+        resValue 'string', 'play_achievement_level_1', (project.findProperty('playAchievementLevel1') ?: '').toString()
+        resValue 'string', 'play_achievement_level_100', (project.findProperty('playAchievementLevel100') ?: '').toString()
+        resValue 'string', 'play_achievement_level_500', (project.findProperty('playAchievementLevel500') ?: '').toString()
+        resValue 'string', 'play_achievement_level_1000', (project.findProperty('playAchievementLevel1000') ?: '').toString()
     // android/app -> ../../web. The earlier ../../../web pointed outside the repository.
     sourceSets { main { assets.srcDirs = ['../../web'] } }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
@@ -48,7 +61,12 @@ android {
     }
 }
 
-dependencies { implementation 'androidx.core:core:1.13.1' }
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+    implementation 'com.android.billingclient:billing:9.1.0'
+    implementation 'com.google.android.play:app-update:2.1.0'
+    implementation 'com.google.android.gms:play-services-games-v2:22.0.0'
+}
 
 // Never accidentally publish a release APK signed with the debug key or without the pinned signer.
 tasks.register('validatePublisherSigning') {
@@ -60,4 +78,16 @@ tasks.register('validatePublisherSigning') {
 }
 tasks.configureEach { task ->
     if (task.name == 'assembleRelease') task.dependsOn('validatePublisherSigning')
+}
+
+tasks.register('validatePlayReleaseConfiguration') {
+    doLast {
+        def endpoint = (project.findProperty('nutbusterPlayVerifierUrl') ?: '').toString()
+        def id = (project.findProperty('nutbusterPlayGamesProjectId') ?: '').toString()
+        if (!endpoint.startsWith('https://')) throw new GradleException('Missing HTTPS receipt verifier for Play release')
+        if (!(id ==~ /[0-9]+/) || id == '0') throw new GradleException('Missing Play Games project ID')
+    }
+}
+tasks.configureEach { task ->
+    if (task.name == 'bundleRelease' || task.name == 'assembleRelease') task.dependsOn('validatePlayReleaseConfiguration')
 }
