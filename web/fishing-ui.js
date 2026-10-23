@@ -18,7 +18,7 @@ function wharf(save,state,E,P){
  let play='',stage='';
  if(pending){
   const item=F.FISH.find(s=>s.id===pending.id);
-  play='<div class="fish-decision"><h2>'+fishIcon(item,true)+' '+item.name+' CAUGHT!</h2><p>'+pending.size+' cm · Worth N$ '+pending.value+'</p><div class="fish-actions"><button class="btn green" data-action="fish-keep" '+(n.fish.length>=cap?'disabled':'')+'>KEEP IN AQUARIUM</button><button class="btn secondary" data-action="fish-sell">SELL · N$ '+(pending.value+F.saleBonus(n,pending.value))+'</button><button class="btn ghost" data-action="fish-release">RELEASE</button></div></div>';
+  play='<div class="fish-decision"><h2>'+fishIcon(item,true)+' '+item.name+' CAUGHT!</h2><p>'+pending.size+' cm · Species Max '+item.maxSize+' cm · Personal Best '+(n.trophyRecords[item.id]?.size||pending.size)+' cm · Worth N$ '+pending.value+'</p><div class="fish-actions"><button class="btn green" data-action="fish-keep" '+(n.fish.length>=cap?'disabled':'')+'>KEEP IN AQUARIUM</button><button class="btn secondary" data-action="fish-sell">SELL · N$ '+(pending.value+F.saleBonus(n,pending.value))+'</button><button class="btn ghost" data-action="fish-release">RELEASE</button></div></div>';
  }else if(fight){
   const item=F.FISH.find(s=>s.id===fight.id);
   const radius=16+n.rod*2;
@@ -100,6 +100,34 @@ function baitShop(save,state,E,P){
  return '<div class="nutravaganza-head"><h1>🪱 NUTVALE BAIT & TACKLE</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="fishing">🎣 FISHING</button><button class="btn ghost" data-nav="aquarium">🐠 AQUARIUM '+n.fish.length+'/'+cap+'</button><button class="btn ghost" data-nav="wharf">← WHARF</button></div></div>'+
  '<div class="wharf-bait-scene"><img class="wharf-landscape" src="art/wharf/nutvale-wharf-bait-shop.webp" alt="Squirrel-run bait and tackle shop with rods, bait jars, lures, crabs, and fishing boats outside" width="1672" height="941" draggable="false"></div>'+
  '<div class="wharf-bait-layout"><div class="wharf-bait-main">'+rodSection+catchSection+'</div><div class="wharf-bait-side">'+catalog+'<section class="fish-store"><h2>UPGRADE YOUR WHARF · NUTVALE DOLLARS</h2><small>Better Bait Shop = more bait · Wharf = +1 daily worm and +5% fish-sale premium per tier</small><div class="fish-upgrades">'+upgrades+'</div></section><section class="fish-store fish-balance-container">'+exchanges+'</section>'+wharfAd+'</div></div>';
+}
+
+// Personal-best fish mounts: wood plaque, actual species art, species label,
+// length and catch count. Empty mounts do not reveal undiscovered species art.
+function trophyMounts(save,{limit=Infinity,includeEmpty=true}={}){
+ const n=F.ensure(save),list=F.FISH.filter(spec=>!!n.trophyRecords[spec.id]);
+ const ordered=includeEmpty?[...list,...F.FISH.filter(spec=>!n.trophyRecords[spec.id])]:list;
+ return ordered.slice(0,limit).map(spec=>{
+  const record=n.trophyRecords[spec.id],found=!!record;
+  const art=found?fishIcon(spec):'<span class="fish-trophy-silhouette" aria-hidden="true">🐟</span>';
+  const size=found?record.size+' cm':'—';
+  const quality=found?Math.round(100*record.size/spec.maxSize):0;
+  return '<div class="fish-trophy-mount '+(found?'earned':'unclaimed')+'" aria-label="'+(found?spec.name+', personal best '+record.size+' centimeters':'Undiscovered fish trophy')+'">'+
+   '<div class="fish-trophy-art">'+art+'</div><div class="fish-trophy-name">'+(found?spec.name:'UNDISCOVERED')+'</div>'+
+   '<div class="fish-trophy-size">'+size+'</div><div class="fish-trophy-meta">'+(found?record.catches+' caught · '+quality+'% of species max':'CATCH TO UNLOCK')+'</div></div>';
+ }).join('');
+}
+function trophyPreview(save){
+ const status=F.trophyStatus(save),mounted=trophyMounts(save,{limit:3,includeEmpty:false});
+ return '<section class="homestead-section estate-trophy-preview"><div class="fish-trophy-head"><b>🏆 FISH RECORDS · '+status.collected+'/'+status.total+'</b><button class="btn ghost" data-nav="fish-records">VIEW RECORD WALL →</button></div>'+
+  '<div class="fish-trophy-preview-row">'+(mounted||'<small>Catch your first fish to earn a mounted record.</small>')+'</div></section>';
+}
+function trophyHall(save){
+ const status=F.trophyStatus(save),best=status.records.reduce((largest,r)=>!largest||r.size>largest.size?r:largest,null);
+ return '<div class="nutravaganza-head"><h1>🏆 NUTVALE RECORD WALL</h1><div class="fish-wallet"><b>'+status.collected+'/'+status.total+' SPECIES</b><button class="btn ghost" data-nav="aquarium">🐠 AQUARIUM</button><button class="btn ghost" data-nav="homestead">← ESTATE</button></div></div>'+
+  '<div class="fish-record-status"><span>'+status.totalCatches+' TOTAL CATCHES</span><span>'+status.collected+' SPECIES RECORDED</span><span>'+(best?'LONGEST: '+best.species.name+' · '+best.size+' cm':'FIRST RECORD AWAITS')+'</span></div>'+
+  '<div class="fish-trophy-wall" aria-label="Personal-best mounted fish collection">'+trophyMounts(save)+'</div>'+
+  '<small class="fish-trophy-footnote">One mount per species. A larger catch replaces its recorded length, even if sold or released. Fish can still live in your aquarium independently.</small>';
 }
 function aquariumPreview(save){
  const n=F.ensure(save),cap=F.capacity(n),stamps=F.stampCapacity(n);
@@ -212,7 +240,7 @@ function action(name,button,ctx){
  const cue=result.status==='escaped'?'escaped':result.status==='caught'?'caught':name==='fish-cast'?'cast':name==='fish-reel'?'reel':name==='fish-slack'?'transport':name==='fish-left'||name==='fish-right'?'ui':result.choice==='sell'||name==='fish-upgrade'?'coin':result.choice==='keep'?'place':'select';
  root.NutSFX?.play(cue);
  if(result.status==='escaped')notice(result.reason==='snapped'?'LINE SNAPPED!':'THE FISH GOT AWAY!');
- else if(result.status==='caught')notice('FISH CAUGHT · KEEP OR SELL?');
+ else if(result.status==='caught')notice(result.trophy?.newRecord?'🏆 '+(result.trophy.newSpecies?'NEW SPECIES RECORD':'NEW PERSONAL BEST')+' · '+result.trophy.size+' cm':'FISH CAUGHT · '+result.catch.size+' cm');
  else if(result.choice==='sell')notice('SOLD FOR N$ '+(result.fish.value+F.saleBonus(F.ensure(save),result.fish.value)));
  else if(result.choice==='keep')notice('NEW AQUARIUM RESIDENT!');
  else if(name==='fish-trade')notice('EXCHANGED ONE '+(button.dataset.booster||'BOOSTER').toUpperCase()+' · +'+result.amount+' HONEST WORMS');
@@ -221,7 +249,7 @@ function action(name,button,ctx){
  else if(name==='fish-upgrade')notice('UPGRADED '+(button.dataset.kind==='bait'?'BAIT SHOP':button.dataset.kind.toUpperCase())+' TO TIER '+result.level);
  return true;
 }
-const api={hub,wharf,baitShop,baitCatalog,aquarium,aquariumPreview,exchangeSheet,action};
+const api={hub,wharf,baitShop,baitCatalog,aquarium,aquariumPreview,trophyHall,trophyPreview,trophyMounts,exchangeSheet,action};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutFishingUI=api;
 })(typeof window!=='undefined'?window:globalThis);
