@@ -1,0 +1,615 @@
+{
+  "schema": "nutvale-mines/equipment-v1.1",
+  "status": "PHASE_ONE_IMPLEMENTED_SOURCE_NOT_RELEASE_CERTIFIED",
+  "supersedes": "docs/economy/nutvale-mines-design-lock.v1.json: ONLY pickaxe and gloves tier count, daily maximum, upgrade costs and saved tier limits",
+  "authorization": "User explicitly selected 40 stages each for pickaxes and survey gloves; all non-equipment v1.0 rules retained.",
+  "levels": 40,
+  "tierIndices": [
+    0,
+    39
+  ],
+  "opening": {
+    "pickaxeStrikes": 12,
+    "gloveScans": 0
+  },
+  "final": {
+    "pickaxeStrikes": 207,
+    "gloveScans": 39
+  },
+  "pickaxe": [
+    {
+      "tier": 0,
+      "capacity": 12,
+      "cost": 0,
+      "id": "iron-prospector",
+      "image": "art/nutvale/mining-tools/pickaxes/iron-prospector.png"
+    },
+    {
+      "tier": 1,
+      "capacity": 17,
+      "cost": 160,
+      "id": "acorn-bronze",
+      "image": "art/nutvale/mining-tools/pickaxes/acorn-bronze.png"
+    },
+    {
+      "tier": 2,
+      "capacity": 22,
+      "cost": 220,
+      "id": "blossom-oak",
+      "image": "art/nutvale/mining-tools/pickaxes/blossom-oak.png"
+    },
+    {
+      "tier": 3,
+      "capacity": 27,
+      "cost": 280,
+      "id": "pinecone-copper",
+      "image": "art/nutvale/mining-tools/pickaxes/pinecone-copper.png"
+    },
+    {
+      "tier": 4,
+      "capacity": 32,
+      "cost": 350,
+      "id": "ropebound-steel",
+      "image": "art/nutvale/mining-tools/pickaxes/ropebound-steel.png"
+    },
+    {
+      "tier": 5,
+      "capacity": 37,
+      "cost": 420,
+      "id": "daisy-wreathed",
+      "image": "art/nutvale/mining-tools/pickaxes/daisy-wreathed.png"
+    },
+    {
+      "tier": 6,
+      "capacity": 42,
+      "cost": 510,
+      "id": "froststeel",
+      "image": "art/nutvale/mining-tools/pickaxes/froststeel.png"
+    },
+    {
+      "tier": 7,
+      "capacity": 47,
+      "cost": 600,
+      "id": "gilded-crescent",
+      "image": "art/nutvale/mining-tools/pickaxes/gilded-crescent.png"
+    },
+    {
+      "tier": 8,
+      "capacity": 52,
+      "cost": 700,
+      "id": "flamecrest-gold",
+      "image": "art/nutvale/mining-tools/pickaxes/flamecrest-gold.png"
+    },
+    {
+      "tier": 9,
+      "capacity": 57,
+      "cost": 800,
+      "id": "amethyst-sickle",
+      "image": "art/nutvale/mining-tools/pickaxes/amethyst-sickle.png"
+    },
+    {
+      "tier": 10,
+      "capacity": 62,
+      "cost": 910,
+      "id": "azure-edge",
+      "image": "art/nutvale/mining-tools/pickaxes/azure-edge.png"
+    },
+    {
+      "tier": 11,
+      "capacity": 67,
+      "cost": 1030,
+      "id": "riverstone-iron",
+      "image": "art/nutvale/mining-tools/pickaxes/riverstone-iron.png"
+    },
+    {
+      "tier": 12,
+      "capacity": 72,
+      "cost": 1160,
+      "id": "sapphire-shard",
+      "image": "art/nutvale/mining-tools/pickaxes/sapphire-shard.png"
+    },
+    {
+      "tier": 13,
+      "capacity": 77,
+      "cost": 1290,
+      "id": "ruby-blaze",
+      "image": "art/nutvale/mining-tools/pickaxes/ruby-blaze.png"
+    },
+    {
+      "tier": 14,
+      "capacity": 82,
+      "cost": 1430,
+      "id": "glacier-shadow",
+      "image": "art/nutvale/mining-tools/pickaxes/glacier-shadow.png"
+    },
+    {
+      "tier": 15,
+      "capacity": 87,
+      "cost": 1570,
+      "id": "honeygold",
+      "image": "art/nutvale/mining-tools/pickaxes/honeygold.png"
+    },
+    {
+      "tier": 16,
+      "capacity": 92,
+      "cost": 1730,
+      "id": "mossbound-amber",
+      "image": "art/nutvale/mining-tools/pickaxes/mossbound-amber.png"
+    },
+    {
+      "tier": 17,
+      "capacity": 97,
+      "cost": 1890,
+      "id": "thorn-garnet",
+      "image": "art/nutvale/mining-tools/pickaxes/thorn-garnet.png"
+    },
+    {
+      "tier": 18,
+      "capacity": 102,
+      "cost": 2060,
+      "id": "strawberry-frosting",
+      "image": "art/nutvale/mining-tools/pickaxes/strawberry-frosting.png"
+    },
+    {
+      "tier": 19,
+      "capacity": 107,
+      "cost": 2230,
+      "id": "caramel-drizzle",
+      "image": "art/nutvale/mining-tools/pickaxes/caramel-drizzle.png"
+    },
+    {
+      "tier": 20,
+      "capacity": 112,
+      "cost": 2410,
+      "id": "heart-cupcake",
+      "image": "art/nutvale/mining-tools/pickaxes/heart-cupcake.png"
+    },
+    {
+      "tier": 21,
+      "capacity": 117,
+      "cost": 2600,
+      "id": "prism-star",
+      "image": "art/nutvale/mining-tools/pickaxes/prism-star.png"
+    },
+    {
+      "tier": 22,
+      "capacity": 122,
+      "cost": 2800,
+      "id": "violet-skull",
+      "image": "art/nutvale/mining-tools/pickaxes/violet-skull.png"
+    },
+    {
+      "tier": 23,
+      "capacity": 127,
+      "cost": 3000,
+      "id": "astral-comet",
+      "image": "art/nutvale/mining-tools/pickaxes/astral-comet.png"
+    },
+    {
+      "tier": 24,
+      "capacity": 132,
+      "cost": 3210,
+      "id": "opal-sunrise",
+      "image": "art/nutvale/mining-tools/pickaxes/opal-sunrise.png"
+    },
+    {
+      "tier": 25,
+      "capacity": 137,
+      "cost": 3420,
+      "id": "amber-crown",
+      "image": "art/nutvale/mining-tools/pickaxes/amber-crown.png"
+    },
+    {
+      "tier": 26,
+      "capacity": 142,
+      "cost": 3650,
+      "id": "arcane-wraith",
+      "image": "art/nutvale/mining-tools/pickaxes/arcane-wraith.png"
+    },
+    {
+      "tier": 27,
+      "capacity": 147,
+      "cost": 3880,
+      "id": "bloodmoon-crystal",
+      "image": "art/nutvale/mining-tools/pickaxes/bloodmoon-crystal.png"
+    },
+    {
+      "tier": 28,
+      "capacity": 152,
+      "cost": 4120,
+      "id": "silver-sunstone",
+      "image": "art/nutvale/mining-tools/pickaxes/silver-sunstone.png"
+    },
+    {
+      "tier": 29,
+      "capacity": 157,
+      "cost": 4360,
+      "id": "spring-blossom",
+      "image": "art/nutvale/mining-tools/pickaxes/spring-blossom.png"
+    },
+    {
+      "tier": 30,
+      "capacity": 162,
+      "cost": 4610,
+      "id": "lionheart-gold",
+      "image": "art/nutvale/mining-tools/pickaxes/lionheart-gold.png"
+    },
+    {
+      "tier": 31,
+      "capacity": 167,
+      "cost": 4870,
+      "id": "sunburst-royal",
+      "image": "art/nutvale/mining-tools/pickaxes/sunburst-royal.png"
+    },
+    {
+      "tier": 32,
+      "capacity": 172,
+      "cost": 5140,
+      "id": "golden-dawn",
+      "image": "art/nutvale/mining-tools/pickaxes/golden-dawn.png"
+    },
+    {
+      "tier": 33,
+      "capacity": 177,
+      "cost": 5410,
+      "id": "ocean-lantern",
+      "image": "art/nutvale/mining-tools/pickaxes/ocean-lantern.png"
+    },
+    {
+      "tier": 34,
+      "capacity": 182,
+      "cost": 5690,
+      "id": "starfall-amethyst",
+      "image": "art/nutvale/mining-tools/pickaxes/starfall-amethyst.png"
+    },
+    {
+      "tier": 35,
+      "capacity": 187,
+      "cost": 5970,
+      "id": "tideglass-cyan",
+      "image": "art/nutvale/mining-tools/pickaxes/tideglass-cyan.png"
+    },
+    {
+      "tier": 36,
+      "capacity": 192,
+      "cost": 6270,
+      "id": "forest-prism",
+      "image": "art/nutvale/mining-tools/pickaxes/forest-prism.png"
+    },
+    {
+      "tier": 37,
+      "capacity": 197,
+      "cost": 6570,
+      "id": "ruby-ice",
+      "image": "art/nutvale/mining-tools/pickaxes/ruby-ice.png"
+    },
+    {
+      "tier": 38,
+      "capacity": 202,
+      "cost": 6880,
+      "id": "molten-star",
+      "image": "art/nutvale/mining-tools/pickaxes/molten-star.png"
+    },
+    {
+      "tier": 39,
+      "capacity": 207,
+      "cost": 7190,
+      "id": "winter-berry",
+      "image": "art/nutvale/mining-tools/pickaxes/winter-berry.png"
+    }
+  ],
+  "gloves": [
+    {
+      "tier": 0,
+      "capacity": 0,
+      "cost": 0,
+      "id": "russet-leather",
+      "image": "art/nutvale/mining-tools/gloves/russet-leather.png"
+    },
+    {
+      "tier": 1,
+      "capacity": 1,
+      "cost": 140,
+      "id": "apprentice-leather",
+      "image": "art/nutvale/mining-tools/gloves/apprentice-leather.png"
+    },
+    {
+      "tier": 2,
+      "capacity": 2,
+      "cost": 190,
+      "id": "autumn-leaves",
+      "image": "art/nutvale/mining-tools/gloves/autumn-leaves.png"
+    },
+    {
+      "tier": 3,
+      "capacity": 3,
+      "cost": 250,
+      "id": "verdant-wool",
+      "image": "art/nutvale/mining-tools/gloves/verdant-wool.png"
+    },
+    {
+      "tier": 4,
+      "capacity": 4,
+      "cost": 310,
+      "id": "acorn-gardener",
+      "image": "art/nutvale/mining-tools/gloves/acorn-gardener.png"
+    },
+    {
+      "tier": 5,
+      "capacity": 5,
+      "cost": 380,
+      "id": "frostfur-forager",
+      "image": "art/nutvale/mining-tools/gloves/frostfur-forager.png"
+    },
+    {
+      "tier": 6,
+      "capacity": 6,
+      "cost": 460,
+      "id": "oak-traveler",
+      "image": "art/nutvale/mining-tools/gloves/oak-traveler.png"
+    },
+    {
+      "tier": 7,
+      "capacity": 7,
+      "cost": 540,
+      "id": "winter-stone",
+      "image": "art/nutvale/mining-tools/gloves/winter-stone.png"
+    },
+    {
+      "tier": 8,
+      "capacity": 8,
+      "cost": 620,
+      "id": "copper-clockwork",
+      "image": "art/nutvale/mining-tools/gloves/copper-clockwork.png"
+    },
+    {
+      "tier": 9,
+      "capacity": 9,
+      "cost": 720,
+      "id": "brass-clockwork",
+      "image": "art/nutvale/mining-tools/gloves/brass-clockwork.png"
+    },
+    {
+      "tier": 10,
+      "capacity": 10,
+      "cost": 820,
+      "id": "sapphire-royal",
+      "image": "art/nutvale/mining-tools/gloves/sapphire-royal.png"
+    },
+    {
+      "tier": 11,
+      "capacity": 11,
+      "cost": 920,
+      "id": "solar-gilt",
+      "image": "art/nutvale/mining-tools/gloves/solar-gilt.png"
+    },
+    {
+      "tier": 12,
+      "capacity": 12,
+      "cost": 1030,
+      "id": "orchid-bloom",
+      "image": "art/nutvale/mining-tools/gloves/orchid-bloom.png"
+    },
+    {
+      "tier": 13,
+      "capacity": 13,
+      "cost": 1150,
+      "id": "holly-blossom",
+      "image": "art/nutvale/mining-tools/gloves/holly-blossom.png"
+    },
+    {
+      "tier": 14,
+      "capacity": 14,
+      "cost": 1270,
+      "id": "pink-confection",
+      "image": "art/nutvale/mining-tools/gloves/pink-confection.png"
+    },
+    {
+      "tier": 15,
+      "capacity": 15,
+      "cost": 1400,
+      "id": "rainbow-icing",
+      "image": "art/nutvale/mining-tools/gloves/rainbow-icing.png"
+    },
+    {
+      "tier": 16,
+      "capacity": 16,
+      "cost": 1540,
+      "id": "confetti-star",
+      "image": "art/nutvale/mining-tools/gloves/confetti-star.png"
+    },
+    {
+      "tier": 17,
+      "capacity": 17,
+      "cost": 1680,
+      "id": "candy-party",
+      "image": "art/nutvale/mining-tools/gloves/candy-party.png"
+    },
+    {
+      "tier": 18,
+      "capacity": 18,
+      "cost": 1820,
+      "id": "violet-nebula",
+      "image": "art/nutvale/mining-tools/gloves/violet-nebula.png"
+    },
+    {
+      "tier": 19,
+      "capacity": 19,
+      "cost": 1980,
+      "id": "spectral-skull",
+      "image": "art/nutvale/mining-tools/gloves/spectral-skull.png"
+    },
+    {
+      "tier": 20,
+      "capacity": 20,
+      "cost": 2140,
+      "id": "starlight-void",
+      "image": "art/nutvale/mining-tools/gloves/starlight-void.png"
+    },
+    {
+      "tier": 21,
+      "capacity": 21,
+      "cost": 2300,
+      "id": "golden-cabochon",
+      "image": "art/nutvale/mining-tools/gloves/golden-cabochon.png"
+    },
+    {
+      "tier": 22,
+      "capacity": 22,
+      "cost": 2470,
+      "id": "silver-sunburst",
+      "image": "art/nutvale/mining-tools/gloves/silver-sunburst.png"
+    },
+    {
+      "tier": 23,
+      "capacity": 23,
+      "cost": 2650,
+      "id": "arcane-geode",
+      "image": "art/nutvale/mining-tools/gloves/arcane-geode.png"
+    },
+    {
+      "tier": 24,
+      "capacity": 24,
+      "cost": 2830,
+      "id": "industrial-gear",
+      "image": "art/nutvale/mining-tools/gloves/industrial-gear.png"
+    },
+    {
+      "tier": 25,
+      "capacity": 25,
+      "cost": 3020,
+      "id": "glacier-mechanist",
+      "image": "art/nutvale/mining-tools/gloves/glacier-mechanist.png"
+    },
+    {
+      "tier": 26,
+      "capacity": 26,
+      "cost": 3220,
+      "id": "sunstone-alchemist",
+      "image": "art/nutvale/mining-tools/gloves/sunstone-alchemist.png"
+    },
+    {
+      "tier": 27,
+      "capacity": 27,
+      "cost": 3420,
+      "id": "sunflower-garden",
+      "image": "art/nutvale/mining-tools/gloves/sunflower-garden.png"
+    },
+    {
+      "tier": 28,
+      "capacity": 28,
+      "cost": 3620,
+      "id": "lava-fissure",
+      "image": "art/nutvale/mining-tools/gloves/lava-fissure.png"
+    },
+    {
+      "tier": 29,
+      "capacity": 29,
+      "cost": 3840,
+      "id": "flameheart",
+      "image": "art/nutvale/mining-tools/gloves/flameheart.png"
+    },
+    {
+      "tier": 30,
+      "capacity": 30,
+      "cost": 4060,
+      "id": "riveted-steel",
+      "image": "art/nutvale/mining-tools/gloves/riveted-steel.png"
+    },
+    {
+      "tier": 31,
+      "capacity": 31,
+      "cost": 4280,
+      "id": "winter-rune",
+      "image": "art/nutvale/mining-tools/gloves/winter-rune.png"
+    },
+    {
+      "tier": 32,
+      "capacity": 32,
+      "cost": 4510,
+      "id": "shadow-amethyst",
+      "image": "art/nutvale/mining-tools/gloves/shadow-amethyst.png"
+    },
+    {
+      "tier": 33,
+      "capacity": 33,
+      "cost": 4750,
+      "id": "aether-machinery",
+      "image": "art/nutvale/mining-tools/gloves/aether-machinery.png"
+    },
+    {
+      "tier": 34,
+      "capacity": 34,
+      "cost": 4990,
+      "id": "fresh-spring",
+      "image": "art/nutvale/mining-tools/gloves/fresh-spring.png"
+    },
+    {
+      "tier": 35,
+      "capacity": 35,
+      "cost": 5240,
+      "id": "woodland-hide",
+      "image": "art/nutvale/mining-tools/gloves/woodland-hide.png"
+    },
+    {
+      "tier": 36,
+      "capacity": 36,
+      "cost": 5500,
+      "id": "golden-gears",
+      "image": "art/nutvale/mining-tools/gloves/golden-gears.png"
+    },
+    {
+      "tier": 37,
+      "capacity": 37,
+      "cost": 5760,
+      "id": "pumpkin-gold",
+      "image": "art/nutvale/mining-tools/gloves/pumpkin-gold.png"
+    },
+    {
+      "tier": 38,
+      "capacity": 38,
+      "cost": 6020,
+      "id": "holiday-holly",
+      "image": "art/nutvale/mining-tools/gloves/holiday-holly.png"
+    },
+    {
+      "tier": 39,
+      "capacity": 39,
+      "cost": 6300,
+      "id": "fur-trapper",
+      "image": "art/nutvale/mining-tools/gloves/fur-trapper.png"
+    }
+  ],
+  "extraCosmeticIcons": {
+    "pickaxe": [
+      "holly-star",
+      "brass-anthem",
+      "deepsea-orb",
+      "moonlit-silver"
+    ],
+    "gloves": [
+      "harvest-petal",
+      "jackolantern"
+    ]
+  },
+  "sums": {
+    "pickaxe": 111390,
+    "gloves": 98140
+  },
+  "economy": "N$ from existing saved.nutravaganza.dollars balance; displayed pre/post spend in mining workshop.",
+  "daily": "Each purchased tier adds +5 available strikes or +1 available scan to today's remaining allowance; does not refill previously spent allowance. Local day advances only forward.",
+  "rules": [
+    "No ore probability, hardness, cart capacity, refinery conversion or map size affected by equipment tier.",
+    "Pickaxe and gloves are independent and are purchased one tier at a time.",
+    "No Golden Nuts, Gems, money payments or clock-based FOMO.",
+    "Unused 4 pickaxe and 2 glove art variants reserved for later cosmetics, not invented equipment levels.",
+    "Mine remains level-500 gated. Campaign II 1001–1500 entry not activated until stage implementation and tests."
+  ],
+  "releaseGates": [
+    "Source and pixel graphics independently verified",
+    "Android device visual QA",
+    "Persistence and clock rollback tests",
+    "All campaign I and elemental trials regression tests",
+    "Campaign II gate remains disabled until authored"
+  ]
+}
