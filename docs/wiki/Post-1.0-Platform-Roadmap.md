@@ -52,7 +52,7 @@ Interactive visiting, shared mutable homes, public profiles, cross-platform sync
 
 ### P5 — Monetization (conditional, not currently authorized)
 
-The game presently parodies predatory free-to-play monetization without taking money. Real-money cosmetics, digital goods, randomized paid rewards, ad tech, subscriptions, or billing SDKs are **out of scope** unless the owner changes that policy explicitly. Any future proposal needs a separate content/policy/consumer-protection assessment and applicable Play billing compliance.
+The game presently parodies free-to-play commerce without taking money. On 2026-10-22 the purely fictional checkout **price previews were revised to a plausible $0.99–$9.99 one-time ladder**, with free life/move recovery and no nominal VIP subscription; this is only *design/pricing preparation*, **not authorization to collect payment**. Real-money cosmetics, digital goods, paid randomized rewards, ad tech, subscriptions, or billing SDKs remain **out of scope** until separately approved. Any future paid edition requires content and consumer-protection review, stable product definitions, secure fulfillment and refunds/restoration, platform/regional prices, and applicable Play billing compliance; see [Pricing and Monetization Readiness](Pricing-and-Monetization-Readiness.md).
 
 ## Future integration contracts (design reservations, not existing interfaces)
 
