@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const E=require('../web/engine.js'),P=require('../web/elemental-powers.js'),C=require('../web/nut-codex.js');
 const unlocks=E.TILE_OVERLAY_UNLOCKS;
-assert.equal(unlocks.length,11,'Eleven additional tile effects have staged entry points');
+assert.equal(unlocks.length,12,'Twelve additional tile effects have staged entry points');
 assert.deepEqual(E.overlayPlan(44),[],'No tile auras ahead of the intended introduction');
 assert.ok(E.overlayPlan(45).some(e=>e.kind==='fire'),'Burn begins at 45');
 for(const spec of unlocks){
@@ -11,7 +11,7 @@ for(const spec of unlocks){
  assert.ok(E.overlayPlan(spec.level+1).some(e=>e.level<=spec.level+1));
  assert.equal(C.entries.find(e=>e.id==='tile-'+spec.kind)?.live,true,spec.kind+' must be listed as playable');
 }
-assert.equal(C.entries.find(e=>e.id==='tile-void-rock')?.live,false,'Unimplemented void-rock remains explicitly a preview');
+assert.equal(C.entries.find(e=>e.id==='tile-void-rock')?.live,true,'Void-Rock must have a real two-hit late-game barrier');
 assert.equal(Object.keys(P.ABILITIES).length,15);
 assert.deepEqual(Object.keys(P.ABILITIES).sort(),[...P.ELEMENTS].sort());
 for(const kind of P.ELEMENTS){
@@ -19,7 +19,7 @@ for(const kind of P.ELEMENTS){
  assert.equal(entry?.effect,P.ABILITIES[kind],kind+' ability in the deck must match the executable ability ledger');
  assert.match(entry.rule,/destroyed/,'Activation conditions must be explicit');
 }
-for(const level of [1,45,115,155,195,245,285,325,365,425,525,625,750,1000]){
+for(const level of [1,45,115,155,195,245,285,325,365,425,525,625,745,750,1000]){
  const one=E.create(level,level*31+13),two=E.create(level,level*31+13);
  assert.deepEqual(E.snapshot(one),E.snapshot(two),'Same level and seed must place identical auras');
  assert.equal(E.matches(one).hit.size,0,'Initial auras must not create a free match '+level);
@@ -73,6 +73,11 @@ function tick(g){return E.advanceHazards(g,{valid:true,won:false,lost:false,loop
  assert.ok(r.stages.some(s=>s.kind==='aura'),'Arcane transmutation must execute');
  assert.ok(c(g,at).type!==original||g.progress.colors.some(v=>v>0),'Transmutation shifts the roster color or immediately resolves its match');
 }
+{
+ const g=clean();c(g,6).aura='void-rock';c(g,6).auraTurns=1;
+ tick(g);assert.equal(c(g,6).rock,2,'Void-Rock grows into a two-hit stone barrier');
+ assert.equal(E.adjacent(g,6,7),false,'Stone seal pins the occupied square');
+}
 const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
 const css=fs.readFileSync(path.join(__dirname,'../web/style.css'),'utf8');
 assert.ok(game.includes('art/primary/overlays/${auraKind}.png'),'Tile auras must use committed overlay artwork');
@@ -80,4 +85,4 @@ assert.ok(game.includes('E.ELEMENTAL_ABILITIES?.[c.elemental]'),'Board labels mu
 assert.ok(!game.includes('Elemental chains are PREVIEW'),'Do not advertise live elemental pieces as previews');
 assert.ok(css.includes('.aura-count{'),'Timers need a visible overlay count');
 function c(g,i){return g.cells[i];}
-console.log('PASS: 11 staged tile statuses, actual effects, elemental skill ledger, live Nutdex, seeded legal boards and artwork');
+console.log('PASS: 12 staged tile statuses, actual effects, elemental skill ledger, live Nutdex, seeded legal boards and artwork');
