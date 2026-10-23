@@ -12,6 +12,7 @@ const window={Audio:FakeAudio,NUTBUSTER_TTS_BRIDGE:bridge,addEventListener(){}},
 for(const file of ['announcer-lines.js','audio.js'])
  vm.runInNewContext(fs.readFileSync(path.join(ROOT,file),'utf8'),{window,Date,Math:math,console});
 const A=window.NutAudio,L=window.NutAnnouncers;
+A.unlock(); // Start music after the simulated user gesture so speech ducking is observable.
 assert.equal(L.voices.length,2,'Only original and Auditor are currently selectable');
 assert.equal(Object.keys(L.auditor).length,93,'All approved alternate lines imported');
 assert.equal(A.getAnnouncerVoice(),'original','Original is the persistent-default voice');
