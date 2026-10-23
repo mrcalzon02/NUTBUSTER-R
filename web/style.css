@@ -436,3 +436,16 @@
 .wharf-fisherman-ad .fake-ad-poster figcaption{position:static;inset:auto;background:transparent;padding:2px;color:#f7d88e;line-height:1.2}
 .wharf-fisherman-ad .fake-ad-controls{max-width:850px;width:100%;margin:0 auto}
 @media(max-height:650px){.wharf-fisherman-ad .fake-ad-poster img{max-height:46dvh}}
+
+/* Compact 30-trial selector; preserve the full chapter map's usable area. */
+.daily-move-indicator{font-weight:900;color:#ffdb91;font-size:12px;text-align:center;margin:6px 0 0}
+.elemental-trials{margin:5px auto;padding:7px 9px;max-width:950px;border:1px solid #bc8849;border-radius:9px;background:#352036;display:grid;gap:3px}
+.elemental-trials>b{font-size:12px;color:#ffe3a4}
+.elemental-trials>small{font-size:10px;color:#d2b4a5}
+.elemental-trial-strip{display:flex;overflow-x:auto;gap:4px;padding:2px 0;scroll-snap-type:x mandatory}
+.elemental-trial{flex:0 0 39px;min-height:34px;padding:2px;border:1px solid #b8914d;border-radius:6px;background:#594063;color:#fff4ca;font-size:11px;scroll-snap-align:start}
+.elemental-trial.done{background:#27654a}
+.elemental-trial:disabled{opacity:.4}
+.elemental-relics{display:flex;gap:5px;flex-wrap:wrap}
+.elemental-relics img{width:28px;height:28px;object-fit:contain}
+.nut-visual .elemental-emblem{position:absolute;right:0;bottom:0;width:43%;height:43%;object-fit:contain;z-index:3;filter:drop-shadow(0 0 2px #fff8);pointer-events:none}
