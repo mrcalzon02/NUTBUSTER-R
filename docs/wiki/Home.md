@@ -6,7 +6,7 @@
 
 **Platform:** Android API 26 minimum, API 36 target (ReverieVR compatibility), same game built for desktop browser/Electron.
 
-**Pages:** [[Build-and-APK]] | [[Assets-and-Board-Rules]] | [[Level-Design]] | [[Test-Gates]] | [[Anti-Monetization]] | [[Pricing-and-Monetization-Readiness]] | [[Audio-Pipeline]] | [[Announcer-Expansion-Script]] | [[Nutvale-Homestead]] | [[Nutravaganza]] | [[Nutravaganza-Art-Production]] | [[Post-1.0-Platform-Roadmap]]
+**Pages:** [[Build-and-APK]] | [[Assets-and-Board-Rules]] | [[Level-Design]] | [[Test-Gates]] | [[Anti-Monetization]] | [[Pricing-and-Monetization-Readiness]] | [[Promo-Code-System]] | [[Audio-Pipeline]] | [[Announcer-Expansion-Script]] | [[Nutvale-Homestead]] | [[Nutravaganza]] | [[Nutravaganza-Art-Production]] | [[Post-1.0-Platform-Roadmap]]
 
 ## Starting status
 
