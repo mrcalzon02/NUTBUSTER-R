@@ -32,10 +32,18 @@ function inflate(data,original){
  while(ll.length<nl+nd){const c=symbol(ct);if(c<=15)ll.push(c);else if(c===16){const last=ll[ll.length-1];if(last===undefined)throw Error("Invalid repeat");let n=read(2)+3;while(n--)ll.push(last);}else{let n=c===17?read(3)+3:read(7)+11;while(n--)ll.push(0);}}
  lt=tree(ll.slice(0,nl));dt=tree(ll.slice(nl,nl+nd));}
  else throw Error("Reserved block type");
- for(;;){const c=symbol(lt);if(c<256)output[out++]=c;else if(c===256)break;else{const k=c-257,length=lb[k]+read(le[k]),d=symbol(dt),distance=db[d]+read(de[d]);if(distance>out||d>=30)throw Error("Invalid distance");for(let i=0;i<length;i++)output[out++]=output[out-distance];}
+ for(;;){const c=symbol(lt);if(c<256)output[out++]=c;else if(c===256)break;else{const k=c-257,length=lb[k]+read(le[k]),d=symbol(dt),distance=db[d]+read(de[d]);if(distance>out||d>=30)throw Error("Invalid distance");for(let i=0;i<length;i++){output[out]=output[out-distance];out++;}}
  if(out>original)throw Error("Overflow");}
  }while(!final);
  if(out!==original)throw Error("Incorrect output length "+out+"/"+original);return output;
+}
+function crc32(bytes){
+ let value=0xffffffff;
+ for(let i=0;i<bytes.length;i++){
+  value^=bytes[i];
+  for(let bit=0;bit<8;bit++)value=(value>>>1)^((value&1)?0xedb88320:0);
+ }
+ return (value^0xffffffff)>>>0;
 }
 function unzip(bytes){
  const u16=p=>bytes[p]|(bytes[p+1]<<8),u32=p=>(bytes[p]|(bytes[p+1]<<8)|(bytes[p+2]<<16)|(bytes[p+3]<<24))>>>0;
@@ -49,6 +57,7 @@ function unzip(bytes){
  const start=local+30+u16(local+26)+u16(local+28),data=bytes.subarray(start,start+compressed);
  const plain=method===0?data:method===8?inflate(data,size):null;
  if(!plain||plain.length!==size)throw Error("Invalid decompression "+name);
+ if(crc32(plain)!==u32(at+16))throw Error("ZIP CRC32 mismatch: "+name);
  files.push({name,data:plain});at+=46+fn+ex+comment;
  }return files;
 }
