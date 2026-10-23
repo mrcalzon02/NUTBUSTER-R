@@ -36,6 +36,9 @@ const DESIGN=typeof module!=='undefined'&&module.exports?require('./level-design
 if(!DESIGN)throw new Error('NUTBUSTER level book must load before match-three engine');
 const FEATURES=typeof module!=='undefined'&&module.exports?require('./board-features.js'):root.NutBoardFeatures;
 if(!FEATURES)throw new Error('Board features must load before the engine');
+const TRIALS=typeof module!=='undefined'&&module.exports?require('./elemental-challenges.js'):root.NutElementalChallenges;
+const POWERS=typeof module!=='undefined'&&module.exports?require('./elemental-powers.js'):root.NutElementalPowers;
+if(!TRIALS||!POWERS)throw Error('Elemental modules missing');
 const BOOSTERS=['hammer','row','column','cross','blast','color','shuffle','extra','drill','unlock'];
 const HOLD_DROPS=Object.freeze({butter_hold:1,jam_hold:2});
 const BOOSTER_META=Object.freeze({
@@ -78,7 +81,8 @@ function difficultyAt(n){
  return {scoreScale,quotaScale,moves};
 }
 function makeLevel(number){
- const n=Math.max(1,Math.min(500,Math.trunc(number)||1)),design=DESIGN.profile(n);
+ const trial=TRIALS.profile(Number(number));
+ const n=trial?trial.baseLevel:Math.max(1,Math.min(500,Math.trunc(number)||1)),design=DESIGN.profile(n);
  // 8x9 is the late-game maximum, not the beginner board.
  const w=n<=10?4:n<=30?5:n<=70?6:n<=140?7:8, h=w+1;
  const mask=[]; for(let y=0;y<h;y++)for(let x=0;x<w;x++)mask.push(shape(n,x,y,w,h));
@@ -86,7 +90,7 @@ function makeLevel(number){
  const teachingGrace=(n===70||n===72||n===98)?3:0;
  const moves=Math.min(36,Math.max(12,difficulty.moves+teachingGrace));
  const goal=Math.round((700+18*n+Math.pow(Math.max(0,n-100)/12,1.35)*40)*difficulty.scoreScale);
- const cfg={number:n,chapter:chapter+1,typeCount:roster.length,roster,
+ const cfg={number:trial?trial.id:n,trial,chapter:chapter+1,typeCount:roster.length,roster,
   newNut:n>1&&(n-1)%100===0?ORIGINAL[chapterTypeCount(chapter+1)-1]:(NEW_INTRODUCTIONS.find(x=>x.level===n)?.name||null),
   width:w,height:h,mask,moves,goal,
   ice:design.ice??(n>=3?Math.min(24,1+Math.floor(n/8)):0),
@@ -95,7 +99,8 @@ function makeLevel(number){
   jam:design.jam??(n>=110?Math.min(12,1+Math.floor((n-110)/40)):0),
   bombs:design.bombs??(n>=210?Math.min(7,1+Math.floor((n-210)/70)):0),
   fuseTurns:n>=210?Math.max(3,6-Math.floor((n-210)/100)):0,
-  title:DESIGN.CHAPTERS[chapter],stageTitle:design.name,hint:design.hint,design};
+  title:DESIGN.CHAPTERS[chapter],stageTitle:trial?trial.name:design.name,hint:trial?trial.hint:design.hint,
+  design,elementPool:trial?[trial.element]:n>=15?POWERS.ELEMENTS.slice(0,Math.min(15,(chapter+1)*3)):[]};
  // Irregular late-game silhouettes have fewer cells than the rectangular grid.
  // Reserve space for ordinary nuts and guarantee that advertised blocker layers
  // can actually be placed; otherwise a board can start mathematically unwinnable.
@@ -155,12 +160,22 @@ function makeLevel(number){
   const secondaryTarget=design.secondaryTarget??design.objectiveTarget??null;
   cfg.objectives=[build('collect',Math.min(9,collect)),build(blocker,secondaryTarget)];
  }else cfg.objectives=[build(kind,design.objectiveTarget)];
+ if(trial){
+  const scale=1.7+(trial.local-1)/22;
+  cfg.goal=Math.ceil(cfg.goal*scale);
+  cfg.moves=Math.max(12,cfg.moves-2-Math.floor((trial.local-1)/10));
+  cfg.objectives=cfg.objectives.map(o=>{
+   const stock=o.kind==='ice'?cfg.ice*cfg.iceLayers:o.kind==='locks'?cfg.locks*cfg.lockLayers:
+    o.kind==='chests'?cfg.chests*cfg.chestLayers:o.kind==='jam'?cfg.jam:Infinity;
+   return {...o,target:o.kind==='score'?cfg.goal:Math.min(stock,Math.ceil(o.target*scale))};
+  });
+ }
  cfg.features=FEATURES.make(n,cfg.mask,cfg.width,cfg.height);
  return cfg;
 }
 function create(level=1,seed=level*7919){
- const cfg=makeLevel(level);let rand=rng(seed);const a=cfg.mask.map(v=>v?{type:0,ice:0,lock:0,chest:0,jam:0,fuse:0,special:null,hold:0}:null);
- const g={level:cfg.number,cfg,seed,rand,cells:a,score:0,moves:cfg.moves,won:false,lost:false,combos:0,history:[],boosterUsed:0,turns:0,progress:{ice:0,locks:0,chests:0,jam:0,bombs:0,colors:TYPES.map(()=>0)},uses:{}};
+ const cfg=makeLevel(level);let rand=rng(seed);const a=cfg.mask.map(v=>v?{type:0,ice:0,lock:0,chest:0,jam:0,fuse:0,special:null,hold:0,elemental:null,frozen:0,poison:0,ward:0}:null);
+ const g={level:cfg.number,cfg,seed,rand,cells:a,score:0,moves:cfg.moves,won:false,lost:false,combos:0,history:[],boosterUsed:0,turns:0,progress:{ice:0,locks:0,chests:0,jam:0,bombs:0,colors:TYPES.map(()=>0)},uses:{},elementalQueue:[],magmaQueue:[],crystalCharge:0,elementalActivations:[]};
  for(let y=0;y<cfg.height;y++)for(let x=0;x<cfg.width;x++){
   const i=y*cfg.width+x;if(!a[i])continue;let opts=cfg.roster.filter(t=>!(x>=2&&a[i-1]&&a[i-2]&&a[i-1].type===t&&a[i-2].type===t)&&!(y>=2&&a[i-cfg.width]&&a[i-2*cfg.width]&&a[i-cfg.width].type===t&&a[i-2*cfg.width].type===t));a[i].type=opts[Math.floor(rand()*opts.length)];
  }
@@ -189,9 +204,29 @@ function create(level=1,seed=level*7919){
  }
  plant(cfg.ice,'ice');plant(cfg.locks,'lock');plant(cfg.chests,'chest');
  plant(cfg.jam,'jam');plant(cfg.bombs,'fuse');
- if(matches(g).hit.size||!hasMove(g))shuffle(g);return g;
+ if(matches(g).hit.size||!hasMove(g))shuffle(g);
+ const stageNumber=cfg.trial?cfg.trial.baseLevel:cfg.number;
+ const count=cfg.trial?Math.min(3,1+Math.floor((cfg.trial.local-1)/10)):
+  (stageNumber>=15&&(stageNumber===15||stageNumber===35||stageNumber%7===0)?1:0);
+ if(count&&cfg.elementPool.length){
+  let eligible=a.map((c,i)=>c&&!pinned(c)&&c.type>=ORIGINAL.length?i:-1).filter(i=>i>=0);
+  if(cfg.trial&&!eligible.length){
+   const newType=cfg.roster.find(t=>t>=ORIGINAL.length);
+   for(let i=0;i<a.length&&!eligible.length;i++){
+    if(!a[i]||pinned(a[i]))continue;
+    const old=a[i].type;a[i].type=newType;
+    if(!matches(g).hit.size&&hasMove(g))eligible.push(i);
+    else a[i].type=old;
+   }
+  }
+  for(let k=0;k<count&&eligible.length;k++){
+   const i=eligible.splice(Math.floor(rand()*eligible.length),1)[0];
+   a[i].elemental=cfg.elementPool[cfg.trial?0:(Math.floor(stageNumber/7)+k)%cfg.elementPool.length];
+  }
+ }
+ return g;
 }
-function pinned(c){return !!(c&&(c.ice>0||c.lock>0||c.chest>0));}
+function pinned(c){return !!(c&&(c.ice>0||c.lock>0||c.chest>0||c.frozen>0));}
 function matches(g){const hit=new Set(),groups=[];const {width:w,height:h}=g.cfg;function run(indices){if(indices.length>=3){groups.push(indices);indices.forEach(i=>hit.add(i));}}
  for(let y=0;y<h;y++){let active=[],prev=null;for(let x=0;x<=w;x++){const i=y*w+x,c=x<w?g.cells[i]:null,t=c&&!pinned(c)?c.type:null;if(t!==null&&t===prev)active.push(i);else{run(active);active=t!==null?[i]:[];prev=t;}}}
  for(let x=0;x<w;x++){let active=[],prev=null;for(let y=0;y<=h;y++){const i=y*w+x,c=y<h?g.cells[i]:null,t=c&&!pinned(c)?c.type:null;if(t!==null&&t===prev)active.push(i);else{run(active);active=t!==null?[i]:[];prev=t;}}}
@@ -201,7 +236,7 @@ function adjacent(g,a,b){const w=g.cfg.width;return a>=0&&b>=0&&a<g.cells.length
 function hasMove(g){for(let a=0;a<g.cells.length;a++)for(const b of [a+1,a+g.cfg.width]){if(!adjacent(g,a,b))continue;
  if(g.cells[a].special||g.cells[b].special)return true;
  const p=g.cells[a].type;g.cells[a].type=g.cells[b].type;g.cells[b].type=p;const ok=matches(g).hit.size>0;g.cells[b].type=g.cells[a].type;g.cells[a].type=p;if(ok)return true;}return false;}
-function swapPayload(a,b){for(const key of ['type','special','hold']){const t=a[key];a[key]=b[key];b[key]=t;}}
+function swapPayload(a,b){for(const key of ['type','special','hold','elemental']){const t=a[key];a[key]=b[key];b[key]=t;}}
 function shuffle(g){const ids=g.cells.map((v,i)=>v&&!pinned(v)?i:-1).filter(i=>i>=0);for(let attempt=0;attempt<100;attempt++){
  for(let j=ids.length-1;j>0;j--){const k=Math.floor(g.rand()*(j+1));swapPayload(g.cells[ids[j]],g.cells[ids[k]]);}
  if(matches(g).hit.size===0&&hasMove(g))return true;
@@ -215,14 +250,14 @@ function gravity(g,falls=[]){
  function compact(x,top,bottom){
   if(top>bottom)return;
   const survivors=[];
-  for(let y=bottom;y>=top;y--){const i=y*w+x,c=g.cells[i];if(c.type!==null)survivors.push({type:c.type,special:c.special,hold:c.hold||0,from:i});}
+  for(let y=bottom;y>=top;y--){const i=y*w+x,c=g.cells[i];if(c.type!==null)survivors.push({type:c.type,special:c.special,elemental:c.elemental||null,hold:c.hold||0,from:i});}
   const fresh=bottom-top+1-survivors.length;
   for(let y=bottom,n=0;y>=top;y--,n++){
    const i=y*w+x,c=g.cells[i],s=survivors[n];
    c.type=s?s.type:g.cfg.roster[Math.floor(g.rand()*g.cfg.typeCount)];
-   c.special=s?s.special:null;c.hold=s?s.hold:0;
-   if(s){if(s.from!==i)falls.push({from:s.from,to:i,type:s.type,special:s.special,hold:s.hold});}
-   else falls.push({from:-1,to:i,startRow:y-fresh,type:c.type,special:null,hold:0});
+   c.special=s?s.special:null;c.elemental=s?s.elemental:null;c.hold=s?s.hold:0;
+   if(s){if(s.from!==i)falls.push({from:s.from,to:i,type:s.type,special:s.special,elemental:s.elemental,hold:s.hold});}
+   else falls.push({from:-1,to:i,startRow:y-fresh,type:c.type,special:null,elemental:null,hold:0});
   }
  }
  for(let x=0;x<w;x++){
@@ -255,12 +290,37 @@ function objectiveState(g){
 function complete(g){return objectiveState(g).every(o=>o.done);}
 function damage(g,i,summary){
  const c=g.cells[i];if(!c||c.type===null)return;
+ if(c.ward>0){c.ward=0;summary.cracked++;return;}
  if(c.jam>0){c.jam--;g.progress.jam++;summary.cracked++;return;}
  if(c.ice>0){c.ice--;g.progress.ice++;summary.cracked++;return;}
  if(c.lock>0){c.lock--;g.progress.locks++;summary.cracked++;return;}
  if(c.chest>0){c.chest--;g.progress.chests++;summary.cracked++;return;}
  if(c.fuse>0){c.fuse=0;g.progress.bombs++;summary.cracked++;return;}
- g.progress.colors[c.type]++;c.type=null;c.special=null;c.hold=0;summary.removed++;
+ if(c.elemental)g.elementalQueue.push({at:i,kind:c.elemental,color:c.type});
+ g.progress.colors[c.type]++;c.type=null;c.special=null;c.elemental=null;c.hold=0;summary.removed++;
+}
+function resolveElementals(g,summary){
+ const hit=[],seen=new Set();let limit=g.cells.length*3;
+ while(g.elementalQueue.length&&limit-->0){
+  g.elementalQueue.sort((a,b)=>a.at-b.at);
+  const rec=g.elementalQueue.shift(),key=rec.at+':'+rec.kind;
+  if(seen.has(key))continue;seen.add(key);
+  const before=g.cells.map(c=>c?.type??null);
+  POWERS.activate(g,rec,{damage,pinned,summary});
+  g.elementalActivations.push(rec.kind);
+  for(let i=0;i<before.length;i++)if(before[i]!==null&&g.cells[i]?.type===null)hit.push(i);
+ }
+ if(g.elementalQueue.length)throw Error('Elemental reaction exceeded safe work limit');
+ return hit;
+}
+function runMagma(g,summary){
+ const hit=[];
+ for(const x of g.magmaQueue.splice(0))for(let i=x;i<g.cells.length;i+=g.cfg.width){
+  if(!g.cells[i]||g.cells[i].type===null)continue;
+  const before=g.cells[i].type;damage(g,i,summary);
+  if(before!==null&&g.cells[i].type===null)hit.push(i);
+ }
+ hit.push(...resolveElementals(g,summary));return hit;
 }
 function expandSpecials(g,initial,targetColor){
  const hit=new Set(initial),pending=[...hit],seen=new Set(),w=g.cfg.width;
@@ -348,13 +408,16 @@ function collapse(g,first){let loops=0,removed=0,cracked=0;const stages=[];let f
   const summary={removed:0,cracked:0};
   const heldMatches=ids.filter(i=>found.hit.has(i)&&g.cells[i]?.hold>0).length;
   for(const i of ids)damage(g,i,summary);
+  const powered=resolveElementals(g,summary);
   removed+=summary.removed;cracked+=summary.cracked;
   if(made&&g.cells[made.at]?.type===null&&!before[made.at]?.special){
    g.cells[made.at].type=before[made.at].type;
-   g.cells[made.at].special=made.kind;bonus+=100;
+   g.cells[made.at].special=made.kind;g.cells[made.at].elemental=null;bonus+=100;
   }
   g.score+=(ids.length*60+bonus+heldMatches*120)*Math.min(loops,6);
-  const afterClear=snapshot(g).cells,falls=[];gravity(g,falls);stages.push({kind:'cascade',before,afterClear,clear:ids,falls,cells:snapshot(g).cells});
+  const afterClear=snapshot(g).cells,falls=[];gravity(g,falls);
+  const magma=runMagma(g,summary);if(magma.length){gravity(g,falls);removed+=magma.length;}
+  stages.push({kind:'cascade',before,afterClear,clear:[...new Set([...ids,...powered,...magma])],falls,cells:snapshot(g).cells});
   found=matches(g);
  }
  g.combos=loops;g.won=complete(g);g.lost=g.moves<=0&&!g.won;
@@ -393,7 +456,13 @@ function advanceBoardFeatures(g,result){
 function finishTurn(g,result){return advanceHazards(g,advanceBoardFeatures(g,result));}
 function advanceHazards(g,result){
  g.turns++;
- if(g.won||g.lost||(!g.cfg.jam&&!g.cfg.bombs))return result;
+ if(g.won||g.lost)return result;
+ for(const c of g.cells)if(c){
+  if(c.frozen>0)c.frozen--;
+  if(c.ward>0)c.ward--;
+  if(c.poison>0&&!--c.poison){c.jam=1;g.cfg.jam=Math.max(1,g.cfg.jam);}
+ }
+ if(!g.cfg.jam&&!g.cfg.bombs)return result;
  const spread=[],expired=[];
  // One sticky spread every third swap; deterministic and bounded by board size.
  // It never creates a brand-new bomb or alters the void layout.
@@ -499,15 +568,17 @@ function booster(g,type,index){
   const blows=type==='hammer'?20:type==='drill'?3:1;
   for(let n=0;n<blows&&g.cells[i]?.type!==null;n++)damage(g,i,summary);
  }
+ const powered=resolveElementals(g,summary);
  g.boosterUsed++;g.uses[type]=(g.uses[type]||0)+1;
  g.score+=targets.length*35;
  const afterClear=snapshot(g).cells,falls=[];gravity(g,falls);
+ const magma=runMagma(g,summary);if(magma.length)gravity(g,falls);
  const afterGravity=snapshot(g).cells,r=collapse(g);
  g.won=complete(g);g.lost=g.moves<=0&&!g.won;
- const stage={kind:'cascade',before,afterClear,clear:targets,falls,cells:afterGravity};
+ const stage={kind:'cascade',before,afterClear,clear:[...new Set([...targets,...powered,...magma])],falls,cells:afterGravity};
  return {...r,valid:true,type,removed:r.removed+summary.removed,cracked:r.cracked+summary.cracked,
   won:g.won,lost:g.lost,stages:[stage,...r.stages],objectives:objectiveState(g)};
 }
-function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,turns:g.turns,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,jam:c.jam,fuse:c.fuse,special:c.special,hold:c.hold||0}:null)};}
+function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,turns:g.turns,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,jam:c.jam,fuse:c.fuse,special:c.special,hold:c.hold||0,elemental:c.elemental||null,frozen:c.frozen||0,poison:c.poison||0,ward:c.ward||0}:null)};}
 const api={TYPES,ORIGINAL,NEW,RETIRED_NUTS,NEW_INTRODUCTIONS,rosterForLevel,difficultyAt,BOOSTERS,BOOSTER_META,HOLD_DROPS,makeLevel,create,matches,adjacent,hasMove,gravity,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,applyHold,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
 })(typeof window!=='undefined'?window:globalThis);

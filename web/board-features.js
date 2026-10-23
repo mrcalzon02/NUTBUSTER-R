@@ -72,12 +72,12 @@ function nextWindDirection(lane,currentTurn){
 }
 function advance(g,turn,snapshot){
  const features=g.cfg.features||{},stages=[];
- const blocked=i=>!!(g.cells[i]&&(g.cells[i].ice>0||g.cells[i].lock>0||g.cells[i].chest>0));
- const move=(from,to)=>({from,to,type:g.cells[from].type,special:g.cells[from].special,hold:g.cells[from].hold||0});
+ const blocked=i=>!!(g.cells[i]&&(g.cells[i].ice>0||g.cells[i].lock>0||g.cells[i].chest>0||g.cells[i].frozen>0));
+ const move=(from,to)=>({from,to,type:g.cells[from].type,special:g.cells[from].special,elemental:g.cells[from].elemental||null,hold:g.cells[from].hold||0});
  function apply(mode,transfers){
   if(!transfers.length)return;
   const before=snapshot();
-  for(const t of transfers){g.cells[t.to].type=t.type;g.cells[t.to].special=t.special;g.cells[t.to].hold=t.hold;}
+  for(const t of transfers){g.cells[t.to].type=t.type;g.cells[t.to].special=t.special;g.cells[t.to].elemental=t.elemental;g.cells[t.to].hold=t.hold;}
   stages.push({kind:'transport',mode,before,cells:snapshot(),transfers});
  }
  for(const belt of features.conveyors||[]){
