@@ -24,6 +24,7 @@ final class PlayBillingCoordinator implements PurchasesUpdatedListener {
     private final Consumer<String> toWeb;
     private final BillingClient client;
     private final PlayIntegrityGate integrity;
+    private PlayAccountCoordinator account;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Map<String, ProductDetails> catalog = new HashMap<>();
     private final Map<String, Purchase> fulfillable = new HashMap<>();
@@ -47,6 +48,7 @@ final class PlayBillingCoordinator implements PurchasesUpdatedListener {
             }
         });
     }
+    void setAccountCoordinator(PlayAccountCoordinator account) { this.account=account; }
     private void status(String message) {
         toWeb.accept("window.NutbusterPlay && NutbusterPlay.status(" + JSONObject.quote(message) + ")");
     }
@@ -165,12 +167,15 @@ final class PlayBillingCoordinator implements PurchasesUpdatedListener {
                 throw new SecurityException("Receipt verifier must use HTTPS.");
             connection = (HttpURLConnection) url.openConnection();
             connection.setConnectTimeout(12000); connection.setReadTimeout(12000);
+            connection.setInstanceFollowRedirects(false);
             connection.setRequestMethod("POST"); connection.setDoOutput(true);
             connection.setRequestProperty("Content-Type", "application/json");
             JSONObject request = new JSONObject().put("packageName", activity.getPackageName())
                 .put("productId", sku).put("purchaseToken", purchase.getPurchaseToken())
                 .put("installId", install).put("attemptId", attempt)
                 .put("integrityToken", integrityToken);
+            String session=account==null?null:account.activeSession();
+            if (session!=null)request.put("accountSession",session);
             try (OutputStream out = connection.getOutputStream()) {
                 out.write(request.toString().getBytes(StandardCharsets.UTF_8));
             }

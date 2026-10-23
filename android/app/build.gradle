@@ -35,6 +35,9 @@ android {
         def integrityProject = (project.findProperty('nutbusterPlayIntegrityProjectNumber') ?: '').toString()
         if (integrityProject && !(integrityProject ==~ /[0-9]+/)) throw new GradleException('Invalid Play Integrity cloud project number')
         buildConfigField 'String', 'PLAY_INTEGRITY_PROJECT_NUMBER', '"' + integrityProject + '"'
+        def oauthClient = (project.findProperty('nutbusterPlayServerClientId') ?: '').toString()
+        if (oauthClient && !(oauthClient ==~ /[0-9]+-[A-Za-z0-9_-]+\\.apps\\.googleusercontent\\.com/)) throw new GradleException('Invalid public PGS OAuth web client ID')
+        buildConfigField 'String', 'PLAY_GAMES_SERVER_CLIENT_ID', '"' + oauthClient + '"'
         resValue 'string', 'game_services_project_id', gamesId ?: '0'
         resValue 'string', 'play_achievement_level_1', (project.findProperty('playAchievementLevel1') ?: '').toString()
         resValue 'string', 'play_achievement_level_100', (project.findProperty('playAchievementLevel100') ?: '').toString()
@@ -92,6 +95,7 @@ tasks.register('validatePlayReleaseConfiguration') {
         if (!(id ==~ /[0-9]+/) || id == '0') throw new GradleException('Missing Play Games project ID')
         def integrityId = (project.findProperty('nutbusterPlayIntegrityProjectNumber') ?: '').toString()
         if (!(integrityId ==~ /[0-9]+/) || integrityId == '0') throw new GradleException('Missing Play Integrity cloud project number')
+        if (!(project.findProperty('nutbusterPlayServerClientId') ?: '').toString()) throw new GradleException('Missing PGS server OAuth client ID')
     }
 }
 tasks.configureEach { task ->

@@ -19,6 +19,7 @@ public final class MainActivity extends Activity {
     private PlayUpdateService playUpdater;
     private PlayBillingCoordinator billing;
     private PlaySocialService social;
+    private PlayAccountCoordinator playAccount;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         if (BuildConfig.PLAY_DISTRIBUTION) playUpdater = new PlayUpdateService(this, this::showUpdateStatus);
@@ -75,8 +76,10 @@ public final class MainActivity extends Activity {
             }
         }, "NUTBUSTER_SHARE_BRIDGE");
         if (BuildConfig.PLAY_DISTRIBUTION) {
-            billing = new PlayBillingCoordinator(this, this::sendPlayScript);
             social = new PlaySocialService(this, this::showUpdateStatus);
+            billing = new PlayBillingCoordinator(this, this::sendPlayScript);
+            playAccount = new PlayAccountCoordinator(this, this::sendPlayScript);
+            billing.setAccountCoordinator(playAccount);
             game.addJavascriptInterface(new Object() {
                 @JavascriptInterface public void buy(int index) { billing.purchase(index); }
                 @JavascriptInterface public void confirmFulfillment(String receiptId) {
@@ -87,6 +90,8 @@ public final class MainActivity extends Activity {
                 @JavascriptInterface public void achievements() { runOnUiThread(() -> social.showAchievements()); }
                 @JavascriptInterface public void achievementUnlocked(String key) { runOnUiThread(() -> social.unlock(key)); }
                 @JavascriptInterface public void friends() { runOnUiThread(() -> social.friends()); }
+                @JavascriptInterface public void linkAccount() { runOnUiThread(() -> playAccount.link()); }
+                @JavascriptInterface public void unlinkAccount() { runOnUiThread(() -> playAccount.unlink()); }
             }, "NUTBUSTER_PLAY_BRIDGE");
         }
         game.setOverScrollMode(View.OVER_SCROLL_NEVER);
@@ -119,6 +124,7 @@ public final class MainActivity extends Activity {
         if (updater != null) updater.close();
         if (playUpdater != null) playUpdater.close();
         if (billing != null) billing.close();
+        if (playAccount != null) playAccount.close();
         if (game != null) { game.destroy(); game = null; }
         super.onDestroy();
     }
