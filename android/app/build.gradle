@@ -32,6 +32,9 @@ android {
         if (gamesId && !(gamesId ==~ /[0-9]+/)) throw new GradleException('Invalid Play Games project ID')
         buildConfigField 'String', 'PLAY_VERIFICATION_ENDPOINT', '"' + verifier + '"'
         buildConfigField 'String', 'PLAY_GAMES_PROJECT_ID', '"' + gamesId + '"'
+        def integrityProject = (project.findProperty('nutbusterPlayIntegrityProjectNumber') ?: '').toString()
+        if (integrityProject && !(integrityProject ==~ /[0-9]+/)) throw new GradleException('Invalid Play Integrity cloud project number')
+        buildConfigField 'String', 'PLAY_INTEGRITY_PROJECT_NUMBER', '"' + integrityProject + '"'
         resValue 'string', 'game_services_project_id', gamesId ?: '0'
         resValue 'string', 'play_achievement_level_1', (project.findProperty('playAchievementLevel1') ?: '').toString()
         resValue 'string', 'play_achievement_level_100', (project.findProperty('playAchievementLevel100') ?: '').toString()
@@ -66,6 +69,7 @@ dependencies {
     implementation 'com.android.billingclient:billing:9.1.0'
     implementation 'com.google.android.play:app-update:2.1.0'
     implementation 'com.google.android.gms:play-services-games-v2:22.0.0'
+    implementation 'com.google.android.play:integrity:1.6.0'
 }
 
 // Never accidentally publish a release APK signed with the debug key or without the pinned signer.
@@ -86,6 +90,8 @@ tasks.register('validatePlayReleaseConfiguration') {
         def id = (project.findProperty('nutbusterPlayGamesProjectId') ?: '').toString()
         if (!endpoint.startsWith('https://')) throw new GradleException('Missing HTTPS receipt verifier for Play release')
         if (!(id ==~ /[0-9]+/) || id == '0') throw new GradleException('Missing Play Games project ID')
+        def integrityId = (project.findProperty('nutbusterPlayIntegrityProjectNumber') ?: '').toString()
+        if (!(integrityId ==~ /[0-9]+/) || integrityId == '0') throw new GradleException('Missing Play Integrity cloud project number')
     }
 }
 tasks.configureEach { task ->

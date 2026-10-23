@@ -23,6 +23,7 @@ final class PlayBillingCoordinator implements PurchasesUpdatedListener {
     private final Activity activity;
     private final Consumer<String> toWeb;
     private final BillingClient client;
+    private final PlayIntegrityGate integrity;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Map<String, ProductDetails> catalog = new HashMap<>();
     private final Map<String, Purchase> fulfillable = new HashMap<>();
@@ -30,6 +31,7 @@ final class PlayBillingCoordinator implements PurchasesUpdatedListener {
 
     PlayBillingCoordinator(Activity activity, Consumer<String> toWeb) {
         this.activity = activity; this.toWeb = toWeb;
+        integrity = new PlayIntegrityGate(activity);
         client = BillingClient.newBuilder(activity).setListener(this)
             .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
             .enableAutoServiceReconnection().build();
@@ -130,10 +132,32 @@ final class PlayBillingCoordinator implements PurchasesUpdatedListener {
         if (purchase.getProducts().size() != 1) { status("Unexpected multi-product order."); return; }
         String sku = purchase.getProducts().get(0);
         int index = indexFor(sku);
-        if (index < 0 || BuildConfig.PLAY_VERIFICATION_ENDPOINT.isEmpty()) return;
-        io.execute(() -> verify(purchase, sku, index));
+        if (index < 0 || BuildConfig.PLAY_VERIFICATION_ENDPOINT.isEmpty() ||
+            BuildConfig.PLAY_INTEGRITY_PROJECT_NUMBER.isEmpty()) return;
+        // Fresh token per financial event; never send a purchase token to the WebView.
+        final String install = installId(), attempt = UUID.randomUUID().toString();
+        try {
+            String hash = hashRequest(activity.getPackageName(), sku,
+                purchase.getPurchaseToken(), install, attempt);
+            integrity.attest(hash, integrityToken ->
+                io.execute(() -> verify(purchase, sku, index, install, attempt, integrityToken)),
+                () -> status("Google Play could not attest this purchase. Retry restore later."));
+        } catch (Exception error) {
+            status("Purchase verification unavailable; no payment data was exposed.");
+        }
     }
-    private void verify(Purchase purchase, String sku, int index) {
+    private static String hashRequest(String pkg, String sku, String token,
+                                     String install, String attempt) throws Exception {
+        String message = "nutbuster-play-integrity-v1\n" + pkg + "\n" + sku + "\n" +
+            token + "\n" + install + "\n" + attempt;
+        byte[] digest=java.security.MessageDigest.getInstance("SHA-256")
+            .digest(message.getBytes(StandardCharsets.UTF_8));
+        StringBuilder out=new StringBuilder(64);
+        for(byte value : digest)out.append(String.format(java.util.Locale.ROOT,"%02x", value & 0xff));
+        return out.toString();
+    }
+    private void verify(Purchase purchase, String sku, int index, String install,
+                        String attempt, String integrityToken) {
         HttpURLConnection connection = null;
         try {
             URL url = new URL(BuildConfig.PLAY_VERIFICATION_ENDPOINT);
@@ -145,7 +169,8 @@ final class PlayBillingCoordinator implements PurchasesUpdatedListener {
             connection.setRequestProperty("Content-Type", "application/json");
             JSONObject request = new JSONObject().put("packageName", activity.getPackageName())
                 .put("productId", sku).put("purchaseToken", purchase.getPurchaseToken())
-                .put("installId", installId());
+                .put("installId", install).put("attemptId", attempt)
+                .put("integrityToken", integrityToken);
             try (OutputStream out = connection.getOutputStream()) {
                 out.write(request.toString().getBytes(StandardCharsets.UTF_8));
             }
