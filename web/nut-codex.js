@@ -726,7 +726,8 @@ const ACTIVE_OVERLAY_DETAILS=Object.freeze({
  'tile-storm':['At level 525, a two-turn storm strikes up to four closest nuts.','LIVE · Scheduled multi-target storm damage.'],
  'tile-lightning':['At level 425, a charged tile zaps the three nearest nuts of its matching color after two turns.','LIVE · Matching-color electric chain damage.'],
  'tile-magma':['At level 625, two-turn magma strikes every occupied nut in its column.','LIVE · Delayed column pressure.'],
- 'tile-crystal':['At level 195, a crystal tile charges the next scoring cascade and gives its nut two held gravity drops.','LIVE · Delayed scoring and hold effect.']
+ 'tile-crystal':['At level 195, a crystal tile charges the next scoring cascade and gives its nut two held gravity drops.','LIVE · Delayed scoring and hold effect.'],
+ 'tile-void-rock':['At level 745, a pulsing void-rock rune becomes a two-hit immovable stone seal after two turns.','LIVE · Fixed shield; damage both layers to free the nut for matching.']
 });
 const POWER_LEDGER=typeof module!=='undefined'&&module.exports?require('./elemental-powers.js').ABILITIES:root.NutElementalPowers?.ABILITIES;
 for(const entry of ENTRIES){
