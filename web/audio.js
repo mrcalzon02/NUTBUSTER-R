@@ -17,7 +17,6 @@ const speaker=hasAudio?new root.Audio():null;
 const reaction=hasAudio?new root.Audio():null;
 const music=hasAudio?new root.Audio(base+'bubbly-whistle.mp3'):null;
 let voicesOn=true,musicOn=true,unlocked=false,gruntIndex=0,lastVoice=0,announcerVoice='original';
-let activeSpeech=null,ttsToken=0;
 let voiceRate=1,reactionRate=1;
 let voiceLevel=0.90,musicLevel=0.28,reactionLevel=0.38;
 const grunts=['grunt-1.mp3','grunt-2.mp3','grunt-3.mp3','grunt-4.mp3'];
@@ -69,25 +68,8 @@ function varyPlayback(el,spread,previous){
 function setVoiceEnabled(value){voicesOn=!!value;if(!voicesOn){stopAnnouncer();if(reaction)reaction.pause();}return voicesOn;}
 function setMusicEnabled(value){musicOn=!!value;if(!music)return musicOn;if(!musicOn)music.pause();else if(unlocked)play(music);return musicOn;}
 function unlock(){unlocked=true;if(musicOn&&music?.paused&&!(root.document&&root.document.hidden))play(music);}
-function speechBridge(){return root.NUTBUSTER_TTS_BRIDGE||null;}
-function localBrowserVoice(){
- const synth=root.speechSynthesis;
- if(!synth||typeof synth.getVoices!=='function'||typeof root.SpeechSynthesisUtterance!=='function')return null;
- const options=synth.getVoices().filter(v=>v.localService===true&&/^en\b|^en[-_]/i.test(v.lang||''));
- return options.find(v=>/^en[-_]US/i.test(v.lang||''))||options[0]||null;
-}
-function ttsStatus(){
- const bridge=speechBridge();
- if(bridge&&typeof bridge.getStatus==='function'){
-  try{return bridge.getStatus();}catch(_){return 'unavailable';}
- }
- return localBrowserVoice()?'ready':'offline-voice-missing';
-}
 function stopAnnouncer(){
  if(speaker)speaker.pause();
- activeSpeech=null;
- try{speechBridge()?.stop?.();}catch(_){}
- try{root.speechSynthesis?.cancel?.();}catch(_){}
  unduck();
 }
 function setAnnouncerVoice(id){
@@ -96,49 +78,18 @@ function setAnnouncerVoice(id){
  return true;
 }
 function caption(key,original){return root.NutAnnouncers?.line?.(announcerVoice,key)||original;}
-function ttsFinished(id){
- if(activeSpeech===id){activeSpeech=null;unduck();}
-}
-function speakAuditor(key){
- const line=root.NutAnnouncers?.line?.('auditor',key);
- if(!line)return false;
- const now=Date.now();
- const high=['win','close','package','premium','satisfaction','nutbuster','deal','look-out','nutsplosion','heck-package','nutsselence','nut-destruction','nutravaganza','busted'].includes(key);
- if(!high&&now-lastVoice<750)return false;
- if(ttsStatus()!=='ready')return false; // NEVER fall back to the wrong character or online TTS.
- stopAnnouncer();
- const token='auditor-'+(++ttsToken);
- const bridge=speechBridge();
- if(bridge&&typeof bridge.speak==='function'){
-  // Establish the active ID *before* the bridge can synchronously report
-  // completion (or error). Otherwise music may remain ducked indefinitely.
-  activeSpeech=token;duck();
-  try{
-   if(!bridge.speak(token,line,voiceLevel)){
-    if(activeSpeech===token){activeSpeech=null;unduck();}
-    return false;
-   }
-   lastVoice=now;return true;
-  }catch(_){if(activeSpeech===token){activeSpeech=null;unduck();}return false;}
- }
- const synth=root.speechSynthesis,Voice=root.SpeechSynthesisUtterance,voice=localBrowserVoice();
- if(!synth||!voice||typeof Voice!=='function')return false;
- try{
-  const utterance=new Voice(line);
-  utterance.voice=voice;utterance.lang=voice.lang;
-  utterance.rate=.88;utterance.pitch=.88;utterance.volume=voiceLevel;
-  utterance.onend=()=>ttsFinished(token);utterance.onerror=()=>ttsFinished(token);
-  activeSpeech=token;duck();synth.speak(utterance);lastVoice=now;return true;
- }catch(_){if(activeSpeech===token){activeSpeech=null;unduck();}return false;}
-}
 function voice(key){
  if(!voicesOn)return false;
- if(announcerVoice==='auditor')return speakAuditor(key);
- if(!speaker||!catalog[key])return false;
+ const auditor=announcerVoice==='auditor';
+ // Pre-recorded MP3 for both characters; no Android or browser speech engine.
+ const file=auditor
+  ? (Object.prototype.hasOwnProperty.call(root.NutAnnouncers?.auditor||{},key)?'announcers/auditor/'+key+'.mp3':null)
+  : catalog[key];
+ if(!speaker||!file)return false;
   // Always play wins and rewards. Ordinary mid-game voices have a brief spacing guard.
   const now=Date.now(),high=['win','close','package','premium','satisfaction','nutbuster','deal','look-out','nutsplosion','heck-package','nutsselence','nut-destruction','nutravaganza','busted'].includes(key);
   if(!high&&now-lastVoice<750)return false;
-  lastVoice=now;try{if(reaction)reaction.pause();stopAnnouncer();speaker.src=base+catalog[key];speaker.currentTime=0;voiceRate=varyPlayback(speaker,.09,voiceRate);duck();const accepted=play(speaker);if(!accepted)unduck();return accepted;}catch(_){unduck();return false;}
+  lastVoice=now;try{if(reaction)reaction.pause();stopAnnouncer();speaker.src=base+file;speaker.currentTime=0;voiceRate=varyPlayback(speaker,.09,voiceRate);duck();const accepted=play(speaker);if(!accepted)unduck();return accepted;}catch(_){unduck();return false;}
 }
 function grunt(){if(!voicesOn||!reaction)return false;
  try{reaction.pause();reaction.src=base+grunts[gruntIndex++%grunts.length];reaction.currentTime=0;reactionRate=varyPlayback(reaction,.11,reactionRate);return play(reaction);}catch(_){return false;}
@@ -150,6 +101,6 @@ if(root.document&&typeof root.document.addEventListener==='function'){
   else if(unlocked&&musicOn)play(music);
  });
 }
-root.NutAudio={unlock,voice,grunt,setVoiceEnabled,setMusicEnabled,setLevels,getLevels,setAnnouncerVoice,caption,ttsStatus,ttsFinished,stopAnnouncer,
- getAnnouncerVoice:()=>announcerVoice,getState:()=>({voicesOn,musicOn,unlocked,announcerVoice,ttsStatus:ttsStatus()}),catalog:Object.freeze({...catalog})};
+root.NutAudio={unlock,voice,grunt,setVoiceEnabled,setMusicEnabled,setLevels,getLevels,setAnnouncerVoice,caption,stopAnnouncer,
+ getAnnouncerVoice:()=>announcerVoice,getState:()=>({voicesOn,musicOn,unlocked,announcerVoice}),catalog:Object.freeze({...catalog})};
 })(window);

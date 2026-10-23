@@ -4,7 +4,7 @@
 (function(root){'use strict';
 const voices=Object.freeze([
  Object.freeze({id:'original',label:'The Original Hype Man',description:'Original recorded announcer · classic NUTBUSTER energy'}),
- Object.freeze({id:'auditor',label:'The Nutvale Auditor',description:'Dry accountant · local text-to-speech'})
+ Object.freeze({id:'auditor',label:'The Nutvale Auditor',description:'Dry accountant · prerecorded MP3 clips'})
 ]);
 const auditor=Object.freeze({
   "big-one": "Five nuts successfully liquidated.",

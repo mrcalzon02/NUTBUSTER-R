@@ -16,14 +16,11 @@ import org.json.JSONObject;
 public final class MainActivity extends Activity {
     private WebView game;
     private NutUpdateService updater;
-    private NutAnnouncerTts auditor;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         updater = new NutUpdateService(this, this::showUpdateStatus);
         game = new WebView(this);
         game.setWebViewClient(new WebViewClient());
-        auditor = new NutAnnouncerTts(this, this::onAuditorFinished);
-        game.addJavascriptInterface(auditor, "NUTBUSTER_TTS_BRIDGE");
         WebSettings s = game.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
@@ -63,13 +60,6 @@ public final class MainActivity extends Activity {
         setContentView(game);
         game.loadUrl("file:///android_asset/index.html");
     }
-    private void onAuditorFinished(String utteranceId) {
-        runOnUiThread(() -> {
-            if (game != null) game.evaluateJavascript(
-                "window.NutAudio && window.NutAudio.ttsFinished(" +
-                JSONObject.quote(utteranceId) + ")", null);
-        });
-    }
     private void showUpdateStatus(String message) {
         runOnUiThread(() -> {
             if (game != null) game.evaluateJavascript(
@@ -82,7 +72,6 @@ public final class MainActivity extends Activity {
     }
     @Override protected void onDestroy() {
         if (updater != null) updater.close();
-        if (auditor != null) { auditor.close(); auditor = null; }
         if (game != null) { game.destroy(); game = null; }
         super.onDestroy();
     }

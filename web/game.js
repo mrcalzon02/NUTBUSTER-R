@@ -757,11 +757,10 @@ function finishFakeAd(){
 }
 function settings(){
  const lev=saved.levels||{voice:.9,music:.28,reactions:.38,sfx:.48};
- const announcers=window.NutAnnouncers?.voices||[{id:'original',label:'The Original Hype Man',description:'Original recordings'},{id:'auditor',label:'The Nutvale Auditor',description:'Offline text-to-speech'}];
+ const announcers=window.NutAnnouncers?.voices||[{id:'original',label:'The Original Hype Man',description:'Original recordings'},{id:'auditor',label:'The Nutvale Auditor',description:'Prerecorded local MP3 clips'}];
  const choices=announcers.map(v=>`<button class="announcer-choice ${saved.announcerVoice===v.id?'selected':''}" type="button" data-action="announcer-set" data-voice-id="${v.id}" aria-pressed="${saved.announcerVoice===v.id?'true':'false'}"><strong>${saved.announcerVoice===v.id?'● ':'○ '}${v.label}</strong><small>${v.description}</small></button>`).join('');
- const status=window.NutAudio?.ttsStatus?.();
  return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings">
- <div class="announcer-picker" role="group" aria-label="Select announcer"><b>ANNOUNCER VOICE</b><div class="announcer-choices">${choices}</div><div class="announcer-preview"><button class="btn secondary" data-action="announcer-preview">▶ PREVIEW SELECTED VOICE</button><small>${saved.announcerVoice==='auditor'?(status==='ready'?'Offline speech ready':status==='initializing'?'Starting device speech engine':'Offline English TTS voice unavailable on this device'):'Original recording · default'}</small></div></div>
+ <div class="announcer-picker" role="group" aria-label="Select announcer"><b>ANNOUNCER VOICE</b><div class="announcer-choices">${choices}</div><div class="announcer-preview"><button class="btn secondary" data-action="announcer-preview">▶ PREVIEW SELECTED VOICE</button><small>${saved.announcerVoice==='auditor'?'Local MP3 voice pack · no speech engine':'Original recording · default'}</small></div></div>
  <p class="muted">Independent volume controls for speech, music, reactions and gameplay effects.</p>
  ${[['voice','Announcer'],['music','Music'],['reactions','Match reactions'],['sfx','Game effects']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}
  <div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div>
@@ -910,8 +909,7 @@ function action(a,button){
  if(a==='announcer-preview'){
   if(!state.sound){notice('UNMUTE VOICE TO PREVIEW');return;}
   if(!window.NutAudio?.voice?.('deal')){
-   const status=window.NutAudio?.ttsStatus?.();
-   notice(status==='initializing'?'SPEECH ENGINE STARTING · TRY AGAIN':status==='offline-voice-missing'?'INSTALL AN OFFLINE ENGLISH SPEECH VOICE':'ANNOUNCER PREVIEW UNAVAILABLE');
+   notice('ANNOUNCER RECORDING UNAVAILABLE · CHECK LOCAL MP3 ASSETS');
   }else notice(window.NutAudio?.caption?.('deal','WHAT A DEAL!')||'WHAT A DEAL!');
   return;
  }
