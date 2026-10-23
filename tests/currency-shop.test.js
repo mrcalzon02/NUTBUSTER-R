@@ -76,6 +76,11 @@ function fresh(){const save={unlocked:500,stars:{},coins:10000,gems:200,hearts:0
  assert.equal(s.coins,10000-P.BOOSTER_PRICES.hammer);
  const locked={unlocked:1,stars:{},coins:100000,gems:100000,hearts:5};P.migrate(locked);
  assert.equal(P.buyGemBooster(locked,'frostbreaker').reason,'locked');
+ const largeWallet=fresh();largeWallet.coins=4300000;largeWallet.gems=3400000;
+ assert.equal(P.buyBooster(largeWallet,'hammer').valid,true);
+ assert.equal(largeWallet.coins,4300000-P.BOOSTER_PRICES.hammer,'Booster purchase must not truncate wallets above 999,999');
+ assert.equal(P.buyHold(largeWallet,'butter_hold').valid,true);
+ assert.equal(largeWallet.gems,3400000-P.HOLD_ITEMS.butter_hold.gems,'Hold purchases must not truncate large Gem balances');
  const capped=fresh();capped.boosterInventory.hammer=999997;
  const gemsBefore=capped.gems;assert.equal(P.buyGemBooster(capped,'hammer').reason,'limit');
  assert.equal(capped.gems,gemsBefore);assert.equal(P.count(capped,'hammer'),999997);
