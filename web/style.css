@@ -491,3 +491,11 @@
 .bottom{grid-template-columns:repeat(6,minmax(0,1fr))}
 .wharf-menu-icon{object-fit:cover;object-position:center;border-radius:5px}
 .bottom .nav-icon.wharf-menu-icon{object-fit:cover}
+
+/* Individually assigned artwork for premium products, checkout and rewards. */
+.shop-offer-icon{display:block;width:90px;height:90px;max-width:100%;object-fit:contain;margin:0 auto;filter:drop-shadow(0 2px 4px #160d1aaa)}
+.checkout-offer-icon{display:block;width:72px;height:72px;object-fit:contain;flex:0 0 72px;filter:drop-shadow(0 2px 4px #160d1aaa)}
+.reward-feature-icon{display:block;width:64px;height:64px;max-width:100%;object-fit:contain;margin:0 auto;filter:drop-shadow(0 2px 3px #160d1aaa)}
+.promo-coupon-icon{display:inline-block;width:35px;height:35px;object-fit:contain;vertical-align:middle;flex:0 0 auto}
+.promo-redeem summary .promo-coupon-icon{width:23px;height:23px}
+@media(max-width:365px){.promo-feature-button .promo-coupon-icon{width:28px;height:28px}.shop-offer-icon{width:76px;height:76px}}
