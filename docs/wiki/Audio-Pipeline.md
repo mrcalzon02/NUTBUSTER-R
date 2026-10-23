@@ -53,3 +53,15 @@ Beckenburg's library separately has `PS1_Horror_SFX_Vol1.zip.zip` (20 unnamed WA
 The 93 per-event MP3 clips are **staged in a separate downloadable archive** and must be installed into the repository before producing an Auditor-enabled APK; they are not yet committed to GitHub. These are preliminary, one-time locally synthesized takes, **not** human voice performances or final audio mastering. No speech engine is needed at gameplay time.
 
 Unpack the provided archive at the repository root so that its files land at `web/audio/announcers/auditor/<event-key>.mp3`. Verify them with `node tools/check_announcer_recordings.js`, then run the audio tests and build the APK. Any higher-quality replacement recordings must use the same event-key filenames; normalize levels, trim dead air and check for clipping. Do not claim a complete Auditor voice pack in an APK until the full set is present and on-device playback has been verified.
+
+## Approved CC0 Mira neural recordings
+
+**Selected production voice:** [BTimber/piper-en_US-mira](https://huggingface.co/BTimber/piper-en_US-mira), voice weights published under **CC0 1.0**. The developer-only Piper authoring program is licensed separately. Publisher provenance: base LJSpeech (public domain), emotive training teacher ChatterBox Turbo (MIT). Preserve the generated manifest. Unlike generic commercial-use licensing, this is an explicit CC0 dedication for the *voice weights*, not a claim that all tools are CC0.
+
+The official model warns that its phoneme configuration must remain `en`, **never** `en-us`: switching dialects repurposes a phoneme ID and can cause gibberish/laughter within words. `tools/render_mira_cc0.py` verifies the model SHA256, pinned repository revision, phoneme configuration and sample rate before recording.
+
+**On an internet-enabled authoring workstation**, install Python, Node, FFmpeg, and `python -m pip install piper-tts`. In the NUTBUSTER repository root, audition six clips with `python tools/render_mira_cc0.py --download-model`. After approval, produce all 93 and install them into the packaged game assets with `python tools/render_mira_cc0.py --all --install` (the model is cached from the audition). Run `node tools/check_announcer_recordings.js`, then the audio tests and an Android playback smoke test. To skip the preview after explicit approval: `python tools/render_mira_cc0.py --download-model --all --install`.
+
+The script retains an archive of previous recordings, never overwrites a previously generated render archive, and writes a detailed per-MP3 SHA256 manifest to `web/audio/announcers/auditor/manifest.json`. Only the prerecorded MP3s ship in the game. **Do not mark the Auditor audio as shipped before the actual neural recordings have been rendered, inspected and committed.** The old eSpeak archive stays separate as historical backup.
+
+Known execution constraint (October 22, 2026): the initial authoring environment has no network access to download Mira's ~63.5 MB ONNX model, so the new voice recordings have **not** been rendered or installed yet. Synthetic-audio tests establish only packaging behavior, not performance or recorded voice quality.
