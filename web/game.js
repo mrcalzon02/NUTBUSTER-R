@@ -1179,12 +1179,22 @@ function receiveVerifiedPurchase(index,receiptId){
    if(index===8)H.purchase(saved,'royal-estate');
    else {
      P.grant(saved,saved.playPendingPacks?.[index]||P.actualPack(saved,'shop'+index));
-     gain(p[2],p[3]);
-     if(index===4){saved.vip=true;syncDaily();}
+     // Avoid gain(): it writes the save before this verified receipt is recorded.
+     saved.coins=safeNum(saved.coins+p[2]);
+     saved.gems=safeNum(saved.gems+p[3]);
+     if(index===4)saved.vip=true;
    }
    saved.playVerifiedReceipts[receiptId]=index;
    if(saved.playPendingPacks)delete saved.playPendingPacks[index];
-   persist(); // Durably record receipt before acknowledging/consuming it.
+   try {
+     localStorage.setItem(key,JSON.stringify(saved)); // Commit rewards and idempotency together.
+     if(localStorage.getItem(key)===null)throw new Error('Receipt save was not retained');
+   }catch(_){
+     notice('PURCHASE VERIFIED BUT SAVE UNAVAILABLE · RECONNECT OR RESTORE; PURCHASE NOT ACKNOWLEDGED');
+     return;
+   }
+   counters();
+   if(index===4)syncDaily();
    notice('GOOGLE PLAY VERIFIED · REWARDS DELIVERED');
    playSFX('coin');
    state.checkout=null;state.checkoutPack=null;state.checkoutStep=0;state.discountOffer=null;
