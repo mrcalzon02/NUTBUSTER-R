@@ -1,7 +1,7 @@
 (function(){'use strict';
 const E=window.NutEngine, M=window.NutCampaignMaps, P=window.NutProgress, H=window.NutHomestead, A=window.NutAvatarArt, screen=document.getElementById('screen');
 const icons=['🥜','🌰','🌰','🥜','🌰','🟢','🌟'];
-const D=window.NutDailyMoves, T=window.NutElementalChallenges, R=window.NutElementalRewards;
+const D=window.NutDailyMoves, B=window.NutBenefits, T=window.NutElementalChallenges, R=window.NutElementalRewards;
 if(!D||!T||!R)throw new Error('Daily moves and elemental reward modules must load before gameplay');
 const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,levels:{voice:.9,music:.28,reactions:.38,sfx:.48},effects:true,completed:0};
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
@@ -15,7 +15,32 @@ const Ads=window.NutFakeAds, Purchases=window.NutPurchases;let adTicker=null;
 const adNow=()=>typeof performance!=='undefined'&&typeof performance.now==='function'?performance.now():Date.now();
 function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch(_){}}
 function dailyCap(){return E.makeLevel(Math.min(500,Math.max(1,saved.unlocked||1))).moves;}
-function movesLeft(){return D.left(saved,Date.now(),dailyCap());}
+function syncDaily(now=Date.now()){
+ const before=saved.dailyMoves?.resetAt,credited=saved.dailyMoves?.vipGranted;
+ const bank=D.ensure(saved,now,dailyCap());
+ B?.applyVipDaily?.(saved,now,dailyCap(),D,P);
+ if(bank.resetAt!==before||bank.vipGranted!==credited)persist();
+ return bank;
+}
+function movesLeft(){return syncDaily().remaining;}
+function freeRemaining(kind){return B?.remaining?.(saved,kind)??0;}
+function freeClaimButton(kind,action,label){
+ const remaining=freeRemaining(kind),full=kind==='hearts'&&saved.hearts>=5;
+ const message=full?'HEARTS FULL':remaining?'READY IN '+B.countdown(remaining):label;
+ return '<button class="btn ghost" data-action="'+action+'" data-free-reward="'+kind+'" data-label="'+label+'" '+(remaining||full?'disabled':'')+'>'+message+'</button>';
+}
+let rewardRefreshTimer=null;
+function updateFreeTimers(){
+ if(rewardRefreshTimer!==null){clearTimeout(rewardRefreshTimer);rewardRefreshTimer=null;}
+ let pending=false;
+ for(const button of screen.querySelectorAll?.('[data-free-reward]')||[]){
+  const kind=button.dataset.freeReward,remaining=freeRemaining(kind),full=kind==='hearts'&&saved.hearts>=5;
+  button.disabled=!!(remaining||full);
+  button.textContent=full?'HEARTS FULL':remaining?'READY IN '+B.countdown(remaining):button.dataset.label;
+  if(remaining)pending=true;
+ }
+ if(pending)rewardRefreshTimer=setTimeout(updateFreeTimers,30000);
+}
 function safeNum(n){return Number.isFinite(n)?Math.min(999999999,Math.max(0,Math.trunc(n))):0;}
 function gain(coins=0,gems=0){saved.coins=safeNum(saved.coins+coins);saved.gems=safeNum(saved.gems+gems);persist();counters();}
 function counters(){
@@ -67,8 +92,18 @@ function banner(title,sub){return `<div class="panel hero"><h1>${title}</h1><p>$
 function uiIcon(name,alt=''){return `<img src="art/additions/ui/${name}.png" class="ui-icon" alt="${alt}">`;}
 function home(){return `${banner('WELCOME TO NUTBUSTER','The match-three game with every premium feature ever invented. An offer this irresistible can only end one way.')}
  <p class="daily-move-indicator">DAILY MOVES ${movesLeft()} / ${saved.dailyMoves.base}</p><div class="space"></div><div class="actions"><button class="btn green" data-action="play" data-level="${Math.min(500,saved.unlocked)}">${uiIcon('play')}PLAY NOW</button><button class="btn secondary" data-nav="campaign">${uiIcon('campaign-map')}LEVEL MAP</button><button class="btn secondary" data-nav="homestead">🏡 NUTVALE HOMESTEAD</button><button class="btn secondary" data-nav="codex">📖 NUT INDEX</button><button class="btn secondary" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="shop">${uiIcon('store')}SHOP</button><button class="btn secondary" data-nav="settings">${uiIcon('settings')}SETTINGS</button><button class="btn ghost" data-action="sound">${state.sound?'🔊 Voice On':'🔇 Voice Off'}</button><button class="btn ghost" data-action="music">${state.music?'♫ Music On':'♫ Music Off'}</button><button class="btn ghost" data-action="effects">${state.effects?'Effects On':'Effects Off'}</button></div>
- <h2 class="section">Your entirely unnecessary privileges</h2><div class="tiles-row"><div class="panel mini-card"><span class="icon">❤️</span><b>${saved.hearts}/5 Lives</b><button class="btn ghost" data-action="refill">REFILL NOW</button></div><div class="panel mini-card"><span class="icon">👑</span><b>${saved.vip?'VIP ACTIVE':'VIP STATUS'}</b><button class="btn ghost" data-action="vip">${saved.vip?'VIP BENEFITS':'BECOME VIP'}</button></div><div class="panel mini-card"><span class="icon">🎁</span><b>Daily Loot</b><button class="btn ghost" data-action="daily">CLAIM BONUS</button><button class="btn secondary" data-action="ad-daily" ${saved.fakeAdDailyDay===Ads?.dayKey()?"disabled":""}>${saved.fakeAdDailyDay===Ads?.dayKey()?"📺 AD BONUS CLAIMED":"📺 WATCH · 750 NUTS + HAMMER"}</button></div></div>
+ <h2 class="section">Your entirely unnecessary privileges</h2><div class="tiles-row"><div class="panel mini-card"><span class="icon">❤️</span><b>${saved.hearts}/5 Lives</b>${freeClaimButton("hearts","refill","REDEEM FREE REFILL")}</div><div class="panel mini-card"><span class="icon">👑</span><b>${saved.vip?'VIP ACTIVE · LIFETIME':'VIP STATUS'}</b><small>+5 daily moves · 4 daily boosters · +250 nuts</small><button class="btn ghost" data-action="vip">${saved.vip?'VIEW VIP BENEFITS':'VIP BENEFITS · $2.99'}</button></div><div class="panel mini-card"><span class="icon">🎁</span><b>Daily Loot</b><button class="btn ghost" data-action="daily">CLAIM BONUS</button><button class="btn secondary" data-action="ad-daily" ${saved.fakeAdDailyDay===Ads?.dayKey()?"disabled":""}>${saved.fakeAdDailyDay===Ads?.dayKey()?"📺 AD BONUS CLAIMED":"📺 WATCH · 750 NUTS + HAMMER"}</button></div></div>
  <div class="panel center"><b>FEATURED NUT EMPORIUM OFFERS</b><p class="muted">Optional bundles, modest sticker prices, and no artificial countdowns.</p><button class="btn secondary" data-nav="shop">EXPLORE OFFERS</button></div>`;}
+function vipBenefits(){
+ const today=syncDaily(),preview=P.actualPack(saved,'vipDaily');
+ return '<div class="topline"><h2>👑 LIFETIME VIP BENEFITS</h2><button class="btn ghost" data-nav="home">BACK</button></div>'+
+ '<div class="panel"><b>ONE-TIME UNLOCK · $2.99 FICTIONAL PREVIEW</b><p>Every rolling 24-hour daily move cycle, you automatically receive:</p>'+
+ '<p><b>+5 daily moves</b> above the normal allowance, <b>+250 Golden Nuts</b>, and <b>4 boosters</b>: 2 Hammers, 1 Extra Moves, and 1 Shuffle. Types not yet unlocked convert to the strongest already unlocked.</p>'+
+ '<p><b>Your current daily booster pack:</b> '+boosterSummary(preview)+'</p>'+
+ '<p><b>Status:</b> '+(saved.vip?'ACTIVE · THIS CYCLE GRANT '+(today.vipGranted?'DELIVERED':'PENDING'):'NOT OWNED')+'</p>'+
+ '<p class="muted">One-time permanent flag for this save; not a subscription. VIP rewards are automatic. The two separate free 12-hour rewards require manual redemption.</p>'+
+ (saved.vip?'<button class="btn secondary" data-nav="shop">VIEW SHOP</button>':'<button class="btn green" data-action="vip-buy">GET LIFETIME VIP · $2.99</button>')+'</div>';
+}
 function campaign(){
  const progress=M.CHAPTERS.map(c=>({c,stars:Object.keys(saved.stars).filter(level=>Number(level)>=c.start&&Number(level)<=c.end).length}));
  // World map is a full-screen image with five real programmatic selectors, not painted-on UI.
@@ -377,7 +412,7 @@ function outcome(){const g=state.game,won=state.outcome==='win',stars=g.moves>10
  <p>${won?'YOUR NUTS ARE LEGENDARY!':'A devastating development for the premium nut economy.'}</p>
  <div class="outcome-stars">${won?'★'.repeat(stars)+'☆'.repeat(3-stars):'☆ ☆ ☆'}</div>
  <div class="outcome-numbers"><span>Level <b>${g.level}</b></span><span>Score <b>${g.score.toLocaleString()}</b></span><span>Objective <b>${objectiveDisplay(g)}</b></span></div>
- <div class="actions">${won?(next===null?`<button class="btn secondary" data-nav="campaign">AREA TRIALS CLEARED</button>`:`<button class="btn green" data-action="play" data-level="${next}">NEXT ${trial?'TRIAL':'LEVEL'} →</button>`):`<button class="btn green" data-action="continue-level">CONTINUE · +5 MOVES</button><button class="btn secondary" data-action="restart">RETRY LEVEL</button>`}
+ <div class="actions">${won?(next===null?`<button class="btn secondary" data-nav="campaign">AREA TRIALS CLEARED</button>`:`<button class="btn green" data-action="play" data-level="${next}">NEXT ${trial?'TRIAL':'LEVEL'} →</button>`):`${freeClaimButton("moves","continue-level","REDEEM +5 MOVES")}<button class="btn secondary" data-action="restart">RETRY LEVEL</button>`}
  <button class="btn secondary" data-nav="campaign">LEVEL MAP</button>${won?'<button class="btn secondary" data-nav="homestead">🏡 HOMESTEAD</button>':''}</div>
  ${won?(trial?'<p class="muted">One-time trial rewards paid automatically</p>':'<p class="muted">Reward: 500 Golden Nuts + 10 Gems</p>'):'<p class="muted">Daily moves carry over; retrying never refills them.</p>'}${won&&state.levelReward?`<p class="earned-power">${state.levelReward}</p>`:''}</div>`;
 }
@@ -662,10 +697,11 @@ function finishFakeAd(){
  render();playSFX('coin');
 }
 function settings(){const lev=saved.levels||{voice:.9,music:.28,reactions:.38,sfx:.48};return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings"><p class="muted">Independent volume controls for speech, music, reactions and gameplay effects.</p>${[['voice','Announcer'],['music','Music'],['reactions','Match reactions'],['sfx','Game effects']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}<div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div><div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>`;}
-function render(){const previousDay=saved.dailyMoves?.day;D.ensure(saved,Date.now(),dailyCap());if(saved.dailyMoves.day!==previousDay)persist();if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');document.getElementById('app')?.classList?.toggle('fake-ad-active',state.page==='fake-ad');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
+function render(){syncDaily();if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');document.getElementById('app')?.classList?.toggle('fake-ad-active',state.page==='fake-ad');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
  screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');screen.classList?.toggle('codex-active',state.page==='codex');
- screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='homestead'?homestead():state.page==='wharf'?window.NutFishingUI.hub(saved):state.page==='fishing'?window.NutFishingUI.wharf(saved,state,E,P):state.page==='bait-shop'?window.NutFishingUI.baitShop(saved,state,E,P):state.page==='aquarium'?window.NutFishingUI.aquarium(saved,state):state.page==='fish-records'?window.NutFishingUI.trophyHall(saved):state.page==='codex'?codex():state.page==='settings'?settings():state.page==='checkout'?checkout():state.page==='fake-ad'?fakeAdScreen():state.page==='outcome'?outcome():rewards();
+ screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='homestead'?homestead():state.page==='wharf'?window.NutFishingUI.hub(saved):state.page==='fishing'?window.NutFishingUI.wharf(saved,state,E,P):state.page==='bait-shop'?window.NutFishingUI.baitShop(saved,state,E,P):state.page==='aquarium'?window.NutFishingUI.aquarium(saved,state):state.page==='fish-records'?window.NutFishingUI.trophyHall(saved):state.page==='codex'?codex():state.page==='settings'?settings():state.page==='vip-benefits'?vipBenefits():state.page==='checkout'?checkout():state.page==='fake-ad'?fakeAdScreen():state.page==='outcome'?outcome():rewards();
  if(state.purchasePending)screen.innerHTML+=purchaseDialog();
+ updateFreeTimers();
  window.NutbusterUpdates?.syncStatus?.();
  if(state.page==='campaign'&&state.chapter&&typeof screen.querySelector==='function'){
   const center=()=>{const selected=screen.querySelector('[data-current="true"]'),viewport=screen.querySelector('[data-map-scroll]');
@@ -677,7 +713,7 @@ function start(n){state.epoch++;state.animating=false;
  const requested=Math.trunc(Number(n)||1),trial=T.profile(requested);
  if(trial&&!T.available(saved,requested)){notice('CLEAR THE REQUIRED CAMPAIGN STAGE AND EARLIER TRIAL');return;}
  if(movesLeft()<1){notice('DAILY MOVES EXHAUSTED · REFILLS TOMORROW');return;}
- if(saved.hearts<=0){saved.hearts=5;notice('ENERGY RESTORED!');}
+ if(saved.hearts<=0){notice('NO HEARTS · FREE REFILL RETURNS 12 HOURS AFTER REDEMPTION');return;}
  saved.hearts--;persist();const level=trial?requested:Math.min(500,Math.max(1,requested));
  closeNutdex();state.game=E.create(level,Math.floor(Math.random()*0xffffffff));state.game.moves=movesLeft();state.page='game';state.selected=-1;state.tool=null;state.holdTool=null;state.outcome=null;state.levelReward='';
  playSFX('ui');state.announcer=state.game.cfg.newNut?'NEW NUT: '+state.game.cfg.newNut.replace('-',' ').toUpperCase()+'!':'PREPARE TO BUST SOME NUTS!';render();window.NutAudio?.voice('nutbuster-soft');
