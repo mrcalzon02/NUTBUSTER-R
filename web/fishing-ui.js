@@ -18,7 +18,7 @@ function wharf(save,state,E,P){
  let play='',stage='';
  if(pending){
   const item=F.FISH.find(s=>s.id===pending.id);
-  play='<div class="fish-decision"><h2>'+fishIcon(item,true)+' '+item.name+' CAUGHT!</h2><p>'+pending.size+' cm · Worth N$ '+pending.value+'</p><div class="fish-actions"><button class="btn green" data-action="fish-keep" '+(n.fish.length>=cap?'disabled':'')+'>KEEP IN AQUARIUM</button><button class="btn secondary" data-action="fish-sell">SELL · N$ '+pending.value+'</button><button class="btn ghost" data-action="fish-release">RELEASE</button></div></div>';
+  play='<div class="fish-decision"><h2>'+fishIcon(item,true)+' '+item.name+' CAUGHT!</h2><p>'+pending.size+' cm · Worth N$ '+pending.value+'</p><div class="fish-actions"><button class="btn green" data-action="fish-keep" '+(n.fish.length>=cap?'disabled':'')+'>KEEP IN AQUARIUM</button><button class="btn secondary" data-action="fish-sell">SELL · N$ '+(pending.value+F.saleBonus(n,pending.value))+'</button><button class="btn ghost" data-action="fish-release">RELEASE</button></div></div>';
  }else if(fight){
   const item=F.FISH.find(s=>s.id===fight.id);
   const radius=16+n.rod*2;
@@ -28,7 +28,7 @@ function wharf(save,state,E,P){
   const options=F.BAITS.filter(spec=>spec.level<=n.baitTier).map(spec=>
    '<button class="fish-bait '+(bait===spec.id?'selected':'')+'" data-action="fish-select-bait" data-bait="'+spec.id+'" aria-pressed="'+(bait===spec.id)+'"><span>'+fishIcon(spec)+'</span><b>'+spec.name+'</b><small>×'+n.baits[spec.id]+'</small></button>'
   ).join('');
-  play='<div class="fish-cast"><h2>CAST A LINE · '+F.DAILY+' FREE WORMS DAILY</h2><div class="fish-bait-row">'+options+'</div><button class="btn green" data-action="fish-cast" '+(!n.baits[bait]?'disabled':'')+'>CAST · '+bait.toUpperCase()+'</button><small>Casting consumes one bait. Escaped fish do not refund it.</small></div>';
+  play='<div class="fish-cast"><h2>CAST A LINE · '+F.dailyBait(n)+' FREE WORMS DAILY</h2><div class="fish-bait-row">'+options+'</div><button class="btn green" data-action="fish-cast" '+(!n.baits[bait]?'disabled':'')+'>CAST · '+bait.toUpperCase()+'</button><small>Casting consumes one bait. Escaped fish do not refund it.</small></div>';
  }
 
  const claimed=typeof n.wharfAdDay==='string'&&n.wharfAdDay>=F.localDay(Date.now());
@@ -46,18 +46,36 @@ function exchangeSheet(save,E,P,expanded=false){
   const lock=!q.earned?'LV '+(P?.LEVEL_BY_TOOL?.[q.booster]||'?'):!q.owned?'EMPTY':!q.room?'FULL':null;
   return '<tr class="'+(q.earned?'':'fish-balance-locked')+'"><th scope="row">'+label+'</th><td>'+q.owned+'</td><td>1 → '+q.rate+' 🪱</td><td><button class="fish-exchange-btn" data-action="fish-trade" data-booster="'+q.booster+'" '+(lock?'disabled':'aria-label="Trade one '+label+' for '+q.rate+' worm bait"')+'>'+(lock||'TRADE +'+q.rate)+'</button></td></tr>';
  }).join('');
- const recipes=F.BAITS.filter(b=>b.level>0).map(b=>{
+ const recipes=F.BAITS.filter(b=>!!F.BAIT_RECIPES[b.id]).map(b=>{
   const c=F.BAIT_RECIPES[b.id];return '<span class="fish-balance-recipe">'+b.name+' · '+c.worms+' 🪱 + N$'+c.dollars+(totals.craftTier<c.tier?' (Bait Tier '+c.tier+')':'')+'</span>';
  }).join('');
  return '<details class="fish-balance-sheet" '+(expanded?'open':'')+'><summary><b>🪱 BOOSTER → BAIT BALANCE</b><span>'+totals.stocked+' boosters · '+totals.potentialWorms+' potential worms</span></summary><div class="fish-balance-content"><div class="fish-balance-stats"><span>STOCK <b>'+totals.currentWorms+' 🪱</b></span><span>FREE DAILY <b>'+totals.freeDaily+' 🪱</b></span><span>NUTVALE <b>N$'+totals.dollars+'</b></span></div><div class="fish-balance-scroll"><table class="fish-balance-table"><thead><tr><th>BOOSTER</th><th>OWNED</th><th>RATE</th><th>REDEEM</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="fish-balance-recipes">'+recipes+'</div><small>Each trade spends one unlocked booster. Golden Nuts and Gems remain unchanged.</small></div></details>';
 }
+function baitCatalog(save,state){
+ const n=F.ensure(save);
+ const rows=F.BAITS.map(spec=>{
+  const open=n.baitTier>=spec.level,stock=n.baits[spec.id],recipe=F.BAIT_RECIPES[spec.id],
+   buy1=open&&stock<999999&&n.dollars>=spec.price,buy5=open&&stock<=999994&&n.dollars>=spec.price*5,
+   craft=recipe&&open&&stock<999999&&n.baits.worm>=recipe.worms&&n.dollars>=recipe.dollars,
+   active=state.fishBait===spec.id;
+  return '<article class="fish-bait-offer '+(open?'':'locked')+'"><span class="fish-bait-icon" aria-hidden="true">'+spec.icon+'</span><div class="fish-bait-copy"><b>'+spec.name+'</b>'+
+   '<small>×'+stock+' · '+(open?'UNLOCKED':'SHOP TIER '+spec.level+' TO UNLOCK')+' · QUALITY +'+spec.quality+(spec.habitat?' · '+spec.habitat.toUpperCase()+' BONUS':'')+'</small>'+
+   '<small>'+spec.description+'</small></div><div class="fish-bait-purchase">'+
+   '<button class="btn secondary" data-action="fish-bait-buy" data-bait="'+spec.id+'" data-qty="1" '+(buy1?'':'disabled')+'>BUY 1 · N$'+spec.price+'</button>'+
+   '<button class="btn ghost" data-action="fish-bait-buy" data-bait="'+spec.id+'" data-qty="5" '+(buy5?'':'disabled')+'>BUY 5 · N$'+spec.price*5+'</button>'+
+   (recipe?'<button class="btn ghost" data-action="fish-craft" data-bait="'+spec.id+'" '+(craft?'':'disabled')+'>CRAFT · '+recipe.worms+' 🪱 + N$'+recipe.dollars+'</button>':'')+
+   '<button class="btn ghost" data-action="fish-select-bait" data-bait="'+spec.id+'" '+(!open||!stock?'disabled':'')+'>'+(!open?'🔒':active?'EQUIPPED':'EQUIP')+'</button></div></article>';
+ }).join('');
+ return '<section class="fish-store fish-bait-catalog"><div class="fish-rod-heading"><b>🪱 BAIT SHELVES · '+F.BAITS.length+' TYPES</b><small>BAIT SHOP '+n.baitTier+'/5</small></div>'+
+ '<div class="fish-bait-catalog-list">'+rows+'</div><small>Higher quality shifts fish odds; habitat bait favours corresponding fish. Bait is consumed on cast.</small></section>';
+}
 function baitShop(save,state,E,P){
  const n=F.ensure(save),bait=state.fishBait||'worm',cap=F.capacity(n);
- const upgrades=[['rod','Rod',n.rod,5],['bait','Bait Quality',n.baitTier,2],['tank','Aquarium',n.tank,10]].map(([id,name,tier,max])=>{
+ const upgrades=[['bait','Bait Shop',n.baitTier,5],['wharf','Wharf',n.wharfTier,5],['rod','Rod Skill',n.rod,5],['tank','Aquarium',n.tank,10]].map(([id,name,tier,max])=>{
   const cost=F.nextCost(id,n);
   return '<button class="btn secondary" data-action="fish-upgrade" data-kind="'+id+'" '+(cost===null||n.dollars<cost?'disabled':'')+'>'+name+' '+tier+'/'+max+' · '+(cost===null?'MAX':'N$ '+cost)+'</button>';
  }).join('');
- const activeRod=F.rodModel(n),q=F.BAITS.find(b=>b.id===bait)?.quality||0;
+ const activeRod=F.rodModel(n),currentBait=F.BAITS.find(b=>b.id===bait)||F.BAITS[0],q=currentBait.quality;
  const rodGallery=F.RODS.map(model=>{
   const owned=Object.prototype.hasOwnProperty.call(n.rodStock,model.id),durability=owned?n.rodStock[model.id]:0;
   const locked=n.rod<model.tier;
@@ -68,22 +86,20 @@ function baitShop(save,state,E,P){
   const repair=owned&&durability>0&&durability<model.maxDurability?'<button data-action="fish-rod-repair" data-rod="'+model.id+'" '+(n.dollars<repairCost?'disabled':'')+' class="btn ghost">REPAIR N$ '+repairCost+'</button>':'';
   return '<div class="fish-rod-card '+(activeRod.id===model.id?'selected':'')+'"><img src="'+model.art+'" alt="'+model.name+' fishing rod" loading="lazy"><div><b>'+model.name+'</b><small>Skill '+model.tier+' · '+(owned?durability+'/'+model.maxDurability+' condition':'Max '+model.maxDurability)+'</small><small>'+favors+'</small></div><div class="fish-rod-actions"><button class="btn secondary" data-action="'+action+'" data-rod="'+model.id+'" '+(disabled?'disabled':'')+'>'+(locked?'LOCKED':owned?(durability===0?'REPAIR N$ '+repairCost:'EQUIP'):'BUY N$ '+model.cost)+'</button>'+repair+'</div></div>';
  }).join('');
- const catchOdds=F.rodOdds(activeRod.id,q);
+ const catchOdds=F.rodOdds(activeRod.id,q,currentBait.habitat);
  const catchSection='<details class="fish-catch-index"><summary>CATCH LIST · '+F.FISH.length+' SPECIES · VIEW ODDS</summary><div class="fish-catch-grid">'+F.FISH.map((species,i)=>'<div class="fish-catch-entry">'+fishIcon(species)+'<span><b>'+species.name+'</b><small>'+(species.rarity||'classic').toUpperCase()+' · '+(100*catchOdds[i].probability).toFixed(2)+'% · N$ '+species.value+'</small></span></div>').join('')+'</div></details>';
  const rodSection='<section class="fish-store fish-rods"><div class="fish-rod-heading"><b>FISHING RODS · '+activeRod.name+'</b><small>'+n.rodStock[activeRod.id]+'/'+activeRod.maxDurability+' DURABILITY</small></div><div class="fish-rod-list">'+rodGallery+'</div></section>';
 
- const exchanges=exchangeSheet(save,E,P,true);
+ const exchanges=exchangeSheet(save,E,P,true),catalog=baitCatalog(save,state);
 
  const claimed=typeof n.wharfAdDay==='string'&&n.wharfAdDay>=F.localDay(Date.now());
  const wharfAd='<section class="fish-store wharf-ad-offer"><b>🎣 SQUIRREL FISHERMEN ADS</b><button class="btn green" data-action="ad-wharf" '+(claimed?'disabled':'')+'>'+(claimed?'WHARF BONUS CLAIMED TODAY':'WATCH AD · +2 🪱 BAIT + N$100')+'</button><small>Optional parody · once daily · 2-minute wah-wah timer</small></section>';
 
- const craft=n.baitTier>=1?'<div class="fish-actions">'+F.BAITS.filter(b=>b.level>0&&b.level<=n.baitTier).map(b=>{
-  const c=F.BAIT_RECIPES[b.id];return '<button class="btn ghost" data-action="fish-craft" data-bait="'+b.id+'" '+(n.baits.worm<c.worms||n.dollars<c.dollars?'disabled':'')+'>'+b.name.toUpperCase()+' · '+c.worms+' 🪱 + N$'+c.dollars+'</button>';
- }).join('')+'</div>':'';
+
 
  return '<div class="nutravaganza-head"><h1>🪱 NUTVALE BAIT & TACKLE</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="fishing">🎣 FISHING</button><button class="btn ghost" data-nav="aquarium">🐠 AQUARIUM '+n.fish.length+'/'+cap+'</button><button class="btn ghost" data-nav="wharf">← WHARF</button></div></div>'+
  '<div class="wharf-bait-scene"><img class="wharf-landscape" src="art/wharf/nutvale-wharf-bait-shop.webp" alt="Squirrel-run bait and tackle shop with rods, bait jars, lures, crabs, and fishing boats outside" width="1672" height="941" draggable="false"></div>'+
- '<div class="wharf-bait-layout"><div class="wharf-bait-main">'+rodSection+catchSection+'</div><div class="wharf-bait-side"><section class="fish-store"><h2>UPGRADES · NUTVALE DOLLARS</h2><div class="fish-upgrades">'+upgrades+'</div>'+craft+'</section><section class="fish-store fish-balance-container">'+exchanges+'</section>'+wharfAd+'</div></div>';
+ '<div class="wharf-bait-layout"><div class="wharf-bait-main">'+rodSection+catchSection+'</div><div class="wharf-bait-side">'+catalog+'<section class="fish-store"><h2>UPGRADE YOUR WHARF · NUTVALE DOLLARS</h2><small>Better Bait Shop = more bait · Wharf = +1 daily worm and +5% fish-sale premium per tier</small><div class="fish-upgrades">'+upgrades+'</div></section><section class="fish-store fish-balance-container">'+exchanges+'</section>'+wharfAd+'</div></div>';
 }
 function aquariumPreview(save){
  const n=F.ensure(save),cap=F.capacity(n),stamps=F.stampCapacity(n);
@@ -185,24 +201,27 @@ function action(name,button,ctx){
  else if(name==='fish-rod-repair')result=F.repairRod(save,button.dataset.rod);
  else if(name==='fish-upgrade')result=F.upgrade(save,button.dataset.kind);
  else if(name==='fish-trade')result=F.trade(save,button.dataset.booster,P);
+ else if(name==='fish-bait-buy')result=F.buyBait(save,button.dataset.bait,Number(button.dataset.qty));
  else if(name==='fish-craft')result=F.craft(save,button.dataset.bait);
  else if(name==='fish-cast')result=F.cast(save,state.fishBait||'worm',Math.floor(Math.random()*4294967296));
  else if(['fish-left','fish-right','fish-reel','fish-slack'].includes(name))result=F.step(save,name.slice(5));
  else if(['fish-keep','fish-sell','fish-release'].includes(name))result=F.resolve(save,name.slice(5));
  else return false;
- if(!result.valid){root.NutSFX?.play('invalid');notice(({dollars:'NOT ENOUGH NUTVALE DOLLARS',full:'AQUARIUM FULL · UPGRADE OR SELL',stock:'NO BAIT LEFT',busy:'FINISH THE CATCH FIRST',booster:'POWER-UP UNAVAILABLE',limit:'WORM BAIT CAP REACHED',tier:'UPGRADE ROD SKILL FIRST','rod-broken':'ROD BROKEN · REPAIR BEFORE CASTING','not-owned':'PURCHASE THIS ROD FIRST'})[result.reason]||'ACTION UNAVAILABLE');return true;}
+ if(!result.valid){root.NutSFX?.play('invalid');notice(({dollars:'NOT ENOUGH NUTVALE DOLLARS',full:'AQUARIUM FULL · UPGRADE OR SELL',stock:'NO BAIT LEFT',busy:'FINISH THE CATCH FIRST',booster:'POWER-UP UNAVAILABLE',limit:'BAIT STOCK FULL',bait:'UNKNOWN BAIT',locked:'UPGRADE THE BAIT SHOP',quantity:'INVALID QUANTITY',tier:'UPGRADE ROD SKILL FIRST','rod-broken':'ROD BROKEN · REPAIR BEFORE CASTING','not-owned':'PURCHASE THIS ROD FIRST'})[result.reason]||'ACTION UNAVAILABLE');return true;}
  persist();render();
  const cue=result.status==='escaped'?'escaped':result.status==='caught'?'caught':name==='fish-cast'?'cast':name==='fish-reel'?'reel':name==='fish-slack'?'transport':name==='fish-left'||name==='fish-right'?'ui':result.choice==='sell'||name==='fish-upgrade'?'coin':result.choice==='keep'?'place':'select';
  root.NutSFX?.play(cue);
  if(result.status==='escaped')notice(result.reason==='snapped'?'LINE SNAPPED!':'THE FISH GOT AWAY!');
  else if(result.status==='caught')notice('FISH CAUGHT · KEEP OR SELL?');
- else if(result.choice==='sell')notice('SOLD FOR N$ '+result.fish.value);
+ else if(result.choice==='sell')notice('SOLD FOR N$ '+(result.fish.value+F.saleBonus(F.ensure(save),result.fish.value)));
  else if(result.choice==='keep')notice('NEW AQUARIUM RESIDENT!');
  else if(name==='fish-trade')notice('EXCHANGED ONE '+(button.dataset.booster||'BOOSTER').toUpperCase()+' · +'+result.amount+' HONEST WORMS');
  else if(name==='fish-craft')notice('BAIT CRAFTED · -N$'+result.cost+' · -1 HONEST WORM');
+ else if(name==='fish-bait-buy')notice('BOUGHT '+result.quantity+' '+F.BAITS.find(x=>x.id===result.id).name.toUpperCase()+' · -N$'+result.cost);
+ else if(name==='fish-upgrade')notice('UPGRADED '+(button.dataset.kind==='bait'?'BAIT SHOP':button.dataset.kind.toUpperCase())+' TO TIER '+result.level);
  return true;
 }
-const api={hub,wharf,baitShop,aquarium,aquariumPreview,exchangeSheet,action};
+const api={hub,wharf,baitShop,baitCatalog,aquarium,aquariumPreview,exchangeSheet,action};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutFishingUI=api;
 })(typeof window!=='undefined'?window:globalThis);
