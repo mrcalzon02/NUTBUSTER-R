@@ -47,7 +47,7 @@ function parseTime(s,label){
  if(!Number.isFinite(time)||time<0||time>4102444800000)throw Error('Invalid '+label+' timestamp');
  return time;
 }
-function issue(opts){
+function issueCodes(opts){
  if(!opts.private||!opts.kid||!opts.grant)throw Error('issue requires --private, --kid and --grant');
  const pemPath=outsideRepo(opts.private);
  const key=crypto.createPrivateKey(fs.readFileSync(pemPath));
@@ -72,6 +72,10 @@ function issue(opts){
   if(sig.length!==64)throw Error('Issuer signature length mismatch');
   codes.push(signed+'.'+encode(sig));
  }
+ return codes;
+}
+function issue(opts){
+ const codes=issueCodes(opts);
  const output=codes.join('\n')+'\n';
  if(opts.output){
   const file=path.resolve(opts.output);
@@ -87,4 +91,4 @@ function main(){
  process.exitCode=1;
 }
 if(require.main===module){try{main();}catch(e){console.error('Issuer error:',e.message);process.exitCode=1;}}
-module.exports={keygen,issue,parseTime,outsideRepo};
+module.exports={keygen,issue,issueCodes,parseTime,outsideRepo};
