@@ -56,7 +56,7 @@ function nav(page){
  state.epoch++;state.animating=false;state.page=page;state.selected=-1;state.tool=null;state.holdTool=null;
  if(page==='homestead'){state.homesteadEditing=false;state.homesteadSelection=null;}
  if(page!=='aquarium'){state.aquariumEditing=false;state.aquariumStamp=null;state.aquariumFishFrom=null;}
- if(page==='campaign'&&state.game)state.chapter=M.chapterOf(state.game.level).id;
+ if(page==='campaign'&&state.game)state.chapter=T.profile(state.game.level)?.area||M.chapterOf(state.game.level).id;
  render();}
 
 function banner(title,sub){return `<div class="panel hero"><h1>${title}</h1><p>${sub}</p></div>`;}
