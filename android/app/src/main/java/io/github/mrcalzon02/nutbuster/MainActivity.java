@@ -10,6 +10,8 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebResourceRequest;
+import android.graphics.Bitmap;
 import org.json.JSONObject;
 
 /** Offline-first native game. Update checks use network; downloads and installation are opt-in. */
@@ -26,8 +28,28 @@ public final class MainActivity extends Activity {
         else updater = new NutUpdateService(this, this::showUpdateStatus);
         game = new WebView(this);
         game.setWebViewClient(new WebViewClient() {
+            // JavaScript interfaces are exposed to loaded documents. NEVER permit a remote
+            // main-frame navigation that could obtain access to account/billing bridges.
+            private boolean blocked(String url) {
+                return !"file:///android_asset/index.html".equals(url);
+            }
+            @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                return request.isForMainFrame() && blocked(request.getUrl().toString());
+            }
+            @Override public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return blocked(url);
+            }
+            @Override public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                if (blocked(url)) {
+                    view.stopLoading();
+                    return;
+                }
+                super.onPageStarted(view,url,favicon);
+            }
             @Override public void onPageFinished(WebView view, String url) {
-                if (billing != null) { billing.refreshCatalog(); billing.restorePurchases(); }
+                if (!blocked(url) && billing != null) {
+                    billing.refreshCatalog(); billing.restorePurchases();
+                }
             }
         });
         WebSettings s = game.getSettings();
@@ -35,6 +57,9 @@ public final class MainActivity extends Activity {
         s.setDomStorageEnabled(true);
         s.setAllowFileAccess(true); // Only the packaged game is loaded.
         s.setAllowContentAccess(false);
+        s.setAllowFileAccessFromFileURLs(false);
+        s.setAllowUniversalAccessFromFileURLs(false);
+        s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         s.setJavaScriptCanOpenWindowsAutomatically(false);
         s.setSupportMultipleWindows(false);
         s.setBlockNetworkLoads(true); // The web game cannot make network requests.
