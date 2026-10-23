@@ -59,7 +59,8 @@ final class PlayBillingCoordinator implements PurchasesUpdatedListener {
     }
     void refreshCatalog() {
         if (!connected) return;
-        if (BuildConfig.PLAY_VERIFICATION_ENDPOINT.isEmpty()) {
+        if (BuildConfig.PLAY_VERIFICATION_ENDPOINT.isEmpty() ||
+            BuildConfig.PLAY_INTEGRITY_PROJECT_NUMBER.isEmpty()) {
             // Even an approved Google catalog is not an actionable store without receipt validation.
             status("Google Play products are disabled until receipt verification is configured.");
             return;
@@ -92,7 +93,8 @@ final class PlayBillingCoordinator implements PurchasesUpdatedListener {
         activity.runOnUiThread(() -> {
             final String sku = skuFor(index);
             if (sku == null) { status("This item is not a paid Play product."); return; }
-            if (BuildConfig.PLAY_VERIFICATION_ENDPOINT.isEmpty()) {
+            if (BuildConfig.PLAY_VERIFICATION_ENDPOINT.isEmpty() ||
+            BuildConfig.PLAY_INTEGRITY_PROJECT_NUMBER.isEmpty()) {
                 status("Purchases unavailable until receipt-verification service is configured."); return;
             }
             ProductDetails details = catalog.get(sku);

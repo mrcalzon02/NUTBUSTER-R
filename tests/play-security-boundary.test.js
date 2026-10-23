@@ -16,6 +16,8 @@ assert.match(main,/setBlockNetworkLoads\(true\)/);
 assert.match(gate,/\.setRequestHash\(hash\)/);
 assert.match(gate,/\.setCloudProjectNumber\(project\)/);
 assert.match(bill,/\.setInstanceFollowRedirects\(false\)/);
+assert.match(bill,/BuildConfig\.PLAY_VERIFICATION_ENDPOINT\.isEmpty\(\)\s*\|\|\s*BuildConfig\.PLAY_INTEGRITY_PROJECT_NUMBER\.isEmpty\(\)/,
+ 'Cannot advertise or start real payment when verifier or integrity project is missing');
 assert.match(account,/\.setInstanceFollowRedirects\(false\)/);
 assert.match(bill,/\.put\("integrityToken", integrityToken\)/);
 assert.match(bill,/\.put\("accountSession",session\)/);
