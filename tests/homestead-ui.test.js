@@ -9,7 +9,7 @@ function session(){
   addEventListener:(type,fn)=>{handlers[type]=fn;},querySelector:()=>null,querySelectorAll:()=>[]};
  const elements={screen,wallet:{textContent:''},gems:{textContent:''},toast:{textContent:'',classList:{add(){},remove(){}}}};
  const document={getElementById:id=>elements[id],querySelectorAll:()=>[]};
- const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:M,addEventListener(){},matchMedia:()=>({matches:true}),NutbusterInvite:{sharePrestige(plate){lastPlate=plate;return Promise.resolve('copied');}}};
+ const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutBenefits:require('../web/benefits.js'),NutPurchases:require('../web/purchase-disclosures.js'),NutProgress:P,NutHomestead:H,NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:M,addEventListener(){},matchMedia:()=>({matches:true}),NutbusterInvite:{sharePrestige(plate){lastPlate=plate;return Promise.resolve('copied');}}};
  vm.runInNewContext(script,{window,document,localStorage,setTimeout:()=>0,clearTimeout:()=>{},console});
  const click=dataset=>handlers.click({target:{closest:()=>({dataset})}});
  return {app:window.NutbusterApp,click,html:()=>html};
