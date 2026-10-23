@@ -434,6 +434,27 @@
 .cell .overlay.blocker-art.chain .blocker-sprite{width:94%;height:94%;object-fit:contain}
 .cell .overlay.blocker-art.ice[data-strength="2"] .blocker-sprite{filter:drop-shadow(0 0 3px #79e3ff)}
 
+/* Status decals must be OPEN rings, not a translucent square laid over a nut.
+   The atlas has paint inside some nominally hollow centers: RGBA and a global
+   opacity multiplier alone cannot expose the underlying nut. Mask only the
+   artwork, never the hit/fuse/freeze badges. Keep the chest as a whole-piece
+   illustrated blocker, not a hole-cut status ring. Chromium and Android
+   WebView use -webkit-mask-image; Firefox uses mask-image. */
+.cell .hazard.tile-status .status-art,
+.cell .overlay.blocker-art.ice .blocker-sprite,
+.cell .overlay.blocker-art.chain .blocker-sprite,
+.cell .overlay.blocker-art.rock .blocker-sprite{
+ -webkit-mask-image:radial-gradient(circle closest-side at center,transparent 0 63%,#000 80%);
+ mask-image:radial-gradient(circle closest-side at center,transparent 0 63%,#000 80%);
+}
+/* Concentric surface statuses leave the same clear nut center even when
+   an aura, butter and a fuse occupy the tile simultaneously. */
+.cell .hazard.tile-status.aura .status-art{width:81%;height:81%;margin:9.5%}
+.cell .hazard.tile-status.jam .status-art{width:90%;height:90%;margin:5%}
+.cell .hazard.tile-status.fuse .status-art{width:98%;height:98%;margin:1%}
+.cell .hazard.tile-status.frozen .aura-count{left:auto;top:auto;right:1px;bottom:1px}
+
+
 /* Full-screen fictional rewarded ad. Keep controls and countdown on-screen. */
 #app.fake-ad-active .bottom{display:none}
 .fake-ad-screen{width:min(100%,640px);margin:auto;padding:4px 8px 12px;min-height:calc(100dvh - 75px);display:flex;flex-direction:column;gap:8px}
