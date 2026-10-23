@@ -12,7 +12,13 @@ const LADDER=Object.freeze([
  {id:'cross',level:49,starter:3},
  {id:'color',level:62,starter:3},
  {id:'drill',level:77,starter:3},
- {id:'unlock',level:92,starter:3}
+ {id:'unlock',level:92,starter:3},
+ {id:'quake',level:120,starter:1},
+ {id:'triple-row',level:160,starter:1},
+ {id:'triple-column',level:205,starter:1},
+ {id:'starburst',level:260,starter:1},
+ {id:'spectrum',level:330,starter:1},
+ {id:'frostbreaker',level:420,starter:1}
 ]);
 const CHALLENGE_STEPS=Object.freeze([1,2,3,4,5,7,10,12,15,18,21,25]);
 const BUNDLES=Object.freeze({
@@ -71,7 +77,8 @@ function migrate(save){
 // Golden Nuts buy one already-unlocked booster; Gems and Wharf Dollars stay separate.
 const BOOSTER_PRICES=Object.freeze({
  hammer:400,extra:450,row:550,shuffle:600,column:750,blast:950,
- cross:1200,color:1450,drill:1800,unlock:2200
+ cross:1200,color:1450,drill:1800,unlock:2200,
+ quake:2600,'triple-row':3000,'triple-column':3000,starburst:3500,spectrum:4200,frostbreaker:4400
 });
 function buyBooster(save,id){
  const cost=BOOSTER_PRICES[id];
