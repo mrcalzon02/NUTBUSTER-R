@@ -4,6 +4,8 @@ NUTBUSTER is an offline-first, nut-themed match-three parody of predatory mobile
 
 ## Current alpha
 
+- **Nutvale Mines (phase-one gameplay):** level-500-gated tap-to-excavate board, six map sizes, persistent rocks with honest barren outcomes, five-state cart/refinery/map upgrades, fully implemented **40 pickaxe tiers** and **40 glove tiers** (12→207 daily strikes and 0→39 daily surveys), shared N$ wallet, ore refining, goods sales and Writ purchases. Campaign II's independent 500 stages are **not yet connected**. See [equipment amendment](docs/wiki/Nutvale-Mines-Equipment-v1.1.md). The 86 transparent tool sprites are [uploaded to NUTBUSTER Google Drive](https://drive.google.com/file/d/1ySfEltY1N0rS5w2RWOSxFh0WbHXaY_l2/view?usp=drivesdk), but individual PNG binaries are not yet installed in GitHub; the app currently uses fallbacks until asset intake.
+
 - **Nutvale Homestead:** 40 illustrated house tiers, 1,000 modular renovations, five estate grounds with 44 plots, 57 decorations, eight legacy prestige titles, and a playable **60-image illustrated human-avatar wardrobe** (40 progression outfits + 20 permanent seasonal costumes). Eight companions, five collectible sets, 19 achievements and preserved local saves remain supported. A further 20 goth/emo outfits are backed up in Google Drive but are not yet in the GitHub game.
 - Shared deterministic match-three engine and 500 seeded level configurations, including a 4×5 to 8×9 board progression, non-matching legal swaps, per-nut gravity/cascade traces, blocker layers, four usable boosters, persistent browser/device progress, satirical two-stage checkout, distinct victory/loss screens, and reward claims.
 - Primary art is **the original five owner-generated glossy sprite sheets** from this project's design conversation. The sixth, labeled board reference sheet is supplementary only; it is not a replacement for the original art.
@@ -12,6 +14,8 @@ NUTBUSTER is an offline-first, nut-themed match-three parody of predatory mobile
 - Desktop wrapper: a self-contained Go Windows/Linux launcher serving the **same** embedded `web/` game offline in the user’s default browser. An optional Electron shell also exists.
 
 ## Run / test
+
+Mining verification: `node tests/nutvale-mines-40-tier.test.js` and `node tests/nutvale-mines-ui-flow.test.js`. Keep `node tests/nutvale-mines-design-lock.test.js` for the unchanged v1.0 non-equipment contract. The code includes the UI flow but the full Android and desktop distribution checks still need to be run.
 
 Run `node tests/avatar-art.test.js`, `node tests/homestead.test.js`, `node tests/homestead-expansion.test.js`, `node tests/homestead-house-tiers.test.js`, `node tests/homestead-renovations.test.js`, and `node tests/homestead-ui.test.js` for estate persistence, cosmetics, achievement gating, and the two-stage $0.00 premium order. Run `node tests/engine.test.js` for 2,500 deterministic level/seed cases, including 2,500 scoring swaps, 2,500 non-matching swaps, and recorded fall-trace verification. Run `node tests/ui.test.js` for a dependency-free mocked-DOM smoke test of checkout, stable board rendering, match animation plumbing, and dedicated win/loss screens. These checks do not substitute for an actual Android/device rendering test.
 
