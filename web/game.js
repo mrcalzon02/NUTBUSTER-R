@@ -432,6 +432,12 @@ function purchaseDialog(){
 const CONFIRMED_PURCHASES=new Set(['booster-buy','fish-bait-buy','fish-craft','fish-trade','fish-rod-buy','fish-rod-repair','fish-upgrade','homestead-tier-upgrade','homestead-build','homestead-renovate']);
 function beginCheckout(index,from=state.page){
  if(!Number.isInteger(index)||!offers[index])return;
+ if(index===4&&saved.vip){nav('vip-benefits');return;}
+ if(index===6&&saved.hearts>=5){notice('HEARTS ALREADY FULL');return;}
+ if(index===6||index===7){
+  const kind=index===6?'hearts':'moves',remaining=freeRemaining(kind);
+  if(remaining){notice('FREE REWARD READY IN '+B.countdown(remaining));return;}
+ }
  state.epoch++;state.animating=false;state.checkout=index;state.checkoutFrom=from;state.checkoutStep=0;state.discountOffer=null;state.checkoutPack=index<6?P.actualPack(saved,'shop'+index):{};state.page='checkout';render();
 }
 function checkout(){const p=offers[state.checkout];if(!p)return '<p>Offer unavailable.</p>';
@@ -442,7 +448,7 @@ function checkout(){const p=offers[state.checkout];if(!p)return '<p>Offer unavai
  const price=freeOffer?'FREE':discounted?'$'+(Math.round(amountCents/2)/100).toFixed(2):p[4];
  const discountMarkup=freeOffer?'<p class="muted">Always free. No ad required.</p>':discounted?'<p class="fake-ad-discount">FAKE AD · 50% OFF ACTIVE</p>':'<button class="btn secondary wide" data-action="ad-discount">📺 WATCH A FAKE AD · 50% OFF</button>';
  const breakdownMarkup=freeOffer?'<div class="checkout-price"><span>Always-free gameplay</span><strong>FREE</strong></div>':`<div class="checkout-price"><span>Package ${discounted?"· FAKE AD −50%":""}</span><strong class="cross">${price}</strong></div><div class="checkout-price"><span>Mandatory Nutbuster generosity adjustment</span><b>−100%</b></div>`;
- const description=state.checkout===6?'Restores all five lives':state.checkout===7?'Five additional moves on your current board':state.checkout===8?'Platinum Royal avatar · Platinum Fountain · Diamond Throne':p[2].toLocaleString()+' Golden Nuts · '+p[3].toLocaleString()+' Gems · '+boosterSummary(state.checkoutPack);
+ const description=state.checkout===6?'Restore to five hearts · claim every 12 hours':state.checkout===7?'Add five moves · claim every 12 hours':state.checkout===8?'Platinum Royal avatar · Platinum Fountain · Diamond Throne':p[2].toLocaleString()+' Golden Nuts · '+p[3].toLocaleString()+' Gems · '+boosterSummary(state.checkoutPack);
  return `<div class="checkout-screen"><div class="topline"><button class="btn ghost" data-action="checkout-back">← BACK</button><h2>${review?'PACKAGE DETAILS':'NUT CHECKOUT'}</h2></div>
  <div class="panel checkout-sheet"><h1>${review?'CONFIRM YOUR PACKAGE':'YOUR ORDER TOTAL'}</h1><div class="checkout-item"><span class="checkout-emoji">${p[1]}</span><div><b>${p[0]}</b><small>${description}</small></div></div><section class="checkout-disclosure"><b>EXACT REWARDS · GUARANTEED</b>${purchaseList(Purchases.offer(state.checkout,offers,state.checkoutPack,E).lines)}</section>
  ${review?`<div class="checkout-price"><span>Advertised price</span><strong>${price}</strong></div>${discountMarkup}<p class="muted">Fixed contents, no countdown, no recurring charges.</p>
@@ -472,7 +478,7 @@ function shop(){
   const pending=state.holdOffer===id;
   return `<div class="hold-offer"><img src="${item.art}" alt="" draggable="false"><div class="hold-offer-info"><b>${item.label}</b><small>${item.drops} gravity drop${item.drops===1?'':'s'} · held-nut matches ×3 · Owned ${P.holdCount(saved,id)}</small></div><div class="hold-offer-buy"><b>${item.gems} <img src="art/additions/economy/prismatic-acorn.png" alt="gems"></b><button class="btn secondary" data-action="hold-offer" data-hold-id="${id}" title="Spend ${item.gems} Gems for exactly one ${item.label} held-nut power-up; ${item.drops} gravity drops, held matches ×3">BUY</button></div>${pending?`<div class="hold-confirm" role="group" aria-label="Confirm ${item.label} purchase"><span>Spend ${item.gems} Gems; receive exactly 1 ${item.label} power-up. Hold one selected nut for ${item.drops} gravity drops; held matches score ×3. Guaranteed, no randomness. Balance: ${saved.gems.toLocaleString()} Gems.</span><button class="btn green" data-action="hold-buy" data-hold-id="${id}">CONFIRM</button><button class="btn ghost" data-action="hold-cancel">CANCEL</button></div>`:''}</div>`;
  }).join('');
- return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">OPTIONAL BUNDLES</span>'}</div><div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div>${nutToBoosterShop()}${window.NutFishingUI?.exchangeSheet?.(saved,E,P,false)||''}<p class="muted">Transparent contents, one-time bundles, no subscriptions or purchase countdowns.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item">${art('economy',shopSprites[i],p[1])}<h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><details class="offer-disclosure"><summary>EXACT CONTENTS · NO RANDOM CHANCE</summary>${purchaseList(Purchases.offer(i,offers,P.actualPack(saved,'shop'+i),E).lines)}</details><div class="offer-price">${p[4]}</div><button class="btn green" data-action="claim" data-item="${i}">BUY PACKAGE</button></div>`).join('')}</div>`;
+ return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">OPTIONAL BUNDLES</span>'}</div><div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div>${nutToBoosterShop()}${window.NutFishingUI?.exchangeSheet?.(saved,E,P,false)||''}<p class="muted">Transparent contents, one-time bundles, no subscriptions or purchase countdowns.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item">${art('economy',shopSprites[i],p[1])}<h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><details class="offer-disclosure"><summary>EXACT CONTENTS · NO RANDOM CHANCE</summary>${purchaseList(Purchases.offer(i,offers,P.actualPack(saved,'shop'+i),E).lines)}</details><div class="offer-price">${p[4]}</div>${i===4?'<small>Daily +5 moves · 4 boosters · +250 Golden Nuts. Lifetime.</small>':''}<button class="btn green" data-action="${i===4&&saved.vip?'vip-benefits':'claim'}" data-item="${i}">${i===4&&saved.vip?'OWNED · VIEW BENEFITS':'BUY PACKAGE'}</button></div>`).join('')}</div>`;
 }
 function rewards(){const tiers=P.challengeRewards(saved),next=P.nextUnlock(saved),elemental=R.summary(saved);let mins=Math.max(0,Math.ceil((saved.chestReadyAt-Date.now())/60000));return `<div class="topline"><h2>REWARDS, REWARDS, REWARDS</h2></div><div class="panel reward-inventory"><b>BOOSTER VAULT</b><p class="muted">${inventorySummary()}</p>${next?'<p class="muted">Next power: '+E.BOOSTER_META[next.id].label+' · clear level '+next.level+'</p>':''}</div>
  <div class="panel challenge-rewards"><b>ELEMENTAL TRIAL REWARDS</b><p class="muted">${elemental.completed}/150 trials · ${elemental.relics.length}/15 relics · ${movesLeft()} daily moves left</p><div class="elemental-relics">${elemental.relics.map(id=>'<img src="art/primary/nuts/elemental/'+id+'.png" alt="'+id+' relic" title="'+id+' relic" loading="lazy">').join('')}</div></div><div class="panel challenge-rewards"><b>CHALLENGE REWARD TRACK</b><p class="muted">${P.challengeProgress(saved)}/25 challenge milestones cleared</p>
@@ -922,9 +928,13 @@ function action(a,button){
  if(a==='checkout-back'){if(state.checkoutStep){state.checkoutStep=0;render();}else nav(state.checkoutFrom==='outcome'?'outcome':state.checkoutFrom);return;}
  if(a==='checkout-complete'){if(state.checkoutStep!==1||state.checkout===null)return;
   const i=state.checkout,p=offers[i];const dest=state.checkoutFrom;
-  if(i===6){saved.hearts=5;persist();} else if(i===8){H.purchase(saved,'royal-estate');persist();}
-  else if(i===7){const bank=D.topUp(saved,5,Date.now(),dailyCap());if(state.game){state.game.moves=bank;state.game.lost=false;}}
-  else {P.grant(saved,state.checkoutPack);gain(p[2],p[3]);if(i===4)saved.vip=true;persist();}
+  if(i===6||i===7){
+   const result=B?.claim(saved,i===6?'hearts':'moves',Date.now(),D,dailyCap());
+   if(!result?.valid){notice(result?.reason==='full'?'HEARTS ALREADY FULL':'FREE REWARD UNAVAILABLE');state.checkout=null;state.checkoutStep=0;state.discountOffer=null;state.page=dest;render();return;}
+   if(i===7&&state.game){state.game.moves=movesLeft();state.game.lost=false;}
+   persist();
+  }else if(i===8){H.purchase(saved,'royal-estate');persist();}
+  else {P.grant(saved,state.checkoutPack);gain(p[2],p[3]);if(i===4){saved.vip=true;syncDaily();}persist();}
   state.checkout=null;state.checkoutPack=null;state.checkoutStep=0;state.discountOffer=null;notice('ORDER COMPLETE · TOTAL PAID $0.00');
   playSFX('coin');if(i===0||i===3)announce('HECK OF A PACKAGE!','heck-package');else announce('WHAT A DEAL!','deal');
   state.page=(dest==='outcome'||dest==='game')?'game':dest==='home'?'home':dest==='homestead'?'homestead':'shop';
@@ -933,7 +943,8 @@ function action(a,button){
   render();window.NutFX?.emit('coin-shower');return;
  }
  if(a==='continue-level'){beginCheckout(7,'outcome');return;}
- if(a==='vip'){beginCheckout(4);return;}
+ if(a==='vip'||a==='vip-buy'){if(saved.vip){nav('vip-benefits');return;}beginCheckout(4,state.page);return;}
+ if(a==='vip-benefits'){nav('vip-benefits');return;}
  if(a==='refill'){beginCheckout(6);return;}
  if(a==='effects'){state.effects=!state.effects;saved.effects=state.effects;window.NutSFX?.setEnabled(state.effects);persist();if(state.page==='game'){screen.querySelectorAll('[data-action="effects"]').forEach(b=>b.textContent=state.effects?'Effects On':'Effects Off');}else render();return;}
  if(a==='sound'){state.sound=!state.sound;saved.sound=state.sound;window.NutAudio?.setVoiceEnabled(state.sound);persist();
