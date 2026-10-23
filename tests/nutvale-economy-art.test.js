@@ -65,5 +65,5 @@ assert.equal(M.buyWrits(initial,1).valid,true);
 assert.equal(initial.nutravaganza.dollars,priorDollars-180);
 assert.ok(UI.render(initial,{mineTab:'writs'}).includes(Art.writs(1)));
 assert.ok(UI.render(initial,{mineTab:'equipment'}).includes(Art.goods(5)),'Refinery node reflects crafted-goods visuals');
-assert.doesNotMatch(ui,/art\/nutvale\/mining-tools\/.*goods/,'Goods never alias tool upgrades');
+assert.doesNotMatch(ui,/art\/nutvale\/mining-tools\/[^\"<>]*goods/,'Goods never alias tool upgrades');
 console.log('PASS: 36 approved sprites, exact hashes, goods refinery tier visuals, real produce/sell/Writ economy and assets');

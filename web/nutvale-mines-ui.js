@@ -35,8 +35,8 @@ function dig(save,state){
 }
 function equipment(save){
  const s=M.stats(save),p=M.prices(save),list=[
-  ['pickaxe','PICKAXE','⛏️','+'+5+' daily strikes',G.dailyLimit('pickaxe',s.pickTier),G.dailyLimit('pickaxe',Math.min(39,s.pickTier+1)),p.pickaxe.nextCost,G.entry('pickaxe',s.pickTier)],
-  ['gloves','SURVEY GLOVES','🧤','+1 daily scan',G.dailyLimit('gloves',s.gloveTier),G.dailyLimit('gloves',Math.min(39,s.gloveTier+1)),p.gloves.nextCost,G.entry('gloves',s.gloveTier)],
+  ['pickaxe','PICKAXE','PICK','+'+5+' daily strikes',G.dailyLimit('pickaxe',s.pickTier),G.dailyLimit('pickaxe',Math.min(39,s.pickTier+1)),p.pickaxe.nextCost,G.entry('pickaxe',s.pickTier)],
+  ['gloves','SURVEY GLOVES','SCAN','+1 daily scan',G.dailyLimit('gloves',s.gloveTier),G.dailyLimit('gloves',Math.min(39,s.gloveTier+1)),p.gloves.nextCost,G.entry('gloves',s.gloveTier)],
   ['mineTier','MINE MAP','◈','Larger grid',M.MAP[s.mineTier].size,M.MAP[Math.min(5,s.mineTier+1)].size,p.mineTier.cost,{image:ICONS.dig}],
   ['cartTier','MINING CART','◈','More ore storage',M.CART[s.cartTier],M.CART[Math.min(5,s.cartTier+1)],p.cartTier.cost,{image:ICONS.cart}],
   ['refineryTier','REFINERY','◈','Better refining/sales',M.SALE[s.refineryTier],M.SALE[Math.min(5,s.refineryTier+1)],p.refineryTier.cost,{image:Art.goods(s.refineryTier)}]
@@ -58,8 +58,8 @@ function refinery(save){
 }
 function writs(save){
  const s=M.stats(save);
- return '<div class="mine-resource-strip"><b>'+economy(Art.money(s.dollars),'Nutvale Dollars','💰')+' N$ '+format(s.dollars)+'</b><b>'+economy(Art.writs(s.writs),'Prospector Writs','📜')+' '+format(s.writs)+' WRITS</b></div>'+
- '<div class="mines-upgrade">'+economy(Art.writs(s.writs),'Prospector Writ','📜')+'<div><b>PROSPECTOR’S WRIT</b><small>One Writ: N$180 · Mine proceeds and fishing use one N$ wallet</small></div><button class="btn green" data-action="mine-writ" '+(s.dollars>=180?'':'disabled')+'>BUY 1 · N$180</button></div>'+
+ return '<div class="mine-resource-strip"><b>'+economy(Art.money(s.dollars),'Nutvale Dollars','💰')+' N$ '+format(s.dollars)+'</b><b>'+economy(Art.writs(s.writs),'Prospector Writs','WRIT')+' '+format(s.writs)+' WRITS</b></div>'+
+ '<div class="mines-upgrade">'+economy(Art.writs(s.writs),'Prospector Writ','WRIT')+'<div><b>PROSPECTOR’S WRIT</b><small>One Writ: N$180 · Mine proceeds and fishing use one N$ wallet</small></div><button class="btn green" data-action="mine-writ" '+(s.dollars>=180?'':'disabled')+'>BUY 1 · N$180</button></div>'+
  '<p class="mine-odds">Writ art reflects current holdings without changing Writ value. Campaign II stage admission remains unavailable until its independent 500 stages are authored and verified. Your Writs are safely stored.</p>';
 }
 function render(save,state){

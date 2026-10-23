@@ -1,0 +1,808 @@
+{
+  "schema": 1,
+  "source": "a_colorful_high_quality_cartoon_3d_illustration.png",
+  "source_sha256": "081fb8426936aa74fcba35464886d1d7bda1fc6531dcc3d0a02f2b74a124c918",
+  "pets": [
+    "squirrel",
+    "bunny",
+    "chipmunk",
+    "fox",
+    "fawn",
+    "raccoon",
+    "owl",
+    "hedgehog",
+    "turtle",
+    "bluebird"
+  ],
+  "sprites": {
+    "idle/squirrel": {
+      "path": "art/companions/idle/squirrel.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "6822f05878eb67606a8470f9c8aa5e5e2460f79f17aca0bf648390f76013a50b",
+      "source_box": [
+        0,
+        18,
+        176,
+        297
+      ]
+    },
+    "idle/bunny": {
+      "path": "art/companions/idle/bunny.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "ea7003d0bb3ebb18a9feffb29743c0e2ebaaf80e211ff3368e99f8634b185926",
+      "source_box": [
+        176,
+        18,
+        326,
+        297
+      ]
+    },
+    "idle/chipmunk": {
+      "path": "art/companions/idle/chipmunk.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "54dd6ebf17f8f7730e871932ed90e2da476ea043bd69d4503b1bdeca24383383",
+      "source_box": [
+        326,
+        18,
+        470,
+        297
+      ]
+    },
+    "idle/fox": {
+      "path": "art/companions/idle/fox.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "eadcfd94ee4cd9107548ad577411235022b5775d436dbd840d06a533b5480295",
+      "source_box": [
+        470,
+        18,
+        623,
+        297
+      ]
+    },
+    "idle/fawn": {
+      "path": "art/companions/idle/fawn.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "b5e286bc572ca30f23594f9f750c80be48aa136c25d68439f2d6c9956053cd0f",
+      "source_box": [
+        623,
+        18,
+        779,
+        297
+      ]
+    },
+    "idle/raccoon": {
+      "path": "art/companions/idle/raccoon.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "bc2468127f40c3125795b558a3fb714861ba2bb226a133487cd39bab12ef0f0d",
+      "source_box": [
+        779,
+        18,
+        936,
+        297
+      ]
+    },
+    "idle/owl": {
+      "path": "art/companions/idle/owl.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "df67d5b736f9988d06dc788e363473ce2aa9fd78da63caf81f424cea449ed164",
+      "source_box": [
+        936,
+        18,
+        1085,
+        297
+      ]
+    },
+    "idle/hedgehog": {
+      "path": "art/companions/idle/hedgehog.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "1749186ddbffd9298aacbcd8441e915139598707a93f283b68f0487f9d6ecf1e",
+      "source_box": [
+        1085,
+        18,
+        1231,
+        297
+      ]
+    },
+    "idle/turtle": {
+      "path": "art/companions/idle/turtle.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "c326623a02a7c212b63fa07f55dc5c9e385097aed57c2528cbd6ce0556e3b815",
+      "source_box": [
+        1231,
+        18,
+        1390,
+        297
+      ]
+    },
+    "idle/bluebird": {
+      "path": "art/companions/idle/bluebird.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "62491263d0f7f857065ab13a69b581b7480c707b87123a7f329d0e0b51a86b1a",
+      "source_box": [
+        1390,
+        18,
+        1536,
+        297
+      ]
+    },
+    "cheer/squirrel": {
+      "path": "art/companions/cheer/squirrel.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "34f35532c06cb4c0a78cf326ac4f270e3edf965a7e46875b4aa63b80b027b667",
+      "source_box": [
+        0,
+        300,
+        176,
+        417
+      ]
+    },
+    "cheer/bunny": {
+      "path": "art/companions/cheer/bunny.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "ceccee7258467db0769733e63fc87c5691c4492601163497878ab848872fbd17",
+      "source_box": [
+        176,
+        300,
+        326,
+        417
+      ]
+    },
+    "cheer/chipmunk": {
+      "path": "art/companions/cheer/chipmunk.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "0cb2aa5c5d7dc08db363bf172e5c34e6aadcf345354a81ac0b2e870462d2a5b5",
+      "source_box": [
+        326,
+        300,
+        470,
+        417
+      ]
+    },
+    "cheer/fox": {
+      "path": "art/companions/cheer/fox.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "cd0eb7e5119459115739630b016a6877ded5d08334e48d88025b82166e28b5ae",
+      "source_box": [
+        470,
+        300,
+        623,
+        417
+      ]
+    },
+    "cheer/fawn": {
+      "path": "art/companions/cheer/fawn.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "640f9411f99459c4068bb18315a6b8eb45805c277408770564e038a57e045e40",
+      "source_box": [
+        623,
+        300,
+        779,
+        417
+      ]
+    },
+    "cheer/raccoon": {
+      "path": "art/companions/cheer/raccoon.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "2b06ca165ccef1568bb6a76021fcc4f129ffafa2eca7c8efebb35bd5f69b0976",
+      "source_box": [
+        779,
+        300,
+        936,
+        417
+      ]
+    },
+    "cheer/owl": {
+      "path": "art/companions/cheer/owl.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "f05e82490f2c17a1a21ad66c6f3f60026fde8e130cd908ecc51660335edabfc3",
+      "source_box": [
+        936,
+        300,
+        1085,
+        417
+      ]
+    },
+    "cheer/hedgehog": {
+      "path": "art/companions/cheer/hedgehog.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "5c8ac824ebdc1da814ffe658712705c7660c96ffbb1a3ca61b119ce828a10a33",
+      "source_box": [
+        1085,
+        300,
+        1231,
+        417
+      ]
+    },
+    "cheer/turtle": {
+      "path": "art/companions/cheer/turtle.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "ebf88f64d91026bb83d08d628fa975ce3b5528b414e4d470e80803ad6d1bf1fa",
+      "source_box": [
+        1231,
+        300,
+        1390,
+        417
+      ]
+    },
+    "cheer/bluebird": {
+      "path": "art/companions/cheer/bluebird.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "6c859041628de26a41484fe8a0ab91bbc439994876f43d8d0598d79fe40890b3",
+      "source_box": [
+        1390,
+        300,
+        1536,
+        417
+      ]
+    },
+    "rest/squirrel": {
+      "path": "art/companions/rest/squirrel.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "8a0dfb383d48684305447acbfb343c5c561b7b44979c0065c63bc2d4583e2354",
+      "source_box": [
+        0,
+        416,
+        176,
+        547
+      ]
+    },
+    "rest/bunny": {
+      "path": "art/companions/rest/bunny.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "788570409b4801f9366327d8ff4ae9923aef507916409c909b90fc08b345ddd0",
+      "source_box": [
+        176,
+        416,
+        326,
+        547
+      ]
+    },
+    "rest/chipmunk": {
+      "path": "art/companions/rest/chipmunk.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "ff0f70794dd4992e2ce0ec95ee06c0b3ad51fff7f2f77f9e812488940ea20223",
+      "source_box": [
+        326,
+        416,
+        470,
+        547
+      ]
+    },
+    "rest/fox": {
+      "path": "art/companions/rest/fox.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "16abfb879a58efaf6717d6a9a4d676a9ab9f8fd0ef2e7bef3b2c858f16b41ab7",
+      "source_box": [
+        470,
+        416,
+        623,
+        547
+      ]
+    },
+    "rest/fawn": {
+      "path": "art/companions/rest/fawn.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "7542f3d4483b4c6af46482bcd5f9d38032e0338530cb82e485ae3820e266630c",
+      "source_box": [
+        623,
+        416,
+        779,
+        547
+      ]
+    },
+    "rest/raccoon": {
+      "path": "art/companions/rest/raccoon.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "21a21b18689c1469ff9158f0a5a882e45c0998f04440d339352a0463855babb8",
+      "source_box": [
+        779,
+        416,
+        936,
+        547
+      ]
+    },
+    "rest/owl": {
+      "path": "art/companions/rest/owl.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "79c1cacaed6e21838df846c4a6a825e0dfd4aecc18767d07e428842e80f730b7",
+      "source_box": [
+        936,
+        416,
+        1085,
+        547
+      ]
+    },
+    "rest/hedgehog": {
+      "path": "art/companions/rest/hedgehog.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "87c86be587c341f87d40c9611d5dfa9ddd971a6526dc7efbb4106011130a6506",
+      "source_box": [
+        1085,
+        416,
+        1231,
+        547
+      ]
+    },
+    "rest/turtle": {
+      "path": "art/companions/rest/turtle.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "4cf923d50981e1b9391e6638ff5ee38c0b77e5386161c7d497d0f2f54d5b63ea",
+      "source_box": [
+        1231,
+        416,
+        1390,
+        547
+      ]
+    },
+    "rest/bluebird": {
+      "path": "art/companions/rest/bluebird.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "06a164e0af572c8c27848c57175bca98a31e8c0734f7bc3ca881c1cc657bd7f1",
+      "source_box": [
+        1390,
+        416,
+        1536,
+        547
+      ]
+    },
+    "portrait/squirrel": {
+      "path": "art/companions/portrait/squirrel.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "6760389308a0ee772e4db5cb07013f23a78ee4bca9ada75b7a9652f9bb881ab9",
+      "source_box": [
+        0,
+        550,
+        176,
+        716
+      ]
+    },
+    "portrait/bunny": {
+      "path": "art/companions/portrait/bunny.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "6d2fc6e3bf12dce64643682956efe7dd3393a4f92660b42d79fc27115c4e2c74",
+      "source_box": [
+        176,
+        550,
+        326,
+        716
+      ]
+    },
+    "portrait/chipmunk": {
+      "path": "art/companions/portrait/chipmunk.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "f1abe7b4c8cdb8d156c527ad5069823f04c653d142f120cf75cecd5e64cf0493",
+      "source_box": [
+        326,
+        550,
+        470,
+        716
+      ]
+    },
+    "portrait/fox": {
+      "path": "art/companions/portrait/fox.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "a1ed09cb6c69d2ab7e7bccb7d1126e3dacd19c30ffbe8e0067a6a7c0adb42d9b",
+      "source_box": [
+        470,
+        550,
+        623,
+        716
+      ]
+    },
+    "portrait/fawn": {
+      "path": "art/companions/portrait/fawn.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "257a16372c03624f658e8513eefa11d8662a143143a58de83ac419521265dc57",
+      "source_box": [
+        623,
+        550,
+        779,
+        716
+      ]
+    },
+    "portrait/raccoon": {
+      "path": "art/companions/portrait/raccoon.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "1d9be33ce25b7385e5c526f06b779836fd1abb8e06b8fc4fb2d2091acf22868a",
+      "source_box": [
+        779,
+        550,
+        936,
+        716
+      ]
+    },
+    "portrait/owl": {
+      "path": "art/companions/portrait/owl.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "97428c843b585f72793778f28b8485b416cb16ca9f5c906295d3a76358d9f9c9",
+      "source_box": [
+        936,
+        550,
+        1085,
+        716
+      ]
+    },
+    "portrait/hedgehog": {
+      "path": "art/companions/portrait/hedgehog.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "e64ca07ebd9b86d41c2d4957df4c65d923fbdb9a103cdba52b79c022d146b35f",
+      "source_box": [
+        1085,
+        550,
+        1231,
+        716
+      ]
+    },
+    "portrait/turtle": {
+      "path": "art/companions/portrait/turtle.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "32b23d71b06c6b9c8842e24c48fa26ecca283371309588acb931ec5c6a9c2ee8",
+      "source_box": [
+        1231,
+        550,
+        1390,
+        716
+      ]
+    },
+    "portrait/bluebird": {
+      "path": "art/companions/portrait/bluebird.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "655861bda2aa00cc98f4ab84606345c94e995090c47e546e95977874bc701755",
+      "source_box": [
+        1390,
+        550,
+        1536,
+        716
+      ]
+    },
+    "magic/squirrel": {
+      "path": "art/companions/magic/squirrel.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "ee6ef958977f5af1311aad6dbba696104ba71d79b9f475d9271dc5afb321b0e4",
+      "source_box": [
+        0,
+        713,
+        176,
+        875
+      ]
+    },
+    "magic/bunny": {
+      "path": "art/companions/magic/bunny.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "ab51f6941b2307551f8ac9830fb6363d7e33be231edd3c18e6f36c5d683e86c2",
+      "source_box": [
+        176,
+        713,
+        326,
+        875
+      ]
+    },
+    "magic/chipmunk": {
+      "path": "art/companions/magic/chipmunk.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "482ede6ee82917be0f83a885486b494e2fae04643ca6eabe30e10240e8e6358d",
+      "source_box": [
+        326,
+        713,
+        470,
+        875
+      ]
+    },
+    "magic/fox": {
+      "path": "art/companions/magic/fox.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "b0a7478a8af8f3c71e963f7d4180489f1ffcde66408cbe1951c7b7c616d6661a",
+      "source_box": [
+        470,
+        713,
+        623,
+        875
+      ]
+    },
+    "magic/fawn": {
+      "path": "art/companions/magic/fawn.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "c65aa583ea624571aea2cb4b2487d28bc2398e528ca52adf070686447574a8a6",
+      "source_box": [
+        623,
+        713,
+        779,
+        875
+      ]
+    },
+    "magic/raccoon": {
+      "path": "art/companions/magic/raccoon.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "9b4d4561995b4ec07f67f1f662c049a1a227deb2b8e3638bbf0e7e975f0622d5",
+      "source_box": [
+        779,
+        713,
+        936,
+        875
+      ]
+    },
+    "magic/owl": {
+      "path": "art/companions/magic/owl.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "c10dd7ae130a163956853ea94cfc00a39b63ac07ee668ce2f74db4ce29c2f6e3",
+      "source_box": [
+        936,
+        713,
+        1085,
+        875
+      ]
+    },
+    "magic/hedgehog": {
+      "path": "art/companions/magic/hedgehog.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "707bd768ae3f83007ec8d3223d53b735a2dd0907751180ffe64a75288f02870a",
+      "source_box": [
+        1085,
+        713,
+        1231,
+        875
+      ]
+    },
+    "magic/turtle": {
+      "path": "art/companions/magic/turtle.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "6af23f71e7aae872560c93e1a15f82b4dd8823ab1ff111f85756506c3f790c5d",
+      "source_box": [
+        1231,
+        713,
+        1390,
+        875
+      ]
+    },
+    "magic/bluebird": {
+      "path": "art/companions/magic/bluebird.png",
+      "width": 192,
+      "height": 192,
+      "sha256": "3de0cd14d26b09e6d652b3ef49d61aee6366c09b9e02c13661e7d7e2d22fb539",
+      "source_box": [
+        1390,
+        713,
+        1536,
+        875
+      ]
+    },
+    "ui/feed-gold": {
+      "path": "art/companions/ui/feed-gold.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "40bde324515031190484a31f1bf2ccbcaeb069ff4514952e4cafb3cf5c4c9332",
+      "source_box": [
+        15,
+        870,
+        150,
+        1024
+      ]
+    },
+    "ui/feed-silver": {
+      "path": "art/companions/ui/feed-silver.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "e3815d13d23d00bdb2545a42060847a86bcb11ff79b67efb03d60a15f092e116",
+      "source_box": [
+        151,
+        870,
+        246,
+        1024
+      ]
+    },
+    "ui/feed-bronze": {
+      "path": "art/companions/ui/feed-bronze.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "c94de3d72cf3a2f0ae3260fbb0a7390f2ba0174abf05de58ab4c1f57c3aad6c7",
+      "source_box": [
+        245,
+        870,
+        333,
+        1024
+      ]
+    },
+    "ui/feed-blue": {
+      "path": "art/companions/ui/feed-blue.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "5e5282c46d8c902374c3237a3d02f5492ca49fa160e37fc97c8dcb4efad94ee9",
+      "source_box": [
+        329,
+        870,
+        418,
+        1024
+      ]
+    },
+    "ui/feed-green": {
+      "path": "art/companions/ui/feed-green.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "650fe1b2dc61dd13da1d537088991e694c14b82e5d4828a7dbc52ac5e2df220d",
+      "source_box": [
+        412,
+        870,
+        503,
+        1024
+      ]
+    },
+    "ui/feed-violet": {
+      "path": "art/companions/ui/feed-violet.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "c44801fd6830e24f5303ce4ad0708d0848f95cfa3bd5535d6c472bda7af6b3ed",
+      "source_box": [
+        497,
+        870,
+        586,
+        1024
+      ]
+    },
+    "ui/feed-red": {
+      "path": "art/companions/ui/feed-red.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "ef589ff5a8c6fb6edfc6cf2323a487b9ce962d585a1d84d7c9671e158ae75825",
+      "source_box": [
+        577,
+        870,
+        676,
+        1024
+      ]
+    },
+    "ui/star-gold": {
+      "path": "art/companions/ui/star-gold.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "9e835fd562d32dc8d2bbf38a4254d3dfbbe5f0b3a45bb851633c66e11bb0d83a",
+      "source_box": [
+        715,
+        870,
+        816,
+        1024
+      ]
+    },
+    "ui/star-silver": {
+      "path": "art/companions/ui/star-silver.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "294c226ee612ad8225e78899dd39b99230c443da400cc79a9362d4afa688209f",
+      "source_box": [
+        824,
+        870,
+        923,
+        1024
+      ]
+    },
+    "ui/star-bronze": {
+      "path": "art/companions/ui/star-bronze.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "95240fe75d9c9209ade6d21a614afe098f8ed1000eef0b89416f0dd605030622",
+      "source_box": [
+        922,
+        870,
+        1023,
+        1024
+      ]
+    },
+    "ui/heart": {
+      "path": "art/companions/ui/heart.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "f43ef2541da4d2271249c4ad83ab34e6ffa16d251d02431f36096766ed18b400",
+      "source_box": [
+        1010,
+        870,
+        1120,
+        1024
+      ]
+    },
+    "ui/acorn-gold": {
+      "path": "art/companions/ui/acorn-gold.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "cf8ae36b2e105e2c41d06e1c3cc62117e054c94265bfa4929ee38b7b9a9fad6f",
+      "source_box": [
+        1107,
+        870,
+        1210,
+        1024
+      ]
+    },
+    "ui/acorn-gem": {
+      "path": "art/companions/ui/acorn-gem.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "4d23d72ba2fb0fb34f7371d46dac2df311b942ef88948cd202248809238f7f45",
+      "source_box": [
+        1205,
+        870,
+        1315,
+        1024
+      ]
+    },
+    "ui/acorn-plain": {
+      "path": "art/companions/ui/acorn-plain.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "4c2c11c3c1d375839c43feb1671d4181bbbb8d111a5afabc78c9e6f5efee704c",
+      "source_box": [
+        1312,
+        870,
+        1400,
+        1024
+      ]
+    },
+    "ui/kennel": {
+      "path": "art/companions/ui/kennel.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "370e47bba328bcf032a4c5c9aa7a577ff80ca674fe33af550c261bb63bb92e52",
+      "source_box": [
+        1397,
+        870,
+        1533,
+        1024
+      ]
+    }
+  },
+  "feed_color_order": [
+    "bronze",
+    "silver",
+    "gold",
+    "blue",
+    "green",
+    "violet",
+    "red"
+  ]
+}
