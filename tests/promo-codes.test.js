@@ -34,7 +34,7 @@ async function run(){
  const tamperedPayload={...make({nuts:99999}),nonce:'00112233445566778899aabbccddeeff'};
  const altered='NBR1.'+Buffer.from(JSON.stringify(tamperedPayload)).toString('base64url')+'.'+parts[2];
  assert.equal((await Promo.verify(altered,context)).reason,'bad-signature','Reward cannot be modified without signing key');
- const corrupted=parts[0]+'.'+parts[1]+'.'+parts[2].replace(/.$/,parts[2].endsWith('A')?'B':'A');
+ const corrupted=parts[0]+'.'+parts[1]+'.'+(parts[2][0]==='A'?'B':'A')+parts[2].slice(1);
  assert.equal((await Promo.verify(corrupted,context)).valid,false,'Signature tamper must not pay');
  assert.equal((await Promo.verify(wrap(make({nuts:1},'a'.repeat(32),t+1000,t+2000)),context)).reason,'not-yet-valid');
  assert.equal((await Promo.verify(wrap(make({nuts:1},'b'.repeat(32),0,t)),context)).reason,'expired');
