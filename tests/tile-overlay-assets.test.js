@@ -28,4 +28,10 @@ const game=fs.readFileSync(path.join(root,'web/game.js'),'utf8'),ice=fs.readFile
 assert.ok(game.includes('piece(c.type)'),'ordinary nut must remain underneath');
 assert.ok(!game.includes("c.ice||c.lock||c.chest?'':piece(c.type)"),'blockers must not hide underlying nut');
 assert.ok(ice.includes('art/primary/overlays/frost.png'),'frost animation must use overlay art');
+const css=fs.readFileSync(path.join(root,'web/style.css'),'utf8');
+assert.match(css,/\.cell \.hazard\.tile-status \.status-art,[\s\S]*-webkit-mask-image:radial-gradient\(circle closest-side at center,transparent 0 63%,#000 80%\)/,'Every status sprite must have a transparent center on Android WebView');
+assert.match(css,/mask-image:radial-gradient\(circle closest-side at center,transparent 0 63%,#000 80%\)/,'Firefox must receive the same hollow-center mask');
+assert.match(css,/\.cell \.overlay\.blocker-art\.chain \.blocker-sprite/,'Chained walnuts need a hollow-center mask');
+assert.match(css,/\.cell \.hazard\.tile-status\.frozen \.aura-count/,'Temporary elemental frost must have a separate visible timer');
+assert.ok(!game.includes("if(c.ice||c.lock||c.chest)return '';"),'Status overlays must not remove the underlying piece');
 console.log('PASS: 16 RGBA overlays, hashes, transparency configuration, dynamic bomb crop and live nut visibility');
