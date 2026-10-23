@@ -49,6 +49,11 @@ const butterAt=nature.cells.findIndex((c,i)=>c&&i!==natureAt&&c.type!==null);
 nature.cells[butterAt].jam=1;
 E.booster(nature,'hammer',natureAt);
 assert.ok(nature.elementalRefunds>=1,'Successful Nature wash must refund a move');
+const largeTrial={unlocked:1000,stars:{},coins:4200000,gems:3500000};P.migrate(largeTrial);R.ensure(largeTrial);
+const largeFirst=R.clear(largeTrial,1001,1200);
+assert.ok(largeFirst.first);
+assert.equal(largeTrial.coins,4200000+largeFirst.coins,'Trial reward must preserve high Golden Nut balance');
+assert.equal(largeTrial.gems,3500000+largeFirst.gems,'Trial reward must preserve high Gem balance');
 const save={unlocked:1000,stars:{},coins:0,gems:0};P.migrate(save);R.ensure(save);
 for(let id=1001;id<=1300;id++){
  assert.ok(T.available(save,id),'Trial locked '+id);
