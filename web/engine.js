@@ -544,7 +544,10 @@ function advanceHazards(g,result){
   const summary={removed:0,cracked:0};
   for(const item of auraExpired)resolveTileAura(g,item.at,item.kind,summary);
   const powered=resolveElementals(g,summary),falls=[];
+  const afterClear=snapshot(g).cells;
   if(summary.removed)gravity(g,falls);
+  // Animate the aura trigger BEFORE the ensuing matches and gravity cascades.
+  result.stages.push({kind:'aura',before:auraBefore,afterClear,expired:auraExpired,clear:powered,falls,cells:snapshot(g).cells});
   // Root growth and arcane transmutation can create matches without directly
   // destroying nuts; settle those naturally instead of leaving free triples.
   const ready=matches(g);
@@ -555,7 +558,6 @@ function advanceHazards(g,result){
   }
   result.removed=(result.removed||0)+summary.removed;
   result.cracked=(result.cracked||0)+summary.cracked;
-  result.stages.push({kind:'aura',before:auraBefore,expired:auraExpired,clear:powered,falls,cells:snapshot(g).cells});
   g.won=complete(g);result.won=g.won;
  }
  if(!g.cfg.jam&&!g.cfg.bombs&&!activeTimer&&!auraExpired.length)return result;
