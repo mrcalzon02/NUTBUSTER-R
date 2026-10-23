@@ -1,0 +1,28 @@
+'use strict';
+const assert=require('node:assert/strict'),C=require('../web/companions.js');
+const fresh=()=>({coins:15000,gems:7,stars:{1:3},unlocked:2});
+let save=fresh(),state=C.ensure(save,0);
+assert.equal(C.PETS.length,10);assert.equal(C.FOOD.length,7);
+assert.equal(state.active,'squirrel');assert.equal(state.pets.squirrel.bond,0);
+assert.equal(C.buy(save,'bronze',0,0).valid,false);
+assert.equal(C.buy(save,'bronze',1,0).cost,25);assert.equal(save.coins,14975);
+assert.equal(state.feedStock.bronze,1);
+assert.equal(C.select(save,'owl',0).valid,true);
+let reward=C.feed(save,'bronze',0,()=>.01);
+assert.equal(reward.valid,true);assert.equal(reward.gems,1);assert.equal(save.gems,8);
+assert.equal(state.pets.owl.bond,3);assert.equal(state.pets.owl.hunger,81);
+assert.equal(C.feed(save,'bronze',0,()=>0).reason,'no-feed');
+assert.equal(C.buy(save,'red',2,0).cost,1500);assert.equal(C.feed(save,'red',0,()=>.99).gems,0);
+assert.equal(state.pets.owl.bond,43);assert.equal(state.feedStock.red,1);
+for(let i=0;i<7;i++){C.buy(save,'bronze',1,0);C.feed(save,'bronze',0,()=>.999)}
+assert.equal(state.pity,0,'Guaranteed gem drop after eight consecutive misses');
+assert.ok(state.totalGems>=2);assert.equal(C.rank(95),'Inseparable');
+assert.equal(C.select(save,'nonexistent').reason,'pet');
+let before=save.coins;assert.equal(C.buy(save,'red',1e9).valid,false);assert.equal(save.coins,before);
+const deficit={coins:0,gems:0};assert.equal(C.buy(deficit,'gold').reason,'nuts');
+const odd={coins:1000,gems:20,companions:{active:'__proto__',feedStock:{bronze:Infinity},pets:{owl:{bond:500,lastCareAt:-1}}}};
+const clean=C.ensure(odd,0);assert.equal(clean.active,'squirrel');assert.equal(clean.feedStock.bronze,0);assert.equal(clean.pets.owl.bond,100);
+const time=fresh();C.ensure(time,0);C.ensure(time,5*3600000);assert.equal(time.companions.pets.squirrel.hunger,70);
+assert.equal(C.feed(time,'red',0,()=>NaN).reason,'no-feed');
+assert.equal(C.FOOD.every(f=>C.art('ui','feed-'+f.id).endsWith('.png')),true);
+console.log('PASS companion pets, all seven feed tiers, Golden Nut spending, affinity, hunger, gems, pity, persistence, validation');
