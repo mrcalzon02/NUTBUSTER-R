@@ -18,7 +18,7 @@ concurrency:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,42 +27,22 @@ jobs:
       - name: Verify engine, interface, media, and release contracts
         run: |
           set -euo pipefail
-          node tests/engine.test.js
-          node tests/booster-objectives.test.js
-          node tests/level-design.test.js
-          node tests/special-combos.test.js
-          node tests/hazards.test.js
-          node tests/board-features.test.js
-          node tests/wind.test.js
-          node tests/difficulty-ramp.test.js
-          node tools/difficulty-audit.js > "$RUNNER_TEMP/nutbuster-difficulty-audit.json"
-          node tools/greedy-playtest.js > "$RUNNER_TEMP/nutbuster-greedy-playtest.json"
-          node tests/progression.test.js
-          node tests/ui-smoke.test.js
-          node tests/audio.test.js
-          node tests/package.test.js
-          node tests/update-contract.test.js
-          node tests/android-emulator-smoke-contract.test.js
-          node tests/authored-art-compact-ui.test.js
-          node tests/gameplay-layout.test.js
-          node tests/irregular-board-refill.test.js
-          python3 tests/test_update_manifest.py
-          node tests/campaign-maps.test.js
-          node tests/asset-catalog.test.js
-          node tests/ice-art-regression.test.js
-          node tests/ice-animation.test.js
-          node tests/gravity-hold.test.js
-          node tests/fx.test.js
-          node tests/campaign-ui.test.js
-          node tests/difficulty-pressure.test.js
-          node tests/daily-moves-elemental-rewards.test.js
-          node tests/elemental-trials-and-daily-integration.test.js
-          node tests/whole-piece-blockers.test.js
-          node tests/nut-codex-and-mechanics.test.js
-          node tests/nutdex-drawer.test.js
-          node tests/tile-overlay-art.test.js
-          node tests/tile-overlay-assets.test.js
-          node tests/nutravaganza.test.js
+          failures=()
+          # Run every checked-in JavaScript test. A failure must not hide later
+          # regressions, but the aggregate step still fails the release gate.
+          for suite in tests/*.test.js; do
+            echo "::group::$suite"
+            if ! node "$suite"; then failures+=("$suite"); fi
+            echo "::endgroup::"
+          done
+          if ! python3 tests/test_update_manifest.py; then failures+=("tests/test_update_manifest.py"); fi
+          if ! node tools/difficulty-audit.js > "$RUNNER_TEMP/nutbuster-difficulty-audit.json"; then failures+=("tools/difficulty-audit.js"); fi
+          if ! node tools/greedy-playtest.js > "$RUNNER_TEMP/nutbuster-greedy-playtest.json"; then failures+=("tools/greedy-playtest.js"); fi
+          if (( ${#failures[@]} > 0 )); then
+            printf '::error::Release blocked by %s failed checks: %s\\n' "${#failures[@]}" "${failures[*]}"
+            exit 1
+          fi
+          echo "All JavaScript suites, manifest checks, and difficulty audits passed."
 
       - name: Retain structural and automated player-proxy reports
         if: always()

@@ -1,10 +1,10 @@
 const assert=require('node:assert/strict');
 const E=require('../web/engine.js');
-assert.equal(E.BOOSTERS.length,10,'Ten distinct working inventory powers required');
+assert.equal(E.BOOSTERS.length,16,'Sixteen distinct working inventory powers required');
 assert.equal(Object.keys(E.BOOSTER_META).length,E.BOOSTERS.length);
 for(const name of E.BOOSTERS)assert.ok(E.BOOSTER_META[name]?.tip,'Power must explain tactical purpose '+name);
 const objectiveTypes=new Set(),startingCounts=new Set();
-for(let level=1;level<=500;level++){
+for(let level=1;level<=1000;level++){
  const g=E.create(level,level*101+9);
  const specs=E.objectiveState(g);
  assert.ok(specs.length>=1&&specs.length<=2);
@@ -50,4 +50,4 @@ for(const type of E.BOOSTERS){
  const rainbow=E.expandSpecials(g,new Set([a]));
  assert.ok([...rainbow].every(i=>g.cells[i].type===g.cells[a].type));
 }
-console.log('PASS: 500 objective configurations, '+[...objectiveTypes].join('/')+', 10 working distinct boosters, board geometry and four match-created specials.');
+console.log('PASS: 1000 objective configurations, '+[...objectiveTypes].join('/')+', 16 working distinct boosters, board geometry and four match-created specials.');
