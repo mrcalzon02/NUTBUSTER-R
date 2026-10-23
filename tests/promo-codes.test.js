@@ -55,7 +55,7 @@ async function run(){
  assert.equal(s.hearts,3);
  s.hearts=5;
  assert.equal((await Promo.redeem(s,wrap(make({hearts:1},'f'.repeat(32))),context)).reason,'hearts-full');
- assert.equal(Promo.ledger(s)['f'.repeat(32)],undefined,'Do not consume worthless full-heart voucher');
+ assert.equal(s.promoRedemptions['f'.repeat(32)],undefined,'Do not consume worthless full-heart voucher');
  console.log('PASS: real P-256 signing/WebCrypto verification, tamper refusal, constrained gifts, 24h VIP credit, save ledger replay protection and offline limitation');
 }
 run().catch(e=>{console.error(e);process.exitCode=1});
