@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),E=require('../web/engine.js'),P=requi
 const js=require('node:fs').readFileSync('web/game.js','utf8');
 const classes=()=>{let names=new Set();return {add:x=>names.add(x),remove:x=>names.delete(x),contains:x=>names.has(x),toggle:(x,v)=>v?names.add(x):names.delete(x)};};
 let html='',renders=0,clickHandler,boardCells=[];
-const refs={wallet:{textContent:''},gems:{textContent:''},toast:{textContent:'',classList:classes()},
+const refs={wallet:{textContent:''},gems:{textContent:''},'play-wallet':{textContent:''},'play-gems':{textContent:''},toast:{textContent:'',classList:classes()},
  score:{textContent:''},moves:{textContent:''},progress:{style:{}}};
 const board={getBoundingClientRect:()=>({top:0,left:0,width:450,height:450}),appendChild:()=>{},
  querySelector(s){const i=Number(s.match(/data-cell="(\d+)"/)?.[1]);const el=boardCells[i];return s.includes('nut-visual')?el?.visual:el||null;},
@@ -19,7 +19,7 @@ const screen={classList:classes(),addEventListener:(k,f)=>{if(k==='click')clickH
 const currencyLinks=Array.from({length:2},()=>({dataset:{nav:'shop'},addEventListener(type,fn){if(type==='click')this.tap=fn;}}));
 const document={getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:selector=>selector==='[data-nav]'?currencyLinks:[],createElement:()=>({style:{},innerHTML:'',remove(){}})};
 const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutBenefits:require('../web/benefits.js'),NutPurchases:require('../web/purchase-disclosures.js'),NutProgress:P,NutHomestead:H,NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:M,addEventListener:()=>{},matchMedia:()=>({matches:true})};
-const localStorage={getItem:()=>null,setItem:()=>{}};
+const saveStore={};const localStorage={getItem:k=>saveStore[k]??null,setItem:(k,v)=>{saveStore[k]=v;}};
 require('node:vm').runInNewContext(js,{window,document,localStorage,setTimeout:fn=>{if(typeof fn==='function')Promise.resolve().then(fn);return 0;},clearTimeout:()=>{},requestAnimationFrame:f=>f(),console});
 const app=window.NutbusterApp, state=app.getState;
 const click=data=>clickHandler({target:{dataset:data,closest:()=>({dataset:data})}});
@@ -46,11 +46,17 @@ async function run(){
  assert.equal(app.getSave().coins,coins+50000);assert.equal(state().page,'shop');
  app.start(1);attach();assert.ok(html.includes('--cols:4'));
  let g=state().game;g.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
- let swap=findSwap(g,false),before=renders,moves=g.moves;
+ let swap=findSwap(g,false),before=renders,moves=g.moves,startingCoins=app.getSave().coins;
  click({cell:String(swap[0])});assert.equal(renders,before);
  click({cell:String(swap[1])});await settle();assert.equal(g.moves,moves-1);assert.equal(renders,before);
+ assert.equal(app.getSave().coins,startingCoins,'A move removing no nuts does not mint currency');
  swap=findSwap(g,true);const score=g.score;click({cell:String(swap[0])});click({cell:String(swap[1])});
  await settle();assert.ok(g.score>score);assert.equal(renders,before);
+ const removed=g.history.at(-1).removed;assert.ok(removed>0,'Matching move destroys nuts');
+ assert.equal(app.getSave().coins,startingCoins+removed,'Destroyed nuts credit the spendable wallet');
+ assert.equal(refs.wallet.textContent,(startingCoins+removed).toLocaleString(),'Main balance updates without rebuilding the board');
+ assert.equal(refs['play-wallet'].textContent,(startingCoins+removed).toLocaleString(),'In-level balance updates during play');
+ assert.equal(JSON.parse(saveStore['nutbuster.v1']).coins,startingCoins+removed,'Destroyed-nut currency persists on device');
  app.start(1);attach();g=state().game;app.getSave().dailyMoves.remaining=1;g.moves=1;swap=findSwap(g,false);
  click({cell:String(swap[0])});click({cell:String(swap[1])});await settle();
  assert.equal(state().page,'outcome');assert.ok(html.includes('OUT OF MOVES!'));
@@ -60,6 +66,7 @@ async function run(){
  app.start(1);attach();g=state().game;g.score=g.cfg.goal-1;swap=findSwap(g,true);
  click({cell:String(swap[0])});click({cell:String(swap[1])});await settle();
  assert.equal(state().page,'outcome');assert.ok(html.includes('LEVEL COMPLETE!'));
+ assert.equal(app.getSave().coins,startingCoins+removed+g.history.at(-1).removed+500,'Winning still credits the fixed 500 Golden Nut bonus on top of destroyed nuts');
  console.log('PASS UI: staged zero-dollar checkout and grant, no render-on-tap, move/cascade, loss +5 continuation, victory.');
 }
 run().catch(err=>{console.error(err);process.exitCode=1});
