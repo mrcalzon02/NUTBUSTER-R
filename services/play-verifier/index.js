@@ -4,6 +4,8 @@ const http=require('node:http');
 const {GoogleAuth}=require('google-auth-library');
 const {Firestore,FieldValue}=require('@google-cloud/firestore');
 const {PACKAGE,validateRequest,validateIntegrity,validateGooglePurchase,validateOwner}=require('./core');
+const {accountRequest,pseudonym,issueSession,verifySession}=require('./account');
+const {exchangePlayerId}=require('./google-account');
 const db=new Firestore();
 const publisherAuth=new GoogleAuth({scopes:['https://www.googleapis.com/auth/androidpublisher']});
 const integrityAuth=new GoogleAuth({scopes:['https://www.googleapis.com/auth/playintegrity']});
@@ -30,6 +32,7 @@ async function reserve(req,purchase){
   const prior=await tx.get(doc);
   if(prior.exists)return validateOwner(prior.data(),req);
   tx.create(doc,{productId:req.productId,installHash:req.installHash,
+   accountHash:req.accountHash||null,
    purchasedAt:purchase.purchaseCompletionTime,createdAt:FieldValue.serverTimestamp(),revoked:false});
   return true;
  });
@@ -53,23 +56,40 @@ async function readJson(req){
  catch(_){return null;}
 }
 async function handle(req,res,deps={}){
- if(req.method!=='POST'||req.url!=='/verify'){respond(res,404,{error:'not-found'});return;}
+ if(req.method!=='POST'||!['/verify','/account/link'].includes(req.url)){
+  respond(res,404,{error:'not-found'});return;
+ }
  if(!configured()){respond(res,503,{error:'verification-not-configured'});return;}
- const body=await readJson(req),purchaseReq=validateRequest(body);
- if(!purchaseReq){respond(res,400,{error:'invalid-request'});return;}
+ const body=await readJson(req),isLink=req.url==='/account/link';
+ const validated=isLink?accountRequest(body):validateRequest(body);
+ if(!validated){respond(res,400,{error:'invalid-request'});return;}
  const integrity=deps.decodeIntegrity||decodeIntegrity;
- const google=deps.verifyWithGoogle||verifyWithGoogle;
- const ledger=deps.reserve||reserve;
  try{
-  const verdict=await integrity(purchaseReq);
-  if(!validateIntegrity(verdict,purchaseReq,appCert)){respond(res,403,{error:'app-attestation-rejected'});return;}
-  const purchase=await google(purchaseReq);
-  if(!validateGooglePurchase(purchase,purchaseReq)){respond(res,403,{error:'purchase-rejected'});return;}
-  if(!await ledger(purchaseReq,purchase)){respond(res,409,{error:'purchase-owner-conflict'});return;}
-  respond(res,200,{verified:true,productId:purchaseReq.productId,receiptId:purchaseReq.receiptId});
+  const verdict=await integrity(validated);
+  if(!validateIntegrity(verdict,validated,appCert)){
+   respond(res,403,{error:'app-attestation-rejected'});return;
+  }
+  if(isLink){
+   const secret=process.env.PGS_ACCOUNT_SESSION_SECRET||'';
+   if(secret.length<32){respond(res,503,{error:'account-link-unconfigured'});return;}
+   const playerId=await (deps.exchangePlayerId||exchangePlayerId)(validated.authCode);
+   const accountHash=pseudonym(secret,playerId);
+   respond(res,200,{verified:true,accountSession:issueSession(secret,accountHash),expiresInSeconds:900});
+   return;
+  }
+  if(validated.accountSession){
+   validated.accountHash=verifySession(process.env.PGS_ACCOUNT_SESSION_SECRET||'',validated.accountSession);
+   if(!validated.accountHash){respond(res,401,{error:'account-session-invalid'});return;}
+  }
+  const google=deps.verifyWithGoogle||verifyWithGoogle;
+  const ledger=deps.reserve||reserve;
+  const purchase=await google(validated);
+  if(!validateGooglePurchase(purchase,validated)){respond(res,403,{error:'purchase-rejected'});return;}
+  if(!await ledger(validated,purchase)){respond(res,409,{error:'purchase-owner-conflict'});return;}
+  respond(res,200,{verified:true,productId:validated.productId,receiptId:validated.receiptId});
  }catch(e){
-  // NEVER include exception, request payload, purchase token, code or account ID in logs.
-  console.error('Play financial verification request failed');
+  // Never expose Google response, PGS authorization code or purchase token in logs.
+  console.error('Play sensitive verification request failed');
   respond(res,503,{error:'verification-unavailable'});
  }
 }

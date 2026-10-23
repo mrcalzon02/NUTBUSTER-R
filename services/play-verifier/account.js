@@ -5,8 +5,8 @@ const SESSION_SECONDS=900, VERSION='nutbuster-play-account-v1';
 function accountRequest(body){
  if(!body||body.packageName!==PACKAGE||
   typeof body.authCode!=='string'||body.authCode.length<16||body.authCode.length>2048||
-  typeof body.installId!=='string'||!/^[0-9a-f-]{36}$/.test(body.installId)||
-  typeof body.attemptId!=='string'||!/^[0-9a-f-]{36}$/.test(body.attemptId)||
+  typeof body.installId!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(body.installId)||
+  typeof body.attemptId!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(body.attemptId)||
   typeof body.integrityToken!=='string'||body.integrityToken.length<40||body.integrityToken.length>8192)return null;
  return {packageName:PACKAGE,authCode:body.authCode,installId:body.installId,attemptId:body.attemptId,
   integrityToken:body.integrityToken,

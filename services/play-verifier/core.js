@@ -15,10 +15,13 @@ function validateRequest(body){
  if(!body||body.packageName!==PACKAGE||!Object.hasOwn(PRODUCTS,body.productId)||
     typeof body.purchaseToken!=='string'|| !/^[a-zA-Z0-9._:-]{20,4096}$/.test(body.purchaseToken)||
     !validUuid(body.installId)||!validUuid(body.attemptId)||
-    typeof body.integrityToken!=='string'||body.integrityToken.length<40||body.integrityToken.length>8192)
+    typeof body.integrityToken!=='string'||body.integrityToken.length<40||body.integrityToken.length>8192||
+    (body.accountSession!==undefined &&
+      (typeof body.accountSession!=='string'||body.accountSession.length>1024)))
    return null;
  return {packageName:PACKAGE,productId:body.productId,purchaseToken:body.purchaseToken,
-  integrityToken:body.integrityToken,installHash:sha256(body.installId),
+  integrityToken:body.integrityToken,accountSession:body.accountSession||null,
+  installHash:sha256(body.installId),
   attemptId:body.attemptId,receiptId:sha256(body.purchaseToken),
   requestHash:requestHash(PACKAGE,body.productId,body.purchaseToken,body.installId,body.attemptId)};
 }
@@ -57,6 +60,7 @@ function validateGooglePurchase(verified,request){
 }
 function validateOwner(row,request){
  return !!row && row.productId===request.productId && row.revoked!==true &&
+ (!row.accountHash || row.accountHash===request.accountHash) &&
  (PRODUCTS[request.productId]==='durable'||row.installHash===request.installHash);
 }
 module.exports={PACKAGE,PRODUCTS,VERSION,MAX_AGE_MS,sha256,requestHash,validateRequest,
