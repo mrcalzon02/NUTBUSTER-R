@@ -36,6 +36,28 @@ function describe(action,data,{save,P,E,F,H,state}){
    'Bait won before its shop tier is unlocked remains stocked until usable.',
    'In-game currency only; no actual payment.'],odds:info.odds.map(o=>({name:o.label,probability:o.percent/100}))};
  }
+ if(action==='shop-currency-buy'){
+  const offer=P.SHOP_EXCHANGES[data.offer];
+  if(!offer)return null;
+  const current=offer.kind==='hearts'?Math.min(5,Math.max(0,Number(save.hearts)||0)):0;
+  const quantity=offer.kind==='hearts'?Math.min(offer.amount,5-current):offer.amount;
+  return {name:offer.name,lines:[
+   'Pay exactly '+money(offer.cost)+' '+(offer.currency==='gems'?'Gems':'Golden Nuts')+'.',
+   offer.kind==='hearts'?'Receive '+quantity+' life'+(quantity===1?'':'s')+' now; five is the maximum. Current lives: '+current+'/5.':'Receive exactly '+quantity+' additional daily-wallet moves, immediately available in the current puzzle.',
+   'Current '+(offer.currency==='gems'?'Gems':'Golden Nuts')+': '+money(save[offer.currency])+'.',
+   'No real-money transaction, no cooldown, no chance involved. Balance and capacity checked again when confirmed.'
+  ]};
+ }
+ if(action==='booster-gems-buy'){
+  const id=data.booster,price=P.GEM_BOOSTER_PRICES[id],meta=E.BOOSTER_META[id];
+  if(!price||!meta)return null;
+  return {name:'Gem Booster Pack · '+meta.label,lines:[
+   'Pay exactly '+money(price)+' Gems.',
+   'Receive '+P.GEM_BOOSTER_QUANTITY+' '+meta.label+' boosters. Guaranteed.',
+   'Requires campaign level '+P.LEVEL_BY_TOOL[id]+' unlocked.',
+   'Golden Nuts and Wharf Dollars unchanged. No actual payment.'
+  ]};
+ }
  if(action==='booster-buy'){
   const id=data.booster,price=P.BOOSTER_PRICES[id],meta=E.BOOSTER_META[id];
   if(!meta||!price)return null;

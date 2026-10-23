@@ -101,6 +101,52 @@ const BOOSTER_PRICES=Object.freeze({
  cross:1200,color:1450,drill:1800,unlock:2200,
  quake:2600,'triple-row':3000,'triple-column':3000,starburst:3500,spectrum:4200,frostbreaker:4400
 });
+
+/* Real save-currency exchanges, separate from the fictional cash checkout.
+   Golden Nuts give small quantities; Gems buy much larger guaranteed packs. */
+const SHOP_EXCHANGES=Object.freeze({
+ 'heart-nuts':Object.freeze({name:'One Extra Life',kind:'hearts',currency:'coins',cost:950,amount:1,art:'art/additions/economy/energy-heart.png'}),
+ 'heart-gems':Object.freeze({name:'Full Life Refill',kind:'hearts',currency:'gems',cost:12,amount:5,art:'art/additions/economy/energy-heart.png'}),
+ 'move-nuts':Object.freeze({name:'Two Extra Moves',kind:'moves',currency:'coins',cost:1200,amount:2,art:'art/additions/economy/hourglass.png'}),
+ 'move-gems':Object.freeze({name:'Twelve Extra Moves',kind:'moves',currency:'gems',cost:12,amount:12,art:'art/additions/economy/hourglass.png'})
+});
+const GEM_BOOSTER_QUANTITY=4;
+const GEM_BOOSTER_PRICES=Object.freeze(Object.fromEntries(Object.entries(BOOSTER_PRICES).map(([id,price])=>[id,Math.max(8,Math.ceil(price/150))])));
+function spendableBalance(save,currency){
+ const n=Number(save?.[currency]);
+ return Number.isFinite(n)&&n>=0?Math.min(Number.MAX_SAFE_INTEGER,Math.trunc(n)):0;
+}
+function buyCurrencyOffer(save,id,D,at=Date.now(),cap=36){
+ const offer=SHOP_EXCHANGES[id];if(!offer)return {valid:false,reason:'unknown'};
+ const current=offer.kind==='hearts'?Math.max(0,Math.min(5,Math.trunc(Number(save.hearts)||0))):0;
+ const amount=offer.kind==='hearts'?Math.min(offer.amount,5-current):offer.amount;
+ if(amount<1)return {valid:false,reason:'full'};
+ // Check the wallet and its capacity before touching either currency balance.
+ if(offer.kind==='moves'){
+  if(!D||typeof D.ensure!=='function'||typeof D.topUp!=='function')return {valid:false,reason:'wallet'};
+  const remaining=D.ensure(save,at,cap).remaining;
+  if(remaining>999999-amount)return {valid:false,reason:'limit'};
+ }
+ const balance=spendableBalance(save,offer.currency);
+ if(balance<offer.cost)return {valid:false,reason:'funds',currency:offer.currency,short:offer.cost-balance};
+ if(offer.kind==='hearts')save.hearts=current+amount;
+ else D.topUp(save,amount,at,cap);
+ save[offer.currency]=balance-offer.cost;
+ return {valid:true,id,currency:offer.currency,cost:offer.cost,kind:offer.kind,granted:amount,remaining:offer.kind==='hearts'?save.hearts:save.dailyMoves.remaining};
+}
+function buyGemBooster(save,id){
+ const price=GEM_BOOSTER_PRICES[id];
+ if(!price)return {valid:false,reason:'unknown'};
+ if(!unlocked(save,id))return {valid:false,reason:'locked'};
+ const stock=count(save,id);
+ if(stock>999999-GEM_BOOSTER_QUANTITY)return {valid:false,reason:'limit'};
+ const gems=spendableBalance(save,'gems');
+ if(gems<price)return {valid:false,reason:'funds',currency:'gems',short:price-gems};
+ if(!save.boosterInventory||typeof save.boosterInventory!=='object'||Array.isArray(save.boosterInventory))save.boosterInventory={};
+ save.boosterInventory[id]=stock+GEM_BOOSTER_QUANTITY;
+ save.gems=gems-price;
+ return {valid:true,id,currency:'gems',cost:price,granted:GEM_BOOSTER_QUANTITY,owned:save.boosterInventory[id]};
+}
 function buyBooster(save,id){
  const cost=BOOSTER_PRICES[id];
  if(!cost)return {valid:false,reason:'unknown'};
@@ -193,7 +239,7 @@ function claimChallenge(save,index){
  grant(save,reward.contents);
  return {valid:true,contents:reward.contents};
 }
-const api={LADDER,CHALLENGE_STEPS,BUNDLES,LEVEL_BY_TOOL,HOLD_ITEMS,BOOSTER_ART,BOOSTER_BADGES,BOOSTER_PRICES,buyBooster,migrate,unlocked,available,nextUnlock,count,spend,holdCount,buyHold,spendHold,actualPack,grant,packText,kindForLevel,firstClear,challengeProgress,challengeRewards,claimChallenge};
+const api={LADDER,CHALLENGE_STEPS,BUNDLES,LEVEL_BY_TOOL,HOLD_ITEMS,BOOSTER_ART,BOOSTER_BADGES,BOOSTER_PRICES,SHOP_EXCHANGES,GEM_BOOSTER_QUANTITY,GEM_BOOSTER_PRICES,buyCurrencyOffer,buyGemBooster,buyBooster,migrate,unlocked,available,nextUnlock,count,spend,holdCount,buyHold,spendHold,actualPack,grant,packText,kindForLevel,firstClear,challengeProgress,challengeRewards,claimChallenge};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutProgress=api;
 })(typeof window!=='undefined'?window:globalThis);
