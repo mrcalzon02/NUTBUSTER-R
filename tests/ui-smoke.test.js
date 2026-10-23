@@ -11,6 +11,9 @@ vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../web/g
 assert.match(html,/WELCOME TO NUTBUSTER/);window.NutbusterApp.start(1);
 assert.match(html,/LEVEL 1/);assert.equal((html.match(/data-cell=/g)||[]).length,E.makeLevel(1).mask.filter(Boolean).length,'Grid must track real level geometry');
 window.NutbusterApp.nav('shop');assert.match(html,/GIGANTIC NUT PACKAGE/);
+for(const price of ['$0.99','$1.99','$2.99','$3.99','$4.99','$9.99'])assert.ok(html.includes(price),'Shop missing realistic price '+price);
+assert.match(html,/ABSOLUTELY NECESSARY VIP · LIFETIME/);
+assert.doesNotMatch(html,/\$199\.99|\$499\.99|\/mo/,'Old predatory pricing must not return');
 const button={dataset:{action:'claim',item:'0'}};
 handlers.click({target:{closest:()=>button}});
 assert.equal(window.NutbusterApp.getSave().coins,250,'No currency awarded until checkout completion');
@@ -25,4 +28,16 @@ window.NutbusterApp.nav('rewards');assert.match(html,/I AM MY OWN FRIEND/);
 handlers.click({target:{closest:()=>({dataset:{action:'friend'}})}});
 assert.equal(window.NutbusterApp.getSave().coins,51250);
 window.NutbusterApp.nav('campaign');assert.equal((html.match(/class="map-node /g)||[]).length,100,'Return from a played level opens its chapter map');
-console.log('PASS: home, level board, shop claim, free friend reward, level map menu smoke tests');
+// Free gameplay conveniences must not invite ad-watching or show a crossed-out fake fee.
+handlers.click({target:{closest:()=>({dataset:{action:'refill'}})}});
+assert.match(html,/Advertised price<\/span><strong>FREE/);
+assert.doesNotMatch(html,/data-action="ad-discount"/);
+handlers.click({target:{closest:()=>({dataset:{action:'checkout-review'}})}});
+assert.match(html,/Always-free gameplay/);
+assert.doesNotMatch(html,/Mandatory Nutbuster generosity adjustment/);
+assert.match(html,/TOTAL DUE/);assert.match(html,/\$0\.00/);
+handlers.click({target:{closest:()=>({dataset:{action:'checkout-back'}})}});
+handlers.click({target:{closest:()=>({dataset:{action:'checkout-back'}})}});
+handlers.click({target:{closest:()=>({dataset:{action:'vip'}})}});
+assert.match(html,/LIFETIME/);assert.match(html,/\$2\.99/);assert.doesNotMatch(html,/\/mo/);
+console.log('PASS: home, level board, honest shop pricing, free continues, one-time VIP, free checkout, map navigation');
