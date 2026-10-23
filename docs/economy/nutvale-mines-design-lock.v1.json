@@ -1,0 +1,331 @@
+{
+  "schema": "nutvale-mines/v1.0-design-lock",
+  "status": "DESIGN_LOCKED_NOT_IMPLEMENTED",
+  "requestedGame": "NUTBUSTER / Nutravaganza",
+  "approval": "OWNER_APPROVAL_FOR_CHANGE",
+  "rules": {
+    "unlock": "First-campaign level 500 completed",
+    "secondCampaignIds": [
+      1001,
+      1500
+    ],
+    "elementalTrialReservedIds": [
+      501,
+      650
+    ],
+    "writEntryCostPerAttempt": 1,
+    "writPriceNutvaleDollars": 180,
+    "unlimitedWritPurchasesSubjectToWallet": true,
+    "independentCurrencies": [
+      "Golden Nuts",
+      "Gems",
+      "Nutvale Dollars",
+      "Ore",
+      "Metal",
+      "Goods",
+      "Prospector's Writs"
+    ],
+    "noRealMoneyGate": true,
+    "noPaidMineReroll": true,
+    "boardPersistentAcrossVisits": true,
+    "dailyReset": "local calendar day, monotonic, no rewards on clock rollback",
+    "miningTapAction": "one strike spent per valid tap on unbroken stone; no match-three swaps",
+    "rockHardness": {
+      "one": 55,
+      "two": 35,
+      "three": 10
+    },
+    "rockContents": "deterministic per site seed and stable x,y tile key; hidden until fully cracked",
+    "orePayout": "only on completed excavation, into cart if room; otherwise remains as unclaimed ore on exposed tile",
+    "siteRegeneration": "only when every current tile excavated and all exposed ore claimed; never on navigation/reload",
+    "gloveSurvey": "free of strike cost; once per new unscanned tile; shows ore yes/no only, not class or precise yield",
+    "cartUnload": "free action, transfers cart ore to persistent refinery ore stock; no loss or sell-through",
+    "refineryFlow": "cart ore -> stored ore -> refined metal -> manufactured goods -> Nutvale Dollars -> Writs",
+    "mineMapUpgrade": "adds row and column; keeps previous coordinate identities and excavation state; no new site roll",
+    "toolUpgradeEffect": "pickaxe +5 max daily strikes; gloves +1 daily survey; same-day upgrade grants only newly added capacity",
+    "mineBoardUsesOwnTapLayer": true,
+    "currencyStorage": "saved.nutravaganza.dollars is sole Nutvale Dollars balance; mine inventories nested in saved.nutravaganzaExpedition",
+    "expeditionLedger": "saved.nutravaganzaExpedition.stars and unlocked, never saved.stars or saved.unlocked",
+    "noStarterSquirrelAvatar": true
+  },
+  "rocks": [
+    {
+      "id": "barren",
+      "name": "Empty stone",
+      "ore": 0,
+      "icon": "🪨"
+    },
+    {
+      "id": "ordinary",
+      "name": "Ordinary seam",
+      "ore": 1,
+      "icon": "🟤"
+    },
+    {
+      "id": "rich",
+      "name": "Rich vein",
+      "ore": 2,
+      "icon": "🟠"
+    },
+    {
+      "id": "crystal",
+      "name": "Crystal pocket",
+      "ore": 4,
+      "icon": "💎"
+    }
+  ],
+  "tiers": [
+    {
+      "tier": 0,
+      "size": 4,
+      "strikes": 12,
+      "scans": 0,
+      "cart": 10,
+      "oreOdds": [
+        45,
+        40,
+        12,
+        3
+      ],
+      "orePerMetal": 4,
+      "metalPerGood": 2,
+      "sale": 300
+    },
+    {
+      "tier": 1,
+      "size": 5,
+      "strikes": 17,
+      "scans": 1,
+      "cart": 20,
+      "oreOdds": [
+        50,
+        35,
+        11,
+        4
+      ],
+      "orePerMetal": 4,
+      "metalPerGood": 2,
+      "sale": 340
+    },
+    {
+      "tier": 2,
+      "size": 6,
+      "strikes": 22,
+      "scans": 2,
+      "cart": 30,
+      "oreOdds": [
+        55,
+        29,
+        11,
+        5
+      ],
+      "orePerMetal": 3,
+      "metalPerGood": 2,
+      "sale": 380
+    },
+    {
+      "tier": 3,
+      "size": 7,
+      "strikes": 27,
+      "scans": 3,
+      "cart": 45,
+      "oreOdds": [
+        60,
+        25,
+        9,
+        6
+      ],
+      "orePerMetal": 3,
+      "metalPerGood": 2,
+      "sale": 430
+    },
+    {
+      "tier": 4,
+      "size": 8,
+      "strikes": 32,
+      "scans": 4,
+      "cart": 60,
+      "oreOdds": [
+        65,
+        20,
+        9,
+        6
+      ],
+      "orePerMetal": 2,
+      "metalPerGood": 2,
+      "sale": 480
+    },
+    {
+      "tier": 5,
+      "size": 9,
+      "strikes": 37,
+      "scans": 5,
+      "cart": 80,
+      "oreOdds": [
+        70,
+        16,
+        8,
+        6
+      ],
+      "orePerMetal": 2,
+      "metalPerGood": 2,
+      "sale": 550
+    }
+  ],
+  "upgradePricesNutvaleDollars": {
+    "mineMap": [
+      0,
+      250,
+      600,
+      1150,
+      1900,
+      3000
+    ],
+    "pickaxe": [
+      0,
+      160,
+      380,
+      720,
+      1200,
+      1900
+    ],
+    "gloves": [
+      0,
+      140,
+      340,
+      650,
+      1100,
+      1750
+    ],
+    "cart": [
+      0,
+      120,
+      300,
+      580,
+      960,
+      1540
+    ],
+    "refinery": [
+      0,
+      300,
+      700,
+      1300,
+      2200,
+      3500
+    ]
+  },
+  "refinery": {
+    "defaultOrePerMetal": 4,
+    "defaultMetalPerGood": 2,
+    "recipeBatchesPositiveIntegers": true,
+    "goodsSaleCreditWallet": "saved.nutravaganza.dollars",
+    "refinementNoCurrencyCost": true
+  },
+  "campaign": [
+    {
+      "region": 1,
+      "idStart": 1001,
+      "idEnd": 1100,
+      "displayStart": 1,
+      "displayEnd": 100,
+      "name": "The Buried Boardwalk"
+    },
+    {
+      "region": 2,
+      "idStart": 1101,
+      "idEnd": 1200,
+      "displayStart": 101,
+      "displayEnd": 200,
+      "name": "The Gilded Underroots"
+    },
+    {
+      "region": 3,
+      "idStart": 1201,
+      "idEnd": 1300,
+      "displayStart": 201,
+      "displayEnd": 300,
+      "name": "Prismatic Hollow"
+    },
+    {
+      "region": 4,
+      "idStart": 1301,
+      "idEnd": 1400,
+      "displayStart": 301,
+      "displayEnd": 400,
+      "name": "The Fossil Treasury"
+    },
+    {
+      "region": 5,
+      "idStart": 1401,
+      "idEnd": 1500,
+      "displayStart": 401,
+      "displayEnd": 500,
+      "name": "The Crown Below"
+    }
+  ],
+  "savedState": {
+    "namespace": "nutravaganzaExpedition",
+    "version": 2,
+    "fields": [
+      "schemaVersion",
+      "mineTier",
+      "pickTier",
+      "gloveTier",
+      "cartTier",
+      "refineryTier",
+      "seed",
+      "siteNumber",
+      "tileHitsByXY",
+      "tileScansByXY",
+      "exposedOreByXY",
+      "cartOre",
+      "ore",
+      "metal",
+      "goods",
+      "writs",
+      "day",
+      "strikesLeft",
+      "scansLeft",
+      "stars",
+      "unlocked",
+      "completed"
+    ],
+    "migration": [
+      "Preserve existing ore, writs, mineTier, seed, stars, unlocked and day values",
+      "Convert old length-16 site array to stable x,y excavation keys",
+      "Already excavated legacy rocks never pay their ore a second time",
+      "Map old picks to remaining strikes without a new same-day refill",
+      "Remove legacy direct ore-to-writ refine path; Writ purchases spend N$ only",
+      "Atomic transactions prevent duplicated ore, metal, goods, N$ or Writs"
+    ]
+  },
+  "ui": {
+    "entry": "Homestead / Nutvale hub -> Nutvale Mines -> Dig Board / Workshop / Refinery / Writ Office",
+    "board": "responsive square 4x4 to 9x9 with familiar large tappable tiles, top mini-wallet, strike and scan modes; no large empty headers",
+    "feedback": "shake/crack per strike, reveal on final strike, ore flight to cart; show barren rock honestly",
+    "shop": "single compact upgrade list, visible next-tier cost and exact effect before confirmation",
+    "odds": "exact tier-specific rock outcome percentage, hardness chances, scan probability unaffected by purchases",
+    "accessibility": "44px touch targets where feasible, text labels and distinct rock silhouettes for color blindness, reduced-motion mode",
+    "artSourceApproval": {
+      "mine": "whimsical_crystal_cavern_mine.png",
+      "equipment": "squirrel_mountain_mining_workshop.png",
+      "refinery": "squirrel_foundry_in_the_mountain_village.png",
+      "hub": "whimsical_squirrel_mining_village.png",
+      "state": "approved source renders from conversation; not yet present as verified repository assets",
+      "rule": "Keep tap rock cells, equipment, carts, ores and buttons as independent UI/sprite layers; decorative squirrel workers are NPCs only"
+    }
+  },
+  "qualityGates": [
+    "All 6 boards render; existing tile coordinates and excavation progress survive upgrades/reload",
+    "No ore from barren stone; odds match disclosed tier probabilities for all rock outcomes",
+    "Strikes and scans consume correct daily budgets; invalid/full/excavated taps do not spend",
+    "Ore never disappears when cart full; exposed unclaimed deposits remain redeemable",
+    "Reenter mine, foreground/background app, backward-clock and restart cannot reroll an opened site",
+    "Refinery and workshop deduct inputs atomically; sales credit only one N$ balance",
+    "Writ buys spend N$180 exactly; 1 Writ debited per admitted expedition attempt",
+    "Five 100-level areas use IDs 1001-1500 and preserve trials 501-650 and base campaign 1-500",
+    "No first-campaign stars/rewards/unlocked state modified when second campaign levels complete",
+    "Shop odds/upgrade yields accurate; no undisclosed rewards or paywall",
+    "No release-certified claims until actual device minigame endurance and package smoke tests"
+  ]
+}
