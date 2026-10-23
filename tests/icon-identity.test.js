@@ -25,6 +25,12 @@ for(const src of rewardSprites)assert.ok(fs.existsSync(path.join(ROOT,src)),src+
 assert.match(game,/class="checkout-offer-icon"/,'Checkout must show the SAME ordered product sprite');
 assert.ok(!game.includes("art('economy',shopSprites[i]"),'No legacy duplicate shop icon loop');
 assert.match(game,/art\/additions\/economy\/premium-ticket\.png/,'Use Nutvale premium coupon art');
+
+const promo=game.slice(game.indexOf('function promoSection('),game.indexOf('async function redeemPromoFromUI'));
+assert.match(promo,/premium-ticket\.png/,'Shop coupon must use the nut ticket');
+assert.match(promo,/squirrel-pass\.png/,'Reward coupon must use the squirrel ticket');
+assert.match(rewards,/achievement-medal\.png/,'Season pass uses its own distinct illustration');
+
 assert.doesNotMatch(game.slice(game.indexOf('function promoSection('),game.indexOf('async function redeemPromoFromUI')),/🎟/,'No generic promo ticket emoji');
 assert.doesNotMatch(html,/art\/additions\/ui\/store\.png/,'Contaminated store sprite must not be displayed');
 const icons=[
