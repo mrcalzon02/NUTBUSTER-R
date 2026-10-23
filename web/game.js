@@ -1,4 +1,11 @@
 (function(){'use strict';
+// Play-specific source tree: never silently fall back to main's free paid checkout
+// merely because play-platform.js or its Android bridge failed to load.
+if(!window.NutbusterPlay?.required) {
+ window.NutbusterPlay={required:true,active:false,prices:{},
+  price:()=> 'UNAVAILABLE',buy:()=>{},restore:()=>{},
+  achievements:()=>{},friends:()=>{},isPaidIndex:i=>[0,1,2,3,4,5,8].includes(i)};
+}
 const E=window.NutEngine, M=window.NutCampaignMaps, P=window.NutProgress, H=window.NutHomestead, A=window.NutAvatarArt, screen=document.getElementById('screen');
 const icons=['🥜','🌰','🌰','🥜','🌰','🟢','🌟'];
 const D=window.NutDailyMoves, B=window.NutBenefits, T=window.NutElementalChallenges, R=window.NutElementalRewards;
