@@ -10,12 +10,17 @@ function packLines(pack,E){
 function offer(index,products,pack,E){
  const p=products[index];
  if(!p)return null;
- if(index===6)return {name:p[0],lines:['Set hearts to exactly 5; if already full, receive 0 additional hearts.','Golden Nuts +0; Gems +0; boosters: none.','Fixed result; 100% certainty. No random rewards.']};
- if(index===7)return {name:p[0],lines:['Attempt to add 5 daily moves, capped at the current level daily move capacity.','At full capacity, receive 0 additional moves. No future-day banking.','Golden Nuts +0; Gems +0; boosters: none.','Fixed result; 100% certainty. No random rewards.']};
+ if(index===6)return {name:p[0],lines:['Manual free reward: restore hearts to exactly 5, only when below 5.','One redemption every 12 elapsed hours per saved game; no stacking of unclaimed refills.','Its timer is separate from the 24-hour daily-move bank and free +5 move timer.','Golden Nuts +0; Gems +0; boosters: none. Fixed, guaranteed reward.']};
+ if(index===7)return {name:p[0],lines:['Manual free reward: immediately add exactly 5 moves to the current daily wallet.','One redemption every 12 elapsed hours per saved game; no unclaimed-charge stacking.','Moves can exceed the daily baseline, do not refill the 24-hour allowance, and are not banked across cycles.','Independent of the free heart refill timer. Golden Nuts +0; Gems +0; boosters: none. Guaranteed.']};
  if(index===8)return {name:p[0],lines:['One permanent-for-this-save Royal Manor entitlement.','Platinum Royal avatar, Platinum Fountain, and Diamond Throne decorations become eligible for use.','Golden Nuts +0; Gems +0; boosters: none.','Fixed result; 100% certainty. No random rewards.']};
  return {name:p[0],lines:['Golden Nuts +'+money(p[2]),'Gems +'+money(p[3]),
  ...packLines(pack,E).map(line=>'Booster: '+line),
- ...(index===4?['VIP status flag becomes active in this local save. No additional VIP gameplay abilities are currently implemented.']:[]),
+ ...(index===4?['One-time permanent VIP status for this local save; no recurring subscription.',
+ 'Each 24-hour daily reset: +5 extra daily moves automatically.',
+ 'Each 24-hour daily reset: +250 Golden Nuts automatically.',
+ 'Each 24-hour daily reset: +4 boosters (2 Hammers, 1 Extra Moves, 1 Shuffle), with locked kinds converted to the strongest already earned.',
+ 'Today’s VIP daily allowance and booster pack are granted once on activation; no duplicate grants in the same cycle.',
+ 'Independent free 12-hour heart and +5-moves claims stay available without VIP.']:[]),
  'If a booster is not yet unlocked, its units are replaced by the strongest unlocked booster. The exact replacement quantities are listed above.',
  'Fixed result; 100% certainty. No random rewards.']};
 }
