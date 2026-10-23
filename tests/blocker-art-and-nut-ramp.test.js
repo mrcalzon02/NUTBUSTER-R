@@ -58,7 +58,7 @@ let html='';
 const screen={classList:{toggle(){}},addEventListener(){},get innerHTML(){return html;},set innerHTML(value){html=value;},querySelector:()=>null,querySelectorAll:()=>[]};
 const wallet={textContent:''},gems={textContent:''},toast={textContent:'',classList:{add(){},remove(){}}};
 const document={getElementById:id=>({screen,wallet,gems,toast,app:{classList:{toggle(){}}}}[id]||null),querySelectorAll:()=>[],querySelector:()=>null};
-const window={NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutBoardFeatures:F,addEventListener(){}};
+const window={NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutBoardFeatures:F,NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),addEventListener(){}};
 const localStorage={getItem:()=>null,setItem(){}};
 vm.runInNewContext(fs.readFileSync(path.join(root,'web/game.js'),'utf8'),{window,document,localStorage,setTimeout(){},clearTimeout(){},console});
 const app=window.NutbusterApp;
