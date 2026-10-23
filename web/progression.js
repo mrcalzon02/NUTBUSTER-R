@@ -67,6 +67,23 @@ function migrate(save){
   save.claimedUnlocks[item.id]=true;
  return save;
 }
+// Golden Nuts buy one already-unlocked booster; Gems and Wharf Dollars stay separate.
+const BOOSTER_PRICES=Object.freeze({
+ hammer:400,extra:450,row:550,shuffle:600,column:750,blast:950,
+ cross:1200,color:1450,drill:1800,unlock:2200
+});
+function buyBooster(save,id){
+ const cost=BOOSTER_PRICES[id];
+ if(!cost)return {valid:false,reason:'unknown'};
+ if(!unlocked(save,id))return {valid:false,reason:'locked'};
+ if(count(save,id)>=999999)return {valid:false,reason:'limit'};
+ const coins=nonnegative(save.coins);
+ if(coins<cost)return {valid:false,reason:'coins',short:cost-coins};
+ save.coins=coins-cost;
+ if(!save.boosterInventory||typeof save.boosterInventory!=='object')save.boosterInventory={};
+ save.boosterInventory[id]=count(save,id)+1;
+ return {valid:true,id,cost,owned:count(save,id)};
+}
 function count(save,id){return nonnegative(save.boosterInventory?.[id]);}
 function spend(save,id){if(!unlocked(save,id)||count(save,id)<1)return false;
  save.boosterInventory[id]--;return true;}
@@ -147,7 +164,7 @@ function claimChallenge(save,index){
  grant(save,reward.contents);
  return {valid:true,contents:reward.contents};
 }
-const api={LADDER,CHALLENGE_STEPS,BUNDLES,LEVEL_BY_TOOL,HOLD_ITEMS,migrate,unlocked,available,nextUnlock,count,spend,holdCount,buyHold,spendHold,actualPack,grant,packText,kindForLevel,firstClear,challengeProgress,challengeRewards,claimChallenge};
+const api={LADDER,CHALLENGE_STEPS,BUNDLES,LEVEL_BY_TOOL,HOLD_ITEMS,BOOSTER_PRICES,buyBooster,migrate,unlocked,available,nextUnlock,count,spend,holdCount,buyHold,spendHold,actualPack,grant,packText,kindForLevel,firstClear,challengeProgress,challengeRewards,claimChallenge};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutProgress=api;
 })(typeof window!=='undefined'?window:globalThis);
