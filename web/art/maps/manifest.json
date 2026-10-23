@@ -116,6 +116,28 @@
       "width": 941,
       "height": 1672,
       "encoding": "WebP q93"
+    },
+    {
+      "id": "chapter9",
+      "path": "art/maps/chapter-9-abyssal-nutworks.webp",
+      "source_filename": "a_wide_high_detail_fantasy_underwater_scene_cine.png",
+      "source_sha256": "30457106e8fd2962030f84a0ab759f44eca10b17c9c1550e69b02602ae024e13",
+      "sha256": "aeeb94ad63efd39a8e03f5c5cadcbcdf10325de3c84ff59b468908846c5f7dae",
+      "bytes": 686230,
+      "width": 941,
+      "height": 1672,
+      "encoding": "WebP q93"
+    },
+    {
+      "id": "chapter10",
+      "path": "art/maps/chapter-10-leviathans-crown.webp",
+      "source_filename": "a_highly_detailed_cinematic_fantasy_sci_fi_under.png",
+      "source_sha256": "f15969963e316120e3f6322007f215f2b3cd694544d1298f3100df0d8df37b51",
+      "sha256": "b0847516d4812c7dde384749e0fb5fbf3c2f5ef585338ff06a439756e8d3a1c8",
+      "bytes": 660248,
+      "width": 941,
+      "height": 1672,
+      "encoding": "WebP q93"
     }
   ]
 }
