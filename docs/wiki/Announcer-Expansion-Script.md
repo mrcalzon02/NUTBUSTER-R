@@ -1,8 +1,8 @@
 # Nutbuster — Announcer B Script & Original Voice Gap Ledger
 
-**Status:** Approved-for-review *recording script*, NOT synthesized/recorded audio and NOT implemented announcer switching. Prepared against the 2026-10-22 working `main` source and the [Nutbuster Sounds Drive folder](https://drive.google.com/drive/folders/1IwvPgWwzabBliPODifPDdT61WqJhfmxu).
+**Status (updated October 22, 2026):** The Nutvale Auditor's 93 lines now live in `web/announcer-lines.js`, the original/Auditor selector is available in Audio & Settings, and Auditor calls use offline on-device English text-to-speech where installed. Only the original 19 voice keys currently have game event hookups; the other 74 scripts remain staged for future authoritative event-trigger work. The third female announcer is *planned only*, without voice files or a selectable entry. Android playback quality remains an unverified device gate. Prepared against the 2026-10-22 working `main` source and the [Nutbuster Sounds Drive folder](https://drive.google.com/drive/folders/1IwvPgWwzabBliPODifPDdT61WqJhfmxu).
 
-**Audit baseline:** `assets/audio/catalog.json` contains **19 announcer MP3s**, **4 reaction grunts**, **17 sound effects**, and one music loop (41 total), and `web/audio.js` maps all 19 announcer clips. A comparison with the designated Drive folder found those same 19 recorded announcer titles. No additional separate, unimported voice clip was evident in that folder. The current `web/game.js` dispatches the original lines for stage entry, combo milestones, victory/loss, and rewards, but the numerous functions exposed by `web/fishing-ui.js`, Homestead, elemental trials, daily moves, and Nutdex generally have no distinct announcer line. Fishing already exposes an **80-species** catalog; record rarity-based cues instead of 80 repetitive species-name clips.
+**Initial audit baseline:** `assets/audio/catalog.json` contains **19 announcer MP3s**, **4 reaction grunts**, **17 sound effects**, and one music loop (41 total), and `web/audio.js` maps all 19 announcer clips. A comparison with the designated Drive folder found those same 19 recorded announcer titles. No additional separate, unimported voice clip was evident in that folder. The current `web/game.js` dispatches the original lines for stage entry, combo milestones, victory/loss, and rewards, but the numerous functions exposed by `web/fishing-ui.js`, Homestead, elemental trials, daily moves, and Nutdex generally have no distinct announcer line. Fishing already exposes an **80-species** catalog; record rarity-based cues instead of 80 repetitive species-name clips.
 
 ## Announcer B: The Nutvale Auditor
 
@@ -136,14 +136,46 @@ These keys already exist in `web/audio.js`. Their existing MP3s remain untouched
 | `rod-repaired` | Damaged rod is repaired | P1 | “FIXED UP! BACK TO THE WATER!” | “The apparatus has been returned to service.” |
 | `fish-collection-milestone` | New fish collection record / species milestone | P2 | “YOUR COLLECTION KEEPS GROWING!” | “Biodiversity has become a collectible metric.” |
 
+## Announcer C — The Nutvale Diva (planned female hype announcer)
+
+**Role and performance:** A deliberately theatrical, high-energy **woman** with a warm, booming game-show-host voice. She is the female counterpart to the **Original Hype Man**: shameless enthusiasm, ridiculous triumphs, playful mock-commercial language, and unrestrained celebratory delivery. Unlike the calm Auditor, she must sound genuinely delighted when the board explodes. This is **an original voice and character**, not an imitation of a celebrity or synthetic clone of the existing announcer. An expressive mezzo or contralto delivery, bright articulation, and mischievous comic timing would work well. Avoid breathy pinup caricature, shrill distortion, or gratuitous gender jokes; the joke remains the nuts, not the performer.
+
+**Key identity:** `diva` (reserved, **not selectable until audio exists**). Announcer A's same event dispatch and the 19 established clip identifiers are the first target; the additional 74 event keys can be extended as they are actually wired. Use expressive recorded clips or an owner-approved high-quality offline voice, with verified licenses, source metadata, loudness leveling and Android playback. Do not repurpose the original male recordings through a mere pitch shift and call that a new woman.
+
+### Third-announcer core script: first 19 replacement lines (draft)
+
+| Key | The Nutvale Diva — sample delivery |
+|---|---|
+| `big-one` | “OH, WHAT A BEAUTIFUL BIG ONE! GIVE THAT NUT A ROUND OF APPLAUSE!” |
+| `magnificent` | “DARLING, THOSE NUTS ARE SIMPLY MAGNIFICENT!” |
+| `cascade` | “THEY KEEP FALLING! I'VE NEVER SEEN SO MUCH NUTTY GLORY!” |
+| `win` | “FABULOUS! ABSOLUTELY FABULOUS! ANOTHER LEVEL CRACKED!” |
+| `close` | “OH, SWEETHEART! WE NEARLY HAD THE WHOLE BUSHEL!” |
+| `nutbuster` | “NUTBUSTER! YOU WONDERFUL, UNSTOPPABLE MANIAC!” |
+| `nutbuster-soft` | “WELCOME BACK, MY DARLINGS. THE NUTS AWAIT.” |
+| `package` | “WHAT A PACKAGE! THE SQUIRRELS WILL BE TALKING FOR WEEKS!” |
+| `premium` | “PREMIUM NUTS FOR EVERYONE! DARLING, SPARE NO EXPENSE!” |
+| `satisfaction` | “SATISFACTION GUARANTEED! BY THE POWER OF MY PEARLS!” |
+| `oh-my` | “OH MY STARS! DID YOU SEE WHAT THAT NUT JUST DID?” |
+| `deal` | “WHAT A DEAL! I'D HAVE PAID DOUBLE! WHICH IS STILL NOTHING!” |
+| `look-out` | “LOOK OUT, LOVE! THAT LITTLE ACORN HAS OPINIONS!” |
+| `nutsplosion` | “NUTSPLOSION! THE WHOLE KINGDOM IS SHOWERED IN SHELLS!” |
+| `heck-package` | “GOOD HEAVENS, WHAT A PACKAGE! BRING THE BIGGER RIBBON!” |
+| `nutsselence` | “NUTSSELENCE! I'LL HAVE TO CALL THE ROYAL FANFARE!” |
+| `nut-destruction` | “UTTER NUT DESTRUCTION! AND HOW BEAUTIFULLY DONE!” |
+| `nutravaganza` | “NUTRAVAGANZA! DARLINGS, THIS CALLS FOR A PARADE!” |
+| `busted` | “BUSTED! OH, WE HAVE ABSOLUTELY BUSTED THOSE NUTS!” |
+
+**Future recording and QA gates:** Reserve `web/audio/voices/diva/<event-key>.mp3` for each approved clip, normalize levels against existing A, use exactly the same semantic event keys, check dialogue clarity over music on a phone, confirm music ducking and caption alignment, then add `diva` to the actual selectable options. Draft the remaining 74 lines only when corresponding events and pacing are agreed; the Auditor's 74 new-event scripts are already ready for that next stage. The third-announcer design is not the same as generating or shipping 93 playable recordings.
+
 ## Recording budget and implementation contract
 
-- Alternate announcer initial complete replacement: **19** existing-key lines plus **74** new-event lines = **93** distinct spoken recordings. 
+- Alternate announcer authoring scope: **19** existing-key lines plus **74** new-event lines = **93** distinct spoken scripts. These are currently synthesized at playback time via an offline English text-to-speech engine rather than pre-rendered MP3 recordings. A later curated recorded pack remains an optional quality upgrade. 
 - Original announcer supplemental gap package: **74** newly written lines, not re-recordings of the current 19. 
 - Joint full plan: **167** new audio files across both voices, before extra takes. Stage the recording rather than requiring the entire library at once. 
 - New event priorities: **27 P0**, **36 P1**, and **11 P2**. For high-frequency P0 events, record two optional alternate takes if repetition remains noticeable after gameplay review.
 - Filenames: `web/audio/voices/original/<event-key>.mp3` for additions only and `web/audio/voices/auditor/<event-key>.mp3` for the alternate. Keep current `web/audio/<original-filename>.mp3` paths and keys valid. Use an event manifest mapping existing and new IDs, not blind filename normalization or duplicated logic.
-- The announcer option should use one persistence field (`announcerVoice:'original'|'auditor'`) within the existing save, selectable in the current compact **Audio & Settings** screen. Voice-off is a separate global setting; keep speech captions visible. Lack of an alternate clip should produce a clear development validation error; avoid suddenly playing the wrong character's voice.
+- The announcer option uses one persistence field (`announcerVoice:'original'|'auditor'`) within the existing save and is selectable in **Audio & Settings**. Lady/Diva remains a planned future value, not yet selectable. Voice-off is a separate global setting; keep speech captions visible. Lack of an alternate clip should produce a clear development validation error; avoid suddenly playing the wrong character's voice.
 - Event triggers belong at authoritative outcomes (actual fish catch/escape, successful purchase, real elemental chain, real place/build), not button clicks that might be invalid. Do **not** voice a kept fish until `resolve(...,'keep')` succeeds or announce a premium fish simply because it was hooked.
 - Audio chatter suppression: global priority ordering **failure/success > threat > milestone > ambient**; suppress repeated common calls while a higher-priority clip is speaking. No overlapping announcers. Make severe line tension actionable; avoid talking over important high-speed fishing actions.
 - Respect the game's local, fully offline audio policy. Export as normalized MP3s playable on Android API 26; retain Drive master references, license provenance, source name, size, hash, duration, and validation in `assets/audio/catalog.json`. No new permission to upload audio into the game is implied by this script.
@@ -158,4 +190,4 @@ These keys already exist in `web/audio.js`. Their existing MP3s remain untouched
 - `web/fishing.js` / `web/fishing-ui.js` — current species roster, bait, rod repairs, fish outcomes and aquarium affordances
 - `docs/wiki/Audio-Pipeline.md` — current effect/voice routing and offline bundling requirements
 
-This list is a script and gap inventory, *not a completed audio recording, live voice-selector implementation, or release*.
+The script inventory, default/Auditor selector and runtime local TTS route are committed; 74 additional event hookups, actual Android speech validation and the planned third-announcer recordings remain open work.
