@@ -53,6 +53,12 @@ assert.equal(Object.keys(FX.assets).length,18,'All 18 sliced source effects must
 // exactly the nuts that physically disappeared. An ice/chain/chest hit must not
 // animate its still-present nut as if destroyed.
 const E=require('../web/engine.js');
+for(const id of E.BOOSTERS){
+ assert.ok(FX.boosterEffects[id]?.length,'Missing activation FX for '+id);
+ const before=images.length;
+ assert.equal(FX.booster(id,rect),true,'Unanimated booster: '+id);
+ assert.equal(images.length-before,FX.boosterEffects[id].length,'Incomplete VFX for '+id);
+}
 let verified=0,exploded=0,protectedHits=0;
 function verifyStages(stages,context){
  for(const stage of stages||[]){
@@ -88,3 +94,6 @@ for(const level of [1,3,15,28,50,85,120,151,210,300,375,490]){
 assert.ok(verified>100&&exploded>400&&protectedHits>100,'Exercise real cascades and layered blockers');
 console.log('PASS: '+verified+' deterministic cascade stages; '+exploded+' exact per-nut explosions; '+protectedHits+' shielded/blocked impacts');
 console.log('PASS: all 10 booster and both gravity-hold VFX; each removed nut shakes/explodes; shielded survivors unaffected; assets valid');
+
+assert.ok(game.includes("window.NutAudio?.grunt?.();\n if(target.dataset.cell"),'All board taps should play recorded reactions');
+assert.ok(game.includes("playSFX('ui');window.NutAudio?.grunt?.();nav("),'Nav taps should play recorded reactions');

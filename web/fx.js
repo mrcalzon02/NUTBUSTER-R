@@ -33,6 +33,12 @@
   extra:['time-boost'],
   drill:['rocket-impact'],
   unlock:['chain-break'],
+  quake:['supernova','shell-crack'],
+  'triple-row':['horizontal-clear','shell-ring'],
+  'triple-column':['vertical-clear','sparkle-burst'],
+  starburst:['rocket-impact','sparkle-burst'],
+  spectrum:['rainbow','shell-ring'],
+  frostbreaker:['ice-shatter','sparkle-burst'],
   butter_hold:['golden-acorn-glow'],
   jam_hold:['royal-boost']
  });

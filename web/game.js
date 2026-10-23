@@ -71,7 +71,7 @@ function activateBooster(id,index){const meta=E.BOOSTER_META[id];
  // Successful activations always play their OWN visual, even if no nut is cleared.
  const target=index>=0?screen.querySelector(`[data-cell="${index}"]`):screen.querySelector('.board-wrap');
  window.NutFX?.booster?.(id,target);
- persist();refreshBoosters();playSFX(id==='unlock'?'chain':id==='shuffle'?'shuffle':'booster');return result;
+ persist();refreshBoosters();playSFX(id==='unlock'?'chain':id==='shuffle'?'shuffle':id==='frostbreaker'?'ice':id==='quake'?'hazard':'booster');return result;
 }
 function notice(message){const n=document.getElementById('toast');n.textContent=message;n.classList.add('show');clearTimeout(toastHandle);toastHandle=setTimeout(()=>n.classList.remove('show'),2300);}
 function announce(txt,clip){state.announcer=clip?(window.NutAudio?.caption?.(clip,txt)||txt):txt;const el=document.getElementById('announcer');if(el)el.textContent=state.announcer;if(state.sound&&clip)window.NutAudio?.voice(clip);}
@@ -1163,6 +1163,7 @@ function action(a,button){
 screen.addEventListener('click',e=>{window.NutAudio?.unlock();window.NutSFX?.unlock();if(Date.now()<swipeGuard)return;
  const target=e.target.closest('button');if(!target||state.animating)return;
  if(state.nutdexOpen&&target.dataset.action!=='nutdex-close'&&target.dataset.action!=='codex-tab')return;
+ window.NutAudio?.grunt?.();
  if(target.dataset.cell!==undefined){cell(Number(target.dataset.cell));return;}
  playSFX('ui');
  if(target.dataset.holdTool){
@@ -1193,7 +1194,7 @@ screen.addEventListener('click',e=>{window.NutAudio?.unlock();window.NutSFX?.unl
  }
  if(target.dataset.action)action(target.dataset.action,target);else if(target.dataset.nav)nav(target.dataset.nav);
 });
-document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{window.NutAudio?.unlock();window.NutSFX?.unlock();playSFX('ui');nav(b.dataset.nav);}));
+document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{window.NutAudio?.unlock();window.NutSFX?.unlock();playSFX('ui');window.NutAudio?.grunt?.();nav(b.dataset.nav);}));
 let pointer=null,swipeGuard=0;
 screen.addEventListener('pointerdown',e=>{
  if(state.page!=='game'||!state.game||state.nutdexOpen)return;
