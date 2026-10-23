@@ -15,10 +15,10 @@ import java.util.function.Consumer;
 
 /** Play Billing 9.1; never fulfills locally before backend receipt verification. */
 final class PlayBillingCoordinator implements PurchasesUpdatedListener {
+    // The ONLY chargeable item in the Play build is the optional lifetime supporter VIP.
+    // Other packs use the in-game free checkout, never BillingClient.
     private static final String[] SKUS = {
-        "nutbuster_gigantic_nuts", "nutbuster_premium_gems", "nutbuster_royal_bundle",
-        "nutbuster_century_chest", "nutbuster_lifetime_vip", "nutbuster_booster_crate",
-        null, null, "nutbuster_royal_manor"
+        null, null, null, null, "nutbuster_lifetime_vip", null, null, null, null
     };
     private final Activity activity;
     private final Consumer<String> toWeb;
@@ -219,22 +219,17 @@ final class PlayBillingCoordinator implements PurchasesUpdatedListener {
         synchronized (fulfillable) { purchase = fulfillable.get(receiptId); }
         if (purchase == null) return;
         String sku = purchase.getProducts().get(0);
-        if (indexFor(sku) == 4 || indexFor(sku) == 8) {
-            if (purchase.isAcknowledged()) { synchronized (fulfillable) { fulfillable.remove(receiptId); } return; }
-            client.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder()
-                .setPurchaseToken(purchase.getPurchaseToken()).build(), result -> {
-                if (result.getResponseCode() == BillingClient.BillingResponseCode.OK)
-                    synchronized (fulfillable) { fulfillable.remove(receiptId); }
-                else status("Play purchase confirmation pending. Restore purchases to retry.");
-            });
-        } else {
-            client.consumeAsync(ConsumeParams.newBuilder()
-                .setPurchaseToken(purchase.getPurchaseToken()).build(), (result, token) -> {
-                if (result.getResponseCode() == BillingClient.BillingResponseCode.OK)
-                    synchronized (fulfillable) { fulfillable.remove(receiptId); }
-                else status("Play consumable confirmation pending. Restore purchases to retry.");
-            });
+        if (indexFor(sku) != 4) return; // Never acknowledge/consume unsupported purchases.
+        if (purchase.isAcknowledged()) {
+            synchronized (fulfillable) { fulfillable.remove(receiptId); }
+            return;
         }
+        client.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder()
+            .setPurchaseToken(purchase.getPurchaseToken()).build(), result -> {
+            if (result.getResponseCode() == BillingClient.BillingResponseCode.OK)
+                synchronized (fulfillable) { fulfillable.remove(receiptId); }
+            else status("Play VIP confirmation pending. Restore purchases to retry.");
+        });
     }
     void close() { client.endConnection(); io.shutdown(); }
 }

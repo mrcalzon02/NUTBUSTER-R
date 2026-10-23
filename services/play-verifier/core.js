@@ -1,12 +1,8 @@
 'use strict';
 const {createHash,timingSafeEqual}=require('node:crypto');
 const PACKAGE='io.github.mrcalzon02.nutbuster';
-const PRODUCTS=Object.freeze({
- nutbuster_gigantic_nuts:'consumable',nutbuster_premium_gems:'consumable',
- nutbuster_royal_bundle:'consumable',nutbuster_century_chest:'consumable',
- nutbuster_lifetime_vip:'durable',nutbuster_booster_crate:'consumable',
- nutbuster_royal_manor:'durable'
-});
+// The only Google Play financial entitlement; all other shop packages are free.
+const PRODUCTS=Object.freeze({nutbuster_lifetime_vip:'durable'});
 const VERSION='nutbuster-play-integrity-v1';
 const MAX_AGE_MS=120000;
 const sha256=s=>createHash('sha256').update(s).digest('hex');
@@ -60,8 +56,7 @@ function validateGooglePurchase(verified,request){
 }
 function validateOwner(row,request){
  return !!row && row.productId===request.productId && row.revoked!==true &&
- (!row.accountHash || row.accountHash===request.accountHash) &&
- (PRODUCTS[request.productId]==='durable'||row.installHash===request.installHash);
+ (!row.accountHash || row.accountHash===request.accountHash);
 }
 module.exports={PACKAGE,PRODUCTS,VERSION,MAX_AGE_MS,sha256,requestHash,validateRequest,
  validateIntegrity,validateGooglePurchase,validateOwner};

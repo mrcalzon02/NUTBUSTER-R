@@ -51,9 +51,11 @@ assert.equal(V.validateOwner(anonymous,req),true,'durable Play-owned receipt can
 assert.equal(V.validateOwner({...anonymous,accountHash:player},req),false,'linked purchase requires its verified account');
 assert.equal(V.validateOwner({...anonymous,accountHash:player},{...req,accountHash:player}),true);
 assert.equal(V.validateOwner({...anonymous,accountHash:player},{...req,accountHash:'0'.repeat(64)}),false);
-const consumable=V.validateRequest({...request,productId:'nutbuster_gigantic_nuts'});
-assert.equal(V.validateOwner({productId:consumable.productId,installHash:consumable.installHash},consumable),true);
-assert.equal(V.validateOwner({productId:consumable.productId,installHash:'other'},consumable),false);
+for(const former of ['nutbuster_gigantic_nuts','nutbuster_premium_gems','nutbuster_royal_bundle',
+ 'nutbuster_century_chest','nutbuster_booster_crate','nutbuster_royal_manor']) {
+ assert.equal(V.validateRequest({...request,productId:former}),null,
+  'only supporter VIP can be verified against Play Billing: '+former);
+}
 const auth=A.accountRequest({packageName:V.PACKAGE,authCode:'one-time-server-oauth-code-123456',
  installId:INSTALL,attemptId:ATTEMPT,integrityToken:IT});
 assert.ok(auth);

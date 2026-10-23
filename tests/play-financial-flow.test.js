@@ -37,6 +37,8 @@ function makeDeps(){
  assert.match(success.body.receiptId,/^[0-9a-f]{64}$/);
  assert.equal(success.body.productId,purchaseBody.productId);
  assert.equal(x.calls.integrity,1);assert.equal(x.calls.play,1);assert.equal(x.calls.reserve,1);
+ const legacyPack=await verifyPurchase({...purchaseBody,productId:'nutbuster_gigantic_nuts'},x.deps);
+ assert.equal(legacyPack.code,400,'former paid SKU no longer an authorized Play transaction');
  const invalid=await verifyPurchase({...purchaseBody,purchaseToken:'invalid'},x.deps);
  assert.equal(invalid.code,400,'invalid request rejected BEFORE provider call');
  assert.equal(x.calls.play,1);
