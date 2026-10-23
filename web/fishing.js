@@ -121,7 +121,15 @@ const BACKGROUNDS=Object.freeze([
  {id:'river',name:'Riverbed',need:['trout','fish-set01-azure-darter','fish-set01-moss-trout']},
  {id:'reef',name:'Coral Reef',need:['koi','puffer','fish-set01-ribbon-koi']},
  {id:'deep',name:'Midnight Depths',need:['catfish','sturgeon','fish-set01-sapphire-catfish']},
- {id:'arcane',name:'Starwater',need:['eel','leviathan','fish-set01-constellation-gar']}
+ {id:'arcane',name:'Starwater',need:['eel','leviathan','fish-set01-constellation-gar']},
+ // These six source-approved scenes have open central water for moving fish
+ // and user-placed decorations; no fish or stamp is baked into the image.
+ {id:'plain-kelp-canyon',name:'Sunlit Kelp Canyon',need:["bluegill"],art:'art/aquarium/backgrounds/v1/plain-kelp-canyon.png'},
+ {id:'plain-kelp-lagoon',name:'Open Kelp Lagoon',need:[],art:'art/aquarium/backgrounds/v1/plain-kelp-lagoon.png'},
+ {id:'plain-ruins',name:'Quiet Ruins',need:["perch","carp"],art:'art/aquarium/backgrounds/v1/plain-ruins.png'},
+ {id:'plain-kelp-forest',name:'Gentle Kelp Forest',need:["trout"],art:'art/aquarium/backgrounds/v1/plain-kelp-forest.png'},
+ {id:'plain-coral',name:'Coral Window',need:["koi","puffer"],art:'art/aquarium/backgrounds/v1/plain-coral.png'},
+ {id:'plain-seafloor',name:'Open Seafloor',need:[],art:'art/aquarium/backgrounds/v1/plain-seafloor.png'}
  ].map(x=>Object.freeze({...x,need:Object.freeze(x.need)})));
 function stampCapacity(n){return 3+2*n.tank;}
 function stampUnlocked(n,id){const spec=STAMP_BY_ID.get(id);return !!spec&&n.aquarium.discovered.includes(spec.fish);}

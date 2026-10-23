@@ -170,3 +170,14 @@
 .estate-aquarium-preview .estate-tank-copy b{font-size:12px}.estate-aquarium-preview .estate-tank-copy small{font-size:10px;color:#d5f0e3}
 
 @media(prefers-reduced-motion:reduce){.aquarium-display .aquarium-swimmer{position:absolute!important;display:flex!important;top:var(--swim-y,28%)!important;left:12%!important;margin:0!important;transform:none!important}}
+
+/* Approved scenic tank art fills the exact glass area; preserve the whole
+   image (no object-fit cover or edge cropping). Fish and custom stamps remain
+   independent positioned layers over it. No UI baked into the image. */
+.aquarium-back-water.aquarium-real-backdrop{background-repeat:no-repeat;background-size:100% 100%;background-position:center;filter:none}
+.aquarium-art-scene .aquarium-floor{background:transparent;padding:0;min-height:0;font-size:0}
+.aquarium-art-scene .aquarium-back-glow{opacity:.18}
+.aquarium-themes .aquarium-theme{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;flex:1 1 110px;max-width:175px;min-width:100px;min-height:74px;padding:4px 5px;overflow:hidden;text-align:center}
+.aquarium-theme>img{display:block;width:100%;height:58px;object-fit:fill;border-radius:4px;border:1px solid #7ca9bd}
+.aquarium-theme>span{font-size:10px;line-height:1.2}
+.aquarium-theme .aquarium-theme-gradient{display:grid;place-items:center;width:100%;height:58px;border-radius:4px;background:linear-gradient(160deg,#58bdda,#0a537b)}

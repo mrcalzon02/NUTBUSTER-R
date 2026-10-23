@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const F=require('../web/fishing.js'),U=require('../web/fishing-ui.js');
 const at=new Date(2031,3,6,12).getTime();
-assert.equal(F.STAMPS.length,18);assert.equal(F.BACKGROUNDS.length,5);
+assert.equal(F.STAMPS.length,18);assert.equal(F.BACKGROUNDS.length,11);
 const save={coins:413,gems:20,nutravaganza:{dollars:100000,fish:[
  {id:'minnow',size:27,value:15},{id:'bluegill',size:33,value:24}
  ]}};
@@ -50,7 +50,7 @@ n.tank=0;F.ensure(save,at);
 const editor=U.aquarium(save,{aquariumEditing:true,aquariumStamp:'coral',aquariumFishFrom:null});
 assert.equal((editor.match(/class="aquarium-fish-slot /g)||[]).length,4);
 assert.equal((editor.match(/class="aquarium-stamp-card /g)||[]).length,18);
-assert.equal((editor.match(/class="aquarium-theme /g)||[]).length,5);
+assert.equal((editor.match(/class="aquarium-theme /g)||[]).length,11);
 assert.ok(editor.includes('data-action="fish-aqua-stamp-place"'));
 assert.ok(editor.includes('data-action="fish-aqua-stamp-remove"'));
 assert.ok(U.aquariumPreview(save).includes('data-nav="aquarium"'));

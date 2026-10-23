@@ -83,7 +83,11 @@ function aquarium(save,state={}){
  const n=F.ensure(save),cap=F.capacity(n),stampLimit=F.stampCapacity(n),cost=F.nextCost('tank',n),editing=!!state.aquariumEditing;
  const residents=new Map(n.fish.map(f=>[f.slot,f]));
  const background=F.BACKGROUNDS.find(b=>b.id===n.aquarium.background)||F.BACKGROUNDS[0];
- const theme=F.BACKGROUNDS.map(b=>'<button class="aquarium-theme '+(b.id===background.id?'chosen':'')+'" data-action="fish-aqua-background" data-background="'+b.id+'" '+(F.backgroundUnlocked(n,b.id)?'':'disabled')+' aria-pressed="'+(b.id===background.id)+'">'+b.name+(F.backgroundUnlocked(n,b.id)?'':' 🔒')+'</button>').join('');
+ const theme=F.BACKGROUNDS.map(b=>{
+  const unlocked=F.backgroundUnlocked(n,b.id);
+  const thumbnail=b.art?'<img src="'+b.art+'" alt="" loading="lazy" draggable="false">':'<span class="aquarium-theme-gradient" aria-hidden="true">🌊</span>';
+  return '<button class="aquarium-theme '+(b.id===background.id?'chosen':'')+'" data-action="fish-aqua-background" data-background="'+b.id+'" '+(unlocked?'':'disabled')+' aria-pressed="'+(b.id===background.id)+'" title="'+(unlocked?'Select '+b.name:'Catch a matching species to unlock '+b.name)+'">'+thumbnail+'<span>'+b.name+(unlocked?'':' 🔒')+'</span></button>';
+ }).join('');
  const stampCards=F.STAMPS.map(spec=>{
   const unlocked=F.stampUnlocked(n,spec.id),selected=state.aquariumStamp===spec.id;
   return '<button class="aquarium-stamp-card '+(selected?'selected':'')+'" data-action="fish-aqua-stamp-select" data-stamp="'+spec.id+'" '+(unlocked?'':'disabled')+' aria-pressed="'+selected+'" title="'+(unlocked?'Place '+spec.name:'Catch '+(F.FISH.find(f=>f.id===spec.fish)?.name||'a fish')+' to unlock')+'"><span>'+spec.icon+'</span><b>'+spec.name+'</b><small>'+(unlocked?'UNLOCKED':'🔒 '+(F.FISH.find(f=>f.id===spec.fish)?.name||'Fish'))+'</small></button>';
@@ -106,7 +110,7 @@ function aquarium(save,state={}){
   return '<button class="aquarium-fish-slot '+(fish?'occupied':'empty')+' '+(selected?'selected':'')+'" data-action="fish-aqua-slot" data-slot="'+slot+'" aria-pressed="'+selected+'" aria-label="Tank slot '+(slot+1)+': '+(spec?spec.name:'empty')+'"><b>'+(slot+1)+'</b>'+(spec?fishIcon(spec):'<span>＋</span>')+'<small>'+(spec?spec.name:'EMPTY')+'</small></button>';
  }).join('');
  const room='<section class="aquarium-room"><div class="aquarium-room-title"><b>ESTATE AQUARIUM · TIER '+n.tank+'/10</b><small>'+n.fish.length+'/'+cap+' fish · '+n.aquarium.stamps.length+'/'+stampLimit+' stamps</small></div>'+
-  '<div class="aquarium-display aquarium-tier-'+n.tank+'"><div class="aquarium-tank aquarium-bg-'+background.id+' '+(editing?'editing':'')+'" style="--aquarium-tier:'+n.tank+';width:min(100%,'+(460+90*n.tank)+'px);height:min(74vh,'+(270+35*n.tank)+'px);" aria-label="Animated '+background.name+' aquarium, '+n.fish.length+' of '+cap+' fish, '+n.aquarium.stamps.length+' stamps"><div class="aquarium-back-glow"></div><div class="aquarium-back-water"></div><div class="aquarium-floor" aria-hidden="true">🪨 🌿 🪸 🐚 🌾 🪸 🌿</div>'+stampLayers+occupants+
+  '<div class="aquarium-display aquarium-tier-'+n.tank+'"><div class="aquarium-tank aquarium-bg-'+background.id+' '+(background.art?'aquarium-art-scene ':'')+(editing?'editing':'')+'" style="--aquarium-tier:'+n.tank+';width:min(100%,'+(460+90*n.tank)+'px);height:min(74vh,'+(270+35*n.tank)+'px);" aria-label="Animated '+background.name+' aquarium, '+n.fish.length+' of '+cap+' fish, '+n.aquarium.stamps.length+' stamps"><div class="aquarium-back-glow"></div><div class="aquarium-back-water'+(background.art?' aquarium-real-backdrop':'')+'"'+(background.art?' style="background-image:url('+background.art+');background-size:100% 100%;background-position:center"':'')+'></div><div class="aquarium-floor" aria-hidden="true">'+(background.art?'':'🪨 🌿 🪸 🐚 🌾 🪸 🌿')+'</div>'+stampLayers+occupants+
   (editing&&state.aquariumStamp?'<button class="aquarium-placement-canvas" data-action="fish-aqua-stamp-place" aria-label="Tap a location in the aquarium to place the selected stamp"></button>':'')+
   '<div class="aquarium-light" aria-hidden="true"></div></div></div></section>';
  const editor=editing?'<section class="aquarium-editor"><div class="aquarium-edit-head"><b>BACKGROUNDS</b><small>Catch new species to unlock themes</small></div><div class="aquarium-themes">'+theme+'</div>'+
