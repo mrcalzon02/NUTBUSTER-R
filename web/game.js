@@ -387,14 +387,18 @@ function beginCheckout(index,from=state.page){
 }
 function checkout(){const p=offers[state.checkout];if(!p)return '<p>Offer unavailable.</p>';
  const review=state.checkoutStep===0,discounted=state.discountOffer===state.checkout;
- const amount=Number.parseFloat(String(p[4]).replace(/[^0-9.]/g,''))||0;
- const price=discounted?'$'+(amount*.5).toFixed(2)+(String(p[4]).includes('/mo')?'/mo':''):p[4];
+ const amountCents=Math.round((Number.parseFloat(String(p[4]).replace(/[^0-9.]/g,''))||0)*100);
+ const freeOffer=amountCents===0;
+ // Round fictional 50% discounts in integer cents: 99 cents becomes 50.
+ const price=freeOffer?'FREE':discounted?'$'+(Math.round(amountCents/2)/100).toFixed(2):p[4];
+ const discountMarkup=freeOffer?'<p class="muted">Always free. No ad required.</p>':discounted?'<p class="fake-ad-discount">FAKE AD · 50% OFF ACTIVE</p>':'<button class="btn secondary wide" data-action="ad-discount">📺 WATCH A FAKE AD · 50% OFF</button>';
+ const breakdownMarkup=freeOffer?'<div class="checkout-price"><span>Always-free gameplay</span><strong>FREE</strong></div>':`<div class="checkout-price"><span>Package ${discounted?"· FAKE AD −50%":""}</span><strong class="cross">${price}</strong></div><div class="checkout-price"><span>Mandatory Nutbuster generosity adjustment</span><b>−100%</b></div>`;
  const description=state.checkout===6?'Restores all five lives':state.checkout===7?'Five additional moves on your current board':state.checkout===8?'Platinum Royal avatar · Platinum Fountain · Diamond Throne':p[2].toLocaleString()+' Golden Nuts · '+p[3].toLocaleString()+' Gems · '+boosterSummary(state.checkoutPack);
  return `<div class="checkout-screen"><div class="topline"><button class="btn ghost" data-action="checkout-back">← BACK</button><h2>${review?'PACKAGE DETAILS':'NUT CHECKOUT'}</h2></div>
  <div class="panel checkout-sheet"><h1>${review?'CONFIRM YOUR PACKAGE':'YOUR ORDER TOTAL'}</h1><div class="checkout-item"><span class="checkout-emoji">${p[1]}</span><div><b>${p[0]}</b><small>${description}</small></div></div>
- ${review?`<div class="checkout-price"><span>Advertised price</span><strong>${price}</strong></div>${discounted?"<p class=\"fake-ad-discount\">FAKE AD · 50% OFF ACTIVE</p>":"<button class=\"btn secondary wide\" data-action=\"ad-discount\">📺 WATCH A FAKE AD · 50% OFF</button>"}<p class="muted">Fixed contents, no countdown, no recurring charges.</p>
+ ${review?`<div class="checkout-price"><span>Advertised price</span><strong>${price}</strong></div>${discountMarkup}<p class="muted">Fixed contents, no countdown, no recurring charges.</p>
  <button class="btn green wide" data-action="checkout-review">PROCEED TO CHECKOUT →</button>`:
- `<div class="checkout-price"><span>Package ${discounted?"· FAKE AD −50%":""}</span><strong class="cross">${price}</strong></div><div class="checkout-price"><span>Mandatory Nutbuster generosity adjustment</span><b>−100%</b></div>
+ `${breakdownMarkup}
  <div class="checkout-total"><span>TOTAL DUE</span><strong>FREE</strong><small>$0.00</small></div>
  <p class="muted">Parody checkout. No payment details, billing connection, or actual transaction.</p><button class="btn green wide" data-action="checkout-complete">COMPLETE ORDER · FREE</button>`}
  </div></div>`;
