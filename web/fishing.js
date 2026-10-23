@@ -93,7 +93,27 @@ const BAITS=Object.freeze([
  {id:'glitter',name:'Glitter Grub',icon:'✨',level:1,quality:2},
  {id:'royal',name:'Royal Roe',icon:'👑',level:2,quality:4}
 ]);
+// Canonical 2 / 3 / 4 Honest Worm exchange values; change only after review.
 const BOOSTER_BAIT=Object.freeze({hammer:2,extra:2,row:2,shuffle:2,column:3,blast:3,cross:3,color:3,drill:4,unlock:4});
+const BAIT_RECIPES=Object.freeze({
+ glitter:Object.freeze({tier:1,worms:1,dollars:35}),
+ royal:Object.freeze({tier:2,worms:1,dollars:100})
+});
+function exchangeQuote(save,booster,progression,now=Date.now()){
+ const n=ensure(save,now),rate=BOOSTER_BAIT[booster];
+ if(!Number.isInteger(rate))return {valid:false,reason:'booster'};
+ const earned=!!(progression&&typeof progression.unlocked==='function'&&progression.unlocked(save,booster));
+ const owned=progression&&typeof progression.count==='function'?progression.count(save,booster):0;
+ const room=n.baits.worm<=999999-rate;
+ return {valid:!!(earned&&owned>=1&&room),booster,owned:Math.max(0,owned||0),earned,rate,room,
+  reason:!earned?'locked':owned<1?'stock':!room?'limit':null};
+}
+function exchangeBalance(save,progression,now=Date.now()){
+ const n=ensure(save,now),rates=Object.keys(BOOSTER_BAIT).map(id=>exchangeQuote(save,id,progression,now));
+ return {rates,stocked:rates.reduce((sum,r)=>sum+(r.earned?r.owned:0),0),
+  potentialWorms:rates.reduce((sum,r)=>sum+(r.earned?r.owned*r.rate:0),0),
+  currentWorms:n.baits.worm,freeDaily:DAILY,craftTier:n.baitTier,dollars:n.dollars};
+}
 const DAILY=6;
 const WHARF_AD_REWARD=Object.freeze({bait:2,dollars:100});
 const limit=n=>Number.isSafeInteger(n)&&n>=0?Math.min(n,999999999):0;
@@ -239,19 +259,19 @@ function upgrade(save,kind,now=Date.now()){
  return {valid:true,cost,kind,level:kind==='rod'?n.rod:kind==='tank'?n.tank:n.baitTier};
 }
 function trade(save,booster,progression,now=Date.now()){
- const n=ensure(save,now),amount=BOOSTER_BAIT[booster];
- if(!amount||!progression||!progression.count||!progression.spend||progression.count(save,booster)<1||!progression.unlocked(save,booster))return {valid:false,reason:'booster'};
- if(n.baits.worm>999999-amount)return {valid:false,reason:'limit'};
- if(!progression.spend(save,booster))return {valid:false,reason:'booster'};
- n.baits.worm+=amount;return {valid:true,amount,stock:n.baits.worm};
+ const quote=exchangeQuote(save,booster,progression,now);
+ if(!quote.valid)return {valid:false,reason:quote.reason==='limit'?'limit':'booster'};
+ const n=ensure(save,now);
+ if(typeof progression.spend!=='function'||!progression.spend(save,booster))return {valid:false,reason:'booster'};
+ n.baits.worm+=quote.rate;
+ return {valid:true,amount:quote.rate,stock:n.baits.worm};
 }
 function craft(save,kind,now=Date.now()){
- const n=ensure(save,now),spec=BAITS.find(x=>x.id===kind);
- if(!spec||spec.level===0||n.baitTier<spec.level)return {valid:false,reason:'locked'};
- const price=spec.level===1?35:100;
- if(n.dollars<price||n.baits.worm<1)return {valid:false,reason:n.baits.worm<1?'worm':'dollars'};
- n.dollars-=price;n.baits.worm--;n.baits[spec.id]++;
- return {valid:true,cost:price};
+ const n=ensure(save,now),spec=BAITS.find(x=>x.id===kind),recipe=BAIT_RECIPES[kind];
+ if(!spec||!recipe||n.baitTier<recipe.tier)return {valid:false,reason:'locked'};
+ if(n.dollars<recipe.dollars||n.baits.worm<recipe.worms)return {valid:false,reason:n.baits.worm<recipe.worms?'worm':'dollars'};
+ n.dollars-=recipe.dollars;n.baits.worm-=recipe.worms;n.baits[spec.id]++;
+ return {valid:true,cost:recipe.dollars};
 }
 function rodModel(n){return ROD_BY_ID.get(n.equippedRod)||ROD_BY_ID.get(STARTER_ROD);}
 const HABITAT_AFFINITY=Object.freeze({woodland:['pond'],brass:['river'],gilded:['river'],carbon:['deep'],verdant:['pond','arcane'],coral:['pond','arcane'],industrial:['deep'],'royal-blue':['river','arcane'],pirate:['deep'],glacier:['river','deep'],storm:['arcane','deep'],magma:['deep','arcane'],sovereign:['arcane','pond'],astral:['arcane'],prismatic:['arcane','deep'],confection:['pond','arcane']});
@@ -368,7 +388,7 @@ function resolve(save,choice,now=Date.now()){
  n.pending=null;
  return {valid:true,choice,fish:{...fish},dollars:n.dollars};
 }
-const api={FISH,BAITS,RODS,STAMPS,BACKGROUNDS,BOOSTER_BAIT,DAILY,WHARF_AD_REWARD,localDay,ensure,claimWharfAd,capacity,stampCapacity,stampUnlocked,backgroundUnlocked,placeStamp,removeStamp,chooseBackground,moveFish,nextCost,upgrade,trade,craft,cast,step,resolve,rodModel,rodOdds,chooseFish,buyRod,equipRod,repairRod};
+const api={FISH,BAITS,RODS,STAMPS,BACKGROUNDS,BOOSTER_BAIT,BAIT_RECIPES,exchangeQuote,exchangeBalance,DAILY,WHARF_AD_REWARD,localDay,ensure,claimWharfAd,capacity,stampCapacity,stampUnlocked,backgroundUnlocked,placeStamp,removeStamp,chooseBackground,moveFish,nextCost,upgrade,trade,craft,cast,step,resolve,rodModel,rodOdds,chooseFish,buyRod,equipRod,repairRod};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutFishing=api;
 })(typeof window!=='undefined'?window:globalThis);
