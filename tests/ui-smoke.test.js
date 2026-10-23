@@ -42,7 +42,7 @@ assert.equal(window.NutbusterApp.getSave().hearts,5);
 assert.equal(window.NutBenefits.ready(window.NutbusterApp.getSave(),'hearts'),false,'No second free heart claim in 12h');
 window.NutbusterApp.nav('home');
 handlers.click({target:{closest:()=>({dataset:{action:'bonus-moves'}})}});
-assert.match(html,/12-hour manual claim/);
+assert.match(html,/claim every 12 hours/);
 handlers.click({target:{closest:()=>({dataset:{action:'checkout-back'}})}});
 window.NutbusterApp.nav('home');
 handlers.click({target:{closest:()=>({dataset:{action:'vip'}})}});
