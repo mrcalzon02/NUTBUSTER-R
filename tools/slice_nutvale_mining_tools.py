@@ -68,7 +68,7 @@ def main(source=SOURCE,output=OUTPUT):
   out=output/category/(name+'.png');out.parent.mkdir(parents=True,exist_ok=True)
   icon.save(out,optimize=True)
   a=np.asarray(icon.getchannel('A'))
-  if min(a.max(),int((a>=128).sum()))<3000:raise ValueError('Empty icon: '+name)
+  if int((a>=128).sum())<3000:raise ValueError('Empty icon: '+name)
   if a[:3].max() or a[-3:].max() or a[:,:3].max() or a[:,-3:].max():raise ValueError('Cropped icon: '+name)
   results.append({'id':name,'name':name.replace('-',' ').title(),'category':category,
    'path':'art/nutvale/mining-tools/'+category+'/'+name+'.png',
