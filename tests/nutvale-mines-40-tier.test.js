@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const G=require('../web/nutvale-mining-gear.js'),M=require('../web/nutvale-mines.js'),UI=require('../web/nutvale-mines-ui.js');
+const G=require('../web/nutvale-mining-gear.js'),M=require('../web/nutvale-mines.js'),Art=require('../web/nutvale-economy-art.js'),UI=require('../web/nutvale-mines-ui.js');
 const day=Date.parse('2026-10-22T12:00:00');
 const unlocked=(dollars=1000000)=>({unlocked:500,stars:{500:2},nutravaganza:{dollars},nutravaganzaExpedition:{}});
 assert.equal(G.COUNT,40);assert.equal(G.LAST,39);
