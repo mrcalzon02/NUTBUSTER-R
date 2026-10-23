@@ -120,7 +120,7 @@ const screen={classList:{toggle(){}},addEventListener:(type,handler)=>handlers[t
  get innerHTML(){return html},set innerHTML(v){html=v},querySelector(){return null},querySelectorAll(){return []}};
 const toast={textContent:'',classList:{add(){},remove(){}}};
 const document={getElementById:id=>({screen,toast,app:{classList:{toggle(){}}},wallet:{},gems:{}}[id]||null),querySelectorAll(){return []},querySelector(){return null}};
-const win={NutEngine:E,NutProgress:P,NutHomestead:require('../web/homestead.js'),NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:require('../web/campaign-maps.js'),NutBoardFeatures:F,addEventListener(){}};
+const win={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutProgress:P,NutHomestead:require('../web/homestead.js'),NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:require('../web/campaign-maps.js'),NutBoardFeatures:F,addEventListener(){}};
 vm.runInNewContext(game,{window:win,document,localStorage:{getItem:k=>store[k],setItem:(k,v)=>store[k]=v},clearTimeout(){},setTimeout(){},console});
 const app=win.NutbusterApp;app.nav('shop');
 assert.match(html,/data-action="hold-offer" data-hold-id="butter_hold"/);

@@ -22,7 +22,7 @@ const document={
  getElementById:id=>({screen,wallet,gems,toast,app:{classList:{toggle(name,value){if(name==='playing')appPlaying=value;}}}}[id]||null),
  querySelectorAll:()=>[],querySelector:()=>null
 };
-const window={NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,
+const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,
  NutCampaignMaps:M,NutBoardFeatures:F,addEventListener(){}};
 const localStorage={getItem:()=>null,setItem(){}};
 vm.runInNewContext(read('web/game.js'),{window,document,localStorage,setTimeout(){},clearTimeout(){},console});

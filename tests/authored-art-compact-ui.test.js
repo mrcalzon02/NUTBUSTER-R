@@ -28,7 +28,7 @@ let html='',playing=false;
 const screen={classList:{toggle(){}},addEventListener(){},get innerHTML(){return html;},set innerHTML(v){html=v;},querySelector(){return null},querySelectorAll(){return []}};
 const wallet={textContent:''},gems={textContent:''},toast={textContent:'',classList:{add(){},remove(){}}};
 const document={getElementById:id=>({screen,wallet,gems,toast,app:{classList:{toggle(n,v){if(n==='playing')playing=v;}}}}[id]||null),querySelectorAll(){return []},querySelector(){return null}};
-const window={NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutBoardFeatures:F,addEventListener(){}};
+const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutBoardFeatures:F,addEventListener(){}};
 vm.runInNewContext(source,{window,document,localStorage:{getItem(){return null},setItem(){}},setTimeout(){},clearTimeout(){},console});
 window.NutbusterApp.start(12);
 assert.ok(playing);

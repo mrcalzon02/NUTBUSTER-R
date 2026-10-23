@@ -18,7 +18,7 @@ function harness(){
  const screen={classList:flags,addEventListener(key,fn){listeners[key]=fn;},
  get innerHTML(){return page;},set innerHTML(v){page=v;draws++;},
  querySelector(){return null;},querySelectorAll(){return [];}};
- const window={NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,
+ const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,
   NutCampaignMaps:M,NutCodex:C,NutFakeAds:Ads,innerWidth:360,addEventListener(){}};
  const document={get hidden(){return hidden;},addEventListener(){},
  getElementById(id){return ({screen,toast:{classList:flags,textContent:''},
