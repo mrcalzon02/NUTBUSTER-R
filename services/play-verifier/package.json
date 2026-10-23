@@ -1,0 +1,9 @@
+{
+  "name":"nutbuster-play-verifier",
+  "version":"0.1.0",
+  "private":true,
+  "type":"commonjs",
+  "engines":{"node":">=22"},
+  "scripts":{"start":"node index.js","test":"node ../../tests/play-verifier-policy.test.js"},
+  "dependencies":{"@google-cloud/firestore":"^7.11.3","google-auth-library":"^9.15.1"}
+}
