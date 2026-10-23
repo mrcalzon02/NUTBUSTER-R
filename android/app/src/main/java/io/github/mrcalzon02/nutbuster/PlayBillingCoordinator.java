@@ -55,6 +55,11 @@ final class PlayBillingCoordinator implements PurchasesUpdatedListener {
     }
     void refreshCatalog() {
         if (!connected) return;
+        if (BuildConfig.PLAY_VERIFICATION_ENDPOINT.isEmpty()) {
+            // Even an approved Google catalog is not an actionable store without receipt validation.
+            status("Google Play products are disabled until receipt verification is configured.");
+            return;
+        }
         List<QueryProductDetailsParams.Product> products = new ArrayList<>();
         for (String sku : SKUS) if (sku != null)
             products.add(QueryProductDetailsParams.Product.newBuilder()
