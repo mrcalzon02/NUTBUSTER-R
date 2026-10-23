@@ -11,10 +11,10 @@ function findSwap(g,wantMatch){
  }
  return null;
 }
-const expected=[[1,4,5],[10,4,5],[11,5,6],[30,5,6],[31,6,7],[70,6,7],[71,7,8],[140,7,8],[141,8,9],[500,8,9]];
+const expected=[[1,4,5],[10,4,5],[11,5,6],[30,5,6],[31,6,7],[70,6,7],[71,7,8],[140,7,8],[141,8,9],[500,8,9],[1000,8,9]];
 for(const [level,w,h] of expected){const c=E.makeLevel(level);assert.equal(c.width,w);assert.equal(c.height,h);assert.equal(c.mask.length,w*h);}
 let matching=0,nonMatching=0,cascades=0,falls=0;
-for(let lvl=1;lvl<=500;lvl++)for(let seed=1;seed<=5;seed++){
+for(let lvl=1;lvl<=1000;lvl++)for(let seed=1;seed<=5;seed++){
  const g=E.create(lvl,seed*9973+lvl),h=E.create(lvl,seed*9973+lvl);
  assert.deepEqual(E.snapshot(g),E.snapshot(h),'Determinism level '+lvl+' seed '+seed);
  assert.equal(g.cells.length,g.cfg.width*g.cfg.height);
@@ -22,8 +22,11 @@ for(let lvl=1;lvl<=500;lvl++)for(let seed=1;seed<=5;seed++){
  assert.equal(E.matches(g).hit.size,0,'Initial matches '+lvl+':'+seed);
  assert.equal(E.hasMove(g),true,'No move '+lvl+':'+seed);
  const legal=findSwap(g,true);assert.ok(legal,'Missing scoring swap');
- const beforeMoves=g.moves,beforeScore=g.score,scoring=E.swap(g,...legal);
- assert.equal(scoring.valid,true);assert.equal(g.moves,beforeMoves-1);
+ const beforeMoves=g.moves,beforeRefunds=g.elementalRefunds||0,beforeScore=g.score,scoring=E.swap(g,...legal);
+ assert.equal(scoring.valid,true);
+ const earnedRefunds=(g.elementalRefunds||0)-beforeRefunds;
+ const expiredBombs=scoring.hazards?.expired?.length||0;
+ assert.equal(g.moves,Math.max(0,beforeMoves-1+earnedRefunds-expiredBombs*2),'Scoring swap charges a turn, credits Nature refunds and deducts expired bombs');
  assert.ok(g.score>beforeScore);assert.ok(scoring.stages.length>0);
  assert.deepEqual(scoring.swap,legal);matching++;
  for(const st of scoring.stages){
@@ -39,10 +42,10 @@ for(let lvl=1;lvl<=500;lvl++)for(let seed=1;seed<=5;seed++){
  const independent=E.create(lvl,seed*7477+lvl);
  const harmless=findSwap(independent,false);assert.ok(harmless,'Missing legal non-matching swap');
  const left=independent.cells[harmless[0]].type,right=independent.cells[harmless[1]].type;
- const previousMoves=independent.moves,previousScore=independent.score;
+ const previousMoves=independent.moves,previousRefunds=independent.elementalRefunds||0,previousScore=independent.score;
  const result=E.swap(independent,...harmless);
  assert.equal(result.valid,true);assert.ok(result.loops>=0);
- assert.equal(independent.moves,previousMoves-1);
+ assert.equal(independent.moves,Math.max(0,previousMoves-1+(independent.elementalRefunds||0)-previousRefunds-2*(result.hazards?.expired?.length||0)),'Non-matching swaps charge turns and account for elemental refunds and bomb expiry');
  if(!result.loops)assert.equal(independent.score,previousScore);
  assert.ok(result.stages.every(s=>['repair','hazard','transport','cascade'].includes(s.kind)),'Environmental transport may cause further cascades');
  if(!result.stages.some(s=>s.kind==='repair'||s.kind==='transport'||s.kind==='cascade')){assert.equal(independent.cells[harmless[0]].type,right);assert.equal(independent.cells[harmless[1]].type,left);}
@@ -51,4 +54,4 @@ for(let lvl=1;lvl<=500;lvl++)for(let seed=1;seed<=5;seed++){
 }
 const invalid=E.create(3,123);assert.equal(E.swap(invalid,0,999).valid,false);
 assert.equal(E.booster(invalid,'unlimited',1).valid,false);
-console.log('PASS: 500 levels × 5 seeds, '+matching+' scoring swaps, '+nonMatching+' non-matching swaps, '+cascades+' cascades, '+falls+' fall moves, dynamic geometry and determinism.');
+console.log('PASS: 1000 levels × 5 seeds, '+matching+' scoring swaps, '+nonMatching+' non-matching swaps, '+cascades+' cascades, '+falls+' fall moves, dynamic geometry and determinism.');

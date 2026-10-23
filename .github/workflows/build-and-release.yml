@@ -54,6 +54,15 @@ jobs:
           node tests/gravity-hold.test.js
           node tests/fx.test.js
           node tests/campaign-ui.test.js
+          node tests/difficulty-pressure.test.js
+          node tests/daily-moves-elemental-rewards.test.js
+          node tests/elemental-trials-and-daily-integration.test.js
+          node tests/whole-piece-blockers.test.js
+          node tests/nut-codex-and-mechanics.test.js
+          node tests/nutdex-drawer.test.js
+          node tests/tile-overlay-art.test.js
+          node tests/tile-overlay-assets.test.js
+          node tests/nutravaganza.test.js
 
       - name: Retain structural and automated player-proxy reports
         if: always()
