@@ -8,6 +8,7 @@ const api={required:true,active:!!bridge,prices:{},lastStatus:'',
  confirmFulfillment(id){if(typeof id==='string')bridge?.confirmFulfillment?.(id);},
  restore(){bridge?.restorePurchases?.();bridge?.refreshCatalog?.();},
  achievements(){bridge?.achievements?.();},friends(){bridge?.friends?.();},
+ linkAccount(){bridge?.linkAccount?.();},unlinkAccount(){bridge?.unlinkAccount?.();},
  achievement(level){for(const n of [1,100,500,1000])if(n===level)bridge?.achievementUnlocked?.('level_'+n);}
 };
 root.NutbusterPlay=api;

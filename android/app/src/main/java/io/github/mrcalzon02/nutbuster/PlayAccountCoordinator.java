@@ -44,12 +44,12 @@ final class PlayAccountCoordinator {
                 if (code==null || code.isEmpty()) {
                     status("Account verification declined or unavailable."); return;
                 }
-                final String installId=activity.getSharedPreferences("nutbuster.play.receipts",0)
-                    .getString("installId","");
+                android.content.SharedPreferences prefs=
+                    activity.getSharedPreferences("nutbuster.play.receipts",0);
+                String stored=prefs.getString("installId","");
+                final String installId=stored.matches("[0-9a-f-]{36}")?stored:UUID.randomUUID().toString();
+                if(!installId.equals(stored))prefs.edit().putString("installId",installId).commit();
                 final String attempt=UUID.randomUUID().toString();
-                if (!installId.matches("[0-9a-f-]{36}")) {
-                    status("Open the Nut Emporium first to initialize secure verification.");return;
-                }
                 try {
                     String message="nutbuster-play-account-v1\n"+activity.getPackageName()+"\n"+
                         code+"\n"+installId+"\n"+attempt;
