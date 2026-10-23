@@ -2,8 +2,8 @@
   "schema": 1,
   "role": "nutvale-mining-tool-visual-catalog",
   "source_sha256": "feadd3e5ff57bd67dea318dec737e1c3d7daff2babdad46ec635a7006f487fed",
-  "production_status": "binary art packaged separately; repository images require installation",
-  "warning": "visual catalog is not the mechanical progression tree; six levels of pickaxe and gloves progression remain authoritative",
+  "production_status": "Full 86-icon source/sliced pack uploaded and verified in NUTBUSTER Google Drive; not yet installed as GitHub PNG binaries",
+  "warning": "40 pickaxe and 40 glove gameplay levels; equipment supplement docs/economy/nutvale-mines-equipment-v1.1.json supersedes only prior 6-tier equipment limits.",
   "pickaxe_atlas": {
     "path": "art/nutvale/mining-tools/atlas-pickaxes.png",
     "columns": 11,
@@ -622,6 +622,17 @@
         "column": 13,
         "row": 2
       }
+    ]
+  },
+  "drive_archive_url": "https://drive.google.com/file/d/1ySfEltY1N0rS5w2RWOSxFh0WbHXaY_l2/view?usp=drivesdk",
+  "tiered_visuals": {
+    "pickaxes": 40,
+    "gloves": 40,
+    "reserve_pickaxes": 4,
+    "reserve_gloves": 2,
+    "tiers_zero_based": [
+      0,
+      39
     ]
   }
 }
