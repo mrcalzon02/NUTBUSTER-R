@@ -26,6 +26,10 @@
 .map-titlebar{display:flex;align-items:center;justify-content:space-between;gap:6px;position:sticky;top:0;z-index:4;padding:8px 10px;background:#341b35ed;border-bottom:1px solid #ab7542}
 .map-titlebar h2{font-size:clamp(12px,3vw,18px);margin:0;text-align:center;line-height:1.15;color:#ffe5a6}
 .map-titlebar .btn{min-height:34px;padding:5px 8px;font-size:11px;white-space:nowrap}
+.map-world-switch{display:flex;gap:4px;padding:4px 8px;background:#301d34}
+.map-world-switch .btn{flex:1;min-height:30px;padding:3px 6px;font-size:11px;line-height:1.15}
+.map-world-switch [aria-pressed="true"]{background:#655078;border-color:#ffdf97;color:#fff2c5}
+.map-world-switch+.map-viewport{height:calc(100dvh - 69px - 68px - 90px - 38px)}
 .map-viewport{height:calc(100dvh - 69px - 68px - 90px);min-height:300px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;background:#1a172d;touch-action:pan-x pan-y}
 .map-canvas{width:var(--map-w);height:var(--map-h);position:relative;isolation:isolate;flex:none}
 .map-background{display:block;position:absolute;inset:0;width:100%;height:100%;user-select:none;pointer-events:none}

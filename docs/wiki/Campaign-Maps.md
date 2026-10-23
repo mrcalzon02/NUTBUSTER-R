@@ -27,3 +27,17 @@ Tests: `node tests/campaign-maps.test.js` (including road landmarks, intentional
 ## Map release discipline
 
 When a new map image is produced: archive an image with a stable descriptive name, create a consistent WebP runtime image, record the source and runtime hashes in the manifest, upload the real binary as a Git blob, commit it with path and metadata, read back the main branch and blob identity, then run CI. **Image generation by itself is not a GitHub commit**, and the GitHub workflow cannot automatically access imagery that exists only in a chat. Never claim publication without remote verification.
+
+## Nutravaganza second-world maps (chapters 6–10)
+
+A separate marker-free Nutvale Oceanside overview is available at `web/art/maps/overview-nutvale-oceanside.webp`. The world selector in `web/game.js` switches between the original five locations and the next five; the first five existing road traces remain unchanged. All assets are 941×1672 runtime WebP and inventoried with digests under `web/art/maps/manifest.json`.
+
+| Chapter | Campaign levels | Paint-only background |
+|---|---|---|
+| 6 Moonnut Lake Shores | 501–600 | `chapter-6-moonnut-lake-shores.webp` |
+| 7 Sunken Shell Kingdom | 601–700 | `chapter-7-sunken-shell-kingdom.webp` |
+| 8 Stormbreaker Archipelago | 701–800 | `chapter-8-stormbreaker-archipelago.webp` |
+| 9 The Abyssal Nutworks | 801–900 | `chapter-9-abyssal-nutworks.webp` |
+| 10 Leviathan's Crown | 901–1000 | `chapter-10-leviathans-crown.webp` |
+
+The new `ROAD_PIXELS` legs in `web/campaign-maps.js` represent authored approximate route traces, not per-pixel computer-vision certification. Before release, review each 100-node overlay at phone size and move outliers to the true painted pathway. Existing accessibility labels, milestones, zoom and scroll mechanics apply to every chapter; labels remain HTML rather than baked into artwork. See [Nutravaganza Campaign II](Nutravaganza-Campaign-II.md).

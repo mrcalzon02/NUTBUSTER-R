@@ -17,11 +17,12 @@ assert.equal(D.topUp(reloaded,5,at,15),5);
 assert.equal(D.spend(reloaded,2,at,15),true);
 assert.equal(D.left(reloaded,later,13),13,'Local next-day refill');
 assert.equal(D.left(reloaded,at,40),13,'Clock rollback must not replenish');
-assert.equal(K.profile(501).area,1);
-assert.equal(K.profile(650).area,5);
-assert.equal(K.profile(650).local,30);
-for(let area=1;area<=5;area++){
- const from=501+(area-1)*30;
+assert.equal(K.profile(1001).area,1);
+assert.equal(K.profile(1000),null,'Main campaign 1000 must not be treated as a trial');
+assert.equal(K.profile(1300).area,10);
+assert.equal(K.profile(1300).local,30);
+for(let area=1;area<=10;area++){
+ const from=K.FIRST+(area-1)*K.PER_AREA;
  save.unlocked=area*100;
  for(let i=0;i<30;i++){
   const id=from+i,p=K.profile(id);
@@ -36,7 +37,7 @@ for(let area=1;area<=5;area++){
   if(p.mastery)assert.equal(save.elementalRelics[p.element],true);
  }
 }
-assert.equal(R.summary(save).completed,150);
+assert.equal(R.summary(save).completed,300);
 assert.equal(R.summary(save).relics.length,15);
-assert.deepEqual(R.summary(save).areas.map(x=>x.completed),[30,30,30,30,30]);
-console.log('PASS shared daily move bank, rollover, anti-replay rewards, 150 trial grants, 15 relics');
+assert.deepEqual(R.summary(save).areas.map(x=>x.completed),[30,30,30,30,30,30,30,30,30,30]);
+console.log('PASS shared daily move bank, rollover, anti-replay rewards, 300 trial grants, 15 relic identities');

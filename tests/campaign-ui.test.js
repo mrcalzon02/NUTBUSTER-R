@@ -20,7 +20,22 @@ for(let chapter=1;chapter<=5;chapter++){
  handlers.click({target:{closest:()=>({dataset:{action:'world-map'}})}});
  assert.equal((html.match(/data-chapter=/g)||[]).length,5);
 }
+handlers.click({target:{closest:()=>({dataset:{action:'world-page',world:'1'}})}});
+assert.match(html,/NUTRAVAGANZA · 501–1000/);
+assert.ok(html.includes(M.OVERVIEW2));
+assert.equal((html.match(/data-chapter=/g)||[]).length,5);
+for(let chapter=6;chapter<=10;chapter++){
+ handlers.click({target:{closest:()=>({dataset:{chapter:String(chapter)}})}});
+ assert.equal(app.getState().chapter,chapter);
+ assert.equal((html.match(/class="map-node /g)||[]).length,100);
+ assert.match(html,new RegExp('data-level="'+((chapter-1)*100+1)+'"'));
+ assert.match(html,new RegExp('data-level="'+(chapter*100)+'"'));
+ handlers.click({target:{closest:()=>({dataset:{action:'world-map'}})}});
+}
 app.start(500);assert.equal(app.getState().game.level,500);
 app.nav('campaign');assert.equal(app.getState().chapter,5);
 assert.equal((html.match(/class="map-node /g)||[]).length,100);
-console.log('PASS: fullscreen five-chapter map interaction, each hundred-node overlay, play level 500, map back navigation');
+app.start(1000);assert.equal(app.getState().game.level,1000);
+app.nav('campaign');assert.equal(app.getState().chapter,10);
+assert.equal((html.match(/class="map-node /g)||[]).length,100);
+console.log('PASS: ten 100-stage chapter maps across two worlds, game launch at 500 and 1000, map return');

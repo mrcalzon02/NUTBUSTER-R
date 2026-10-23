@@ -2,11 +2,11 @@ const assert=require('node:assert/strict');
 const E=require('../web/engine.js'),L=require('../web/level-design.js');
 const M=require('../web/campaign-maps.js'),P=require('../web/progression.js');
 assert.equal(L.ACTS.length,10);
-assert.equal(L.CHAPTER_ACTS.length,5);
+assert.equal(L.CHAPTER_ACTS.length,10);
 assert.ok(L.CHAPTER_ACTS.every(acts=>acts.length===10),'Every chapter has ten named acts');
-assert.equal(Object.keys(L.LESSONS).length,67);
+assert.equal(Object.keys(L.LESSONS).length,97);
 const family=new Set(),shapes=new Set(),formation=new Set(),tutorial=new Set();
-for(let level=1;level<=500;level++){
+for(let level=1;level<=1000;level++){
  const d=L.profile(level),cfg=E.makeLevel(level),g=E.create(level,level*91+7);
  assert.equal(d.id,level);
  assert.equal(d.chapter,Math.floor((level-1)/100)+1);
@@ -92,4 +92,11 @@ assert.ok(E.makeLevel(139).features.conveyors.length>0,'Factory conveyor spotlig
 assert.ok(E.makeLevel(177).features.portals.length>0,'Portal-lock spotlight needs a portal');
 assert.ok(E.makeLevel(330).features.wind.length>0,'Autumn crosswind spotlight needs wind');
 assert.equal(E.makeLevel(490).features.wind.length,2,'Final palace vault needs two wind lanes');
-console.log('PASS: 500 stage profiles, five chapter act books, 67 spotlight lessons, explicit finales, aligned map names and objective feasibility');
+for(const level of [501,520,540,560,580,600,601,620,640,660,680,700,701,720,740,760,780,800,801,820,840,860,880,900,901,920,940,960,980,1000]){
+ const d=L.profile(level),g=E.create(level,level*19+23);
+ assert.equal(d.lesson,true,'New themed lesson '+level);
+ assert.equal(M.nodes(d.chapter)[d.local-1].title.includes(d.name),true);
+ assert.equal(g.cfg.stageTitle,d.name);
+ assert.ok(E.hasMove(g),'New spotlight must have a legal start '+level);
+}
+console.log('PASS: 1000 stage profiles, ten chapter act books, 97 spotlight lessons, objective feasibility and new chapter finales');

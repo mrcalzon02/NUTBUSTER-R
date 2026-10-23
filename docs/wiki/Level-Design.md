@@ -51,3 +51,11 @@ Difficulty keeps climbing beyond stage 40 using separate score and quota scales.
 ## Shared daily move allowance (October 2026)
 
 The revised per-stage move curve seeds a **single persistent daily balance** rather than a refill on every level start. Normal campaign stages and elemental trials draw from the same bank. Retries and moving between areas do not regenerate moves. The next local day restores the stage-based baseline, while explicit +5 Moves items and Nature's successful butter cleanse add saved bonus moves. All original board-size transitions remain unchanged.
+
+## Campaign II: chapters 6–10 (October 2026 development)
+
+The stage book now covers **1,000 main campaign IDs**, with **100 IDs per chapter and ten named ten-stage acts per chapter**. New authored spotlight and finale profiles cover 501, 520, 540, 560, 580, 600 and equivalent milestone sets in chapters 7–10; the remainder are seeded deterministic level configurations, not bespoke human-balanced puzzles. Level 1000 has a proper campaign-completion outcome rather than looping to itself.
+
+To prevent collisions between main levels 501–1000 and existing numeric trial IDs, the dedicated elemental-trial range was reassigned to **1001–1300**. Ten chapters each have 30 trials, gated by their own matching main campaign progress. Elemental variants reuse the 15 existing real abilities rather than inventing extra assetless types. The shared daily move bank persists across campaign and elemental stages. Pre-release save compatibility is not guaranteed; this changes prior development-only trial IDs.
+
+Existing 4×5 through 8×9 board transitions, mechanically honest blocker HP, seven original core nuts, rotating expansion nuts, conveyors, portals and wind lanes remain authoritative. New chapters remix supported mechanics at increasing pressure, including optional support through earned boosters. Automated openings and objective-stock evidence are **not** proof of human difficulty fairness; run phone-size map review, seeded tests across all 1,300 IDs, actual gameplay balancing, offline/Android install tests and release provenance gates before declaring release-ready.

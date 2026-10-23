@@ -1,14 +1,14 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');const path=require('node:path');
 const M=require('../web/campaign-maps.js');const E=require('../web/engine.js');
-assert.equal(M.CHAPTERS.length,5);
+assert.equal(M.CHAPTERS.length,10);
 let ids=new Set();
 for(const c of M.CHAPTERS){
  assert.equal(c.end-c.start+1,100);
  assert.equal(c.start,(c.id-1)*100+1);
  const positions=M.nodes(c.id);
  assert.equal(positions.length,100);
- assert.equal(c.path.length,[1,1,3,2,1][c.id-1],'Walkable road sections are explicit');
+ assert.equal(c.path.length,[1,1,3,2,1,1,1,1,1,1][c.id-1],'Walkable road sections are explicit');
  // A route split is intentional where the artwork shows a waterfall/cliff.
  // No stages may be linearly interpolated through the unwalkable gap.
  assert.equal(new Set(positions.map(p=>p.road)).size,c.path.length);
@@ -39,7 +39,7 @@ for(const c of M.CHAPTERS){
   }
  }
 }
-assert.equal(ids.size,500);
+assert.equal(ids.size,1000);
 // Independently pin critical road features so edits cannot silently drift away
 // from the bridge, switchback, and castle entrance in the actual art.
 const roadLandmarks={
@@ -61,7 +61,10 @@ assert.match(css,/\.map-node\{[^}]*width:27px;height:27px/,'Standard road marker
 assert.match(css,/\.map-node\.milestone\{width:35px;height:35px/,'Milestone markers must remain distinctive');
 assert.match(css,/\.map-node:is\([^)]+\)::after\{[^}]*width:19px;height:19px/,'Reward icons must remain legible');
 assert.ok(fs.existsSync(path.join(__dirname,'../web',M.OVERVIEW)));
-for(let l=1;l<=500;l++){
+assert.ok(fs.existsSync(path.join(__dirname,'../web',M.OVERVIEW2)));
+assert.equal(M.chapterOf(501).id,6);
+assert.equal(M.chapterOf(1000).id,10);
+for(let l=1;l<=1000;l++){
  const g=E.create(l,l*991);
  assert.equal(g.level,l);
  assert.equal(E.matches(g).hit.size,0,'Opening accidental match on '+l);
@@ -71,4 +74,4 @@ for(let l=1;l<=500;l++){
 const early=E.makeLevel(1), middle=E.makeLevel(200), late=E.makeLevel(500);
 assert.ok(early.moves>middle.moves&&middle.moves>late.moves);
 assert.ok(late.goal>middle.goal);
-console.log('PASS: five 100-node maps, 500 unique playable level IDs, smooth bounded paths, all map assets, progressive difficulty');
+console.log('PASS: ten 100-node maps, 1000 unique playable stage IDs, smooth bounded paths, all map assets, progressive difficulty');
