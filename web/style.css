@@ -450,6 +450,16 @@
 .elemental-relics img{width:28px;height:28px;object-fit:contain}
 .nut-visual .elemental-emblem{position:absolute;right:0;bottom:0;width:43%;height:43%;object-fit:contain;z-index:3;filter:drop-shadow(0 0 2px #fff8);pointer-events:none}
 
+/* An unmistakable shop coupon action, immediately beneath the shop header.
+   Opens the existing signed offline code form without repainting the page. */
+.shop-promo-entry{margin:0 0 12px}
+.promo-feature-button{display:flex;width:100%;min-height:65px;gap:12px;font-size:clamp(17px,4.5vw,23px);line-height:1.1;letter-spacing:.25px;border-width:3px;background:linear-gradient(125deg,#ffe69b,#f9ba45 52%,#e48723);box-shadow:0 5px #814017,0 9px 16px #0006;text-shadow:0 1px #fff9}
+.promo-feature-button>span{font-size:clamp(27px,7vw,35px);line-height:1}
+.shop-promo-entry>.promo-redeem{margin-top:9px}
+.promo-redeem[hidden]{display:none}
+.promo-feature-button:focus-visible,.promo-redeem input:focus-visible{outline:3px solid #fff;outline-offset:2px}
+@media(max-width:365px){.promo-feature-button{min-height:58px;padding:8px;font-size:17px;gap:6px}}
+
 /* Compact offline signed-promo redemption, available in Shop and Rewards. */
 .promo-redeem{margin:8px 0;padding:8px 10px;border:1px solid #8c6e7d;border-radius:8px;background:#302236}
 .promo-redeem summary{font-weight:700;font-size:12px;cursor:pointer}
