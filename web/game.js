@@ -8,7 +8,7 @@ const Mines=window.NutvaleMines, MineUI=window.NutvaleMinesUI, Comp=window.NutCo
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);R.ensure(saved);H.ensure(saved);A.ensure(saved);if(Comp)Comp.ensure(saved);if(!['original','auditor'].includes(saved.announcerVoice))saved.announcerVoice='original';D.ensure(saved,Date.now(),E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null};let toastHandle;
+let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});window.NutAudio.setAnnouncerVoice?.(saved.announcerVoice);}
 if(window.NutSFX){window.NutSFX.setEnabled(state.effects);window.NutSFX.setVolume(saved.levels.sfx);}
 function playSFX(name,opts){window.NutSFX?.play(name,opts);}
@@ -80,6 +80,7 @@ function nav(page){
  // Header currency buttons and bottom tabs may target the page already on screen.
  // Replacing #screen.innerHTML for a no-op navigation reloads sprites and visibly flashes on Android.
  if(state.page===page)return;
+  if(page!=='settings')state.resetStep=0;
  if(page==='codex')state.codexBack=state.page;
  if(state.page==='fake-ad')cancelFakeAd();
  closeNutdex();state.purchasePending=null;
@@ -791,13 +792,21 @@ function finishFakeAd(){
 function settings(){
  const lev=saved.levels||{voice:.9,music:.28,reactions:.38,sfx:.48};
  const announcers=window.NutAnnouncers?.voices||[{id:'original',label:'The Original Hype Man',description:'Original recordings'},{id:'auditor',label:'The Nutvale Auditor',description:'Prerecorded local MP3 clips'}];
- const choices=announcers.map(v=>`<button class="announcer-choice ${saved.announcerVoice===v.id?'selected':''}" type="button" data-action="announcer-set" data-voice-id="${v.id}" aria-pressed="${saved.announcerVoice===v.id?'true':'false'}"><strong>${saved.announcerVoice===v.id?'● ':'○ '}${v.label}</strong><small>${v.description}</small></button>`).join('');
+ const step=state.resetStep||0;
+  const recovery=step===0
+   ? '<section class="panel account-recovery"><b>ADVANCED</b><p class="muted">Maintenance and troubleshooting options.</p><button class="btn ghost" data-action="settings-advanced">OPEN ADVANCED OPTIONS</button></section>'
+   : step===1
+   ? '<section class="panel account-recovery"><b>ADVANCED OPTIONS</b><p class="muted">Local data and recovery tools.</p><button class="btn secondary" data-action="settings-data">DATA &amp; RECOVERY</button><button class="btn ghost" data-action="settings-reset-back">BACK TO SETTINGS</button></section>'
+   : step===2
+   ? '<section class="panel account-recovery"><b>DATA &amp; RECOVERY</b><p class="muted">Progress is stored on this device. There is no cloud backup or undo.</p><button class="btn danger-outline" data-action="account-reset-open">RESET ACCOUNT…</button><button class="btn ghost" data-action="settings-reset-back">BACK TO ADVANCED</button></section>'
+   : '<section class="panel account-recovery account-reset-warning"><b>ERASE LOCAL ACCOUNT PROGRESS?</b><p>Permanent deletion: levels, currencies, VIP benefits, boosters, achievements, homestead, fishing, mining, rewards and redeemed codes on this device. This cannot be undone. The game will restart with a new account.</p><label for="account-reset-confirmation">Type RESET to authorize deletion<input id="account-reset-confirmation" data-reset-confirmation type="text" spellcheck="false" autocomplete="off" autocapitalize="characters" placeholder="RESET"></label><button class="btn danger-outline" data-action="account-reset-execute" disabled>ERASE THIS DEVICE\'S NUTBUSTER SAVE</button><button class="btn ghost" data-action="account-reset-cancel">CANCEL · KEEP MY PROGRESS</button></section>';
+  const choices=announcers.map(v=>`<button class="announcer-choice ${saved.announcerVoice===v.id?'selected':''}" type="button" data-action="announcer-set" data-voice-id="${v.id}" aria-pressed="${saved.announcerVoice===v.id?'true':'false'}"><strong>${saved.announcerVoice===v.id?'● ':'○ '}${v.label}</strong><small>${v.description}</small></button>`).join('');
  return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings">
  <div class="announcer-picker" role="group" aria-label="Select announcer"><b>ANNOUNCER VOICE</b><div class="announcer-choices">${choices}</div><div class="announcer-preview"><button class="btn secondary" data-action="announcer-preview">▶ PREVIEW SELECTED VOICE</button><small>${saved.announcerVoice==='auditor'?'Local MP3 voice pack · no speech engine':'Original recording · default'}</small></div></div>
  <p class="muted">Independent volume controls for speech, music, reactions and gameplay effects.</p>
  ${[['voice','Announcer'],['music','Music'],['reactions','Match reactions'],['sfx','Game effects']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}
  <div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div>
- <div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>`;
+ <div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>${recovery}`;
 }
 function render(){syncDaily();if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');document.getElementById('app')?.classList?.toggle('fake-ad-active',state.page==='fake-ad');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
  screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');screen.classList?.toggle('codex-active',state.page==='codex');screen.classList?.toggle('mines-active',state.page==='mines');screen.classList?.toggle('companions-active',state.page==='companions');
@@ -898,6 +907,24 @@ function cell(i){if(!state.game||state.game.won||state.game.lost||state.animatin
  if(state.selected<0){selectCell(i);return;}if(state.selected===i){selectCell(-1);return;}doSwap(state.selected,i);
 }
 function action(a,button){
+  if(a==='settings-advanced'&&state.page==='settings'){state.resetStep=1;render();return;}
+  if(a==='settings-data'&&state.page==='settings'&&state.resetStep===1){state.resetStep=2;render();return;}
+  if(a==='settings-reset-back'&&state.page==='settings'&&state.resetStep>0){state.resetStep--;render();return;}
+  if(a==='account-reset-open'&&state.page==='settings'&&state.resetStep===2){state.resetStep=3;render();return;}
+  if(a==='account-reset-cancel'&&state.page==='settings'&&state.resetStep===3){state.resetStep=2;render();return;}
+  if(a==='account-reset-execute'){
+    if(state.page!=='settings'||state.resetStep!==3)return;
+    const confirmation=screen.querySelector?.('[data-reset-confirmation]');
+    if(confirmation?.value!=='RESET'){notice('TYPE RESET EXACTLY TO CONFIRM');return;}
+    try{
+      localStorage.removeItem(key);
+      if(localStorage.getItem(key)!==null)throw new Error('Saved game still exists');
+    }catch(_){notice('RESET FAILED · LOCAL SAVE NOT VERIFIED AS DELETED');return;}
+    // Never render/persist the old in-memory save following successful deletion.
+    if(typeof window.location?.reload==='function')window.location.reload();
+    else notice('SAVE ERASED · RESTART NUTBUSTER TO BEGIN AGAIN');
+    return;
+  }
  if((a==='companion-select'||a==='companion-buy'||a==='companion-feed')&&state.page==='companions'){
   if(!Comp)return;
   let result;
@@ -1187,6 +1214,11 @@ screen.addEventListener('pointerup',e=>{
  if(E.adjacent(state.game,p.i,j)){swipeGuard=Date.now()+400;doSwap(p.i,j);}
 });
 screen.addEventListener('input',e=>{
+  if(e.target?.dataset?.resetConfirmation!==undefined&&state.page==='settings'&&state.resetStep===3){
+    const button=screen.querySelector?.('[data-action="account-reset-execute"]');
+    if(button)button.disabled=e.target.value!=='RESET';
+    return;
+  }
  if(e.target?.dataset?.codexFilter!==undefined){const term=String(e.target.value||'').toLowerCase().trim();let count=0;
   screen.querySelectorAll('[data-codex-entry]').forEach(card=>{const show=(card.dataset.codexSearch||'').includes(term);card.hidden=!show;if(show)count++;});
   const empty=screen.querySelector('.codex-empty');if(empty)empty.hidden=count!==0;return;}
