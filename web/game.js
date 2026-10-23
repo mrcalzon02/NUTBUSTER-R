@@ -3,8 +3,8 @@
 // merely because play-platform.js or its Android bridge failed to load.
 if(!window.NutbusterPlay?.required) {
  window.NutbusterPlay={required:true,active:false,prices:{},
-  price:()=> 'UNAVAILABLE',buy:()=>{},restore:()=>{},
-  achievements:()=>{},friends:()=>{},isPaidIndex:i=>[0,1,2,3,4,5,8].includes(i)};
+  price:i=>i===4?'UNAVAILABLE':'FREE',buy:()=>{},restore:()=>{},
+  achievements:()=>{},friends:()=>{},isPaidIndex:i=>i===4};
 }
 const E=window.NutEngine, M=window.NutCampaignMaps, P=window.NutProgress, H=window.NutHomestead, A=window.NutAvatarArt, screen=document.getElementById('screen');
 const icons=['🥜','🌰','🌰','🥜','🌰','🟢','🌟'];
@@ -140,15 +140,16 @@ async function redeemPromoFromUI(){
  }catch(_){notice('PROMO REDEMPTION FAILED · NO CLAIM RECORDED');}
  finally{promoBusy=false;}
 }
+function vipSupportPurchased(){return Object.values(saved.playVerifiedReceipts||{}).some(i=>i===4);}
 function vipBenefits(){
  const today=syncDaily(),preview=P.actualPack(saved,'vipDaily');
  return '<div class="topline"><h2>👑 LIFETIME VIP BENEFITS</h2><button class="btn ghost" data-nav="home">BACK</button></div>'+
- '<div class="panel"><b>ONE-TIME UNLOCK · $2.99 FICTIONAL PREVIEW</b><p>Every rolling 24-hour daily move cycle, you automatically receive:</p>'+
+ '<div class="panel"><b>OPTIONAL ONE-TIME GOOGLE PLAY SUPPORTER VIP</b><p>Thank you for enjoying my game! If you enjoy NUTBUSTER, please consider buying Lifetime VIP to support its development. It is completely optional; all other packages and normal gameplay are free.</p><p>Every rolling 24-hour daily move cycle, you automatically receive:</p>'+
  '<p><b>+5 daily moves</b> above the normal allowance, <b>+250 Golden Nuts</b>, and <b>4 boosters</b>: 2 Hammers, 1 Extra Moves, and 1 Shuffle. Types not yet unlocked convert to the strongest already unlocked.</p>'+
  '<p><b>Your current daily booster pack:</b> '+boosterSummary(preview)+'</p>'+
  '<p><b>Status:</b> '+(saved.vip?'ACTIVE · THIS CYCLE GRANT '+(today.vipGranted?'DELIVERED':'PENDING'):'NOT OWNED')+'</p>'+
  '<p class="muted">One-time permanent flag for this save; not a subscription. VIP rewards are automatic. The two separate free 12-hour rewards require manual redemption.</p>'+
- (saved.vip?'<button class="btn secondary" data-nav="shop">VIEW SHOP</button>':'<button class="btn green" data-action="vip-buy">GET LIFETIME VIP · $2.99</button>')+'</div>';
+ (vipSupportPurchased()?'<button class="btn secondary" data-nav="shop">THANK YOU · VIEW SHOP</button>':'<button class="btn green" data-action="vip-buy" '+(window.NutbusterPlay?.price(4)==='UNAVAILABLE'?'disabled':'')+'>OPTIONAL SUPPORT · '+escPurchase(window.NutbusterPlay?.price(4)||'UNAVAILABLE')+'</button>')+'</div>';
 }
 function campaign(){
  const currentWorld=state.world===1?1:0;
@@ -494,7 +495,7 @@ function purchaseDialog(){
 const CONFIRMED_PURCHASES=new Set(['booster-buy','fish-bait-buy','fish-craft','fish-trade','fish-rod-buy','fish-rod-repair','fish-upgrade','homestead-tier-upgrade','homestead-build','homestead-renovate']);
 function beginCheckout(index,from=state.page){
  if(!Number.isInteger(index)||!offers[index])return;
- if(index===4&&saved.vip){nav('vip-benefits');return;}
+ if(index===4&&vipSupportPurchased()){nav('vip-benefits');return;}
  if(index===6&&saved.hearts>=5){notice('HEARTS ALREADY FULL');return;}
  if(index===6||index===7){
   const kind=index===6?'hearts':'moves',remaining=freeRemaining(kind);
@@ -503,7 +504,32 @@ function beginCheckout(index,from=state.page){
  state.epoch++;state.animating=false;state.checkout=index;state.checkoutFrom=from;state.checkoutStep=0;state.discountOffer=null;state.checkoutPack=index<6?P.actualPack(saved,'shop'+index):{};state.page='checkout';render();
 }
 function checkout(){const p=offers[state.checkout];if(!p)return '<p>Offer unavailable.</p>';
- if(window.NutbusterPlay?.required && ![6,7].includes(state.checkout)){
+ if(window.NutbusterPlay?.required){
+   const i=state.checkout,lines=Purchases.offer(i,offers,state.checkoutPack||{},E).lines;
+   if(i===4){
+     const price=window.NutbusterPlay.price(4),ready=price!=='UNAVAILABLE'&&!vipSupportPurchased();
+     return '<div class="checkout-screen vip-support-checkout"><div class="topline"><button class="btn ghost" data-action="checkout-back">BACK</button><h2>OPTIONAL VIP SUPPORT</h2></div>'+
+       '<section class="panel checkout-sheet"><img class="checkout-offer-icon" src="art/additions/economy/vip-shield.png" alt="" loading="lazy">'+
+       '<h1>HEY, THANK YOU FOR PLAYING MY GAME!</h1>'+
+       '<p class="vip-support-disclaimer">If you have enjoyed NUTBUSTER at all, please consider buying Lifetime VIP as a way to say thank you and support continued development.</p>'+
+       '<p><strong>ENTIRELY OPTIONAL.</strong> Every other package and the full game are playable for FREE. This is the ONLY real-money purchase, paid once through Google Play. No subscription.</p>'+
+       '<section class="checkout-disclosure"><b>EXACT VIP REWARDS · GUARANTEED</b>'+purchaseList(lines)+'</section>'+
+       '<div class="checkout-total"><span>ONE-TIME GOOGLE PLAY PRICE</span><strong>'+escPurchase(price)+'</strong></div>'+
+       (ready?'<p class="muted">Google Play will display the final price and ask for your authorization before charging.</p>':'<p class="muted">VIP supporter checkout is not yet available. Keep playing free.</p>')+
+       (state.checkoutStep===0?'<button class="btn green wide" data-action="checkout-review" '+(ready?'':'disabled')+'>REVIEW OPTIONAL PURCHASE</button>':
+          '<button class="btn green wide" data-action="checkout-complete" '+(ready?'':'disabled')+'>SUPPORT VIA GOOGLE PLAY · '+escPurchase(price)+'</button>')+
+       '<button class="btn ghost wide" data-action="checkout-back">NO THANKS · KEEP PLAYING FREE</button></section></div>';
+   }
+   return '<div class="checkout-screen"><div class="topline"><button class="btn ghost" data-action="checkout-back">BACK</button><h2>FREE PACKAGE</h2></div>'+
+     '<section class="panel checkout-sheet"><div class="checkout-item"><img class="checkout-offer-icon" src="'+offerSprites[i]+'" alt="" loading="lazy"><div><b>'+escPurchase(p[0])+'</b><strong>FREE · $0.00</strong></div></div>'+
+     '<p>No real-money charges. This package never uses Google Play Billing.</p>'+
+     '<section class="checkout-disclosure"><b>EXACT FREE CONTENTS</b>'+purchaseList(lines)+'</section>'+
+     (state.checkoutStep===0?'<button class="btn green wide" data-action="checkout-review">REVIEW FREE PACKAGE</button>':
+       '<button class="btn green wide" data-action="checkout-complete">CLAIM FREE PACKAGE · $0.00</button>')+
+     '<button class="btn ghost wide" data-action="checkout-back">CANCEL</button></section></div>';
+ }
+
+ if(window.NutbusterPlay?.required && state.checkout===4){
   const index=state.checkout,price=window.NutbusterPlay.price(index),ready=price!=='UNAVAILABLE';
   const lines=Purchases.offer(index,offers,state.checkoutPack||{},E)?.lines||[];
   return '<div class="checkout-screen"><div class="topline"><button class="btn ghost" data-action="checkout-back">← BACK</button><h2>GOOGLE PLAY CHECKOUT</h2></div>'+
@@ -547,8 +573,8 @@ const offerSprites=Object.freeze([...shopSprites,
  'art/additions/ui/treasure.png'
 ]);
 // Fictional previews only. Keep indices stable: they map to existing reward and checkout actions.
-const products=[['GIGANTIC NUT PACKAGE','🌰',50000,250,'$4.99'],['RIDICULOUSLY PREMIUM GEMS','💎',2000,2000,'$9.99'],['ROYAL SQUIRREL BUNDLE','🐿️',9999,500,'$3.99'],['HUNDRED YEAR CHEST','🧰',10000,150,'$1.99'],['ABSOLUTELY NECESSARY VIP · LIFETIME','👑',1000,100,'$2.99'],['NUTTY BOOSTER CRATE','🎲',3000,30,'$0.99']];
-const offers=[...products,['EMERGENCY HEART REFILL','❤️',0,0,'$0.00'],['EXTRA FIVE MOVES','➕',0,0,'$0.00'],['EXCLUSIVE ROYAL MANOR KIT','👑',0,0,'$2.99']];
+const products=[['GIGANTIC NUT PACKAGE','🌰',50000,250,'$0.00'],['RIDICULOUSLY PREMIUM GEMS','💎',2000,2000,'$0.00'],['ROYAL SQUIRREL BUNDLE','🐿️',9999,500,'$0.00'],['HUNDRED YEAR CHEST','🧰',10000,150,'$0.00'],['LIFETIME VIP · OPTIONAL SUPPORT','👑',1000,100,'$2.99'],['NUTTY BOOSTER CRATE','🎲',3000,30,'$0.00']];
+const offers=[...products,['EMERGENCY HEART REFILL','❤️',0,0,'$0.00'],['EXTRA FIVE MOVES','➕',0,0,'$0.00'],['EXCLUSIVE ROYAL MANOR KIT','👑',0,0,'$0.00']];
 function nutToBoosterShop(){
  const cards=E.BOOSTERS.map(id=>{
   const price=P.BOOSTER_PRICES[id],unlocked=P.unlocked(saved,id),stock=P.count(saved,id),available=unlocked&&stock<999999&&saved.coins>=price;
@@ -561,11 +587,23 @@ function nutToBoosterShop(){
 }
 function FRate(id){return window.NutFishing?.BOOSTER_BAIT?.[id]||0;}
 function shop(){
+ const vipPrice=window.NutbusterPlay?.price(4)||'UNAVAILABLE';
+ const vipButton=vipSupportPurchased()?'<button class="btn secondary" data-nav="vip-benefits">THANK YOU · VIP PURCHASE VERIFIED</button>':
+  '<button class="btn green" data-action="vip-buy" '+(vipPrice==='UNAVAILABLE'?'disabled':'')+'>'+
+   (vipPrice==='UNAVAILABLE'?'VIP SUPPORT NOT YET AVAILABLE':'OPTIONAL SUPPORT · '+escPurchase(vipPrice))+'</button>';
+ const supporterPanel='<section class="panel vip-support-panel" aria-label="Optional Google Play supporter VIP">'+
+  '<img class="vip-support-icon" src="art/additions/economy/vip-shield.png" alt="" loading="lazy">'+
+  '<div class="vip-support-copy"><h2>THANK YOU FOR ENJOYING MY GAME!</h2>'+
+  '<p>If you have enjoyed NUTBUSTER at all, please consider buying Lifetime VIP as a way to say thank you and support further development.</p>'+
+  '<p class="vip-support-disclaimer"><strong>COMPLETELY OPTIONAL.</strong> The full game and every other shop bundle are FREE. VIP is the ONLY real-money purchase, made once through Google Play. Never a subscription.</p>'+
+  '<p>VIP provides +5 daily moves, +250 Golden Nuts and 4 boosters per day, plus its fixed supporter pack.</p>'+
+  vipButton+'</div></section>';
+
  const holdCards=Object.entries(P.HOLD_ITEMS).map(([id,item])=>{
   const pending=state.holdOffer===id;
   return `<div class="hold-offer"><img src="${item.art}" alt="" draggable="false"><div class="hold-offer-info"><b>${item.label}</b><small>${item.drops} gravity drop${item.drops===1?'':'s'} · held-nut matches ×3 · Owned ${P.holdCount(saved,id)}</small></div><div class="hold-offer-buy"><b>${item.gems} <img src="art/additions/economy/prismatic-acorn.png" alt="gems"></b><button class="btn secondary" data-action="hold-offer" data-hold-id="${id}" title="Spend ${item.gems} Gems for exactly one ${item.label} held-nut power-up; ${item.drops} gravity drops, held matches ×3">BUY</button></div>${pending?`<div class="hold-confirm" role="group" aria-label="Confirm ${item.label} purchase"><span>Spend ${item.gems} Gems; receive exactly 1 ${item.label} power-up. Hold one selected nut for ${item.drops} gravity drops; held matches score ×3. Guaranteed, no randomness. Balance: ${saved.gems.toLocaleString()} Gems.</span><button class="btn green" data-action="hold-buy" data-hold-id="${id}">CONFIRM</button><button class="btn ghost" data-action="hold-cancel">CANCEL</button></div>`:''}</div>`;
  }).join('');
- return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">OPTIONAL BUNDLES</span>'}</div>${promoSection(true)}<div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div>${nutToBoosterShop()}${window.NutFishingUI?.exchangeSheet?.(saved,E,P,false)||''}<p class="muted">Transparent contents, one-time bundles, no subscriptions or purchase countdowns.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item"><img class="shop-offer-icon" src="${shopSprites[i]}" alt="" loading="lazy"><h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><details class="offer-disclosure"><summary>EXACT CONTENTS · NO RANDOM CHANCE</summary>${purchaseList(Purchases.offer(i,offers,P.actualPack(saved,'shop'+i),E).lines)}</details><div class="offer-price">${window.NutbusterPlay?.required?window.NutbusterPlay.price(i):p[4]}</div>${i===4?'<small>Daily +5 moves · 4 boosters · +250 Golden Nuts. Lifetime.</small>':''}<button class="btn green" data-action="${i===4&&saved.vip?'vip-benefits':'claim'}" data-item="${i}">${i===4&&saved.vip?'OWNED · VIEW BENEFITS':'BUY PACKAGE'}</button></div>`).join('')}</div>`;
+ return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">OPTIONAL BUNDLES</span>'}</div>${supporterPanel}${promoSection(true)}<div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div>${nutToBoosterShop()}${window.NutFishingUI?.exchangeSheet?.(saved,E,P,false)||''}<p class="muted">Every bundle below is FREE ($0.00). The optional supporter VIP shown above is the only real-money purchase.</p><div class="shop-grid">${products.map((p,i)=>i===4?'':`<div class="panel shop-item"><img class="shop-offer-icon" src="${shopSprites[i]}" alt="" loading="lazy"><h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><details class="offer-disclosure"><summary>EXACT CONTENTS · NO RANDOM CHANCE</summary>${purchaseList(Purchases.offer(i,offers,P.actualPack(saved,'shop'+i),E).lines)}</details><div class="offer-price">FREE · $0.00</div>${i===4?'<small>Daily +5 moves · 4 boosters · +250 Golden Nuts. Lifetime.</small>':''}<button class="btn green" data-action="${i===4&&saved.vip?'vip-benefits':'claim'}" data-item="${i}">${i===4&&saved.vip?'OWNED · VIEW BENEFITS':'CLAIM FREE PACKAGE'}</button></div>`).join('')}</div>`;
 }
 function rewards(){const tiers=P.challengeRewards(saved),next=P.nextUnlock(saved),elemental=R.summary(saved);let mins=Math.max(0,Math.ceil((saved.chestReadyAt-Date.now())/60000));return `<div class="topline"><h2>REWARDS, REWARDS, REWARDS</h2></div><div class="panel reward-inventory"><b>FREE CLAIMS · 12-HOUR INDEPENDENT COOLDOWNS</b><p class="muted">Redeem manually when ready. Unlike the automatic 24-hour move refill, these do not stockpile.</p>${freeClaimButton("hearts","refill","REDEEM HEART REFILL")} ${freeClaimButton("moves","bonus-moves","REDEEM +5 MOVES")}</div>${promoSection()}<div class="panel reward-inventory"><b>BOOSTER VAULT</b><p class="muted">${inventorySummary()}</p>${next?'<p class="muted">Next power: '+E.BOOSTER_META[next.id].label+' · clear level '+next.level+'</p>':''}</div>
  <div class="panel challenge-rewards"><b>ELEMENTAL TRIAL REWARDS</b><p class="muted">${elemental.completed}/150 trials · ${elemental.relics.length}/15 relics · ${movesLeft()} daily moves left</p><div class="elemental-relics">${elemental.relics.map(id=>'<img src="art/primary/nuts/elemental/'+id+'.png" alt="'+id+' relic" title="'+id+' relic" loading="lazy">').join('')}</div></div><div class="panel challenge-rewards"><b>CHALLENGE REWARD TRACK</b><p class="muted">${P.challengeProgress(saved)}/25 challenge milestones cleared</p>
@@ -1109,7 +1147,8 @@ function action(a,button){
  if(a==='checkout-back'){if(state.checkoutStep){state.checkoutStep=0;render();}else nav(state.checkoutFrom==='outcome'?'outcome':state.checkoutFrom);return;}
  if(a==='checkout-complete'){if(state.checkoutStep!==1||state.checkout===null)return;
   if(window.NutbusterPlay?.required && ![6,7].includes(state.checkout)){
-    if(window.NutbusterPlay.price(state.checkout)==='UNAVAILABLE'){notice('PLAY PRODUCT UNAVAILABLE');return;}
+    if(vipSupportPurchased()){notice('VIP SUPPORT ALREADY PURCHASED');nav('vip-benefits');return;}
+     if(window.NutbusterPlay.price(4)==='UNAVAILABLE'){notice('VIP SUPPORT NOT YET AVAILABLE');return;}
     saved.playPendingPacks=saved.playPendingPacks||{};
     saved.playPendingPacks[state.checkout]=state.checkoutPack||{};
     persist();
@@ -1214,18 +1253,15 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.page==='fake-ad
  else if(e.key==='Escape'&&state.page==='game'&&state.nutdexOpen)closeNutdex();else if(e.key==='Escape'&&state.page==='game')nav('campaign');else if(e.key==='Escape'&&state.page==='checkout')action('checkout-back',{});else if(e.key==='Escape'&&state.page==='codex')action('codex-back',{});});
 function receiveVerifiedPurchase(index,receiptId){
  const play=window.NutbusterPlay;
- if(!play?.active||!play.isPaidIndex(index)||!/^[a-zA-Z0-9:_-]{12,160}$/.test(receiptId))return;
+ if(!play?.active||index!==4||!play.isPaidIndex(index)||!/^[a-zA-Z0-9:_-]{12,160}$/.test(receiptId))return;
  if(!saved.playVerifiedReceipts||typeof saved.playVerifiedReceipts!=='object')saved.playVerifiedReceipts={};
  if(!Object.prototype.hasOwnProperty.call(saved.playVerifiedReceipts,receiptId)){
    const p=offers[index];
-   if(index===8)H.purchase(saved,'royal-estate');
-   else {
-     P.grant(saved,saved.playPendingPacks?.[index]||P.actualPack(saved,'shop'+index));
-     // Avoid gain(): it writes the save before this verified receipt is recorded.
-     saved.coins=safeNum(saved.coins+p[2]);
-     saved.gems=safeNum(saved.gems+p[3]);
-     if(index===4)saved.vip=true;
-   }
+   P.grant(saved,saved.playPendingPacks?.[4]||P.actualPack(saved,'shop4'));
+   // Save only after recording the real VIP receipt alongside its fixed rewards.
+   saved.coins=safeNum(saved.coins+p[2]);
+   saved.gems=safeNum(saved.gems+p[3]);
+   saved.vip=true;
    saved.playVerifiedReceipts[receiptId]=index;
    if(saved.playPendingPacks)delete saved.playPendingPacks[index];
    try {
@@ -1237,7 +1273,7 @@ function receiveVerifiedPurchase(index,receiptId){
    }
    counters();
    if(index===4)syncDaily();
-   notice('GOOGLE PLAY VERIFIED · REWARDS DELIVERED');
+   notice('THANK YOU FOR SUPPORTING NUTBUSTER · LIFETIME VIP ACTIVE');
    playSFX('coin');
    state.checkout=null;state.checkoutPack=null;state.checkoutStep=0;state.discountOffer=null;
    state.page='shop';render();
