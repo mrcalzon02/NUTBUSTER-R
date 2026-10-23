@@ -36,15 +36,15 @@ with tempfile.TemporaryDirectory(prefix='mira-render-test-') as tmp:
                 recording.setnchannels(1)
                 recording.setsampwidth(2)
                 recording.setframerate(22050)
-                recording.writeframes(b'\\0\\0'*4500)
+                recording.writeframes(b'\0\0'*4500)
         elif '-codec:a' in argv:
-            Path(argv[-1]).write_bytes(b'ID3'+b'\\0'*2048)
+            Path(argv[-1]).write_bytes(b'ID3'+b'\0'*2048)
         else:
             raise AssertionError('Unexpected renderer command: '+repr(argv))
         return type('Result',(),{'returncode':0,'stderr':''})()
 
-    with mock.patch.object(m,'MODEL_SHA256',digest), \\
-         mock.patch.object(m.subprocess,'run',side_effect=simulated_run), \\
+    with mock.patch.object(m,'MODEL_SHA256',digest), \
+         mock.patch.object(m.subprocess,'run',side_effect=simulated_run), \
          mock.patch.object(m.shutil,'which',side_effect=lambda name:'/usr/bin/'+name):
         preview=m.render(root,cache,root/'dist',full=False,download=False)
         with m.ZipFile(preview) as z:
