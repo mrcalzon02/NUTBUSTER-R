@@ -109,7 +109,7 @@ async function redeemPromoFromUI(){
  promoBusy=true;
  try{
   const at=Date.now();
-  const result=await Promos.redeem(saved,code,{keys:window.NutPromoKeys?.keys||{},cryptoImpl:window.crypto,now:at,at,cap:dailyCap(),P,D,B});
+  const result=await Promos.redeem(saved,code,{keys:window.NutPromoKeys?.keys||{},cryptoImpl:window.crypto,now:at,at,cap:dailyCap(),P,D,B,H});
   if(!result.valid){
    const messages={'already-redeemed':'THIS CODE WAS ALREADY REDEEMED IN THIS SAVE','expired':'PROMO CODE EXPIRED',
     'not-yet-valid':'CODE NOT YET ACTIVE','unknown-issuer':'PROMO ISSUER NOT RECOGNIZED',
@@ -122,7 +122,7 @@ async function redeemPromoFromUI(){
   if(state.game&&result.moves){state.game.moves=movesLeft();state.game.lost=false;}
   playSFX('coin');
   const grants=[result.nuts?'+'+result.nuts+' GOLDEN NUTS':'',result.gems?'+'+result.gems+' GEMS':'',result.moves?'+'+result.moves+' MOVES':'',
-   result.hearts?'+'+result.hearts+' HEARTS':'',Object.keys(result.boosters).length?boosterSummary(result.boosters):'',result.vipActivated?'LIFETIME VIP ACTIVATED':''].filter(Boolean);
+   result.hearts?'+'+result.hearts+' HEARTS':'',Object.keys(result.boosters).length?boosterSummary(result.boosters):'',result.vipActivated?'LIFETIME VIP ACTIVATED':'',result.royalManor?'ROYAL MANOR KIT UNLOCKED':''].filter(Boolean);
   notice('PROMO REDEEMED · '+grants.join(' · '));
   render();
  }catch(_){notice('PROMO REDEMPTION FAILED · NO CLAIM RECORDED');}
