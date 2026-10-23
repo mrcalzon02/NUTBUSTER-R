@@ -5,7 +5,7 @@ const day=Date.UTC(2031,3,4,13);
 const fish=F.FISH;
 assert.equal(fish.length,80);
 assert.equal(new Set(fish.map(x=>x.id)).size,fish.length);
-assert.ok(new Set(fish.map(x=>x.maxSize)).size>=50,'Every fish has a species-specific length bound');
+assert.equal(new Set(fish.map(x=>x.maxSize)).size,fish.length,'Each species must have a different maximum length');
 for(const spec of fish){
  assert.ok(Number.isInteger(spec.maxSize)&&spec.maxSize>=1,'Invalid max '+spec.id);
  for(const seed of [0,1,512,428334991,4294967295]){
@@ -16,6 +16,9 @@ for(const spec of fish){
 }
 const minnow=fish.find(x=>x.id==='minnow'),leviathan=fish.find(x=>x.id==='leviathan');
 assert.ok(leviathan.maxSize>minnow.maxSize*10);
+const lengthCsv=fs.readFileSync(path.join(__dirname,'../docs/economy/fish-size-records.csv'),'utf8');
+assert.equal(lengthCsv.trim().split(/\r?\n/).length,fish.length+1);
+for(const spec of fish)assert.ok(lengthCsv.includes('"'+spec.id+'","'+spec.name+'","'+spec.maxSize+'"'),spec.id+' length contract missing');
 const save={coins:1250,gems:66,nutravaganza:{day:'2031-04-04',dollars:0,fish:[]}},n=F.ensure(save,day);
 const lengths=Array.from({length:1000},(_,seed)=>({seed,size:F.generatedSize(minnow,seed)})).sort((a,b)=>a.size-b.size);
 assert.ok(lengths.at(-1).size>lengths[0].size);
