@@ -267,7 +267,7 @@ function ensure(save,now=Date.now()){
  if(!n.baits||typeof n.baits!=='object'||Array.isArray(n.baits))n.baits={};
  for(const bait of BAITS)n.baits[bait.id]=limit(n.baits[bait.id]);
  if(!Array.isArray(n.fish))n.fish=[];
- n.fish=n.fish.filter(f=>f&&specimenId.has(f.id)&&Number.isInteger(f.size)&&f.size>=1&&f.size<=100&&Number.isInteger(f.value)&&f.value>=1&&f.value<=100000).slice(0,capacity(n));
+ n.fish=n.fish.filter(f=>f&&specimenId.has(f.id)&&Number.isInteger(f.size)&&f.size>=1&&f.size<=Math.max(100,specimenId.get(f.id).maxSize)&&Number.isInteger(f.value)&&f.value>=1&&f.value<=100000).slice(0,capacity(n));
  // Preserve all older residents and upgrade into explicit independent display slots.
  const claimedSlots=new Set;
  for(const f of n.fish){
@@ -283,7 +283,7 @@ function ensure(save,now=Date.now()){
   if(specimenId.has(fish.id)&&!n.trophyRecords[fish.id]&&Number.isInteger(fish.size)&&fish.size>0)
    n.trophyRecords[fish.id]={size:Math.min(specimenId.get(fish.id).maxSize,fish.size),catches:1,firstCaught:null,lastCaught:null,recordDate:null};
  }
- if(!n.pending||!specimenId.has(n.pending.id)||!Number.isInteger(n.pending.value)||n.pending.value<1||n.pending.value>100000||!Number.isInteger(n.pending.size)||n.pending.size<1||n.pending.size>100)n.pending=null;
+ if(!n.pending||!specimenId.has(n.pending.id)||!Number.isInteger(n.pending.value)||n.pending.value<1||n.pending.value>100000||!Number.isInteger(n.pending.size)||n.pending.size<1||n.pending.size>Math.max(100,specimenId.get(n.pending.id).maxSize))n.pending=null;
  if(!n.fight||!specimenId.has(n.fight.id)||!Number.isSafeInteger(n.fight.seed)||n.fight.seed<0||n.fight.seed>4294967295||!Number.isInteger(n.fight.turn)||n.fight.turn<0||n.fight.turn>50||!Number.isFinite(n.fight.fish)||!Number.isFinite(n.fight.hook)||!Number.isFinite(n.fight.progress)||!Number.isFinite(n.fight.tension))n.fight=null;
  const today=localDay(now);
  // Grant once on a new local calendar day; a backward clock adjustment never grants bait.
