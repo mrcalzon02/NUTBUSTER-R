@@ -16,7 +16,7 @@ function profile(id){
  if(!Number.isInteger(id)||id<FIRST||id>LAST)return null;
  const zero=id-FIRST,area=Math.floor(zero/PER_AREA)+1,local=zero%PER_AREA+1;
  const elementIndex=(area-1)*3+Math.floor((local-1)/10);
- const core=(area-1)*100+12+Math.floor((local-1)*87/29);
+ const core=(area-1)*100+15+Math.floor((local-1)*84/29);
  const rank=(local-1)%10+1;
  return Object.freeze({id,area,local,baseLevel:core,requiredMainLevel:core,
   element:ELEMENTS[elementIndex],elementIndex,name:TITLES[elementIndex]+' · Trial '+rank,
