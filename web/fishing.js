@@ -6,6 +6,7 @@
 const RODS=Object.freeze([{"id":"woodland","name":"Woodland Twig","tier":0,"maxDurability":260,"cost":0,"affinity":["minnow","bluegill"],"bias":3,"art":"art/fishing/rods/v1/woodland.png"},{"id":"brass","name":"Brass Spinner","tier":0,"maxDurability":190,"cost":115,"affinity":["perch","carp"],"bias":3.4,"art":"art/fishing/rods/v1/brass.png"},{"id":"gilded","name":"Gilded Tackle","tier":1,"maxDurability":215,"cost":230,"affinity":["trout","bass"],"bias":3.7,"art":"art/fishing/rods/v1/gilded.png"},{"id":"carbon","name":"Carbon Striker","tier":1,"maxDurability":360,"cost":320,"affinity":["bass","catfish"],"bias":3.4,"art":"art/fishing/rods/v1/carbon.png"},{"id":"verdant","name":"Verdant Vine","tier":1,"maxDurability":255,"cost":280,"affinity":["carp","koi"],"bias":4.1,"art":"art/fishing/rods/v1/verdant.png"},{"id":"coral","name":"Coral Dancer","tier":2,"maxDurability":170,"cost":450,"affinity":["koi","puffer"],"bias":4.2,"art":"art/fishing/rods/v1/coral.png"},{"id":"industrial","name":"Iron Bastion","tier":2,"maxDurability":530,"cost":490,"affinity":["sturgeon","catfish"],"bias":4.2,"art":"art/fishing/rods/v1/industrial.png"},{"id":"royal-blue","name":"Royal Current","tier":2,"maxDurability":345,"cost":570,"affinity":["trout","eel"],"bias":4,"art":"art/fishing/rods/v1/royal-blue.png"},{"id":"pirate","name":"Buccaneer","tier":3,"maxDurability":245,"cost":680,"affinity":["catfish","bass"],"bias":4.7,"art":"art/fishing/rods/v1/pirate.png"},{"id":"glacier","name":"Glacier Fang","tier":3,"maxDurability":260,"cost":760,"affinity":["trout","sturgeon"],"bias":4.8,"art":"art/fishing/rods/v1/glacier.png"},{"id":"storm","name":"Stormcaller","tier":3,"maxDurability":235,"cost":790,"affinity":["eel","leviathan"],"bias":5.2,"art":"art/fishing/rods/v1/storm.png"},{"id":"magma","name":"Magma Hook","tier":4,"maxDurability":210,"cost":980,"affinity":["puffer","sturgeon"],"bias":4.9,"art":"art/fishing/rods/v1/magma.png"},{"id":"sovereign","name":"Crown Angler","tier":4,"maxDurability":410,"cost":1175,"affinity":["koi","leviathan"],"bias":5,"art":"art/fishing/rods/v1/sovereign.png"},{"id":"astral","name":"Moonlit Reel","tier":4,"maxDurability":275,"cost":1200,"affinity":["eel","koi"],"bias":5.3,"art":"art/fishing/rods/v1/astral.png"},{"id":"prismatic","name":"Prism Sovereign","tier":5,"maxDurability":325,"cost":1560,"affinity":["puffer","leviathan"],"bias":5.8,"art":"art/fishing/rods/v1/prismatic.png"},{"id":"confection","name":"Sugar Rush","tier":5,"maxDurability":155,"cost":1380,"affinity":["minnow","puffer"],"bias":6,"art":"art/fishing/rods/v1/confection.png"}].map(rod=>Object.freeze({...rod,affinity:Object.freeze(rod.affinity)})));
 const ROD_BY_ID=new Map(RODS.map(rod=>[rod.id,rod]));
 const STARTER_ROD='woodland';
+const FISH_SIZE_MAXIMA=new Set;
 const FISH=Object.freeze([
  {id:'minnow',name:'Penny Minnow',icon:'🐟',value:15,weight:1,difficulty:1},
  {id:'bluegill',name:'Bluegill Baron',icon:'🐟',value:24,weight:3,difficulty:2},
@@ -94,7 +95,10 @@ const FISH=Object.freeze([
   catfish:190,koi:115,puffer:65,eel:225,sturgeon:475,leviathan:1300};
  let hash=2166136261;
  for(let i=0;i<spec.id.length;i++)hash=Math.imul(hash^spec.id.charCodeAt(i),16777619)>>>0;
- const cap=classics[spec.id]||(28+spec.difficulty*spec.difficulty*6+(hash%30));
+ let cap=classics[spec.id]||(28+spec.difficulty*spec.difficulty*6+(hash%30));
+ // Each species has its own maximum length, including near-identical fish.
+ while(FISH_SIZE_MAXIMA.has(cap))cap++;
+ FISH_SIZE_MAXIMA.add(cap);
  return Object.freeze({...spec,maxSize:cap});
 }));
 // The wharf shop tier determines which real, playable bait species it stocks.
