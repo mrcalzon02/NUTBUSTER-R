@@ -5,7 +5,6 @@ const root=path.resolve(__dirname,'..'),folder=path.join(root,'web/art/nutvale/m
 const manifest=JSON.parse(fs.readFileSync(path.join(folder,'manifest.json'),'utf8'));
 const art=JSON.parse(fs.readFileSync(path.join(root,'config/nutvale-mining-tool-art.json'),'utf8'));
 const hash=data=>crypto.createHash('sha256').update(data).digest('hex');
-const gitHash=data=>crypto.createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex');
 const zlib=require('node:zlib');
 // Validate real PNG alpha, not just a file extension or a self-reported QA flag.
 function transparentCorners(data){
@@ -42,7 +41,7 @@ function png(file,expectedWidth,expectedHeight,expectedHash){
  assert.equal(buf.readUInt32BE(16),expectedWidth,file+' width');
  assert.equal(buf.readUInt32BE(20),expectedHeight,file+' height');
  assert.equal(buf[25],6,file+' RGBA color type');
- assert.equal(gitHash(buf),expectedHash,file+' pinned Git blob SHA-1');
+ assert.equal(hash(buf),expectedHash,file+' source-authorized sprite SHA-256');
  transparentCorners(buf);
 }
 assert.equal(manifest.total,86);
@@ -55,7 +54,9 @@ for(const sprite of manifest.sprites){
  assert.ok(!names.has(sprite.id),sprite.id+' duplicated');
  names.add(sprite.id);
  const file=path.join(root,'web',sprite.path);
- png(file,192,192,sprite.git_blob_sha);
+ assert.equal(sprite.alpha,'straight-RGBA');
+ assert.equal(sprite.width,192);assert.equal(sprite.height,192);
+ png(file,192,192,sprite.sha256);
 }
 for(const group of ['pickaxes','gloves']){
  const expected=group==='pickaxes'?44:42;
@@ -68,7 +69,7 @@ for(const group of ['pickaxes','gloves']){
  assert.equal(bytes.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
  assert.equal(bytes.readUInt32BE(16),192*atlas.columns);
  assert.equal(bytes.readUInt32BE(20),192*atlas.rows);
- assert.equal(gitHash(bytes),atlas.git_blob_sha);
+ assert.equal(hash(bytes),atlas.sha256,'Source-approved atlas checksum');
 }
 const original=path.join(root,'assets/source/expansion/nutvale-mining-pickaxes-gloves-original.png');
 const chunks=[1,2,3,4].map(i=>fs.readFileSync(original+'.part-'+String(i).padStart(2,'0')));

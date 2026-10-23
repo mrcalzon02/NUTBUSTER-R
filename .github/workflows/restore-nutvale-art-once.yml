@@ -1,0 +1,33 @@
+name: One-time Nutvale art byte restoration
+on:
+  push:
+    branches: [main]
+    paths:
+      - tools/restore_nutvale_from_verified_zip.py
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Restore original archive with independent SHA-256 checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/restore_nutvale_from_verified_zip.py
+      - name: Commit and push verified original PNG bytes
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/art/nutvale/mining-tools docs/assets/nutvale-mining-tool-qa-report.json assets/source/expansion/nutvale-mining-pickaxes-gloves-original.png.part-*
+          if git diff --cached --quiet; then echo 'Original binaries already verified'; exit 0; fi
+          git commit -m "fix(art): restore 86 original Nutvale sprite binaries with verified source SHA-256"
+          git push origin HEAD:main

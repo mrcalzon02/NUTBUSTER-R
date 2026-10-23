@@ -53,6 +53,9 @@ assert.equal(autumn,100);assert.equal(palace,100);assert.ok(covered===300);
  const g=E.create(401,31415);
  const lanes=g.cfg.features.wind;
  assert.equal(lanes.length,2);
+ // Full-lane rotation is expected only when the gust corridors are unobstructed.
+ // Actual blocker-split behavior remains covered by the blocker transport suites.
+ for(const lane of lanes)for(const i of lane.indices){g.cells[i].ice=0;g.cells[i].lock=0;g.cells[i].chest=0;g.cells[i].frozen=0;}
  const stages=F.advance(g,1,()=>E.snapshot(g).cells).filter(s=>s.mode==='wind');
  assert.equal(stages.length,2);
  assert.deepEqual(stages.map(s=>s.transfers.length),lanes.map(x=>x.indices.length));
