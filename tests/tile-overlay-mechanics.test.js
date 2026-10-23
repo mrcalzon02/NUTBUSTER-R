@@ -78,6 +78,20 @@ function tick(g){return E.advanceHazards(g,{valid:true,won:false,lost:false,loop
  tick(g);assert.equal(c(g,6).rock,2,'Void-Rock grows into a two-hit stone barrier');
  assert.equal(E.adjacent(g,6,7),false,'Stone seal pins the occupied square');
 }
+// Expiring vine effects next to a masked-out hole must never treat null as
+// an existing nut (undefined !== null used to slip through this check).
+{
+ const g=E.create(12,923),w=g.cfg.width;
+ const edge=g.cells.findIndex((c,i)=>c&&[i-w,i+w,i-1,i+1].some(j=>
+  j>=0&&j<g.cells.length&&!g.cells[j]&&
+  (Math.abs(j-i)===w||Math.floor(j/w)===Math.floor(i/w))));
+ assert.ok(edge>=0,'Irregular board must expose a hole-adjacent nut');
+ const shape=g.cells.map(Boolean);
+ g.cells[edge].aura='nature-vines';g.cells[edge].auraTurns=1;
+ const outcome=tick(g);
+ assert.ok(outcome.stages.some(s=>s.kind==='aura'));
+ assert.deepEqual(g.cells.map(Boolean),shape,'Vines must not grow nuts into holes');
+}
 const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
 const css=fs.readFileSync(path.join(__dirname,'../web/style.css'),'utf8');
 assert.ok(game.includes('art/primary/overlays/${auraKind}.png'),'Tile auras must use committed overlay artwork');

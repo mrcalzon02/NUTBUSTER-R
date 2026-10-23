@@ -348,7 +348,7 @@ function markAura(g,at,kind,turns=2){
 function resolveTileAura(g,at,kind,summary){
  const c=g.cells[at];if(!c||c.type===null)return;
  const w=g.cfg.width,r=Math.floor(at/w),x=at%w;
- const valid=i=>i>=0&&i<g.cells.length&&g.cells[i]?.type!==null;
+ const valid=i=>i>=0&&i<g.cells.length&&!!g.cells[i]&&g.cells[i].type!==null;
  const neighbors=[at-w,at-1,at+1,at+w].filter(i=>valid(i)&&(Math.abs(i-at)===w||Math.floor(i/w)===r));
  const nearest=g.cells.map((v,i)=>valid(i)&&i!==at?i:-1).filter(i=>i>=0)
   .sort((a,b)=>Math.abs(Math.floor(a/w)-r)+Math.abs(a%w-x)-Math.abs(Math.floor(b/w)-r)-Math.abs(b%w-x)||a-b);
