@@ -212,7 +212,7 @@ jobs:
     concurrency:
       group: nutbuster-publisher-release
       cancel-in-progress: false
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     # Signed alpha publication requires tested APK/desktop builds. The emulator
     # remains an independent post-build smoke check and evidence gate.
     needs: [tests, android-debug, desktop]
