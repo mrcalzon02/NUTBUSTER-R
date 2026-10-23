@@ -449,3 +449,12 @@
 .elemental-relics{display:flex;gap:5px;flex-wrap:wrap}
 .elemental-relics img{width:28px;height:28px;object-fit:contain}
 .nut-visual .elemental-emblem{position:absolute;right:0;bottom:0;width:43%;height:43%;object-fit:contain;z-index:3;filter:drop-shadow(0 0 2px #fff8);pointer-events:none}
+
+/* Compact offline signed-promo redemption, available in Shop and Rewards. */
+.promo-redeem{margin:8px 0;padding:8px 10px;border:1px solid #8c6e7d;border-radius:8px;background:#302236}
+.promo-redeem summary{font-weight:700;font-size:12px;cursor:pointer}
+.promo-redeem-controls{display:flex;align-items:center;gap:6px;margin:7px 0;min-width:0}
+.promo-redeem-controls input{flex:1 1 180px;min-width:0;max-width:100%;height:36px;border-radius:6px;border:1px solid #876f8b;background:#211925;color:#fff7eb;padding:5px 8px;font-size:12px}
+.promo-redeem-controls button{flex:0 0 auto}
+.promo-redeem>small{display:block;font-size:10px;color:#dfc9da;line-height:1.4}
+@media(max-width:350px){.promo-redeem-controls{flex-wrap:wrap}.promo-redeem-controls button{width:100%}}
