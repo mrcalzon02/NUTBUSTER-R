@@ -496,6 +496,18 @@ function beginCheckout(index,from=state.page){
  state.epoch++;state.animating=false;state.checkout=index;state.checkoutFrom=from;state.checkoutStep=0;state.discountOffer=null;state.checkoutPack=index<6?P.actualPack(saved,'shop'+index):{};state.page='checkout';render();
 }
 function checkout(){const p=offers[state.checkout];if(!p)return '<p>Offer unavailable.</p>';
+ if(window.NutbusterPlay?.active && ![6,7].includes(state.checkout)){
+  const index=state.checkout,price=window.NutbusterPlay.price(index),ready=price!=='UNAVAILABLE';
+  const lines=Purchases.offer(index,offers,state.checkoutPack||{},E)?.lines||[];
+  return '<div class="checkout-screen"><div class="topline"><button class="btn ghost" data-action="checkout-back">← BACK</button><h2>GOOGLE PLAY CHECKOUT</h2></div>'+
+   '<div class="panel checkout-sheet"><h1>'+escPurchase(p[0])+'</h1>'+
+   '<section class="checkout-disclosure"><b>EXACT CONTENTS · GUARANTEED</b>'+purchaseList(lines)+'</section>'+
+   '<div class="checkout-price"><span>Google Play price</span><strong>'+escPurchase(price)+'</strong></div>'+
+   '<p class="muted">Real charges are handled by Google Play. Rewards require a verified receipt. No fictional discounts or free fulfillment.</p>'+
+   (state.checkoutStep===0?'<button class="btn green wide" data-action="checkout-review" '+(ready?'':'disabled')+'>REVIEW PURCHASE →</button>':
+   '<button class="btn green wide" data-action="checkout-complete" '+(ready?'':'disabled')+'>BUY THROUGH GOOGLE PLAY · '+escPurchase(price)+'</button>')+
+   '<button class="btn ghost wide" data-action="checkout-back">CANCEL</button></div></div>';
+ }
  const review=state.checkoutStep===0,discounted=state.discountOffer===state.checkout;
  const amountCents=Math.round((Number.parseFloat(String(p[4]).replace(/[^0-9.]/g,''))||0)*100);
  const freeOffer=amountCents===0;
@@ -533,7 +545,7 @@ function shop(){
   const pending=state.holdOffer===id;
   return `<div class="hold-offer"><img src="${item.art}" alt="" draggable="false"><div class="hold-offer-info"><b>${item.label}</b><small>${item.drops} gravity drop${item.drops===1?'':'s'} · held-nut matches ×3 · Owned ${P.holdCount(saved,id)}</small></div><div class="hold-offer-buy"><b>${item.gems} <img src="art/additions/economy/prismatic-acorn.png" alt="gems"></b><button class="btn secondary" data-action="hold-offer" data-hold-id="${id}" title="Spend ${item.gems} Gems for exactly one ${item.label} held-nut power-up; ${item.drops} gravity drops, held matches ×3">BUY</button></div>${pending?`<div class="hold-confirm" role="group" aria-label="Confirm ${item.label} purchase"><span>Spend ${item.gems} Gems; receive exactly 1 ${item.label} power-up. Hold one selected nut for ${item.drops} gravity drops; held matches score ×3. Guaranteed, no randomness. Balance: ${saved.gems.toLocaleString()} Gems.</span><button class="btn green" data-action="hold-buy" data-hold-id="${id}">CONFIRM</button><button class="btn ghost" data-action="hold-cancel">CANCEL</button></div>`:''}</div>`;
  }).join('');
- return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">OPTIONAL BUNDLES</span>'}</div>${promoSection(true)}<div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div>${nutToBoosterShop()}${window.NutFishingUI?.exchangeSheet?.(saved,E,P,false)||''}<p class="muted">Transparent contents, one-time bundles, no subscriptions or purchase countdowns.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item">${art('economy',shopSprites[i],p[1])}<h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><details class="offer-disclosure"><summary>EXACT CONTENTS · NO RANDOM CHANCE</summary>${purchaseList(Purchases.offer(i,offers,P.actualPack(saved,'shop'+i),E).lines)}</details><div class="offer-price">${p[4]}</div>${i===4?'<small>Daily +5 moves · 4 boosters · +250 Golden Nuts. Lifetime.</small>':''}<button class="btn green" data-action="${i===4&&saved.vip?'vip-benefits':'claim'}" data-item="${i}">${i===4&&saved.vip?'OWNED · VIEW BENEFITS':'BUY PACKAGE'}</button></div>`).join('')}</div>`;
+ return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">OPTIONAL BUNDLES</span>'}</div>${promoSection(true)}<div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div>${nutToBoosterShop()}${window.NutFishingUI?.exchangeSheet?.(saved,E,P,false)||''}<p class="muted">Transparent contents, one-time bundles, no subscriptions or purchase countdowns.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item">${art('economy',shopSprites[i],p[1])}<h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><details class="offer-disclosure"><summary>EXACT CONTENTS · NO RANDOM CHANCE</summary>${purchaseList(Purchases.offer(i,offers,P.actualPack(saved,'shop'+i),E).lines)}</details><div class="offer-price">${window.NutbusterPlay?.active?window.NutbusterPlay.price(i):p[4]}</div>${i===4?'<small>Daily +5 moves · 4 boosters · +250 Golden Nuts. Lifetime.</small>':''}<button class="btn green" data-action="${i===4&&saved.vip?'vip-benefits':'claim'}" data-item="${i}">${i===4&&saved.vip?'OWNED · VIEW BENEFITS':'BUY PACKAGE'}</button></div>`).join('')}</div>`;
 }
 function rewards(){const tiers=P.challengeRewards(saved),next=P.nextUnlock(saved),elemental=R.summary(saved);let mins=Math.max(0,Math.ceil((saved.chestReadyAt-Date.now())/60000));return `<div class="topline"><h2>REWARDS, REWARDS, REWARDS</h2></div><div class="panel reward-inventory"><b>FREE CLAIMS · 12-HOUR INDEPENDENT COOLDOWNS</b><p class="muted">Redeem manually when ready. Unlike the automatic 24-hour move refill, these do not stockpile.</p>${freeClaimButton("hearts","refill","REDEEM HEART REFILL")} ${freeClaimButton("moves","bonus-moves","REDEEM +5 MOVES")}</div>${promoSection()}<div class="panel reward-inventory"><b>BOOSTER VAULT</b><p class="muted">${inventorySummary()}</p>${next?'<p class="muted">Next power: '+E.BOOSTER_META[next.id].label+' · clear level '+next.level+'</p>':''}</div>
  <div class="panel challenge-rewards"><b>ELEMENTAL TRIAL REWARDS</b><p class="muted">${elemental.completed}/150 trials · ${elemental.relics.length}/15 relics · ${movesLeft()} daily moves left</p><div class="elemental-relics">${elemental.relics.map(id=>'<img src="art/primary/nuts/elemental/'+id+'.png" alt="'+id+' relic" title="'+id+' relic" loading="lazy">').join('')}</div></div><div class="panel challenge-rewards"><b>CHALLENGE REWARD TRACK</b><p class="muted">${P.challengeProgress(saved)}/25 challenge milestones cleared</p>
@@ -766,7 +778,7 @@ function settings(){
  <p class="muted">Independent volume controls for speech, music, reactions and gameplay effects.</p>
  ${[['voice','Announcer'],['music','Music'],['reactions','Match reactions'],['sfx','Game effects']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}
  <div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div>
- <div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>`;
+ <div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p>${window.NutbusterPlay?.active?'<button class="btn secondary" data-action="play-achievements">PLAY GAMES ACHIEVEMENTS</button><button class="btn secondary" data-action="play-friends">PLAY GAMES FRIENDS</button><button class="btn secondary" data-action="play-restore">RESTORE PLAY PURCHASES</button>':''}<button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>`;
 }
 function render(){syncDaily();if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');document.getElementById('app')?.classList?.toggle('fake-ad-active',state.page==='fake-ad');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
  screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');screen.classList?.toggle('codex-active',state.page==='codex');screen.classList?.toggle('mines-active',state.page==='mines');
@@ -804,6 +816,7 @@ function concludeMove(result){
   saved.stars[g.level]=Math.max(stars,saved.stars[g.level]||0);saved.unlocked=Math.max(saved.unlocked,Math.min(1000,g.level+1));saved.completed++;
   const prize=firstTime?P.firstClear(saved,g.level):{unlock:[],contents:{}};
    H.recordWin(saved,g.level,g.score);
+    window.NutbusterPlay?.achievement?.(g.level);
   state.levelReward=prize.unlock.length?'NEW POWER: '+prize.unlock.map(id=>E.BOOSTER_META[id].label).join(', '):Object.keys(prize.contents).length?'STAGE PRIZE: '+boosterSummary(prize.contents):'';
    if(firstTime){const items=H.DECOR.filter(item=>item.level===g.level).map(item=>item.name),avatars=H.AVATARS.filter(item=>item.level===g.level).map(item=>item.name);
     if(items.length||avatars.length)state.levelReward+=(state.levelReward?' · ':'')+'HOMESTEAD UNLOCK: '+[...items,...avatars].join(', ');
@@ -867,6 +880,9 @@ function cell(i){if(!state.game||state.game.won||state.game.lost||state.animatin
  if(state.selected<0){selectCell(i);return;}if(state.selected===i){selectCell(-1);return;}doSwap(state.selected,i);
 }
 function action(a,button){
+  if(a==='play-achievements'){window.NutbusterPlay?.achievements();return;}
+  if(a==='play-friends'){window.NutbusterPlay?.friends();return;}
+  if(a==='play-restore'){window.NutbusterPlay?.restore();return;}
  if(a==='mine-tab'){if(state.page!=='mines')return;const t=button.dataset.tab;if(!['dig','equipment','refinery','writs'].includes(t))return;state.mineTab=t;state.minePending=null;render();return;}
  if(a==='mine-mode'){if(state.page!=='mines')return;state.mineMode=button.dataset.mode==='scan'?'scan':'dig';render();return;}
  if(a==='mine-cell'){
@@ -1050,6 +1066,14 @@ function action(a,button){
  if(a==='checkout-review'){state.checkoutStep=1;render();return;}
  if(a==='checkout-back'){if(state.checkoutStep){state.checkoutStep=0;render();}else nav(state.checkoutFrom==='outcome'?'outcome':state.checkoutFrom);return;}
  if(a==='checkout-complete'){if(state.checkoutStep!==1||state.checkout===null)return;
+  if(window.NutbusterPlay?.active && ![6,7].includes(state.checkout)){
+    if(window.NutbusterPlay.price(state.checkout)==='UNAVAILABLE'){notice('PLAY PRODUCT UNAVAILABLE');return;}
+    saved.playPendingPacks=saved.playPendingPacks||{};
+    saved.playPendingPacks[state.checkout]=state.checkoutPack||{};
+    persist();
+    window.NutbusterPlay.buy(state.checkout);
+    return;
+  }
   const i=state.checkout,p=offers[i];const dest=state.checkoutFrom;
   if(i===6||i===7){
    const result=B?.claim(saved,i===6?'hearts':'moves',Date.now(),D,dailyCap());
@@ -1146,5 +1170,28 @@ document.addEventListener?.('visibilitychange',()=>{
 });
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.page==='fake-ad'){const back=state.adReturn||'rewards';cancelFakeAd();state.page=back;render();}
  else if(e.key==='Escape'&&state.page==='game'&&state.nutdexOpen)closeNutdex();else if(e.key==='Escape'&&state.page==='game')nav('campaign');else if(e.key==='Escape'&&state.page==='checkout')action('checkout-back',{});else if(e.key==='Escape'&&state.page==='codex')action('codex-back',{});});
-window.NutbusterApp={start,nav,getState:()=>state,getSave:()=>saved};render();
+function receiveVerifiedPurchase(index,receiptId){
+ const play=window.NutbusterPlay;
+ if(!play?.active||!play.isPaidIndex(index)||!/^[a-zA-Z0-9:_-]{12,160}$/.test(receiptId))return;
+ if(!saved.playVerifiedReceipts||typeof saved.playVerifiedReceipts!=='object')saved.playVerifiedReceipts={};
+ if(!Object.prototype.hasOwnProperty.call(saved.playVerifiedReceipts,receiptId)){
+   const p=offers[index];
+   if(index===8)H.purchase(saved,'royal-estate');
+   else {
+     P.grant(saved,saved.playPendingPacks?.[index]||P.actualPack(saved,'shop'+index));
+     gain(p[2],p[3]);
+     if(index===4){saved.vip=true;syncDaily();}
+   }
+   saved.playVerifiedReceipts[receiptId]=index;
+   if(saved.playPendingPacks)delete saved.playPendingPacks[index];
+   persist(); // Durably record receipt before acknowledging/consuming it.
+   notice('GOOGLE PLAY VERIFIED · REWARDS DELIVERED');
+   playSFX('coin');
+   state.checkout=null;state.checkoutPack=null;state.checkoutStep=0;state.discountOffer=null;
+   state.page='shop';render();
+ }
+ play.confirmFulfillment(receiptId);
+}
+window.NutbusterApp={start,nav,getState:()=>state,getSave:()=>saved,receiveVerifiedPurchase,
+ platformStatus:notice,refresh:render};render();
 })();

@@ -1,9 +1,9 @@
 (function(root){'use strict';
 // Gameplay and saves remain offline. The signed native updater alone checks GitHub;
 // checking never authorizes a download or install.
-const RELEASES='https://github.com/mrcalzon02/NUTBUSTER-R/releases';
+const RELEASES='https://play.google.com/store/apps/details?id=io.github.mrcalzon02.nutbuster';
 const updates={
-  lastStatus:'Updates are checked at launch and when starting levels (at most once per hour). Download and installation always require your approval.',
+  lastStatus:'Google Play handles updates and installs with your consent. Checks are throttled.' ,
   receive(message){
     updates.lastStatus=String(message||'');
     updates.syncStatus();
@@ -26,10 +26,10 @@ const updates={
   check(){
     const bridge=root.NUTBUSTER_UPDATE_BRIDGE;
     if(bridge && typeof bridge.checkForUpdates==='function'){
-      updates.receive('Checking signed NUTBUSTER releases…');
+      updates.receive('Checking Google Play for an eligible update…');
       bridge.checkForUpdates();
     }else{
-      updates.receive('Open GitHub Releases to compare and download a newer desktop/browser version.');
+      updates.receive('Open the Google Play listing to check for an update.');
       updates.openReleases();
     }
   }

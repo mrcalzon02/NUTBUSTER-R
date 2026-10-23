@@ -1,6 +1,6 @@
 (function(root){'use strict';
 // Invite by public release link only. Never access accounts, friends, contacts or personal IDs.
-const URL='https://github.com/mrcalzon02/NUTBUSTER-R/releases';
+const URL='https://play.google.com/store/apps/details?id=io.github.mrcalzon02.nutbuster';
 const MESSAGE='Come play NUTBUSTER with me! Get the game here: '+URL;
 function fallbackSelect(){
  if(typeof root.prompt==='function')root.prompt('Copy this invitation link:',URL);
