@@ -4,7 +4,7 @@ const base=path.join(__dirname,'../web/art/tile-overlays');
 const manifest=JSON.parse(fs.readFileSync(path.join(base,'manifest.json'),'utf8'));
 const names=Object.keys(manifest.sprites);
 assert.equal(names.length,16,'Exactly 16 specialist tile overlay icons were approved');
-const live=['bomb','sticky-butter','frost','chain-lock','arcane','poison','radiance','nature-vines','shadow','fire','water','storm','lightning','magma','crystal'];
+const live=['bomb','sticky-butter','frost','chain-lock','arcane','poison','radiance','nature-vines','shadow','fire','water','storm','lightning','magma','crystal','void-rock'];
 assert.deepEqual(Object.keys(manifest.live_bindings).sort(),['bomb','sticky-butter'],'previous imported package bindings remain preserved');
 for(const name of names){
  const item=manifest.sprites[name],file=path.join(base,item.path);
@@ -31,7 +31,7 @@ assert.ok(game.includes('class="status-count"'),'Countdown must stay readable ov
 assert.ok(css.includes('.cell .hazard.tile-status .status-art'),'Tile art must occupy the square without replacing the nut');
 assert.ok(game.includes('piece(c.type)'),'Ordinary nut remains visible beneath tile overlay');
 assert.ok(!game.includes("c.ice||c.lock||c.chest?'':piece(c.type)"),'Pinned cells must not hide the underlying nut');
-assert.equal(C.entries.filter(e=>e.group==='tile-effects'&&e.live).length,15);
+assert.equal(C.entries.filter(e=>e.group==='tile-effects'&&e.live).length,16);
 console.log('PASS: 16 PNG tile overlays, SHA contract, Nutdex previews, live status families and whole-piece separation');
 
 /* Render both legal stackings: a tile status around a free nut, and a tile
