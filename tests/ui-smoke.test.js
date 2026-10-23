@@ -5,7 +5,7 @@ const wallet={textContent:''},gems={textContent:''},toast={textContent:'',classL
 const elems={screen,wallet,gems,toast};
 const document={getElementById:id=>elems[id]||null,querySelectorAll:()=>[],querySelector:()=>null};
 let store={};const localStorage={getItem:key=>store[key],setItem:(key,val)=>{store[key]=val;}};
-const audioCalls=[],window={NutEngine:E,NutProgress:require('../web/progression.js'),NutHomestead:require('../web/homestead.js'),NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:require('../web/campaign-maps.js'),addEventListener:()=>{},NutAudio:{unlock:()=>audioCalls.push('unlock'),voice:(key)=>audioCalls.push('voice:'+key),grunt:()=>audioCalls.push('grunt'),setMusicEnabled:(v)=>audioCalls.push('music:'+v),setVoiceEnabled:(v)=>audioCalls.push('voice-enabled:'+v)}};
+const audioCalls=[],window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutProgress:require('../web/progression.js'),NutHomestead:require('../web/homestead.js'),NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:require('../web/campaign-maps.js'),addEventListener:()=>{},NutAudio:{unlock:()=>audioCalls.push('unlock'),voice:(key)=>audioCalls.push('voice:'+key),grunt:()=>audioCalls.push('grunt'),setMusicEnabled:(v)=>audioCalls.push('music:'+v),setVoiceEnabled:(v)=>audioCalls.push('voice-enabled:'+v)}};
 const context={window,document,localStorage,console,setTimeout:()=>1,clearTimeout:()=>{}};
 vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../web/game.js'),'utf8'),context);
 assert.match(html,/WELCOME TO NUTBUSTER/);window.NutbusterApp.start(1);

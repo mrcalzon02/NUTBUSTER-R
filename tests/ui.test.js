@@ -18,7 +18,7 @@ const screen={classList:classes(),addEventListener:(k,f)=>{if(k==='click')clickH
 };
 const currencyLinks=Array.from({length:2},()=>({dataset:{nav:'shop'},addEventListener(type,fn){if(type==='click')this.tap=fn;}}));
 const document={getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:selector=>selector==='[data-nav]'?currencyLinks:[],createElement:()=>({style:{},innerHTML:'',remove(){}})};
-const window={NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:M,addEventListener:()=>{},matchMedia:()=>({matches:true})};
+const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:M,addEventListener:()=>{},matchMedia:()=>({matches:true})};
 const localStorage={getItem:()=>null,setItem:()=>{}};
 require('node:vm').runInNewContext(js,{window,document,localStorage,setTimeout:()=>0,clearTimeout:()=>{},requestAnimationFrame:f=>f(),console});
 const app=window.NutbusterApp, state=app.getState;

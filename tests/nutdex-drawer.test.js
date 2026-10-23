@@ -26,7 +26,7 @@ const document={
   remove(){modal=null;}
  };}
 };
-const window={NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutCodex:C,innerWidth:360,addEventListener(){}};
+const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,NutCampaignMaps:M,NutCodex:C,innerWidth:360,addEventListener(){}};
 vm.runInNewContext(source,{window,document,localStorage:{getItem(){return null;},setItem(){}},setTimeout(){return 0;},clearTimeout(){},console});
 const app=window.NutbusterApp;app.start(49);
 const game=app.getState().game;
