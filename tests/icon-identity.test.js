@@ -27,7 +27,10 @@ const icons=[
  'art/nutvale/mining-tools/gloves/jackolantern.png'];
 for(const src of icons)assert.ok(fs.existsSync(path.join(ROOT,src)),src+' missing');
 assert.doesNotMatch(mine,/⛏️|🧤/,'Mine controls cannot contain a generic pickaxe/glove emoji');
-const context={window:{NutvaleMines:require('../web/nutvale-mines.js'),NutMiningGear:require('../web/nutvale-mining-gear.js'),NutvaleEconomyArt:require('../web/nutvale-economy-art.js')},module:{exports:{}}};
+const gear=require('../web/nutvale-mining-gear.js'); // Must register before the mines module imports its global API.
+const mines=require('../web/nutvale-mines.js');
+const economy=require('../web/nutvale-economy-art.js');
+const context={window:{NutvaleMines:mines,NutMiningGear:gear,NutvaleEconomyArt:economy},module:{exports:{}}};
 vm.runInNewContext(mine,context);
 const U=context.module.exports;
 const save={unlocked:501,stars:{500:3},nutravaganza:{dollars:0}};
