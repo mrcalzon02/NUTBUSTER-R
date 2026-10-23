@@ -23,13 +23,14 @@ async function verifyPurchase(body, deps) {
 async function linkAccount(body,deps) {
  const req=accountRequest(body);
  if(!req)return {code:400,body:{error:'invalid-request'}};
- if(!deps.sessionSecret||deps.sessionSecret.length<32)
+ if(!deps.sessionSecret||deps.sessionSecret.length<32 ||
+    !deps.pseudonymKey||deps.pseudonymKey.length<32)
   return {code:503,body:{error:'account-link-unconfigured'}};
  const verdict=await deps.decodeIntegrity(req);
  if(!validateIntegrity(verdict,req,deps.appCert,deps.now?.()||Date.now()))
   return {code:403,body:{error:'app-attestation-rejected'}};
  const playerId=await deps.exchangePlayerId(req.authCode);
- const id=pseudonym(deps.sessionSecret,playerId);
+ const id=pseudonym(deps.pseudonymKey,playerId);
  return {code:200,body:{verified:true,
   accountSession:issueSession(deps.sessionSecret,id,deps.now?.()||Date.now()),
   expiresInSeconds:900}};

@@ -63,6 +63,7 @@ async function handle(req,res,deps={}){
  const body=await readJson(req);
  const depsUsed={
   appCert,sessionSecret:process.env.PGS_ACCOUNT_SESSION_SECRET||'',
+  pseudonymKey:process.env.PGS_ACCOUNT_PSEUDONYM_KEY||'',
   decodeIntegrity:deps.decodeIntegrity||decodeIntegrity,
   verifyWithGoogle:deps.verifyWithGoogle||verifyWithGoogle,
   exchangePlayerId:deps.exchangePlayerId||exchangePlayerId,

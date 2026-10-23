@@ -23,7 +23,7 @@ const verdict=req=>({
 function makeDeps(){
  const calls={integrity:0,play:0,reserve:0};
  const deps={
-  appCert:CERT,sessionSecret:SECRET,now:()=>now,
+  appCert:CERT,sessionSecret:SECRET,pseudonymKey:SECRET,now:()=>now,
   decodeIntegrity:async req=>(calls.integrity++,verdict(req)),
   verifyWithGoogle:async req=>(calls.play++,purchased),
   reserve:async()=>{calls.reserve++;return true;},
@@ -82,5 +82,13 @@ function makeDeps(){
  assert.equal((await verifyPurchase({...purchaseBody,accountSession:linked.body.accountSession},expired.deps)).code,401);
  const noServer=makeDeps();noServer.deps.sessionSecret='';
  assert.equal((await linkAccount(accountBody,noServer.deps)).code,503,'unconfigured auth server fails closed');
+ const missingPseudonym=makeDeps();missingPseudonym.deps.pseudonymKey='';
+ assert.equal((await linkAccount(accountBody,missingPseudonym.deps)).code,503,'stable account pseudonym key required');
+ const rotatedSigner=makeDeps();
+ rotatedSigner.deps.sessionSecret='new-rotated-session-signing-secret-1234567';
+ rotatedSigner.deps.pseudonymKey=SECRET;
+ const linkedAgain=await linkAccount(accountBody,rotatedSigner.deps);
+ const stableAccount=A.verifySession(rotatedSigner.deps.sessionSecret,linkedAgain.body.accountSession,now);
+ assert.equal(stableAccount,linkedId,'rotating session signature must preserve pseudonymous owner');
  console.log('PASS: real orchestrator rejects invalid app, replay, unknown signer, pending, conflicts, forged/expired accounts');
 })().catch(e=>{console.error(e);process.exitCode=1;});
