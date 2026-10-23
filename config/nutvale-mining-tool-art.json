@@ -1,0 +1,627 @@
+{
+  "schema": 1,
+  "role": "nutvale-mining-tool-visual-catalog",
+  "source_sha256": "feadd3e5ff57bd67dea318dec737e1c3d7daff2babdad46ec635a7006f487fed",
+  "production_status": "binary art packaged separately; repository images require installation",
+  "warning": "visual catalog is not the mechanical progression tree; six levels of pickaxe and gloves progression remain authoritative",
+  "pickaxe_atlas": {
+    "path": "art/nutvale/mining-tools/atlas-pickaxes.png",
+    "columns": 11,
+    "rows": 4,
+    "tile_size": 192
+  },
+  "glove_atlas": {
+    "path": "art/nutvale/mining-tools/atlas-gloves.png",
+    "columns": 14,
+    "rows": 3,
+    "tile_size": 192
+  },
+  "icons": {
+    "pickaxes": [
+      {
+        "id": "iron-prospector",
+        "name": "Iron Prospector",
+        "image": "art/nutvale/mining-tools/pickaxes/iron-prospector.png",
+        "column": 0,
+        "row": 0
+      },
+      {
+        "id": "acorn-bronze",
+        "name": "Acorn Bronze",
+        "image": "art/nutvale/mining-tools/pickaxes/acorn-bronze.png",
+        "column": 1,
+        "row": 0
+      },
+      {
+        "id": "blossom-oak",
+        "name": "Blossom Oak",
+        "image": "art/nutvale/mining-tools/pickaxes/blossom-oak.png",
+        "column": 2,
+        "row": 0
+      },
+      {
+        "id": "pinecone-copper",
+        "name": "Pinecone Copper",
+        "image": "art/nutvale/mining-tools/pickaxes/pinecone-copper.png",
+        "column": 3,
+        "row": 0
+      },
+      {
+        "id": "ropebound-steel",
+        "name": "Ropebound Steel",
+        "image": "art/nutvale/mining-tools/pickaxes/ropebound-steel.png",
+        "column": 4,
+        "row": 0
+      },
+      {
+        "id": "daisy-wreathed",
+        "name": "Daisy Wreathed",
+        "image": "art/nutvale/mining-tools/pickaxes/daisy-wreathed.png",
+        "column": 5,
+        "row": 0
+      },
+      {
+        "id": "froststeel",
+        "name": "Froststeel",
+        "image": "art/nutvale/mining-tools/pickaxes/froststeel.png",
+        "column": 6,
+        "row": 0
+      },
+      {
+        "id": "gilded-crescent",
+        "name": "Gilded Crescent",
+        "image": "art/nutvale/mining-tools/pickaxes/gilded-crescent.png",
+        "column": 7,
+        "row": 0
+      },
+      {
+        "id": "flamecrest-gold",
+        "name": "Flamecrest Gold",
+        "image": "art/nutvale/mining-tools/pickaxes/flamecrest-gold.png",
+        "column": 8,
+        "row": 0
+      },
+      {
+        "id": "amethyst-sickle",
+        "name": "Amethyst Sickle",
+        "image": "art/nutvale/mining-tools/pickaxes/amethyst-sickle.png",
+        "column": 9,
+        "row": 0
+      },
+      {
+        "id": "azure-edge",
+        "name": "Azure Edge",
+        "image": "art/nutvale/mining-tools/pickaxes/azure-edge.png",
+        "column": 10,
+        "row": 0
+      },
+      {
+        "id": "riverstone-iron",
+        "name": "Riverstone Iron",
+        "image": "art/nutvale/mining-tools/pickaxes/riverstone-iron.png",
+        "column": 0,
+        "row": 1
+      },
+      {
+        "id": "sapphire-shard",
+        "name": "Sapphire Shard",
+        "image": "art/nutvale/mining-tools/pickaxes/sapphire-shard.png",
+        "column": 1,
+        "row": 1
+      },
+      {
+        "id": "ruby-blaze",
+        "name": "Ruby Blaze",
+        "image": "art/nutvale/mining-tools/pickaxes/ruby-blaze.png",
+        "column": 2,
+        "row": 1
+      },
+      {
+        "id": "glacier-shadow",
+        "name": "Glacier Shadow",
+        "image": "art/nutvale/mining-tools/pickaxes/glacier-shadow.png",
+        "column": 3,
+        "row": 1
+      },
+      {
+        "id": "honeygold",
+        "name": "Honeygold",
+        "image": "art/nutvale/mining-tools/pickaxes/honeygold.png",
+        "column": 4,
+        "row": 1
+      },
+      {
+        "id": "mossbound-amber",
+        "name": "Mossbound Amber",
+        "image": "art/nutvale/mining-tools/pickaxes/mossbound-amber.png",
+        "column": 5,
+        "row": 1
+      },
+      {
+        "id": "thorn-garnet",
+        "name": "Thorn Garnet",
+        "image": "art/nutvale/mining-tools/pickaxes/thorn-garnet.png",
+        "column": 6,
+        "row": 1
+      },
+      {
+        "id": "strawberry-frosting",
+        "name": "Strawberry Frosting",
+        "image": "art/nutvale/mining-tools/pickaxes/strawberry-frosting.png",
+        "column": 7,
+        "row": 1
+      },
+      {
+        "id": "caramel-drizzle",
+        "name": "Caramel Drizzle",
+        "image": "art/nutvale/mining-tools/pickaxes/caramel-drizzle.png",
+        "column": 8,
+        "row": 1
+      },
+      {
+        "id": "heart-cupcake",
+        "name": "Heart Cupcake",
+        "image": "art/nutvale/mining-tools/pickaxes/heart-cupcake.png",
+        "column": 9,
+        "row": 1
+      },
+      {
+        "id": "prism-star",
+        "name": "Prism Star",
+        "image": "art/nutvale/mining-tools/pickaxes/prism-star.png",
+        "column": 10,
+        "row": 1
+      },
+      {
+        "id": "violet-skull",
+        "name": "Violet Skull",
+        "image": "art/nutvale/mining-tools/pickaxes/violet-skull.png",
+        "column": 0,
+        "row": 2
+      },
+      {
+        "id": "astral-comet",
+        "name": "Astral Comet",
+        "image": "art/nutvale/mining-tools/pickaxes/astral-comet.png",
+        "column": 1,
+        "row": 2
+      },
+      {
+        "id": "opal-sunrise",
+        "name": "Opal Sunrise",
+        "image": "art/nutvale/mining-tools/pickaxes/opal-sunrise.png",
+        "column": 2,
+        "row": 2
+      },
+      {
+        "id": "amber-crown",
+        "name": "Amber Crown",
+        "image": "art/nutvale/mining-tools/pickaxes/amber-crown.png",
+        "column": 3,
+        "row": 2
+      },
+      {
+        "id": "arcane-wraith",
+        "name": "Arcane Wraith",
+        "image": "art/nutvale/mining-tools/pickaxes/arcane-wraith.png",
+        "column": 4,
+        "row": 2
+      },
+      {
+        "id": "bloodmoon-crystal",
+        "name": "Bloodmoon Crystal",
+        "image": "art/nutvale/mining-tools/pickaxes/bloodmoon-crystal.png",
+        "column": 5,
+        "row": 2
+      },
+      {
+        "id": "silver-sunstone",
+        "name": "Silver Sunstone",
+        "image": "art/nutvale/mining-tools/pickaxes/silver-sunstone.png",
+        "column": 6,
+        "row": 2
+      },
+      {
+        "id": "spring-blossom",
+        "name": "Spring Blossom",
+        "image": "art/nutvale/mining-tools/pickaxes/spring-blossom.png",
+        "column": 7,
+        "row": 2
+      },
+      {
+        "id": "lionheart-gold",
+        "name": "Lionheart Gold",
+        "image": "art/nutvale/mining-tools/pickaxes/lionheart-gold.png",
+        "column": 8,
+        "row": 2
+      },
+      {
+        "id": "sunburst-royal",
+        "name": "Sunburst Royal",
+        "image": "art/nutvale/mining-tools/pickaxes/sunburst-royal.png",
+        "column": 9,
+        "row": 2
+      },
+      {
+        "id": "golden-dawn",
+        "name": "Golden Dawn",
+        "image": "art/nutvale/mining-tools/pickaxes/golden-dawn.png",
+        "column": 10,
+        "row": 2
+      },
+      {
+        "id": "ocean-lantern",
+        "name": "Ocean Lantern",
+        "image": "art/nutvale/mining-tools/pickaxes/ocean-lantern.png",
+        "column": 0,
+        "row": 3
+      },
+      {
+        "id": "starfall-amethyst",
+        "name": "Starfall Amethyst",
+        "image": "art/nutvale/mining-tools/pickaxes/starfall-amethyst.png",
+        "column": 1,
+        "row": 3
+      },
+      {
+        "id": "tideglass-cyan",
+        "name": "Tideglass Cyan",
+        "image": "art/nutvale/mining-tools/pickaxes/tideglass-cyan.png",
+        "column": 2,
+        "row": 3
+      },
+      {
+        "id": "forest-prism",
+        "name": "Forest Prism",
+        "image": "art/nutvale/mining-tools/pickaxes/forest-prism.png",
+        "column": 3,
+        "row": 3
+      },
+      {
+        "id": "ruby-ice",
+        "name": "Ruby Ice",
+        "image": "art/nutvale/mining-tools/pickaxes/ruby-ice.png",
+        "column": 4,
+        "row": 3
+      },
+      {
+        "id": "molten-star",
+        "name": "Molten Star",
+        "image": "art/nutvale/mining-tools/pickaxes/molten-star.png",
+        "column": 5,
+        "row": 3
+      },
+      {
+        "id": "winter-berry",
+        "name": "Winter Berry",
+        "image": "art/nutvale/mining-tools/pickaxes/winter-berry.png",
+        "column": 6,
+        "row": 3
+      },
+      {
+        "id": "holly-star",
+        "name": "Holly Star",
+        "image": "art/nutvale/mining-tools/pickaxes/holly-star.png",
+        "column": 7,
+        "row": 3
+      },
+      {
+        "id": "brass-anthem",
+        "name": "Brass Anthem",
+        "image": "art/nutvale/mining-tools/pickaxes/brass-anthem.png",
+        "column": 8,
+        "row": 3
+      },
+      {
+        "id": "deepsea-orb",
+        "name": "Deepsea Orb",
+        "image": "art/nutvale/mining-tools/pickaxes/deepsea-orb.png",
+        "column": 9,
+        "row": 3
+      },
+      {
+        "id": "moonlit-silver",
+        "name": "Moonlit Silver",
+        "image": "art/nutvale/mining-tools/pickaxes/moonlit-silver.png",
+        "column": 10,
+        "row": 3
+      }
+    ],
+    "gloves": [
+      {
+        "id": "russet-leather",
+        "name": "Russet Leather",
+        "image": "art/nutvale/mining-tools/gloves/russet-leather.png",
+        "column": 0,
+        "row": 0
+      },
+      {
+        "id": "apprentice-leather",
+        "name": "Apprentice Leather",
+        "image": "art/nutvale/mining-tools/gloves/apprentice-leather.png",
+        "column": 1,
+        "row": 0
+      },
+      {
+        "id": "autumn-leaves",
+        "name": "Autumn Leaves",
+        "image": "art/nutvale/mining-tools/gloves/autumn-leaves.png",
+        "column": 2,
+        "row": 0
+      },
+      {
+        "id": "verdant-wool",
+        "name": "Verdant Wool",
+        "image": "art/nutvale/mining-tools/gloves/verdant-wool.png",
+        "column": 3,
+        "row": 0
+      },
+      {
+        "id": "acorn-gardener",
+        "name": "Acorn Gardener",
+        "image": "art/nutvale/mining-tools/gloves/acorn-gardener.png",
+        "column": 4,
+        "row": 0
+      },
+      {
+        "id": "frostfur-forager",
+        "name": "Frostfur Forager",
+        "image": "art/nutvale/mining-tools/gloves/frostfur-forager.png",
+        "column": 5,
+        "row": 0
+      },
+      {
+        "id": "oak-traveler",
+        "name": "Oak Traveler",
+        "image": "art/nutvale/mining-tools/gloves/oak-traveler.png",
+        "column": 6,
+        "row": 0
+      },
+      {
+        "id": "winter-stone",
+        "name": "Winter Stone",
+        "image": "art/nutvale/mining-tools/gloves/winter-stone.png",
+        "column": 7,
+        "row": 0
+      },
+      {
+        "id": "copper-clockwork",
+        "name": "Copper Clockwork",
+        "image": "art/nutvale/mining-tools/gloves/copper-clockwork.png",
+        "column": 8,
+        "row": 0
+      },
+      {
+        "id": "brass-clockwork",
+        "name": "Brass Clockwork",
+        "image": "art/nutvale/mining-tools/gloves/brass-clockwork.png",
+        "column": 9,
+        "row": 0
+      },
+      {
+        "id": "sapphire-royal",
+        "name": "Sapphire Royal",
+        "image": "art/nutvale/mining-tools/gloves/sapphire-royal.png",
+        "column": 10,
+        "row": 0
+      },
+      {
+        "id": "solar-gilt",
+        "name": "Solar Gilt",
+        "image": "art/nutvale/mining-tools/gloves/solar-gilt.png",
+        "column": 11,
+        "row": 0
+      },
+      {
+        "id": "orchid-bloom",
+        "name": "Orchid Bloom",
+        "image": "art/nutvale/mining-tools/gloves/orchid-bloom.png",
+        "column": 12,
+        "row": 0
+      },
+      {
+        "id": "holly-blossom",
+        "name": "Holly Blossom",
+        "image": "art/nutvale/mining-tools/gloves/holly-blossom.png",
+        "column": 13,
+        "row": 0
+      },
+      {
+        "id": "pink-confection",
+        "name": "Pink Confection",
+        "image": "art/nutvale/mining-tools/gloves/pink-confection.png",
+        "column": 0,
+        "row": 1
+      },
+      {
+        "id": "rainbow-icing",
+        "name": "Rainbow Icing",
+        "image": "art/nutvale/mining-tools/gloves/rainbow-icing.png",
+        "column": 1,
+        "row": 1
+      },
+      {
+        "id": "confetti-star",
+        "name": "Confetti Star",
+        "image": "art/nutvale/mining-tools/gloves/confetti-star.png",
+        "column": 2,
+        "row": 1
+      },
+      {
+        "id": "candy-party",
+        "name": "Candy Party",
+        "image": "art/nutvale/mining-tools/gloves/candy-party.png",
+        "column": 3,
+        "row": 1
+      },
+      {
+        "id": "violet-nebula",
+        "name": "Violet Nebula",
+        "image": "art/nutvale/mining-tools/gloves/violet-nebula.png",
+        "column": 4,
+        "row": 1
+      },
+      {
+        "id": "spectral-skull",
+        "name": "Spectral Skull",
+        "image": "art/nutvale/mining-tools/gloves/spectral-skull.png",
+        "column": 5,
+        "row": 1
+      },
+      {
+        "id": "starlight-void",
+        "name": "Starlight Void",
+        "image": "art/nutvale/mining-tools/gloves/starlight-void.png",
+        "column": 6,
+        "row": 1
+      },
+      {
+        "id": "golden-cabochon",
+        "name": "Golden Cabochon",
+        "image": "art/nutvale/mining-tools/gloves/golden-cabochon.png",
+        "column": 7,
+        "row": 1
+      },
+      {
+        "id": "silver-sunburst",
+        "name": "Silver Sunburst",
+        "image": "art/nutvale/mining-tools/gloves/silver-sunburst.png",
+        "column": 8,
+        "row": 1
+      },
+      {
+        "id": "arcane-geode",
+        "name": "Arcane Geode",
+        "image": "art/nutvale/mining-tools/gloves/arcane-geode.png",
+        "column": 9,
+        "row": 1
+      },
+      {
+        "id": "industrial-gear",
+        "name": "Industrial Gear",
+        "image": "art/nutvale/mining-tools/gloves/industrial-gear.png",
+        "column": 10,
+        "row": 1
+      },
+      {
+        "id": "glacier-mechanist",
+        "name": "Glacier Mechanist",
+        "image": "art/nutvale/mining-tools/gloves/glacier-mechanist.png",
+        "column": 11,
+        "row": 1
+      },
+      {
+        "id": "sunstone-alchemist",
+        "name": "Sunstone Alchemist",
+        "image": "art/nutvale/mining-tools/gloves/sunstone-alchemist.png",
+        "column": 12,
+        "row": 1
+      },
+      {
+        "id": "sunflower-garden",
+        "name": "Sunflower Garden",
+        "image": "art/nutvale/mining-tools/gloves/sunflower-garden.png",
+        "column": 13,
+        "row": 1
+      },
+      {
+        "id": "lava-fissure",
+        "name": "Lava Fissure",
+        "image": "art/nutvale/mining-tools/gloves/lava-fissure.png",
+        "column": 0,
+        "row": 2
+      },
+      {
+        "id": "flameheart",
+        "name": "Flameheart",
+        "image": "art/nutvale/mining-tools/gloves/flameheart.png",
+        "column": 1,
+        "row": 2
+      },
+      {
+        "id": "riveted-steel",
+        "name": "Riveted Steel",
+        "image": "art/nutvale/mining-tools/gloves/riveted-steel.png",
+        "column": 2,
+        "row": 2
+      },
+      {
+        "id": "winter-rune",
+        "name": "Winter Rune",
+        "image": "art/nutvale/mining-tools/gloves/winter-rune.png",
+        "column": 3,
+        "row": 2
+      },
+      {
+        "id": "shadow-amethyst",
+        "name": "Shadow Amethyst",
+        "image": "art/nutvale/mining-tools/gloves/shadow-amethyst.png",
+        "column": 4,
+        "row": 2
+      },
+      {
+        "id": "aether-machinery",
+        "name": "Aether Machinery",
+        "image": "art/nutvale/mining-tools/gloves/aether-machinery.png",
+        "column": 5,
+        "row": 2
+      },
+      {
+        "id": "fresh-spring",
+        "name": "Fresh Spring",
+        "image": "art/nutvale/mining-tools/gloves/fresh-spring.png",
+        "column": 6,
+        "row": 2
+      },
+      {
+        "id": "woodland-hide",
+        "name": "Woodland Hide",
+        "image": "art/nutvale/mining-tools/gloves/woodland-hide.png",
+        "column": 7,
+        "row": 2
+      },
+      {
+        "id": "golden-gears",
+        "name": "Golden Gears",
+        "image": "art/nutvale/mining-tools/gloves/golden-gears.png",
+        "column": 8,
+        "row": 2
+      },
+      {
+        "id": "pumpkin-gold",
+        "name": "Pumpkin Gold",
+        "image": "art/nutvale/mining-tools/gloves/pumpkin-gold.png",
+        "column": 9,
+        "row": 2
+      },
+      {
+        "id": "holiday-holly",
+        "name": "Holiday Holly",
+        "image": "art/nutvale/mining-tools/gloves/holiday-holly.png",
+        "column": 10,
+        "row": 2
+      },
+      {
+        "id": "fur-trapper",
+        "name": "Fur Trapper",
+        "image": "art/nutvale/mining-tools/gloves/fur-trapper.png",
+        "column": 11,
+        "row": 2
+      },
+      {
+        "id": "harvest-petal",
+        "name": "Harvest Petal",
+        "image": "art/nutvale/mining-tools/gloves/harvest-petal.png",
+        "column": 12,
+        "row": 2
+      },
+      {
+        "id": "jackolantern",
+        "name": "Jackolantern",
+        "image": "art/nutvale/mining-tools/gloves/jackolantern.png",
+        "column": 13,
+        "row": 2
+      }
+    ]
+  }
+}
