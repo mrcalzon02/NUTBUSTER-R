@@ -7,7 +7,7 @@ The game **parodies** a free-to-play premium shop without copying its most explo
 1. Offer cards show the fictional sticker price and a **BUY PACKAGE** action.
 2. Offer review maintains the premium pitch and shows the advertised price.
 3. The **final checkout** reveals **TOTAL DUE: FREE ($0.00)**, states that this is parody checkout, and lets the player complete the order.
-4. Completion actually grants the advertised local rewards. The heart refill and loss-screen +5 moves stay priced **FREE** at preview, do not offer fake 50%-off ads, and follow the same $0 fulfillment path.
+4. Completion actually grants the advertised local rewards. The heart refill and loss-screen +5 moves stay priced **FREE** at preview, do not offer fake 50%-off ads, and follow the same $0 fulfillment path. Each is an **explicit manual redemption** on its own **rolling 12-hour cooldown** since last claim; unclaimed rewards do not stack. The separate normal move allowance refills every rolling 24 hours.
 5. Back/cancel must work. No payment data, account, billing permission, real card form, SDK purchase, subscription, contacts permission, coerced sharing, identity harvesting or required advertising is ever involved.
 
 The design is satire, not real deceptive commerce: users must never be asked for payment information, and the final zero-dollar total must be legible before claiming. The app can be transparently described as free in developer documentation and external disclosures, but the in-game dramatic timing should be preserved.
@@ -31,3 +31,5 @@ The original `Wah wahvoice.mp3` recording loops quietly during a foreground watc
 No network connection, real ad SDK, billing, analytics, or watch telemetry is required. The fake ad is a satirical optional reward, not a gate on regular level progression or existing freebies.
 
 See [Pricing and Monetization Readiness](Pricing-and-Monetization-Readiness.md) for all nine mock offer prices, one-time ownership, and boundaries for any potential paid edition.
+
+**Offline vouchers:** Nutbuster's optional P-256 signed promo-code support uses a per-save redemption ledger, not centralized single-use enforcement. It is not a monetization or account system. See [Promo Code System](Promo-Code-System.md); production issuing keys are intentionally not provisioned yet.
