@@ -4,8 +4,8 @@ const http=require('node:http');
 const {GoogleAuth}=require('google-auth-library');
 const {Firestore,FieldValue}=require('@google-cloud/firestore');
 const {PACKAGE,validateRequest,validateIntegrity,validateGooglePurchase,validateOwner}=require('./core');
-const {accountRequest,pseudonym,issueSession,verifySession}=require('./account');
 const {exchangePlayerId}=require('./google-account');
+const {verifyPurchase,linkAccount}=require('./flow');
 const db=new Firestore();
 const publisherAuth=new GoogleAuth({scopes:['https://www.googleapis.com/auth/androidpublisher']});
 const integrityAuth=new GoogleAuth({scopes:['https://www.googleapis.com/auth/playintegrity']});
@@ -60,33 +60,18 @@ async function handle(req,res,deps={}){
   respond(res,404,{error:'not-found'});return;
  }
  if(!configured()){respond(res,503,{error:'verification-not-configured'});return;}
- const body=await readJson(req),isLink=req.url==='/account/link';
- const validated=isLink?accountRequest(body):validateRequest(body);
- if(!validated){respond(res,400,{error:'invalid-request'});return;}
- const integrity=deps.decodeIntegrity||decodeIntegrity;
+ const body=await readJson(req);
+ const depsUsed={
+  appCert,sessionSecret:process.env.PGS_ACCOUNT_SESSION_SECRET||'',
+  decodeIntegrity:deps.decodeIntegrity||decodeIntegrity,
+  verifyWithGoogle:deps.verifyWithGoogle||verifyWithGoogle,
+  exchangePlayerId:deps.exchangePlayerId||exchangePlayerId,
+  reserve:deps.reserve||reserve,now:deps.now
+ };
  try{
-  const verdict=await integrity(validated);
-  if(!validateIntegrity(verdict,validated,appCert)){
-   respond(res,403,{error:'app-attestation-rejected'});return;
-  }
-  if(isLink){
-   const secret=process.env.PGS_ACCOUNT_SESSION_SECRET||'';
-   if(secret.length<32){respond(res,503,{error:'account-link-unconfigured'});return;}
-   const playerId=await (deps.exchangePlayerId||exchangePlayerId)(validated.authCode);
-   const accountHash=pseudonym(secret,playerId);
-   respond(res,200,{verified:true,accountSession:issueSession(secret,accountHash),expiresInSeconds:900});
-   return;
-  }
-  if(validated.accountSession){
-   validated.accountHash=verifySession(process.env.PGS_ACCOUNT_SESSION_SECRET||'',validated.accountSession);
-   if(!validated.accountHash){respond(res,401,{error:'account-session-invalid'});return;}
-  }
-  const google=deps.verifyWithGoogle||verifyWithGoogle;
-  const ledger=deps.reserve||reserve;
-  const purchase=await google(validated);
-  if(!validateGooglePurchase(purchase,validated)){respond(res,403,{error:'purchase-rejected'});return;}
-  if(!await ledger(validated,purchase)){respond(res,409,{error:'purchase-owner-conflict'});return;}
-  respond(res,200,{verified:true,productId:validated.productId,receiptId:validated.receiptId});
+  const result=req.url==='/account/link'
+    ?await linkAccount(body,depsUsed):await verifyPurchase(body,depsUsed);
+  respond(res,result.code,result.body);
  }catch(e){
   // Never expose Google response, PGS authorization code or purchase token in logs.
   console.error('Play sensitive verification request failed');
