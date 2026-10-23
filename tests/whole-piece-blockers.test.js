@@ -62,6 +62,7 @@ for(const level of [126,301,401]){
  assert.equal(g.cells[middle].type,before[middle].type,'A frozen nut remains the SAME piece');
 }
 const game=require('node:fs').readFileSync(require('node:path').join(__dirname,'../web/game.js'),'utf8');
-assert.ok(game.includes("if(c.ice||c.lock||c.chest)return '';"),'Replaced nut cannot remain visible underneath illustrated original art');
+assert.ok(!game.includes("if(c.ice||c.lock||c.chest)return '';"),'Tile blockers must never suppress the ordinary nut underneath');
+assert.ok(game.includes('${nutVisual(c)}${blockerVisual(c)}'),'Nut must render before fixed blockers on every occupied tile');
 assert.ok(game.includes("c.lock?'locked walnut'"),'Accessibility must name actual special nut');
 console.log('PASS: '+inspected+' whole-piece blocker starts; '+immobile+' gravity cases; key release; stopped portals and segregated conveyors/wind');
