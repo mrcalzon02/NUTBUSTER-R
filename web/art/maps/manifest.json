@@ -72,6 +72,39 @@
       "width": 941,
       "height": 1672,
       "encoding": "WebP q93"
+    },
+    {
+      "id": "overview2",
+      "path": "art/maps/overview-nutvale-oceanside.webp",
+      "source_filename": "whimsical_acorn_coast_village.png",
+      "source_sha256": "a7face2b317a39cd2a2020d77cf26e18ce2ce0b1f1871b48477b70a1bc90ec9c",
+      "sha256": "11be3afc47b969e6ab447a06c48a58f6f61a3dbf53e9db97bc600ddb2343c51d",
+      "bytes": 691952,
+      "width": 941,
+      "height": 1672,
+      "encoding": "WebP q93"
+    },
+    {
+      "id": "chapter6",
+      "path": "art/maps/chapter-6-moonnut-lake-shores.webp",
+      "source_filename": "moonlit_acorn_village_by_the_lake.png",
+      "source_sha256": "40aec092f54a59c214eeacc93a5a7cdd25ae6ba4ed71aef98b733e57190c1f7d",
+      "sha256": "8767b0fe0a0dab685c071556858d2c47de7b7256d5263647377c72d916e4bb69",
+      "bytes": 657604,
+      "width": 941,
+      "height": 1672,
+      "encoding": "WebP q93"
+    },
+    {
+      "id": "chapter7",
+      "path": "art/maps/chapter-7-sunken-shell-kingdom.webp",
+      "source_filename": "enchanted_underwater_shell_kingdom.png",
+      "source_sha256": "74ac402c7dc4ec2e985ef1013de9affa920c3df770fcfc1f77c8063bf3f0c29c",
+      "sha256": "8e580ba686564a9ed89737107f8d56d63aeea5cd30f1cd1bda7558e8c807ab93",
+      "bytes": 751148,
+      "width": 941,
+      "height": 1672,
+      "encoding": "WebP q93"
     }
   ]
 }
