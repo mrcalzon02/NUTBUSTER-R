@@ -79,7 +79,30 @@ dependencies {
 tasks.register('validatePublisherSigning') {
     doLast {
         if (!haveSigning || signerHash != pinnedSigner) {
-            throw new GradleException('Refusing APK release: publisher signing key differs from the pinned NUTBUSTER identity')
+            throw new GradleException('Refusing APK/AAB release: declared signer differs from pinned NUTBUSTER identity')
+        }
+        // Verify the REAL keystore certificate rather than trusting a caller-supplied hash.
+        // In-process JCA avoids leaking keystore passwords through subprocess command lines.
+        String actualSigner = null
+        for (String format : ['PKCS12', 'JKS']) {
+            try {
+                def keystore = java.security.KeyStore.getInstance(format)
+                file(signingPath).withInputStream { input ->
+                    keystore.load(input, storePass.toCharArray())
+                }
+                def certificate = keystore.getCertificate(publisherAlias)
+                if (certificate == null) continue
+                actualSigner = java.security.MessageDigest.getInstance('SHA-256')
+                    .digest(certificate.getEncoded())
+                    .collect { byte item -> String.format('%02x', item & 0xff) }
+                    .join('')
+                break
+            } catch (Exception ignored) {
+                // Different keystore formats are permitted; no passwords or key material are logged.
+            }
+        }
+        if (actualSigner == null || actualSigner != pinnedSigner) {
+            throw new GradleException('Refusing APK/AAB release: keystore certificate fails pinned publisher SHA-256 verification')
         }
     }
 }
