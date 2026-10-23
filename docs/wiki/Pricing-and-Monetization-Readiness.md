@@ -33,7 +33,7 @@ The store's six normal cards span **$0.99–$9.99**. The Royal Manor Kit is also
 
 ## Signed promotional voucher preparation
 
-An offline P-256 signature verifier, owner-only issuer CLI, local per-save redemption ledger, and Shop/Rewards redemption input are implemented; see [Promo Code System](Promo-Code-System.md). A production signing key has **not** been provisioned, so no live codes exist yet. Per-save replay prevention works without a network, but global single-use and genuinely limited claim counts are impossible to enforce across independent offline installs. No issuer private PEM belongs inside the APK, GitHub or a publicly synced asset folder.
+The game now ships a P-256 **public-only** verification key (`nutbuster-2026-a`) and supports nine genuine signed store-package codes, issued into a privately delivered owner vault (not GitHub). The local [Promo Manager](Promo-Code-System.md) provides initial master vouchers, tracked batch issuance, package-correct grants, signature verification and a per-save redemption ledger. The signing PEM and master codes stay private to the owner. Per-save replay prevention is offline, but global single-use, revocation and genuinely limited redemption counts remain unenforceable across independent installs. The actual Android API 26 WebView must still be tested before declaring redemption release-ready.
 
 ## Technical boundary before collecting money
 
