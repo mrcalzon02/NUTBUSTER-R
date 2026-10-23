@@ -34,6 +34,12 @@ assert.deepEqual(Array.from(plan.removed,x=>x.index),[0,4],'Only actually remove
 assert.deepEqual(Array.from(plan.blockers,x=>x.kind),['chain-break','shell-crack']);
 assert.deepEqual(Array.from(plan.specials,x=>x.kind),['horizontal-clear']);
 const board={querySelector(s){const i=Number(s.match(/\d+/)[0]);return {getBoundingClientRect(){return {left:i*50,top:40,width:45,height:45};}};}};
+assert.equal(FX.hazard({kind:'hazard',expired:[],spread:[]},board),0,'Fuse countdown must not fake a detonation');
+const beforeHazards=images.length;
+assert.equal(FX.hazard({kind:'hazard',expired:[1],spread:[3]},board),2);
+assert.ok(images[beforeHazards].src.endsWith('shell-supernova.png'),'Bomb expiry must animate an actual explosion');
+assert.ok(images[beforeHazards+1].src.endsWith('shell-ring.png'),'Butter spread must animate the target tile');
+assert.equal(FX.hazard({kind:'repair',expired:[1]},board),0,'Unrelated stages must not emit hazards');
 const count=FX.burstCascade(stage,board,2);
 assert.equal(count,5,'Every removed nut plus non-ice blocker and activated special gets an individual FX');
 const fresh=images.slice(-count);assert.ok(fresh.every(x=>x.className.includes('tile')));
@@ -97,3 +103,6 @@ console.log('PASS: all 10 booster and both gravity-hold VFX; each removed nut sh
 
 assert.ok(game.includes("window.NutAudio?.grunt?.();\n if(target.dataset.cell"),'All board taps should play recorded reactions');
 assert.ok(game.includes("playSFX('ui');window.NutAudio?.grunt?.();nav("),'Nav taps should play recorded reactions');
+
+assert.ok(game.includes("window.NutFX?.hazard?.(stage,screen.querySelector('.board'))"),'Hazard stages must render visible effects');
+assert.ok(game.includes("if(stage.expired?.length)playSFX('hazard')"),'Only actual expiries produce hazard SFX');

@@ -71,6 +71,17 @@
   if(!effects)return false;
   return effects.map(kind=>emit(kind,target,{variant:'booster'})).some(Boolean);
  }
+ function hazard(stage,board){
+  if(!stage||stage.kind!=='hazard')return 0;
+  let count=0;
+  for(const [indices,kind] of [[stage.expired||[],'supernova'],[stage.spread||[],'shell-ring']]){
+   for(const i of indices){
+    const tile=board?.querySelector?.('[data-cell="'+i+'"]');
+    if(tile&&emit(kind,tile,{variant:'tile'}))count++;
+   }
+  }
+  return count;
+ }
  function planCascade(stage,wave=1){
   const removed=[],blockers=[],specials=[];
   if(!stage||!Array.isArray(stage.before)||!Array.isArray(stage.afterClear))return {removed,blockers,specials};
@@ -100,5 +111,5 @@
   }
   return emitted;
  }
- root.NutFX={emit,booster,planCascade,burstCascade,assets,boosterEffects};
+ root.NutFX={emit,booster,hazard,planCascade,burstCascade,assets,boosterEffects};
 })(window);

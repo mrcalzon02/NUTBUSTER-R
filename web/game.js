@@ -398,7 +398,18 @@ async function transportAnimation(stage,epoch){
 }
 async function cascadeAnimation(stage,epoch,wave=1){
  if(state.page!=='game'||epoch!==state.epoch)return;
- if(stage.kind==='repair'||stage.kind==='hazard'){playSFX(stage.kind==='repair'?'shuffle':stage.expired?.length?'hazard':'crack');paintCells(stage.cells);return;}
+ if(stage.kind==='repair'){
+   playSFX('shuffle');
+   window.NutFX?.emit('shell-ring',screen.querySelector('.board'));
+   paintCells(stage.cells);return;
+  }
+  if(stage.kind==='hazard'){
+   // A ticking fuse alone should not play an unrelated cracking noise.
+   if(stage.expired?.length)playSFX('hazard');
+   else if(stage.spread?.length)playSFX('chain',{level:.65});
+   window.NutFX?.hazard?.(stage,screen.querySelector('.board'));
+   paintCells(stage.cells);return;
+  }
  if(stage.kind==='transport'){playSFX(stage.mode==='portal'?'portal':'transport');await transportAnimation(stage,epoch);return;}
  if(stage.kind==='aura'){
   const board=screen.querySelector('.board');
