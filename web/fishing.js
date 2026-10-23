@@ -88,11 +88,20 @@ const FISH=Object.freeze([
  {id:"fish-set09-violet-disc",name:"Violet Disc",icon:"🐟",value:396,difficulty:7,habitat:"arcane",rarity:"epic",art:"art/fishing/species/v2/fish-set09-violet-disc.png"},
  {id:"fish-set09-royal-koi-tail",name:"Royal Koi Tail",icon:"🐟",value:501,difficulty:8,habitat:"arcane",rarity:"epic",art:"art/fishing/species/v2/fish-set09-royal-koi-tail.png"}
 ]);
+// The wharf shop tier determines which real, playable bait species it stocks.
+// Existing three SKUs and their original quality/recipe values stay unchanged.
 const BAITS=Object.freeze([
- {id:'worm',name:'Honest Worm',icon:'🪱',level:0,quality:0},
- {id:'glitter',name:'Glitter Grub',icon:'✨',level:1,quality:2},
- {id:'royal',name:'Royal Roe',icon:'👑',level:2,quality:4}
-]);
+ {id:'worm',name:'Honest Worm',icon:'🪱',level:0,quality:0,price:25,habitat:null,description:'Classic all-water bait'},
+ {id:'glitter',name:'Glitter Grub',icon:'✨',level:1,quality:2,price:85,habitat:null,description:'Sparkling bait for harder catches'},
+ {id:'pond-mash',name:'Pond Mash',icon:'🌿',level:1,quality:1,price:55,habitat:'pond',description:'Favours pond species'},
+ {id:'royal',name:'Royal Roe',icon:'👑',level:2,quality:4,price:180,habitat:null,description:'Royal bait with high-rarity appeal'},
+ {id:'river-cricket',name:'River Cricket',icon:'🦗',level:2,quality:3,price:110,habitat:'river',description:'Favours river species'},
+ {id:'glow-shrimp',name:'Glow Shrimp',icon:'🦐',level:3,quality:5,price:210,habitat:'arcane',description:'Favours arcane species'},
+ {id:'deep-squid',name:'Deepwater Squid',icon:'🦑',level:4,quality:6,price:290,habitat:'deep',description:'Favours deepwater catches'},
+ {id:'storm-lure',name:'Storm Lure',icon:'⚡',level:4,quality:7,price:350,habitat:'arcane',description:'Electric attraction for arcane fish'},
+ {id:'astral-roe',name:'Astral Roe',icon:'🌌',level:5,quality:8,price:450,habitat:'arcane',description:'Very high-tier arcane lure'},
+ {id:'leviathan-lure',name:'Leviathan Lure',icon:'🐙',level:5,quality:9,price:520,habitat:'deep',description:'Deepwater trophy bait'}
+ ].map(x=>Object.freeze(x)));
 // Canonical 2 / 3 / 4 Honest Worm exchange values; change only after review.
 const BOOSTER_BAIT=Object.freeze({hammer:2,extra:2,row:2,shuffle:2,column:3,blast:3,cross:3,color:3,drill:4,unlock:4});
 const BAIT_RECIPES=Object.freeze({
@@ -211,7 +220,8 @@ function ensure(save,now=Date.now()){
   n.rodStock[model.id]=Math.max(0,Math.min(model.maxDurability,Math.trunc(Number(n.rodStock[model.id])||0)));
  if(!Object.prototype.hasOwnProperty.call(n.rodStock,STARTER_ROD))n.rodStock[STARTER_ROD]=ROD_BY_ID.get(STARTER_ROD).maxDurability;
  if(typeof n.equippedRod!=='string'||!Object.prototype.hasOwnProperty.call(n.rodStock,n.equippedRod)||!ROD_BY_ID.has(n.equippedRod))n.equippedRod=STARTER_ROD;
- n.baitTier=Number.isInteger(n.baitTier)?Math.max(0,Math.min(2,n.baitTier)):0;
+ n.baitTier=Number.isInteger(n.baitTier)?Math.max(0,Math.min(5,n.baitTier)):0;
+ n.wharfTier=Number.isInteger(n.wharfTier)?Math.max(0,Math.min(5,n.wharfTier)):0;
  n.tank=Number.isInteger(n.tank)?Math.max(0,Math.min(10,n.tank)):0;
  if(!n.baits||typeof n.baits!=='object'||Array.isArray(n.baits))n.baits={};
  for(const bait of BAITS)n.baits[bait.id]=limit(n.baits[bait.id]);
@@ -231,7 +241,7 @@ function ensure(save,now=Date.now()){
  const today=localDay(now);
  // Grant once on a new local calendar day; a backward clock adjustment never grants bait.
  if(today&&(!n.day||typeof n.day!=='string'||today>n.day)){
-  n.day=today;n.baits.worm=Math.min(12,n.baits.worm+DAILY);
+  n.day=today;n.baits.worm=Math.min(12+2*n.wharfTier,n.baits.worm+dailyBait(n));
  }
  return n;
 }
@@ -246,17 +256,21 @@ function claimWharfAd(save,now=Date.now()){
  return {valid:true,bait:WHARF_AD_REWARD.bait,dollars:n.dollars-prior,day:today};
 }
 function capacity(n){return 4+3*n.tank;}
-function nextCost(kind,n){const level=kind==='rod'?n.rod:kind==='tank'?n.tank:n.baitTier;
- const max=kind==='rod'?5:kind==='tank'?10:kind==='bait'?2:-1;
+function dailyBait(n){return DAILY+(n.wharfTier||0);}
+function saleBonus(n,value){return Math.floor(value*(n.wharfTier||0)*0.05);}
+function nextCost(kind,n){
+ const max=kind==='rod'?5:kind==='tank'?10:kind==='bait'?5:kind==='wharf'?5:-1;
+ const level=kind==='rod'?n.rod:kind==='tank'?n.tank:kind==='bait'?n.baitTier:kind==='wharf'?n.wharfTier:-1;
  if(max<0||level>=max)return null;
- return kind==='rod'?90+level*160:kind==='tank'?85+level*140:120+level*280;
+ return kind==='rod'?90+level*160:kind==='tank'?85+level*140:kind==='bait'?120+level*280:200+level*420;
 }
 function upgrade(save,kind,now=Date.now()){
  const n=ensure(save,now),cost=nextCost(kind,n);
- if(cost===null)return {valid:false,reason:kind==='rod'||kind==='tank'||kind==='bait'?'max':'unknown'};
+ if(cost===null)return {valid:false,reason:['rod','tank','bait','wharf'].includes(kind)?'max':'unknown'};
  if(n.dollars<cost)return {valid:false,reason:'dollars',short:cost-n.dollars};
- n.dollars-=cost;if(kind==='rod')n.rod++;else if(kind==='tank')n.tank++;else n.baitTier++;
- return {valid:true,cost,kind,level:kind==='rod'?n.rod:kind==='tank'?n.tank:n.baitTier};
+ n.dollars-=cost;
+ if(kind==='rod')n.rod++;else if(kind==='tank')n.tank++;else if(kind==='bait')n.baitTier++;else n.wharfTier++;
+ return {valid:true,cost,kind,level:kind==='rod'?n.rod:kind==='tank'?n.tank:kind==='bait'?n.baitTier:n.wharfTier};
 }
 function trade(save,booster,progression,now=Date.now()){
  const quote=exchangeQuote(save,booster,progression,now);
@@ -266,10 +280,22 @@ function trade(save,booster,progression,now=Date.now()){
  n.baits.worm+=quote.rate;
  return {valid:true,amount:quote.rate,stock:n.baits.worm};
 }
+function buyBait(save,kind,quantity=1,now=Date.now()){
+ const n=ensure(save,now),spec=BAITS.find(x=>x.id===kind);
+ if(!spec)return {valid:false,reason:'bait'};
+ if(n.baitTier<spec.level)return {valid:false,reason:'locked'};
+ if(!Number.isSafeInteger(quantity)||quantity<1||quantity>5)return {valid:false,reason:'quantity'};
+ if(n.baits[kind]>999999-quantity)return {valid:false,reason:'limit'};
+ const cost=spec.price*quantity;
+ if(n.dollars<cost)return {valid:false,reason:'dollars',short:cost-n.dollars};
+ n.dollars-=cost;n.baits[kind]+=quantity;
+ return {valid:true,id:kind,quantity,cost,stock:n.baits[kind]};
+}
 function craft(save,kind,now=Date.now()){
  const n=ensure(save,now),spec=BAITS.find(x=>x.id===kind),recipe=BAIT_RECIPES[kind];
  if(!spec||!recipe||n.baitTier<recipe.tier)return {valid:false,reason:'locked'};
  if(n.dollars<recipe.dollars||n.baits.worm<recipe.worms)return {valid:false,reason:n.baits.worm<recipe.worms?'worm':'dollars'};
+ if(n.baits[spec.id]>=999999)return {valid:false,reason:'limit'};
  n.dollars-=recipe.dollars;n.baits.worm-=recipe.worms;n.baits[spec.id]++;
  return {valid:true,cost:recipe.dollars};
 }
@@ -277,19 +303,19 @@ function rodModel(n){return ROD_BY_ID.get(n.equippedRod)||ROD_BY_ID.get(STARTER_
 const HABITAT_AFFINITY=Object.freeze({woodland:['pond'],brass:['river'],gilded:['river'],carbon:['deep'],verdant:['pond','arcane'],coral:['pond','arcane'],industrial:['deep'],'royal-blue':['river','arcane'],pirate:['deep'],glacier:['river','deep'],storm:['arcane','deep'],magma:['deep','arcane'],sovereign:['arcane','pond'],astral:['arcane'],prismatic:['arcane','deep'],confection:['pond','arcane']});
 const DIFFICULTY_BANDS=Object.freeze([0,22,18,16,14,10,7,4,2.5,1.2]);
 // Keep rarity-band probability mass stable as more fish enter the catalog.
-function rodOdds(rodId,quality=0){
+function rodOdds(rodId,quality=0,baitHabitat=null){
  const rod=ROD_BY_ID.get(rodId)||ROD_BY_ID.get(STARTER_ROD);
- const q=Math.max(0,Math.min(4,Number(quality)||0)),counts=Array(10).fill(0);
+ const q=Math.max(0,Math.min(9,Number(quality)||0)),counts=Array(10).fill(0);
  for(const fish of FISH)counts[fish.difficulty]++;
- const weights=FISH.map(fish=>(DIFFICULTY_BANDS[fish.difficulty]/counts[fish.difficulty])*Math.pow(1+q*.17,fish.difficulty-1)*(rod.affinity.includes(fish.id)?rod.bias:1)*(HABITAT_AFFINITY[rod.id]?.includes(fish.habitat)?1.6:1));
+ const weights=FISH.map(fish=>(DIFFICULTY_BANDS[fish.difficulty]/counts[fish.difficulty])*Math.pow(1+q*.17,fish.difficulty-1)*(rod.affinity.includes(fish.id)?rod.bias:1)*(HABITAT_AFFINITY[rod.id]?.includes(fish.habitat)?1.6:1)*(baitHabitat&&baitHabitat===fish.habitat?1.9:1));
  const sum=weights.reduce((a,b)=>a+b,0);
  return FISH.map((fish,i)=>({id:fish.id,name:fish.name,probability:weights[i]/sum}));
 }
-function chooseFish(seed,quality,rodId=STARTER_ROD){
+function chooseFish(seed,quality,rodId=STARTER_ROD,baitHabitat=null){
  // Rod preferences and bait quality affect actual seeded probabilities.
  let x=(seed>>>0)^0x9e3779b9;x=(Math.imul(x,1664525)+1013904223)>>>0;
  let roll=x/4294967296;
- for(const entry of rodOdds(rodId,quality)){
+ for(const entry of rodOdds(rodId,quality,baitHabitat)){
   roll-=entry.probability;
   if(roll<0)return specimenId.get(entry.id);
  }
@@ -332,7 +358,7 @@ function cast(save,baitId,seed,now=Date.now()){
  const rod=rodModel(n);
  if(n.rodStock[rod.id]<=0)return {valid:false,reason:'rod-broken',id:rod.id};
  n.baits[baitId]--;
- const fish=chooseFish(seed,bait.quality,rod.id);
+ const fish=chooseFish(seed,bait.quality,rod.id,bait.habitat);
  n.rodStock[rod.id]=Math.max(0,n.rodStock[rod.id]-(fish.difficulty>=7?2:1));
  n.fight={id:fish.id,seed,rodId:rod.id,turn:0,fish:45+seed%12,hook:50,progress:0,tension:10};
  return {valid:true,fish:fish.id,bait:baitId,rod:rod.id,durability:n.rodStock[rod.id]};
@@ -384,11 +410,11 @@ function resolve(save,choice,now=Date.now()){
   const claimed=new Set(n.fish.map(f=>f.slot)),slot=Array.from({length:capacity(n)},(_,i)=>i).find(i=>!claimed.has(i));
   n.fish.push({...fish,slot});
  }
- if(choice==='sell')n.dollars=limit(n.dollars+fish.value);
+ if(choice==='sell')n.dollars=limit(n.dollars+fish.value+saleBonus(n,fish.value));
  n.pending=null;
  return {valid:true,choice,fish:{...fish},dollars:n.dollars};
 }
-const api={FISH,BAITS,RODS,STAMPS,BACKGROUNDS,BOOSTER_BAIT,BAIT_RECIPES,exchangeQuote,exchangeBalance,DAILY,WHARF_AD_REWARD,localDay,ensure,claimWharfAd,capacity,stampCapacity,stampUnlocked,backgroundUnlocked,placeStamp,removeStamp,chooseBackground,moveFish,nextCost,upgrade,trade,craft,cast,step,resolve,rodModel,rodOdds,chooseFish,buyRod,equipRod,repairRod};
+const api={FISH,BAITS,RODS,STAMPS,BACKGROUNDS,BOOSTER_BAIT,BAIT_RECIPES,buyBait,dailyBait,saleBonus,exchangeQuote,exchangeBalance,DAILY,WHARF_AD_REWARD,localDay,ensure,claimWharfAd,capacity,stampCapacity,stampUnlocked,backgroundUnlocked,placeStamp,removeStamp,chooseBackground,moveFish,nextCost,upgrade,trade,craft,cast,step,resolve,rodModel,rodOdds,chooseFish,buyRod,equipRod,repairRod};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutFishing=api;
 })(typeof window!=='undefined'?window:globalThis);
