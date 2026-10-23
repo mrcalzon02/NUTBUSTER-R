@@ -152,7 +152,7 @@ function buyBooster(save,id){
  if(!cost)return {valid:false,reason:'unknown'};
  if(!unlocked(save,id))return {valid:false,reason:'locked'};
  if(count(save,id)>=999999)return {valid:false,reason:'limit'};
- const coins=nonnegative(save.coins);
+ const coins=spendableBalance(save,'coins');
  if(coins<cost)return {valid:false,reason:'coins',short:cost-coins};
  save.coins=coins-cost;
  if(!save.boosterInventory||typeof save.boosterInventory!=='object')save.boosterInventory={};
@@ -165,9 +165,10 @@ function spend(save,id){if(!unlocked(save,id)||count(save,id)<1)return false;
 function holdCount(save,id){return HOLD_ITEMS[id]?nonnegative(save.holdInventory?.[id]):0;}
 function buyHold(save,id){
  const item=HOLD_ITEMS[id];if(!item)return {valid:false,reason:'unknown'};
- if(nonnegative(save.gems)<item.gems)return {valid:false,reason:'gems',short:item.gems-nonnegative(save.gems)};
+ const gems=spendableBalance(save,'gems');
+ if(gems<item.gems)return {valid:false,reason:'gems',short:item.gems-gems};
  if(!save.holdInventory||typeof save.holdInventory!=='object')save.holdInventory={};
- save.gems=nonnegative(save.gems)-item.gems;
+ save.gems=gems-item.gems;
  save.holdInventory[id]=nonnegative(holdCount(save,id)+1);
  return {valid:true,id,gems:save.gems,stock:holdCount(save,id)};
 }
