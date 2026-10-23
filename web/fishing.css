@@ -229,3 +229,30 @@
 .nut-booster-shop>small{display:block;padding:5px 9px;font-size:10px}
 .nut-booster-shop>.btn{margin:5px}
 @media(max-width:440px){.fish-bait-catalog-list{max-height:380px}.fish-bait-purchase .btn{flex-basis:70px}}
+
+/* Estate record wall: individual wooden fish mounts, not aquarium fish slots.
+   Records persist after fish are sold; silhouettes protect undiscovered fish. */
+.fish-trophy-head{display:flex;align-items:center;justify-content:space-between;gap:7px;font-size:12px}
+.fish-trophy-head .btn{font-size:10px;padding:5px 7px;min-height:30px}
+.fish-trophy-preview-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:7px}
+.fish-trophy-preview-row>small{grid-column:1/-1;font-size:11px;color:#c7dbe0}
+.fish-record-status{display:flex;gap:6px;flex-wrap:wrap;margin:5px 0 9px;font-size:11px;color:#f5e6c9}
+.fish-record-status span{padding:6px 10px;background:#274354;border:1px solid #7791a0;border-radius:6px}
+.fish-trophy-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;max-height:72vh;overflow-y:auto;padding:8px;border-radius:10px;background:linear-gradient(135deg,#182c32,#30474a);border:1px solid #b1956e}
+.fish-trophy-mount{display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:3px;min-width:0;min-height:178px;padding:10px 8px;background:linear-gradient(105deg,#4b2b1d,#8e6137 13%,#714624 39%,#9e6f42 65%,#472b20);border:5px ridge #a57640;border-radius:27px 27px 13px 13px;color:#fff0cc;text-shadow:0 1px 2px #2a140c;box-shadow:inset 0 0 4px #e8ba7699,0 4px 9px #07151dcc;text-align:center}
+.fish-trophy-mount.earned{border-color:#d0ad66;background:radial-gradient(ellipse at 50% 25%,#b18043,#76502e 55%,#4a2e21)}
+.fish-trophy-mount.unclaimed{filter:saturate(.32);opacity:.63}
+.fish-trophy-art{display:flex;align-items:center;justify-content:center;flex:1 1 auto;min-height:65px;width:100%;filter:drop-shadow(0 3px 2px #201711)}
+.fish-trophy-art .fish-art{display:block;width:100%;max-width:115px;height:76px;object-fit:contain}
+.fish-trophy-silhouette{font-size:45px;filter:grayscale(1);opacity:.35}
+.fish-trophy-name{width:100%;overflow-wrap:anywhere;border:1px solid #bda16b;border-radius:3px;background:linear-gradient(#3d3227,#181a1d);padding:4px 3px;font-size:11px;font-weight:800;line-height:1.2}
+.fish-trophy-size{font-size:clamp(15px,2vw,21px);font-weight:900;color:#ffe391;font-variant-numeric:tabular-nums}
+.fish-trophy-meta{font-size:9px;line-height:1.2;color:#f7e1b7}
+.fish-trophy-footnote{display:block;margin-top:7px;color:#b8d8d9;font-size:11px}
+.fish-trophy-preview-row .fish-trophy-mount{min-height:117px;padding:5px 3px;border-width:3px}
+.fish-trophy-preview-row .fish-trophy-art{min-height:33px}
+.fish-trophy-preview-row .fish-trophy-art .fish-art{height:36px;max-width:66px}
+.fish-trophy-preview-row .fish-trophy-name{font-size:9px;padding:2px}
+.fish-trophy-preview-row .fish-trophy-size{font-size:13px}
+.fish-trophy-preview-row .fish-trophy-meta{font-size:8px}
+@media(max-width:500px){.fish-trophy-wall{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:69vh;padding:5px}.fish-trophy-mount{min-height:155px;border-width:3px;padding:7px 5px}.fish-trophy-preview-row{gap:3px}}
