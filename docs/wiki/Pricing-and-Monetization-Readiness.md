@@ -12,23 +12,28 @@ The existing package IDs/array positions and reward quantities are retained deli
 | 1 | Ridiculously Premium Gems | **$9.99** | 2,000 Golden Nuts, 2,000 Gems, current level-valid boosters | Optional single-purchase consumable; high-end price ceiling |
 | 2 | Royal Squirrel Bundle | **$3.99** | 9,999 Golden Nuts, 500 Gems, current level-valid boosters | Optional single-purchase consumable |
 | 3 | Hundred Year Chest | **$1.99** | 10,000 Golden Nuts, 150 Gems, current level-valid boosters | Optional single-purchase consumable; no paid random reward |
-| 4 | Absolutely Necessary VIP · Lifetime | **$2.99** | 1,000 Golden Nuts, 100 Gems, boosters, one-time `saved.vip` flag | If ever billed, a **one-time** entitlement; define actual enduring perks first |
+| 4 | Absolutely Necessary VIP · Lifetime | **$2.99** | 1,000 Golden Nuts, 100 Gems and disclosed starter boosters; permanent VIP **+5 daily moves, +250 Golden Nuts and 4 boosters every rolling 24 hours**, automatically credited once per cycle | One-time grant; no subscription |
 | 5 | Nutty Booster Crate | **$0.99** | 3,000 Golden Nuts, 30 Gems, displayed eligible booster bundle | Optional fixed/disclosed product; never paid gambling |
-| 6 | Emergency Heart Refill | **FREE** | Refill to five hearts | Always-free recovery; no paid defeat pressure |
-| 7 | Extra Five Moves | **FREE** | Five additional daily moves into the current board | Always-free rescue option; no real-money pay-to-continue |
+| 6 | Emergency Heart Refill | **FREE** | **Manually redeem** to restore up to five hearts; available every **12 hours after claim** | Separate saved cooldown; does not automatically refill at zero hearts |
+| 7 | Extra Five Moves | **FREE** | **Manually redeem** +5 moves every **12 hours after claim**, including from Home/Rewards | Independent of heart cooldown and rolling 24-hour daily wallet reset |
 | 8 | Exclusive Royal Manor Kit | **$2.99** | Platinum Royal portrait, Platinum Fountain, Diamond Throne | Optional one-time cosmetic with durable restore entitlement |
 
 The store's six normal cards span **$0.99–$9.99**. The Royal Manor Kit is also $2.99. The previous $199.99 / $499.99 stickers, $29.99/month VIP claim, and misleading mansion “was $499.99” price have been removed. Cosmetic and VIP ownership are **not subscriptions**, and nothing has an artificial timer or claimed discount from a fabricated former price.
 
 ## Fairness and player-protection constraints
 
-1. **Game must stay completely playable without paying.** Story levels, Nutdex, special nuts, elemental trials, Homestead, fishing, the aquarium, and necessary assistive gameplay must remain accessible through play. The two defeat-recovery options stay free.
-2. **No subscriptions by default.** The VIP flag currently persists as one-time ownership. Do not market it as monthly, recurring, or subscription-based. Before any paid VIP launch, define exactly what permanent ownership supplies beyond other free features.
+1. **Game must stay completely playable without paying.** Story levels, Nutdex, special nuts, elemental trials, Homestead, fishing, the aquarium, and necessary assistive gameplay must remain accessible through play. The two recovery options stay free but require an explicit claim every 12 hours, each tracked separately. The baseline daily-move allowance refills on an independent rolling 24-hour cycle.
+2. **No subscriptions by default.** Lifetime VIP now provides automatic +5 daily moves, +250 Golden Nuts and a pack of four boosters per rolling 24-hour cycle. It is one-time permanent ownership for this save, with no recurring charge. Benefits are disclosed before acceptance. If actual purchases are introduced, separately design durable restoration of VIP status after reinstall.
 3. **No real-money loot boxes.** Any eventual paid bundle must state its guaranteed contents clearly at review time; the eligible booster mix presently depends on which powers the player unlocked. Resolve and lock that specification before billing. Keep any randomized claim-only rewards earnable without paid gambling.
 4. **No coercive scarcity or false discounts.** Avoid fictional countdowns, fake previous prices, forced ad views, fabricated limited supply, or urgency messaging in a truly billable checkout. A local parody ad can still award its free fictional benefits; its 50% mock discount **cannot** be treated as authorization for a real paid discount.
 5. **Never charge for a free purchase.** All offers continue to disclose `TOTAL DUE: FREE ($0.00)` before fulfillment in the current version. Free hearts and free extra moves show **FREE** already on the offer review and never provide a fake discount watch button.
 6. **Preserve existing player grants.** If the distribution model changes later, separately plan how to grandfather existing cosmetic ownership, booster inventories, and purchased-in-parody entitlements. Do not revoke content or convert an already earned or gifted item into a new paid requirement.
 7. **No pay-to-win competitive ladder.** Evaluate effects on difficulty and future leaderboards before monetizing currencies or boosters. Nutvale Dollars, bait, fish, and aquarium progress are earned in-game at present; do not silently reclassify them as cash products.
+
+
+## Signed promotional voucher preparation
+
+An offline P-256 signature verifier, owner-only issuer CLI, local per-save redemption ledger, and Shop/Rewards redemption input are implemented; see [Promo Code System](Promo-Code-System.md). A production signing key has **not** been provisioned, so no live codes exist yet. Per-save replay prevention works without a network, but global single-use and genuinely limited claim counts are impossible to enforce across independent offline installs. No issuer private PEM belongs inside the APK, GitHub or a publicly synced asset folder.
 
 ## Technical boundary before collecting money
 
