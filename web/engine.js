@@ -39,7 +39,8 @@ if(!FEATURES)throw new Error('Board features must load before the engine');
 const TRIALS=typeof module!=='undefined'&&module.exports?require('./elemental-challenges.js'):root.NutElementalChallenges;
 const POWERS=typeof module!=='undefined'&&module.exports?require('./elemental-powers.js'):root.NutElementalPowers;
 if(!TRIALS||!POWERS)throw Error('Elemental modules missing');
-const BOOSTERS=['hammer','row','column','cross','blast','color','shuffle','extra','drill','unlock'];
+const BOOSTERS=['hammer','row','column','cross','blast','color','shuffle','extra','drill','unlock',
+ 'quake','triple-row','triple-column','starburst','spectrum','frostbreaker'];
 const HOLD_DROPS=Object.freeze({butter_hold:1,jam_hold:2});
 const BOOSTER_META=Object.freeze({
  hammer:{label:'Hammer',targeted:true,tip:'Break every layer of one stubborn cell'},
@@ -51,7 +52,13 @@ const BOOSTER_META=Object.freeze({
  shuffle:{label:'Shuffle',targeted:false,tip:'Rearrange nuts while preserving obstacles'},
  extra:{label:'+5 Moves',targeted:false,tip:'Five extra chances to finish'},
  drill:{label:'Deep Drill',targeted:true,tip:'Strike three layers down an entire column'},
- unlock:{label:'Master Key',targeted:false,tip:'Release every locked walnut'}
+ unlock:{label:'Master Key',targeted:false,tip:'Release every locked walnut'},
+ quake:{label:'Nutquake',targeted:true,tip:'Hit a 5×5 area around the chosen nut'},
+ 'triple-row':{label:'Triple Row',targeted:true,tip:'Clear the selected row and one above and below'},
+ 'triple-column':{label:'Triple Column',targeted:true,tip:'Clear the chosen column and its neighbors'},
+ starburst:{label:'Starburst',targeted:true,tip:'Blast both diagonals crossing a chosen nut'},
+ spectrum:{label:'Double Rainbow',targeted:true,tip:'Hit the chosen nut color and the next nut color'},
+ frostbreaker:{label:'Frostbreaker',targeted:false,tip:'Shatter ice layers across the entire board'}
 });
 function rng(seed){let x=(seed>>>0)||0x9e3779b9;return function(){x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296;};}
 function shape(level,x,y,w,h){
@@ -532,6 +539,15 @@ function booster(g,type,index){
  if(!BOOSTERS.includes(type))return {valid:false,reason:'unknown'};
  if(type==='extra'){g.moves+=5;g.lost=false;g.boosterUsed++;g.uses.extra=(g.uses.extra||0)+1;
   return {valid:true,type,stages:[],objectives:objectiveState(g)};}
+ if(type==='frostbreaker'){
+  const ids=g.cells.map((c,i)=>c?.ice>0?i:-1).filter(i=>i>=0);
+  if(!ids.length)return {valid:false,reason:'no-ice'};
+  const before=snapshot(g).cells;let cracked=0;
+  for(const i of ids){cracked+=g.cells[i].ice;g.cells[i].ice=0;}
+  g.progress.ice+=cracked;g.boosterUsed++;g.uses.frostbreaker=(g.uses.frostbreaker||0)+1;
+  g.won=complete(g);g.lost=g.moves<=0&&!g.won;
+  return {valid:true,type,cracked,stages:[{kind:'cascade',before,afterClear:snapshot(g).cells,clear:ids,falls:[],cells:snapshot(g).cells}],objectives:objectiveState(g),won:g.won,lost:g.lost};
+ }
  if(type==='shuffle'){
   const before=snapshot(g).cells;
   if(!shuffle(g))return {valid:false,reason:'deadlock'};
@@ -545,6 +561,7 @@ function booster(g,type,index){
  else {
   if(!Number.isInteger(index)||index<0||index>=g.cells.length||!g.cells[index])return {valid:false,reason:'target'};
   const row=Math.floor(index/w),col=index%w,nutType=g.cells[index].type;
+  const nextType=nutType===null?null:(nutType+1)%TYPES.length;
   ids=g.cells.map((c,i)=>{
    if(!c)return -1;
    const r=Math.floor(i/w),x=i%w;
@@ -552,7 +569,12 @@ function booster(g,type,index){
      (type==='row'||type==='cross')&&r===row||
      (type==='column'||type==='drill'||type==='cross')&&x===col||
      type==='blast'&&Math.abs(r-row)<=1&&Math.abs(x-col)<=1||
-     type==='color'&&c.type===nutType;
+     type==='color'&&c.type===nutType||
+     type==='quake'&&Math.abs(r-row)<=2&&Math.abs(x-col)<=2||
+     type==='triple-row'&&Math.abs(r-row)<=1||
+     type==='triple-column'&&Math.abs(x-col)<=1||
+     type==='starburst'&&Math.abs(r-row)===Math.abs(x-col)||
+     type==='spectrum'&&(c.type===nutType||c.type===nextType);
    return ok?i:-1;
   }).filter(i=>i>=0);
  }
