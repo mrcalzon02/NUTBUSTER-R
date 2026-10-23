@@ -53,7 +53,9 @@ for(const id of ['crate','rock'])assert.ok(entries.some(e=>e.id===id&&e.live===f
  let before=g.progress.chests;E.booster(g,'hammer',i);assert.ok(g.progress.chests>=before+2,'Hammer removes both chest layers');
 }
 {
- const g=E.create(110,1100),before=g.cells.filter(c=>c?.jam).length;
+ const g=E.create(110,1100);
+ for(const c of g.cells)if(c){c.aura=null;c.auraTurns=0;c.poison=0;}
+ const before=g.cells.filter(c=>c?.jam).length;
  for(let n=0;n<3;n++)E.advanceHazards(g,{valid:true,won:false,lost:false,stages:[]});
  assert.ok(g.cells.filter(c=>c?.jam).length>before,'butter spreads on third turn');
 }

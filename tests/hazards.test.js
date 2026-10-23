@@ -10,6 +10,8 @@ assert.deepEqual(E.snapshot(factory),E.snapshot(copy),'Hazard starts use seeded 
 assert.equal(factory.cfg.design.kind,'jam');
 assert.equal(factory.cfg.objectives[0].kind,'jam');
 assert.ok(factory.cells.filter(c=>c&&c.jam).length>=3);
+// Isolate butter spreading: independent fire auras may consume the initial jam.
+for(const c of factory.cells)if(c){c.aura=null;c.auraTurns=0;c.poison=0;}
 const initialJam=factory.cells.filter(c=>c&&c.jam).length;
 for(let n=0;n<3;n++){
  const r=E.advanceHazards(factory,{valid:true,won:false,lost:false,stages:[]});

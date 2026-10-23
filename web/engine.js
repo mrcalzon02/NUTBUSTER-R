@@ -359,16 +359,16 @@ function resolveTileAura(g,at,kind,summary){
  });
  if(kind==='fire')strike([at,...neighbors]);
  else if(kind==='poison'){c.jam=Math.max(c.jam,1);g.cfg.jam=Math.max(1,g.cfg.jam);}
- else if(kind==='nature-vines'){const target=neighbors.find(i=>!pinned(g.cells[i]));if(target!==undefined)g.cells[target].type=c.type;}
+ else if(kind==='nature-vines'){const target=neighbors.find(i=>valid(i)&&!pinned(g.cells[i]));if(target!==undefined)g.cells[target].type=c.type;}
  else if(kind==='crystal'){c.hold=Math.max(c.hold||0,2);g.crystalCharge=Math.min(3,(g.crystalCharge||0)+1);}
  else if(kind==='arcane'){const index=g.cfg.roster.indexOf(c.type);if(index>=0)c.type=g.cfg.roster[(index+1)%g.cfg.roster.length];}
  else if(kind==='shadow'){} // Until expiration, shadow absorbs the next strike.
  else if(kind==='water')wash(g.cells.map((v,i)=>valid(i)&&Math.floor(i/w)===r?i:-1).filter(i=>i>=0));
  else if(kind==='radiance'){
-  const targets=[at,...nearest].filter(i=>{const v=g.cells[i];return v.jam||v.poison||v.lock||v.ice||v.aura==='shadow';}).slice(0,3);
-  for(const i of targets){wash([i]);if(g.cells[i].aura==='shadow'){g.cells[i].aura=null;g.cells[i].auraTurns=0;}if(g.cells[i].lock||g.cells[i].ice)damage(g,i,summary);}
+  const targets=[at,...nearest].filter(i=>{const v=valid(i)?g.cells[i]:null;return v&&(v.jam||v.poison||v.lock||v.ice||v.aura==='shadow');}).slice(0,3);
+  for(const i of targets){if(!valid(i))continue;wash([i]);if(g.cells[i].aura==='shadow'){g.cells[i].aura=null;g.cells[i].auraTurns=0;}if(g.cells[i].lock||g.cells[i].ice)damage(g,i,summary);}
  }
- else if(kind==='lightning')strike(nearest.filter(i=>g.cells[i].type===c.type).slice(0,3));
+ else if(kind==='lightning')strike(nearest.filter(i=>valid(i)&&g.cells[i].type===c.type).slice(0,3));
  else if(kind==='storm')strike(nearest.slice(0,4));
  else if(kind==='magma')strike(g.cells.map((v,i)=>valid(i)&&i%w===x?i:-1).filter(i=>i>=0));
  else if(kind==='void-rock')c.rock=Math.max(c.rock||0,2);

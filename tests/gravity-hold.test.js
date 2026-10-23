@@ -84,7 +84,7 @@ assert.equal(JSON.stringify(E.snapshot(invalidHold)),initial,'invalid target can
 // preserve irregular masks and leave no playable cell unfilled.
 let heldGames=0,cascadeStages=0;
 for(let level=1;level<=500;level++)for(const seed of [1111,7777]){
- const board=E.create(level,level*73+seed),indices=board.cells.map((c,i)=>c&&!c.ice&&!c.lock&&!c.chest?i:-1).filter(i=>i>=0);
+ const board=E.create(level,level*73+seed),indices=board.cells.map((c,i)=>c&&!c.ice&&!c.lock&&!c.chest&&!c.rock&&!c.frozen&&!(c.aura==='nature-vines'&&c.auraTurns>0)?i:-1).filter(i=>i>=0);
  const mask=board.cells.map(Boolean);
  assert.equal(E.applyHold(board,'jam_hold',indices[0]).valid,true);
  assert.equal(E.applyHold(board,'butter_hold',indices[1]).valid,true);

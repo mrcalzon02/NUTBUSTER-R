@@ -25,7 +25,7 @@ assert.equal(autumn,100);assert.equal(palace,100);assert.ok(covered===300);
  g.cfg.features.conveyors=[];g.cfg.features.portals=[];
  // Isolate a complete, unblocked wind lane; blocker-segmented gusts are
  // validated separately by whole-piece-blockers and transport tests.
- for(const i of lane.indices){g.cells[i].ice=0;g.cells[i].lock=0;g.cells[i].chest=0;g.cells[i].frozen=0;}
+ for(const i of lane.indices){const c=g.cells[i];c.ice=0;c.lock=0;c.chest=0;c.rock=0;c.frozen=0;if(c.aura==='nature-vines'){c.aura=null;c.auraTurns=0;}}
  assert.equal(F.nextWindDirection(lane,0),'up');
  assert.equal(F.windDirection(lane,2),'up');
  assert.equal(F.nextWindDirection(lane,2),'down');
@@ -55,7 +55,7 @@ assert.equal(autumn,100);assert.equal(palace,100);assert.ok(covered===300);
  assert.equal(lanes.length,2);
  // Full-lane rotation is expected only when the gust corridors are unobstructed.
  // Actual blocker-split behavior remains covered by the blocker transport suites.
- for(const lane of lanes)for(const i of lane.indices){g.cells[i].ice=0;g.cells[i].lock=0;g.cells[i].chest=0;g.cells[i].frozen=0;}
+ for(const lane of lanes)for(const i of lane.indices){const c=g.cells[i];c.ice=0;c.lock=0;c.chest=0;c.rock=0;c.frozen=0;if(c.aura==='nature-vines'){c.aura=null;c.auraTurns=0;}}
  const stages=F.advance(g,1,()=>E.snapshot(g).cells).filter(s=>s.mode==='wind');
  assert.equal(stages.length,2);
  assert.deepEqual(stages.map(s=>s.transfers.length),lanes.map(x=>x.indices.length));
@@ -70,7 +70,7 @@ assert.equal(autumn,100);assert.equal(palace,100);assert.ok(covered===300);
   const a=g.cells.findIndex((c,i)=>c&&E.adjacent(g,i,i+w));
   const result=E.swap(g,a,a+w);
   assert.ok(result.valid);
-  assert.ok(result.stages.every(s=>['transport','cascade','hazard','repair'].includes(s.kind)));
+  assert.ok(result.stages.every(s=>['transport','cascade','hazard','aura','repair'].includes(s.kind)));
   saw||=result.stages.some(s=>s.kind==='transport'&&s.mode==='wind');
  }
  assert.ok(saw,'Second live player turn must emit wind transport');

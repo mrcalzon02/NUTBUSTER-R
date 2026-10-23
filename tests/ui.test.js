@@ -45,7 +45,8 @@ async function run(){
  let coins=app.getSave().coins;click({action:'checkout-complete'});
  assert.equal(app.getSave().coins,coins+50000);assert.equal(state().page,'shop');
  app.start(1);attach();assert.ok(html.includes('--cols:4'));
- let g=state().game,swap=findSwap(g,false),before=renders,moves=g.moves;
+ let g=state().game;g.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
+ let swap=findSwap(g,false),before=renders,moves=g.moves;
  click({cell:String(swap[0])});assert.equal(renders,before);
  click({cell:String(swap[1])});await settle();assert.equal(g.moves,moves-1);assert.equal(renders,before);
  swap=findSwap(g,true);const score=g.score;click({cell:String(swap[0])});click({cell:String(swap[1])});
