@@ -3,10 +3,10 @@
 'use strict';
 const F=root.NutFishing;
 if(!F)throw new Error('NutFishing must load before fishing-ui');
-function fishIcon(spec,active=false){return spec.art?'<img class="fish-art" src="'+spec.art+'" alt="" loading="'+(active?'eager':'lazy')+'">':spec.icon;}
+function fishIcon(spec,active=false){return spec?.art?'<img class="fish-art" src="'+spec.art+'" alt="" loading="'+(active?'eager':'lazy')+'">':'<span class="fish-art-missing" aria-label="Artwork unavailable"></span>';}
 function hub(save){
  const n=F.ensure(save),capacity=F.capacity(n),active=F.rodModel(n);
- return '<div class="nutravaganza-head"><h1>🎣 NUTVALE VALLEY WHARF</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="aquarium">🐠 AQUARIUM '+n.fish.length+'/'+capacity+'</button><button class="btn ghost" data-nav="homestead">← ESTATE</button></div></div>'+
+ return '<div class="nutravaganza-head"><h1>🎣 NUTVALE VALLEY WHARF</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="aquarium"><img class="fish-header-icon" src="art/fishing/species/v2/fish-set01-azure-darter.png" alt="" loading="lazy"> AQUARIUM '+n.fish.length+'/'+capacity+'</button><button class="btn ghost" data-nav="homestead">← ESTATE</button></div></div>'+
   '<div class="wharf-hub-scene" aria-label="Nutvale Valley Wharf with Fishing on the left and Bait Shop on the right"><img class="wharf-landscape" src="art/wharf/nutvale-valley-wharf-hub.webp" alt="Sunlit Nutvale Valley Wharf: fishing shelter on the left, bait shop on the right, and boats in the bay" width="1672" height="941" draggable="false">'+
   '<button class="wharf-hub-hotspot wharf-hub-fishing" data-nav="fishing" aria-label="Go fishing at the waterfront"><span>🎣 GO FISHING</span></button>'+
   '<button class="wharf-hub-hotspot wharf-hub-shop" data-nav="bait-shop" aria-label="Enter the bait and tackle shop"><span>🪱 BAIT SHOP</span></button></div>'+
@@ -26,7 +26,7 @@ function wharf(save,state,E,P){
   play='<div class="fish-fight"><div class="fish-fight-head"><b>'+fishIcon(item,true)+' '+item.name+'</b><small>TURN '+fight.turn+'/34</small></div><div class="fish-gauges"><label>REEL PROGRESS <meter min="0" max="100" value="'+fight.progress+'"></meter>'+Math.round(fight.progress)+'%</label><label>LINE TENSION <meter min="0" max="100" value="'+fight.tension+'" low="25" high="70" optimum="0"></meter>'+Math.round(fight.tension)+'%</label></div><div class="fish-actions"><button class="btn secondary" data-action="fish-left">◀ TRACK</button><button class="btn green" data-action="fish-reel">REEL!</button><button class="btn secondary" data-action="fish-right">TRACK ▶</button><button class="btn ghost" data-action="fish-slack">GIVE LINE</button></div><small>Keep the hook under the fish. Reel when aligned; give line to avoid a snap. Each command advances the fight.</small></div>';
  }else{
   const options=F.BAITS.filter(spec=>spec.level<=n.baitTier).map(spec=>
-   '<button class="fish-bait '+(bait===spec.id?'selected':'')+'" data-action="fish-select-bait" data-bait="'+spec.id+'" aria-pressed="'+(bait===spec.id)+'"><span>'+fishIcon(spec)+'</span><b>'+spec.name+'</b><small>×'+n.baits[spec.id]+'</small></button>'
+   '<button class="fish-bait '+(bait===spec.id?'selected':'')+'" data-action="fish-select-bait" data-bait="'+spec.id+'" aria-pressed="'+(bait===spec.id)+'"><span>'+spec.icon+'</span><b>'+spec.name+'</b><small>×'+n.baits[spec.id]+'</small></button>'
   ).join('');
   play='<div class="fish-cast"><h2>CAST A LINE · '+F.dailyBait(n)+' FREE WORMS DAILY</h2><div class="fish-bait-row">'+options+'</div><button class="btn green" data-action="fish-cast" '+(!n.baits[bait]?'disabled':'')+'>CAST · '+bait.toUpperCase()+'</button><small>Casting consumes one bait. Escaped fish do not refund it.</small></div>';
  }
@@ -34,7 +34,7 @@ function wharf(save,state,E,P){
  const claimed=typeof n.wharfAdDay==='string'&&n.wharfAdDay>=F.localDay(Date.now());
  const wharfAd='<section class="fish-store wharf-ad-offer"><b>🎣 SQUIRREL FISHERMEN ADS</b><button class="btn green" data-action="ad-wharf" '+(claimed?'disabled':'')+'>'+(claimed?'WHARF BONUS CLAIMED TODAY':'WATCH AD · +2 🪱 BAIT + N$100')+'</button><small>Optional parody · once daily · 2-minute wah-wah timer</small></section>';
 
- return '<div class="nutravaganza-head"><h1>🎣 NUTVALE FISHING</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="bait-shop">🪱 BAIT SHOP</button><button class="btn ghost" data-nav="aquarium">🐠 AQUARIUM '+n.fish.length+'/'+cap+'</button><button class="btn ghost" data-nav="wharf">← WHARF</button></div></div>'+
+ return '<div class="nutravaganza-head"><h1>🎣 NUTVALE FISHING</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="bait-shop">🪱 BAIT SHOP</button><button class="btn ghost" data-nav="aquarium"><img class="fish-header-icon" src="art/fishing/species/v2/fish-set01-azure-darter.png" alt="" loading="lazy"> AQUARIUM '+n.fish.length+'/'+cap+'</button><button class="btn ghost" data-nav="wharf">← WHARF</button></div></div>'+
  '<div class="wharf-fishing-stage"><img class="wharf-landscape" src="art/wharf/nutvale-wharf-fishing-scene.webp" alt="Side-on fishing pier above a sunlit underwater seafloor with pilings, fish, coral and a shipwreck" width="1672" height="941" draggable="false"><div class="wharf-underwater-interface">'+stage+'</div></div>'+
  '<div class="wharf-fishing-controls">'+play+'</div><div class="wharf-fishing-foot">'+wharfAd+'</div>';
 }
@@ -97,7 +97,7 @@ function baitShop(save,state,E,P){
 
 
 
- return '<div class="nutravaganza-head"><h1>🪱 NUTVALE BAIT & TACKLE</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="fishing">🎣 FISHING</button><button class="btn ghost" data-nav="aquarium">🐠 AQUARIUM '+n.fish.length+'/'+cap+'</button><button class="btn ghost" data-nav="wharf">← WHARF</button></div></div>'+
+ return '<div class="nutravaganza-head"><h1>🪱 NUTVALE BAIT & TACKLE</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="fishing">🎣 FISHING</button><button class="btn ghost" data-nav="aquarium"><img class="fish-header-icon" src="art/fishing/species/v2/fish-set01-azure-darter.png" alt="" loading="lazy"> AQUARIUM '+n.fish.length+'/'+cap+'</button><button class="btn ghost" data-nav="wharf">← WHARF</button></div></div>'+
  '<div class="wharf-bait-scene"><img class="wharf-landscape" src="art/wharf/nutvale-wharf-bait-shop.webp" alt="Squirrel-run bait and tackle shop with rods, bait jars, lures, crabs, and fishing boats outside" width="1672" height="941" draggable="false"></div>'+
  '<div class="wharf-bait-layout"><div class="wharf-bait-main">'+rodSection+catchSection+'</div><div class="wharf-bait-side">'+catalog+'<section class="fish-store"><h2>UPGRADE YOUR WHARF · NUTVALE DOLLARS</h2><small>Better Bait Shop = more bait · Wharf = +1 daily worm and +5% fish-sale premium per tier</small><div class="fish-upgrades">'+upgrades+'</div></section><section class="fish-store fish-balance-container">'+exchanges+'</section>'+wharfAd+'</div></div>';
 }
@@ -109,7 +109,7 @@ function trophyMounts(save,{limit=Infinity,includeEmpty=true}={}){
  const ordered=includeEmpty?[...list,...F.FISH.filter(spec=>!n.trophyRecords[spec.id])]:list;
  return ordered.slice(0,limit).map(spec=>{
   const record=n.trophyRecords[spec.id],found=!!record;
-  const art=found?fishIcon(spec):'<span class="fish-trophy-silhouette" aria-hidden="true">🐟</span>';
+  const art=found?fishIcon(spec):'<span class="fish-trophy-silhouette" aria-hidden="true"><img class="fish-art" src="art/fishing/species/v2/fish-set01-azure-darter.png" alt="" loading="lazy"></span>';
   const size=found?record.size+' cm':'—';
   const quality=found?Math.round(100*record.size/spec.maxSize):0;
   return '<div class="fish-trophy-mount '+(found?'earned':'unclaimed')+'" aria-label="'+(found?spec.name+', personal best '+record.size+' centimeters':'Undiscovered fish trophy')+'">'+
@@ -124,7 +124,7 @@ function trophyPreview(save){
 }
 function trophyHall(save){
  const status=F.trophyStatus(save),best=status.records.reduce((largest,r)=>!largest||r.size>largest.size?r:largest,null);
- return '<div class="nutravaganza-head"><h1>🏆 NUTVALE RECORD WALL</h1><div class="fish-wallet"><b>'+status.collected+'/'+status.total+' SPECIES</b><button class="btn ghost" data-nav="aquarium">🐠 AQUARIUM</button><button class="btn ghost" data-nav="homestead">← ESTATE</button></div></div>'+
+ return '<div class="nutravaganza-head"><h1>🏆 NUTVALE RECORD WALL</h1><div class="fish-wallet"><b>'+status.collected+'/'+status.total+' SPECIES</b><button class="btn ghost" data-nav="aquarium"><img class="fish-header-icon" src="art/fishing/species/v2/fish-set01-azure-darter.png" alt="" loading="lazy"> AQUARIUM</button><button class="btn ghost" data-nav="homestead">← ESTATE</button></div></div>'+
   '<div class="fish-record-status"><span>'+status.totalCatches+' TOTAL CATCHES</span><span>'+status.collected+' SPECIES RECORDED</span><span>'+(best?'LONGEST: '+best.species.name+' · '+best.size+' cm':'FIRST RECORD AWAITS')+'</span></div>'+
   '<div class="fish-trophy-wall" aria-label="Personal-best mounted fish collection">'+trophyMounts(save)+'</div>'+
   '<small class="fish-trophy-footnote">One mount per species. A larger catch replaces its recorded length, even if sold or released. Fish can still live in your aquarium independently.</small>';
@@ -134,7 +134,7 @@ function aquariumPreview(save){
  const fish=n.fish.slice(0,4).map(resident=>fishIcon(F.FISH.find(f=>f.id===resident.id))).join('');
  return '<section class="homestead-section estate-aquarium-preview"><button class="estate-tank-button" data-nav="aquarium" aria-label="Enter your estate aquarium">'+
   '<span class="estate-tank-mini" aria-hidden="true">'+(fish||'🐚 🫧 🌿')+'</span>'+
-  '<span class="estate-tank-copy"><b>🐠 ESTATE AQUARIUM · TIER '+n.tank+'/10</b><small>'+n.fish.length+'/'+cap+' fish · '+n.aquarium.stamps.length+'/'+stamps+' stamps</small><small>VIEW & DECORATE →</small></span></button></section>';
+  '<span class="estate-tank-copy"><b><img class="fish-header-icon" src="art/fishing/species/v2/fish-set01-azure-darter.png" alt="" loading="lazy"> ESTATE AQUARIUM · TIER '+n.tank+'/10</b><small>'+n.fish.length+'/'+cap+' fish · '+n.aquarium.stamps.length+'/'+stamps+' stamps</small><small>VIEW & DECORATE →</small></span></button></section>';
 }
 function aquarium(save,state={}){
  const n=F.ensure(save),cap=F.capacity(n),stampLimit=F.stampCapacity(n),cost=F.nextCost('tank',n),editing=!!state.aquariumEditing;
@@ -173,7 +173,7 @@ function aquarium(save,state={}){
  const editor=editing?'<section class="aquarium-editor"><div class="aquarium-edit-head"><b>BACKGROUNDS</b><small>Catch new species to unlock themes</small></div><div class="aquarium-themes">'+theme+'</div>'+
   '<div class="aquarium-edit-head"><b>STAMPS · '+n.aquarium.stamps.length+'/'+stampLimit+'</b><small>'+((state.aquariumStamp)?'Tap a spot in the tank to place':'Select an unlocked stamp, then tap the tank')+'</small></div><div class="aquarium-stamp-palette">'+stampCards+'</div>'+
   '<div class="aquarium-edit-head"><b>FISH SLOTS · '+n.fish.length+'/'+cap+'</b><small>'+(state.aquariumFishFrom===null?'Select a fish, then another slot to move or swap it':'Select its destination slot')+'</small></div><div class="aquarium-fish-slots">'+slotButtons+'</div></section>':'';
- return '<div class="nutravaganza-head"><h1>🐠 ESTATE AQUARIUM</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="wharf">🎣 WHARF</button><button class="btn ghost" data-nav="homestead">← ESTATE</button></div></div>'+
+ return '<div class="nutravaganza-head"><h1><img class="fish-header-icon" src="art/fishing/species/v2/fish-set01-azure-darter.png" alt="" loading="lazy"> ESTATE AQUARIUM</h1><div class="fish-wallet"><b>N$ '+n.dollars.toLocaleString()+'</b><button class="btn ghost" data-nav="wharf">🎣 WHARF</button><button class="btn ghost" data-nav="homestead">← ESTATE</button></div></div>'+
  room+'<div class="aquarium-footer"><span>'+n.fish.length+'/'+cap+' FISH · '+stampLimit+' STAMP SLOTS · TANK '+n.tank+'/10</span><button class="btn secondary" data-action="fish-aqua-edit" aria-pressed="'+editing+'">'+(editing?'✓ FINISH EDITING':'✎ EDIT AQUARIUM')+'</button><button class="btn secondary" data-action="fish-upgrade" data-kind="tank" '+(cost===null||n.dollars<cost?'disabled':'')+'>'+(cost===null?'MAX SIZE':'EXPAND TANK · N$ '+cost)+'</button></div>'+editor;
 }
 function action(name,button,ctx){
