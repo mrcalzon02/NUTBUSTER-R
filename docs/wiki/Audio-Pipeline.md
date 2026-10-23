@@ -9,6 +9,7 @@ The user-designated Drive audio folder is [Sounds / NUTBUSTER](https://drive.goo
 - `web/sfx.js` prioritizes 17 owner-licensed local MP3 effects curated from Drive's shared Sounds folder for UI clicks, match pops, shells, ice, locks, chests, power-ups, hazards, coins, and completion. The original Web Audio synthesizer stays as a fallback, including when eight recorded effects are already playing. Individual nuts still receive independent staggered pops, capped at 32 per cascade. Gameplay effects retain separate volume and mute controls.
 - Eight more user-provided clips are now included: What a Deal, Look Out, NUTSPLOsion, HECKPACKAGE, Nutsselence, Nut Destruction, Nutravaganza and BUSTED.
 - Announcer, music, and gameplay effects are independently switchable on Home/in-game menus. Voice, music, reaction, and effect volumes are independently adjustable under Settings; preferences are stored locally.
+- The **Audio & Settings** page now offers two selectable announcers with a preview button. `announcerVoice` defaults to `original` and persists in the existing offline save. Switching to the dry Nutvale Auditor preserves original voice assets and updates visible captions to the Auditor's actual spoken wording. `web/announcer-lines.js` contains 93 approved alternate-script entries; 19 pre-existing voice event keys are currently triggered in gameplay. The other 74 require their new gameplay hooks. The planned female Nutvale Diva is not selectable until her new original audio is produced.
 - Synthesized effects get a slight per-trigger pitch/speed variation. Normal match grunts play after ordinary successful clears, **not on every button press**.
 - Audio starts only following a user gesture. Failed/blocked media playback is handled gracefully without stopping the puzzle.
 ## Trigger assignments
@@ -27,7 +28,7 @@ The user-designated Drive audio folder is [Sounds / NUTBUSTER](https://drive.goo
 | Homestead build, renovation, placed decor, pet selection | No extra voice | Place/build |
 
 *The names NUTSPLOsion and Nut Destruction refer to authored **announcer lines**, not recorded collision sounds. Collision, blocker, and fishing effects are synthesized locally; replacing them with authored recordings later requires an explicit asset catalog entry and an engine hookup. The sound system must continue working without Google Drive or a network connection.*
-- Captions remain visible independently of audible playback. Game audio does **not** use device text-to-speech, stream third-party music, or send user interactions externally.
+- Captions remain visible independently of audible playback. The **original** announcer plays owner-provided MP3s; the selectable **Nutvale Auditor** synthesizes its approved lines using the installed **offline English** Android TextToSpeech engine, or an explicitly local browser speech voice. No remotely synthesized fallback, streaming music, or external interaction upload is authorized.
 
 ## Music compatibility and size
 
@@ -37,7 +38,7 @@ The user-designated Drive audio folder is [Sounds / NUTBUSTER](https://drive.goo
 
 Run `node tests/engine.test.js`, `node tests/ui-smoke.test.js`, `node tests/audio.test.js`, and `node tests/sfx.test.js`, and `node tests/sfx-samples.test.js`. The audio tests cover independent synthesis controls and bounded per-nut burst generation, alongside channel isolation, toggles, music ducking, per-trigger rate bounds, disabled pitch preservation, recovery from simulated Android-style media load resets, consecutive audible-rate variation, music stability, all cataloged SHA-256 digests and the availability of every one of the 41 files.
 
-Device tests still needed: verify playback and volume ducking on an actual Android API 26 device, current Android phone/tablet, and desktop, check audio-focus interruptions, background pause/resume, speaker output, and speech clarity against music. The repository tests do **not** prove Android APK installation or physical playback.
+Device tests still needed: verify original playback and volume ducking on an actual Android API 26 device, current Android phone/tablet, and desktop; **explicitly test Auditor local English voice detection, speech and caption alignment, no-network mode, preview, rapid announcer switching, pause/resume, and music ducking**. Check audio-focus interruptions and speech clarity against music. The repository tests do **not** prove Android APK installation or physical playback.
 
 For public distribution, keep a documented record of the license or owner authorization for every source recording, particularly the music master.
 
