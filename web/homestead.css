@@ -53,8 +53,10 @@
 .homestead-yard.zone-terrace{background:linear-gradient(160deg,#c0a98c,#816f70 65%,#514b61);border-color:#f3c589}
 .homestead-yard.zone-lake{background:radial-gradient(ellipse at 50% 85%,#6aafbf,#315b81 63%,#26385f);border-color:#9bc4e8}
 .homestead-yard.zone-palace{background:radial-gradient(circle at 50% 0%,#caa869,#785078 58%,#443658);border-color:#f8ce83}
-.homestead-scenery{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#fff0c8;text-shadow:0 2px 2px #15192299;font-size:12px;font-weight:800;padding:0 2px 7px}
-.homestead-scenery span{font-size:23px}.homestead-scenery small{font-size:10px}
+.homestead-scenery{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:5px 8px;color:#fff0c8;text-shadow:0 2px 2px #15192299;font-size:12px;font-weight:800;padding:0 2px 7px}
+.homestead-scenery-icons{display:flex;align-items:center;gap:5px;min-width:0}
+.homestead-scenery-house{flex:0 0 auto;font-size:23px}
+.homestead-scenery small{font-size:10px;margin-left:auto;text-align:right;max-width:100%}
 .homestead-house{background:#213d3388;border-radius:11px;min-height:63px;padding:3px 5px}
 .homestead-house .house{font-size:clamp(30px,5vw,42px)}
 .homestead-house small{opacity:.91}
@@ -75,7 +77,7 @@
 .homestead-house{min-height:114px;justify-content:flex-start}
 .homestead-house-art{flex:0 0 132px;display:inline-flex;align-items:center;justify-content:center;min-width:0}
 .homestead-house-art img{width:100%;height:125px;object-fit:contain;filter:drop-shadow(0 4px 5px #18281999)}
-.homestead-house-art span:not([hidden]){font-size:34px}
+.homestead-house-art>span:not([hidden]){font-size:34px}
 .homestead-house>span:nth-child(2){font-size:13px;min-width:0}
 .homestead-house .homestead-visitor{flex:0 0 auto}
 .homestead-residence-controls{display:grid;grid-template-columns:41px minmax(0,1fr) 41px;align-items:center;gap:7px;margin-bottom:5px}
@@ -106,23 +108,17 @@
 .homestead-renovation-row .btn{padding:5px 7px;min-height:33px;font-size:10px;justify-self:end;white-space:nowrap}
 .homestead-renovation-row small{font-size:10px;font-weight:800;color:#f6d88b;justify-self:end}
 .homestead-renovation-locked{font-size:11px;color:#f3c6a7;display:block;padding:7px 0}
-.homestead-flair{position:absolute;inset:0;pointer-events:none}
-.homestead-preview .homestead-flair{z-index:1}
-.homestead-flair span{position:absolute;display:inline-flex;align-items:center;gap:2px;justify-content:center;min-width:23px;min-height:22px;border-radius:20px;padding:1px 4px;font-size:clamp(15px,3vw,21px);background:linear-gradient(120deg,#f5d081d8,#75482ab8);border:1px solid #ffe4a6;box-shadow:0 2px 8px #1b271c88}
-.homestead-flair sup{font-size:9px;color:#271929;font-weight:950;line-height:1}
-.homestead-flair-roof{top:7px;left:calc(50% - 20px)}
-.homestead-flair-porch{bottom:9px;left:calc(50% - 20px)}
-.homestead-flair-windows{top:27%;right:5%}
-.homestead-flair-garden{bottom:20%;left:4%}
-.homestead-flair-heraldry{top:20%;left:3%}
-.homestead-flair .rank-4,.homestead-flair .rank-5{background:linear-gradient(130deg,#ffedbd,#dda33e);box-shadow:0 2px 9px #e5b648}
-.homestead-house-art{position:relative}
-.homestead-flair-yard span{font-size:11px;min-width:15px;min-height:15px;padding:0 2px}
-.homestead-flair-yard sup{font-size:7px}
-.homestead-flair-yard .homestead-flair-roof{top:0;left:50%}
-.homestead-flair-yard .homestead-flair-porch{bottom:0;left:50%}
+/* Renovation markers belong in an icon rail next to the small scenery house, never over the residence image. */
+.homestead-upgrade-badges{display:flex;flex-wrap:wrap;align-items:center;gap:2px;min-width:0}
+.homestead-upgrade-badges:empty{display:none}
+.homestead-upgrade-badge{display:inline-flex;align-items:center;justify-content:center;gap:1px;flex:0 0 auto;height:21px;padding:0 2px;white-space:nowrap;line-height:1;font-size:13px;font-weight:850;color:#ffeac5;text-shadow:0 1px 2px #172819;background:none;border:0;box-shadow:none}
+.homestead-upgrade-badge sup{position:static;font-size:8px;font-weight:900;line-height:1;color:#ffdea2}
+.homestead-upgrade-badges-yard .homestead-upgrade-badge{font-size:12px}
+.homestead-upgrade-badges-preview{justify-content:center;margin:4px 0 2px}
+.homestead-upgrade-badges-preview .homestead-upgrade-badge{font-size:15px}
+.homestead-upgrade-badge.rank-4,.homestead-upgrade-badge.rank-5{color:#fff2b2}
 @media(max-width:380px){.homestead-renovation-row{grid-template-columns:minmax(0,1fr) 53px minmax(82px,auto)}.homestead-renovation-row .btn{font-size:9px;padding:4px}.homestead-renovation-name{font-size:10px}}
-@media(prefers-reduced-motion:reduce){.homestead-flair *{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.homestead-upgrade-badge{animation:none!important}}
 
 /* Human avatar wardrobe — painted WebP costumes, compact scrolls and non-squirrel fallback. */
 .nutvale-avatar-showcase{display:flex;align-items:center;gap:10px;padding:7px;border:1px solid #95765c;background:linear-gradient(125deg,#675b56,#393140);border-radius:10px;margin-bottom:7px;min-width:0}
