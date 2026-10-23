@@ -338,7 +338,7 @@ function damage(g,i,summary){
 }
 function markAura(g,at,kind,turns=2){
  const c=g.cells[at];
- if(!c||c.type===null||c.ice||c.lock||c.chest||c.aura)return false;
+ if(!c||c.type===null||c.ice||c.lock||c.chest||c.rock||c.aura)return false;
  if(kind==='poison'){c.poison=Math.max(c.poison||0,turns);return true;}
  c.aura=kind;c.auraTurns=turns;
  // Vines can hold an ordinary nut still, but never eliminate the final move.
