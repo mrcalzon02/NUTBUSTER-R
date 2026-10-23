@@ -133,7 +133,7 @@ function kindForLevel(level){
  return local===100?'finale':local%20===0?'challenge':local%15===0?'treasure':local%12===0?'booster':local%10===0?'hard':'standard';
 }
 function firstClear(save,level){
- if(!Number.isInteger(level)||level<1||level>500)return {valid:false,reason:'level'};
+ if(!Number.isInteger(level)||level<1||level>1000)return {valid:false,reason:'level'};
  if(!hasCleared(save,level))return {valid:false,reason:'not-cleared'};
  const result={valid:true,unlock:[],pack:null,contents:{},first:false};
  if(!save.claimedLevelRewards[level]){
@@ -153,7 +153,7 @@ function firstClear(save,level){
 function challengeProgress(save){
  return Object.keys(save.stars||{}).filter(key=>{
   const n=Number(key);
-  return Number.isInteger(n)&&n>=1&&n<=500&&n%20===0&&nonnegative(save.stars[key])>0;
+  return Number.isInteger(n)&&n>=1&&n<=1000&&n%20===0&&nonnegative(save.stars[key])>0;
  }).length;
 }
 function challengeRewards(save){

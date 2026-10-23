@@ -22,10 +22,15 @@ const CHAPTER_ACTS=[
  [
   'Lantern Causeway','Mooncourt','Gilded Gallery','Royal Vaultwalk','Silver Gardens',
   'Portal Court','Crown Hall','Midnight Treasury','Throne Approaches','Golden Apex'
- ]
+ ],
+ ['Lantern Jetty','Pebble Crescent','Moonlit Pier','Mistwater Grove','Fishermans Causeway','Starfall Inlet','Reedbank Locks','Mirrorwater Grotto','Midnight Wharf','Lunar Headland'],
+ ['Seaweed Stair','Clamshell Terrace','Reef of Lanterns','Tideglass Bridges','Coral Switchbacks','Pearl Gate','Sunken Court','Nautilus Arch','Trident Pass','Shell Throne'],
+ ['Broken Jetty','Palmwatch','Brigantine Reach','Ropebridge Gauntlet','Corsair Cove','Powder Deck','Stormtide Narrows','Black Sail Fort','Thunder Reef','Stormbreaker Keep'],
+ ['Glowvent Approach','Gearreef Station','Pressure Gate','Coral Boilerworks','Tidal Turbines','Amber Condensers','Brasslight Crossing','Deepwheel Control','Blackwater Foundry','Abyssal Core'],
+ ['Broken Crown Causeway','Moonpearl Bastion','Trench Cathedral','Abyss Observatory','Colossus Gate','Crowned Current','Starless Vault','Tidemaw Crossing','Imperial Shelldome','Leviathan Throne']
 ];
 const ACTS=CHAPTER_ACTS[0];
-const CHAPTERS=['Nutwood Meadows','Peanut Butter Factory','Squirrel Hoard Highlands','Autumn Windmill Vale','Moonlit Golden Palace'];
+const CHAPTERS=['Nutwood Meadows','Peanut Butter Factory','Squirrel Hoard Highlands','Autumn Windmill Vale','Moonlit Golden Palace','Moonnut Lake Shores','Sunken Shell Kingdom','Stormbreaker Archipelago','The Abyssal Nutworks',"Leviathan's Crown"];
 // These are lessons, not purchases. The listed tool is earned on CLEAR of its milestone.
 // The next challenge demonstrates why the newly earned tool is helpful, but never required.
 const LESSONS=Object.freeze({
@@ -95,11 +100,41 @@ const LESSONS=Object.freeze({
  460:{name:'The Frosted Crown Hall',kind:'dual',secondaryKind:'ice',secondaryTarget:11,ice:14,formation:'cross',hint:'Break the reinforced ice while meeting the color quota across the two royal wind lanes.'},
  475:{name:'Crown Countdown',kind:'dual',secondaryKind:'locks',secondaryTarget:10,locks:12,bombs:5,formation:'scatter',hint:'Break the crown locks under the Palace’s fastest countdown pressure.'},
  490:{name:'Last Vault Before the Throne',kind:'dual',secondaryKind:'chests',secondaryTarget:12,chests:10,bombs:5,formation:'cross',hint:'The final vault demands color collection, layered chest damage and survival of five active fuses.'},
- 500:{name:'The Final Nut',kind:'dual',secondaryKind:'chests',secondaryTarget:12,chests:8,jam:9,bombs:5,formation:'cross',hint:'Finale: finish the collection and open the royal vault while every late-game system is active.'}
+ 500:{name:'The Final Nut',kind:'dual',secondaryKind:'chests',secondaryTarget:12,chests:8,jam:9,bombs:5,formation:'cross',hint:'Finale: finish the collection and open the royal vault while every late-game system is active.'},
+ 501:{name:'Moonnut Shore Landing',kind:'collect',hint:'The lake introduces the next journey: keep the collection moving while old hazards return.'},
+ 520:{name:'Frost on the Jetty',kind:'ice',ice:12,formation:'row',hint:'Reinforced ice blocks the lakeside causeway. Strike it before the moving nuts drift away.'},
+ 540:{name:'Mirrorwater Locks',kind:'locks',locks:12,formation:'column',hint:'Unlock the fixed lakeshore tiles while the wind changes the nut positions.'},
+ 560:{name:'Reedbank Treasury',kind:'dual',secondaryKind:'chests',chests:9,formation:'scatter',hint:'Collect nuts while cracking chests along the hidden lakeside path.'},
+ 580:{name:'Midnight Whirlpool',kind:'dual',secondaryKind:'ice',ice:14,formation:'cross',hint:'Break layered frost while conveyors, portals and wind challenge your remaining moves.'},
+ 600:{name:'Lake of a Thousand Stars',kind:'dual',secondaryKind:'chests',chests:10,formation:'cross',hint:'Lake finale: open the sunken cache and finish the collection before the last moves.'},
+ 601:{name:'Through the Seaweed Gate',kind:'locks',locks:12,formation:'column',hint:'Follow the kelp passages by breaking locks fixed to the reef.'},
+ 620:{name:'Pearl Reef Freeze',kind:'ice',ice:14,formation:'row',hint:'Coral corridors conceal layers of unbroken ice.'},
+ 640:{name:'The Nautilus Vault',kind:'dual',secondaryKind:'chests',chests:10,formation:'cluster',hint:'Collect the required color while breaking layered treasury shells.'},
+ 660:{name:'Coral Butter Bloom',kind:'jam',jam:9,formation:'cluster',hint:'Clear spreading butter patches before they fill the reef.'},
+ 680:{name:'Tideglass Crosswind',kind:'dual',secondaryKind:'locks',locks:13,formation:'cross',hint:'Fixed lock gates, shifting winds and portals all overlap in the tideglass pass.'},
+ 700:{name:'The Pearl Throne',kind:'dual',secondaryKind:'chests',chests:11,bombs:5,formation:'cross',hint:'Kingdom finale: break the royal shells while timed acorns demand careful planning.'},
+ 701:{name:'The Broken Gangplank',kind:'collect',bombs:3,formation:'scatter',hint:'Stormbreaker begins with a hazardous crossing under a running fuse clock.'},
+ 720:{name:'Ropebridge Lockdown',kind:'locks',locks:13,formation:'column',hint:'Crack the pirate fort locks while moving nuts cross the bridge.'},
+ 740:{name:'Black Sail Powder Run',kind:'dual',secondaryKind:'jam',jam:11,bombs:4,formation:'row',hint:'Collect the cargo before the powder deck hazards spread.'},
+ 760:{name:'Corsair Frosthold',kind:'ice',ice:16,formation:'cross',hint:'Blast the ice barricades guarding the pirate citadel.'},
+ 780:{name:'Thunder Reef Gauntlet',kind:'dual',secondaryKind:'locks',locks:14,bombs:5,formation:'scatter',hint:'The crossing mixes countdowns, chains and shifting wind lanes.'},
+ 800:{name:'Stormbreaker Last Stand',kind:'dual',secondaryKind:'chests',chests:12,bombs:6,formation:'cross',hint:'Archipelago finale: open the fortified treasure holds under full storm pressure.'},
+ 801:{name:'Pressure Gate One',kind:'ice',ice:16,formation:'column',hint:'Descend into the old Nutworks by clearing reinforced pressure seals.'},
+ 820:{name:'Clockwork Brine',kind:'dual',secondaryKind:'locks',locks:14,formation:'cross',hint:'Release the fixed machinery locks while the conveyors and wind lanes spin.'},
+ 840:{name:'Foundry Frostworks',kind:'ice',ice:17,formation:'row',hint:'Strip the cooling ice from the old underwater assembly line.'},
+ 860:{name:'Sealed Boiler Vault',kind:'dual',secondaryKind:'chests',chests:12,bombs:6,formation:'cluster',hint:'Break multiple chest layers while fuses threaten the pressure chamber.'},
+ 880:{name:'Abyssal Spillway',kind:'jam',jam:12,formation:'scatter',hint:'Remove spreading butter before the moving machinery carries the nuts away.'},
+ 900:{name:'Heart of the Nutworks',kind:'dual',secondaryKind:'locks',locks:15,bombs:7,formation:'cross',hint:'Nutworks finale: collect the output and crack the deep pressure locks.'},
+ 901:{name:'Leviathan Approach',kind:'dual',secondaryKind:'ice',ice:17,bombs:6,formation:'column',hint:'The final sea begins with a barrier of ancient frost and two furious wind lanes.'},
+ 920:{name:'Moonpearl Bastion',kind:'dual',secondaryKind:'chests',chests:12,formation:'cluster',hint:'Break the moonpearl treasury while securing the required nut color.'},
+ 940:{name:'Colossus Gate Chains',kind:'locks',locks:15,bombs:6,formation:'cross',hint:'Open the colossal fixed gates without wasting moves in the currents.'},
+ 960:{name:'Tidemaw Maelstrom',kind:'dual',secondaryKind:'jam',jam:12,bombs:6,formation:'scatter',hint:'Spreading tile hazards and fast currents compete for the last moves.'},
+ 980:{name:'Crown Chamber Frost',kind:'dual',secondaryKind:'ice',ice:18,bombs:7,formation:'cross',hint:'Break the toughest visible ice layers before the final throne.'},
+ 1000:{name:'The Leviathans Crown',kind:'dual',secondaryKind:'chests',chests:13,bombs:7,formation:'cross',hint:'Grand finale: complete the collection and break the crown treasury while every existing system is active.'}
 });
 const FORMATIONS=['scatter','row','column','cluster','cross'];
 function profile(level){
- const n=Math.max(1,Math.min(500,Math.trunc(Number(level))||1));
+ const n=Math.max(1,Math.min(1000,Math.trunc(Number(level))||1));
  const chapter=Math.floor((n-1)/100)+1,local=(n-1)%100+1;
  const act=Math.floor((local-1)/10),beat=(local-1)%10;
  const lesson=LESSONS[n]||null;

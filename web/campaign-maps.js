@@ -1032,6 +1032,15 @@ const ROAD_PIXELS=[
   ]
  ]
 ];
+// New chapters retain independently editable routes, in original image pixels.
+// Markers are always runtime HTML, never painted into the background.
+ROAD_PIXELS.push(
+ [[[480,1635],[505,1570],[478,1510],[432,1430],[380,1370],[360,1320],[435,1260],[525,1185],[620,1115],[620,1060],[540,1005],[450,950],[390,890],[350,830],[415,765],[505,704],[545,640],[465,575],[395,515],[425,450],[505,405],[575,360],[605,310],[545,250],[600,190],[690,130]]],
+ [[[480,1630],[590,1570],[670,1500],[635,1430],[555,1370],[470,1320],[400,1270],[440,1205],[535,1160],[640,1110],[670,1045],[610,975],[540,920],[450,865],[395,810],[455,750],[560,705],[650,665],[680,595],[610,540],[520,485],[570,420],[680,350],[750,280],[790,180]]],
+ [[[475,1625],[440,1560],[370,1490],[310,1410],[330,1340],[410,1270],[525,1195],[550,1120],[470,1040],[365,970],[330,900],[410,840],[515,790],[625,735],[640,665],[545,620],[475,560],[510,495],[605,440],[630,370],[575,310],[590,250],[680,185],[720,125]]],
+ [[[460,1630],[490,1560],[570,1500],[650,1430],[640,1370],[555,1320],[475,1250],[415,1185],[445,1110],[540,1050],[615,980],[585,910],[495,860],[420,800],[440,735],[525,680],[630,625],[680,550],[610,480],[515,430],[545,360],[650,310],[745,240],[790,145]]],
+ [[[470,1630],[485,1560],[555,1490],[620,1420],[590,1350],[515,1290],[425,1220],[365,1165],[395,1090],[490,1030],[590,965],[620,900],[540,835],[470,775],[485,715],[590,655],[650,590],[630,525],[530,470],[480,420],[545,355],[665,285],[690,205],[605,130]]]
+);
 const CHAPTER_DATA=[
  {
   "id": 1,
@@ -1072,7 +1081,12 @@ const CHAPTER_DATA=[
   "end": 500,
   "theme": "palace",
   "image": "art/maps/chapter-5-moonlit-golden-palace.webp"
- }
+ },
+ {"id":6,"name":"Moonnut Lake Shores","start":501,"end":600,"theme":"moonlake","image":"art/maps/chapter-6-moonnut-lake-shores.webp"},
+ {"id":7,"name":"Sunken Shell Kingdom","start":601,"end":700,"theme":"coral","image":"art/maps/chapter-7-sunken-shell-kingdom.webp"},
+ {"id":8,"name":"Stormbreaker Archipelago","start":701,"end":800,"theme":"stormbreaker","image":"art/maps/chapter-8-stormbreaker-archipelago.webp"},
+ {"id":9,"name":"The Abyssal Nutworks","start":801,"end":900,"theme":"abyss","image":"art/maps/chapter-9-abyssal-nutworks.webp"},
+ {"id":10,"name":"Leviathan's Crown","start":901,"end":1000,"theme":"leviathan","image":"art/maps/chapter-10-leviathans-crown.webp"}
 ];
 const CHAPTERS=CHAPTER_DATA.map((data,index)=>({
  ...data,
@@ -1080,8 +1094,9 @@ const CHAPTERS=CHAPTER_DATA.map((data,index)=>({
  path:ROAD_PIXELS[index].map(leg=>leg.map(([x,y])=>[x/WIDTH,y/HEIGHT]))
 }));
 const OVERVIEW='art/maps/campaign-overview.webp';
+const OVERVIEW2='art/maps/overview-nutvale-oceanside.webp';
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
-function chapterOf(level){const n=Math.trunc(Number(level));return CHAPTERS[clamp(Math.floor((n-1)/100),0,4)];}
+function chapterOf(level){const n=Math.trunc(Number(level));return CHAPTERS[clamp(Math.floor((n-1)/100),0,CHAPTERS.length-1)];}
 // Equal arclength in IMAGE PIXELS, not equal t along individual segments.
 // Stops knots with short distances becoming crowded, and makes path editing predictable.
 function nodes(chapterId){
@@ -1112,7 +1127,7 @@ function nodes(chapterId){
    title:'Level '+(chapter.start+index)+' · '+LESSON_BOOK.profile(chapter.start+index).name};
  });
 }
-const api={WIDTH,HEIGHT,CHAPTERS,OVERVIEW,chapterOf,nodes};
+const api={WIDTH,HEIGHT,CHAPTERS,OVERVIEW,OVERVIEW2,chapterOf,nodes};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutCampaignMaps=api;
 })(typeof window!=='undefined'?window:globalThis);

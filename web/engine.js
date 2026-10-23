@@ -25,7 +25,7 @@ function chapterTypeCount(chapter){return Math.min(ORIGINAL.length,chapter+2);}
 // Each new species debuts at a named stage. Rotate only two expansion slots to
 // keep the board matchable; original chapter unlocks remain permanently active.
 function rosterForLevel(number){
- const n=Math.max(1,Math.min(500,Math.trunc(number)||1));
+ const n=Math.max(1,Math.min(1000,Math.trunc(number)||1));
  const chapter=Math.floor((n-1)/100)+1,ordinary=chapterTypeCount(chapter);
  const open=NEW_INTRODUCTIONS.filter(x=>n>=x.level).map(x=>TYPES.indexOf(x.name));
  const extras=open.length<=2?open:
@@ -78,18 +78,18 @@ function shape(level,x,y,w,h){
 // Explicit early-fivefold goal scale, then increasingly demanding later chapters.
 // Budget is allowed to recover slightly on a new map; it never flatlines at 9.
 function difficultyAt(n){
- n=Math.min(500,Math.max(1,Math.trunc(n)||1));
+ n=Math.min(1000,Math.max(1,Math.trunc(n)||1));
  const lerp=(points)=>{for(let i=1;i<points.length;i++)if(n<=points[i][0]){
   const [a,v]=points[i-1],[b,w]=points[i];return v+(w-v)*(n-a)/(b-a);
  }return points[points.length-1][1];};
- const scoreScale=lerp([[1,5],[40,5],[100,4.2],[200,3.2],[500,2.4]]);
- const quotaScale=lerp([[1,5],[40,5],[100,3.5],[200,2.5],[500,1.8]]);
- const moves=Math.round(lerp([[1,36],[10,34],[30,31],[70,25],[100,22],[101,23],[150,20],[200,16],[201,19],[250,17],[300,15],[301,18],[350,16],[400,14],[401,17],[450,15],[500,13]]));
+ const scoreScale=lerp([[1,5],[40,5],[100,4.2],[200,3.2],[500,2.4],[1000,2.4]]);
+ const quotaScale=lerp([[1,5],[40,5],[100,3.5],[200,2.5],[500,1.8],[600,1.95],[700,2.1],[800,2.25],[900,2.4],[1000,2.55]]);
+ const moves=Math.round(lerp([[1,36],[10,34],[30,31],[70,25],[100,22],[101,23],[150,20],[200,16],[201,19],[250,17],[300,15],[301,18],[350,16],[400,14],[401,17],[450,15],[500,13],[501,18],[550,16],[600,14],[601,18],[650,16],[700,13],[701,18],[750,16],[800,13],[801,17],[850,15],[900,12],[901,17],[950,15],[1000,12]]));
  return {scoreScale,quotaScale,moves};
 }
 function makeLevel(number){
  const trial=TRIALS.profile(Number(number));
- const n=trial?trial.baseLevel:Math.max(1,Math.min(500,Math.trunc(number)||1)),design=DESIGN.profile(n);
+ const n=trial?trial.baseLevel:Math.max(1,Math.min(1000,Math.trunc(number)||1)),design=DESIGN.profile(n);
  // 8x9 is the late-game maximum, not the beginner board.
  const w=n<=10?4:n<=30?5:n<=70?6:n<=140?7:8, h=w+1;
  const mask=[]; for(let y=0;y<h;y++)for(let x=0;x<w;x++)mask.push(shape(n,x,y,w,h));
@@ -98,7 +98,7 @@ function makeLevel(number){
  const moves=Math.min(36,Math.max(12,difficulty.moves+teachingGrace));
  const goal=Math.round((700+18*n+Math.pow(Math.max(0,n-100)/12,1.35)*40)*difficulty.scoreScale);
  const cfg={number:trial?trial.id:n,trial,chapter:chapter+1,typeCount:roster.length,roster,
-  newNut:n>1&&(n-1)%100===0?ORIGINAL[chapterTypeCount(chapter+1)-1]:(NEW_INTRODUCTIONS.find(x=>x.level===n)?.name||null),
+  newNut:n>1&&(n-1)%100===0&&chapterTypeCount(chapter+1)>chapterTypeCount(chapter)?ORIGINAL[chapterTypeCount(chapter+1)-1]:(NEW_INTRODUCTIONS.find(x=>x.level===n)?.name||null),
   width:w,height:h,mask,moves,goal,
   ice:design.ice??(n>=3?Math.min(24,1+Math.floor(n/8)):0),
   locks:design.locks??(n>=28?Math.min(17,1+Math.floor((n-28)/15)):0),

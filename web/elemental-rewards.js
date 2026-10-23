@@ -31,8 +31,8 @@ function clear(save,id,score=0){
 function summary(save){
  ensure(save);
  const completed=Object.keys(save.elementalTrials).filter(id=>C.done(save,Number(id))&&C.profile(Number(id))).length;
- return {completed,total:150,relics:C.ELEMENTS.filter(id=>save.elementalRelics[id]===true),
-  areas:Array.from({length:5},(_,i)=>({area:i+1,completed:C.regionProgress(save,i+1),total:30}))};
+ return {completed,total:C.LAST-C.FIRST+1,relics:C.ELEMENTS.filter(id=>save.elementalRelics[id]===true),
+  areas:Array.from({length:C.CHAPTERS.length},(_,i)=>({area:i+1,completed:C.regionProgress(save,i+1),total:30}))};
 }
 const api=Object.freeze({ensure,clear,summary});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;

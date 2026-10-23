@@ -1,12 +1,12 @@
-/* Optional elemental challenge book: 30 stages in each of five regions.
-   IDs 501–650 never consume or replace a main campaign stage. */
+/* Optional elemental challenge book: 30 stages for each of ten regions.
+   Trial IDs 1001–1300 never collide with main stages 1–1000. */
 (function(root){'use strict';
 const ELEMENTS=Object.freeze([
  'fire','ice','water','earth','wind','lightning','nature','poison','radiance',
  'shadow','crystal','magma','frost','storm','arcane'
 ]);
-const FIRST=501, LAST=650, PER_AREA=30;
-const CHAPTERS=Object.freeze(['Nutwood Meadows','Peanut Butter Factory','Squirrel Hoard Highlands','Autumn Windmill Vale','Moonlit Golden Palace']);
+const FIRST=1001, LAST=1300, PER_AREA=30;
+const CHAPTERS=Object.freeze(['Nutwood Meadows','Peanut Butter Factory','Squirrel Hoard Highlands','Autumn Windmill Vale','Moonlit Golden Palace','Moonnut Lake Shores','Sunken Shell Kingdom','Stormbreaker Archipelago','The Abyssal Nutworks',"Leviathan's Crown"]);
 const TITLES=Object.freeze([
  'Ember Clearing','Crystal Creek','Tide Garden','Granite Foundry','Gale Assembly','Thunder Switchyard',
  'Rootbound Cache','Venom Crossing','Sunlit Summit','Umbra Mill','Prism Vault','Molten Wheel',
@@ -15,7 +15,7 @@ const TITLES=Object.freeze([
 function profile(id){
  if(!Number.isInteger(id)||id<FIRST||id>LAST)return null;
  const zero=id-FIRST,area=Math.floor(zero/PER_AREA)+1,local=zero%PER_AREA+1;
- const elementIndex=(area-1)*3+Math.floor((local-1)/10);
+ const elementIndex=((area-1)*3+Math.floor((local-1)/10))%ELEMENTS.length;
  const core=(area-1)*100+15+Math.floor((local-1)*84/29);
  const rank=(local-1)%10+1;
  return Object.freeze({id,area,local,baseLevel:core,requiredMainLevel:core,
@@ -30,11 +30,11 @@ function available(save,id){
 }
 function done(save,id){return Number(save?.elementalTrials?.[id])>0;}
 function regionProgress(save,area){
- if(!Number.isInteger(area)||area<1||area>5)return 0;
+ if(!Number.isInteger(area)||area<1||area>CHAPTERS.length)return 0;
  return Array.from({length:PER_AREA},(_,i)=>done(save,FIRST+(area-1)*PER_AREA+i)).filter(Boolean).length;
 }
 function next(save,area){
- if(!Number.isInteger(area)||area<1||area>5)return null;
+ if(!Number.isInteger(area)||area<1||area>CHAPTERS.length)return null;
  for(let local=1;local<=PER_AREA;local++){
   const id=FIRST+(area-1)*PER_AREA+local-1;
   if(available(save,id)&&!done(save,id))return id;
