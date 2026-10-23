@@ -105,6 +105,17 @@
       "width": 941,
       "height": 1672,
       "encoding": "WebP q93"
+    },
+    {
+      "id": "chapter8",
+      "path": "art/maps/chapter-8-stormbreaker-archipelago.webp",
+      "source_filename": "a_vibrant_highly_detailed_colorful_fantasy_tropi.png",
+      "source_sha256": "06dc6d6132a8c9ebd45449ab6545282c221fa63d45cb17684457c3a7674390d0",
+      "sha256": "b28754ebee87aad5d65ec0a9b32f9cd130639d15cdf36a10619c7763d20b4750",
+      "bytes": 661002,
+      "width": 941,
+      "height": 1672,
+      "encoding": "WebP q93"
     }
   ]
 }
