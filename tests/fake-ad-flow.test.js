@@ -6,7 +6,7 @@ const E=require('../web/engine.js'),P=require('../web/progression.js'),
 const source=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
 const html=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
 const css=fs.readFileSync(path.join(__dirname,'../web/style.css'),'utf8');
-assert.ok(html.includes('<script src="fake-ads.js"></script><script src="game.js"></script>'));
+assert.ok(html.includes('<script src="fake-ads.js"></script><script src="purchase-disclosures.js"></script><script src="promo-keys.js"></script><script src="promo-codes.js"></script><script src="game.js"></script>'));
 assert.ok(css.includes('.fake-ad-poster img')&&css.includes('@keyframes fake-ad-wobble'));
 assert.ok(css.includes('@media(prefers-reduced-motion:reduce)'));
 assert.ok(css.includes('#app.fake-ad-active .bottom'),'Support old Android WebViews without :has');
@@ -18,7 +18,7 @@ function harness(){
  const screen={classList:flags,addEventListener(key,fn){listeners[key]=fn;},
  get innerHTML(){return page;},set innerHTML(v){page=v;draws++;},
  querySelector(){return null;},querySelectorAll(){return [];}};
- const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutProgress:P,NutHomestead:H,NutAvatarArt:A,
+ const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutBenefits:require('../web/benefits.js'),NutPurchases:require('../web/purchase-disclosures.js'),NutProgress:P,NutHomestead:H,NutAvatarArt:A,
   NutCampaignMaps:M,NutCodex:C,NutFakeAds:Ads,innerWidth:360,addEventListener(){}};
  const document={get hidden(){return hidden;},addEventListener(){},
  getElementById(id){return ({screen,toast:{classList:flags,textContent:''},
@@ -76,7 +76,7 @@ assert.equal(t.app.getState().discountOffer,null,'A cancelled discount is not gr
 t.click({action:'ad-discount'});t.advance(120);t.click({action:'ad-claim'});
 assert.equal(t.app.getState().page,'checkout');
 assert.equal(t.app.getState().discountOffer,0);
-assert.match(t.page(),/\$100\.00/,'Fictional $199.99 becomes $100.00 after half-price rounding');
+assert.match(t.page(),/\$2\.50/,'Fictional $4.99 becomes $2.50 after half-price rounding');
 t.click({action:'checkout-review'});
 assert.match(t.page(),/TOTAL DUE/);assert.match(t.page(),/\$0\.00/);
 t.click({action:'checkout-complete'});
