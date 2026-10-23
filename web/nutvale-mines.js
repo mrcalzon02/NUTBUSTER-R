@@ -45,10 +45,10 @@ function ensure(save,at=Date.now()){
  const n=save.nutravaganzaExpedition;
  const legacy=n.schemaVersion!==3,oldSite=legacy&&Array.isArray(n.site)?n.site.slice():null,legacyPicks=n.picks;
  n.mineTier=clamp(n.mineTier,5);n.cartTier=clamp(n.cartTier,5);n.refineryTier=clamp(n.refineryTier,5);
+ // Legacy mineTier also advanced the pick budget. Transfer its existing upgrades
+ // before normalizing tiers, without refilling that day's remaining strikes.
+ if(legacy&&oldSite&&!Number.isSafeInteger(n.pickTier))n.pickTier=n.mineTier;
  n.pickTier=clamp(n.pickTier,G.LAST);n.gloveTier=clamp(n.gloveTier,G.LAST);
- // In v1 the map tier also advanced the pick budget. Preserve that earned tier
- // as an equivalent 40-step pick tier when migrating, without granting refills.
- if(legacy&&oldSite&&!Number.isInteger(n.pickTierOriginalMigrated)&&!Number.isInteger(n.pickTier))n.pickTier=n.mineTier;
  n.sites=clamp(n.sites);n.seed=Number.isSafeInteger(n.seed)&&n.seed!==0?n.seed:4099;
  for(const id of ['tileHitsByXY','tileScansByXY','exposedOreByXY','tileContentsByXY']){
   if(!n[id]||typeof n[id]!=='object'||Array.isArray(n[id]))n[id]={};
