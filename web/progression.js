@@ -62,8 +62,8 @@ const BUNDLES=Object.freeze({
 });
 const LEVEL_BY_TOOL=Object.freeze(Object.fromEntries(LADDER.map(item=>[item.id,item.level])));
 const HOLD_ITEMS=Object.freeze({
- butter_hold:Object.freeze({label:'Peanut Butter',drops:1,gems:15,art:'art/additions/effects/golden-acorn-glow.png',tip:'Hold one nut for one actual gravity drop; held matches triple that nut\'s points'}),
- jam_hold:Object.freeze({label:'Jam',drops:2,gems:30,art:'art/additions/effects/royal-boost.png',tip:'Hold one nut for two actual gravity drops; held matches triple that nut\'s points'})
+ butter_hold:Object.freeze({label:'Peanut Butter',drops:1,gems:15,art:'art/primary/nuts/peanut.png',tip:'Hold one nut for one actual gravity drop; held matches triple that nut\'s points'}),
+ jam_hold:Object.freeze({label:'Jam',drops:2,gems:30,art:'art/additions/economy/hourglass.png',tip:'Hold one nut for two actual gravity drops; held matches triple that nut\'s points'})
 });
 const nonnegative=n=>Number.isFinite(Number(n))?Math.max(0,Math.min(999999,Math.trunc(Number(n)))):0;
 function normalizedMap(input){const result={};if(input&&typeof input==='object'&&!Array.isArray(input))

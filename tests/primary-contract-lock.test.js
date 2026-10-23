@@ -113,6 +113,22 @@ for(const item of ladder){
  assert.ok(extras.includes(item.id),'Unknown advanced unlock: '+item.id);
  assert.ok(require('../web/progression.js').BOOSTER_ART[item.id],'Advanced power art mapping absent: '+item.id);
 }
+// Gravity-hold artwork is owner HARD-locked too, not fair game for icon rotations.
+for(const [contractId,id,art,gems,drops] of [
+ ['HOLD-01','butter_hold','art/primary/nuts/peanut.png',15,1],
+ ['HOLD-02','jam_hold','art/additions/economy/hourglass.png',30,2]
+]){
+ const record=row(contractId),hold=require('../web/progression.js').HOLD_ITEMS[id];
+ assert.equal(record.domain,'gravity-hold','Wrong gravity-hold contract domain '+contractId);
+ assert.equal(record.lock,'HARD','Gravity-hold art requires owner approval '+contractId);
+ assert.equal(record.stable_id,id,'Gravity-hold save identity changed '+contractId);
+ assert.equal(record.code_or_save_identity,'holdInventory.'+id,'Gravity-hold save key changed '+contractId);
+ assert.equal(record.image_path,'web/'+art,'Owner-approved gravity-hold illustration changed '+contractId);
+ assert.ok(hold,'Missing runtime gravity-hold '+id);
+ assert.equal(hold.art,art,'Runtime gravity-hold icon violates HARD lock '+contractId);
+ assert.equal(hold.gems,gems,'Gravity-hold gem price changed '+contractId);
+ assert.equal(hold.drops,drops,'Gravity-hold gravity duration changed '+contractId);
+}
 assert.equal(rows.filter(r=>r.domain==='avatar-outfit').length,60);
 assert.equal(rows.filter(r=>r.domain==='homestead-tier').length,40);
 assert.equal(rows.filter(r=>r.domain==='campaign-map').length,6);
