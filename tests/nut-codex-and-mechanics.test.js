@@ -16,11 +16,11 @@ for(const intro of E.NEW_INTRODUCTIONS){
  assert.ok(item?.rule.includes('level '+intro.level),'Player index must identify '+intro.name+' introduction level');
 }
 const manifest=JSON.parse(fs.readFileSync(path.join(base,'manifest.json'),'utf8'));
-assert.equal(manifest.enabled_for_gameplay,false);
+assert.equal(manifest.enabled_for_gameplay,true);
 assert.deepEqual(manifest.layout,[5,5,5]);
 assert.deepEqual(Object.keys(manifest.sprites).sort(),elemental.map(e=>e.id).sort());
 for(const e of elemental){
- assert.equal(e.live,false,e.id+' should be identified as a preview until gameplay integration');
+ assert.equal(e.live,true,e.id+' must be identified as a playable elemental nut');
  assert.equal(e.art,'art/primary/nuts/elemental/'+e.id+'.png');
  const file=path.join(base,e.id+'.png'),data=fs.readFileSync(file);
  assert.equal(data.subarray(1,4).toString(),'PNG');
@@ -81,4 +81,4 @@ assert.ok(game.includes('dx>=Math.max(110,'),'Right swipe enters Nutdex');
 assert.ok(game.includes('content.innerHTML=codex(true)'),'NUTDEX categories update in drawer instead of rebuilding board');
 assert.ok(game.includes('timed acorn')&&game.includes('sticky butter'),'Cell labels must expose hazards');
 assert.ok(html.includes('<script src="nut-codex.js"></script>'),'Codex data must load before UI');
-console.log('PASS: 15 elemental previews, 18 selectable ordinary nut identities, complete mechanic index and live blocker/transport audit');
+console.log('PASS: 15 live elemental abilities, 18 selectable ordinary nut identities, complete mechanic index and live blocker/transport audit');

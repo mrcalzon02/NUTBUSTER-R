@@ -167,136 +167,136 @@ const ENTRIES=[
     "id": "fire",
     "name": "Fire Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/fire.png",
     "effect": "On activation, burns one surface layer from the four orthogonal neighbors.",
-    "rule": "PROPOSED: Dense lock and ice clusters. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "ice",
     "name": "Ice Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/ice.png",
     "effect": "On activation, freezes two adjacent movable nuts for one player turn.",
-    "rule": "PROPOSED: Timing and route planning. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "water",
     "name": "Water Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/water.png",
     "effect": "On activation, washes sticky butter from every cell in its row.",
-    "rule": "PROPOSED: Spreading peanut-butter puzzles. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "earth",
     "name": "Earth Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/earth.png",
     "effect": "On activation, crushes one surface layer on the three nearest cells in its column.",
-    "rule": "PROPOSED: Deep, narrow blocker routes. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "wind",
     "name": "Wind Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/wind.png",
     "effect": "On activation, rotates the nearest three movable nut payloads once, leaving fixed hazards in place.",
-    "rule": "PROPOSED: Controlled cascade setup. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "lightning",
     "name": "Lightning Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/lightning.png",
     "effect": "On activation, chains to three distinct nuts of its own underlying color.",
-    "rule": "PROPOSED: Separated color collections. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "nature",
     "name": "Nature Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/nature.png",
     "effect": "On activation, removes one adjacent sticky layer and grows one extra move if butter was removed.",
-    "rule": "PROPOSED: Hazard recovery. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "poison",
     "name": "Poison Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/poison.png",
     "effect": "On activation, marks two adjacent empty-of-butter cells; the marks turn sticky after the next move.",
-    "rule": "PROPOSED: Risk-versus-reward hazard control. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "radiance",
     "name": "Radiance Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/radiance.png",
     "effect": "On activation, cleanses the nearest three hostile statuses, prioritizing sticky butter then chains.",
-    "rule": "PROPOSED: Safely breaking pressure. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "shadow",
     "name": "Shadow Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/shadow.png",
     "effect": "On activation, makes one marked tile temporarily untargetable to automatic effects for a turn; marked tile remains visible.",
-    "rule": "PROPOSED: Precision obstacle routing. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "crystal",
     "name": "Crystal Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/crystal.png",
     "effect": "On activation, stores one combo charge; the next scoring cascade consumes it for a second bonus pulse.",
-    "rule": "PROPOSED: Combo planning. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "magma",
     "name": "Magma Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/magma.png",
     "effect": "On activation, strikes its column, then strikes surviving blockers in that column once more after gravity.",
-    "rule": "PROPOSED: Reinforced vertical obstacles. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "frost",
     "name": "Frost Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/frost.png",
     "effect": "On activation, creates a visible one-hit ice shell on a nearby unshielded nut.",
-    "rule": "PROPOSED: Deliberate defensive tradeoffs. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "storm",
     "name": "Storm Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/storm.png",
     "effect": "On activation, forks to up to five nuts, prioritizing distinct rows and columns.",
-    "rule": "PROPOSED: Crowded split boards. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "arcane",
     "name": "Arcane Nut",
     "group": "elemental",
-    "live": false,
+    "live": true,
     "art": "art/primary/nuts/elemental/arcane.png",
     "effect": "On activation, recolors two adjacent ordinary nuts to the activated nut's underlying match color.",
-    "rule": "PROPOSED: Crafting five-matches. An elemental nut would keep its underlying match color; its effect would activate only when it is cleared. Does not currently spawn."
+    "rule": "LIVE: Attached to an expansion nut without changing its match color; triggers only when the actual nut is destroyed, never when a shield is cracked. Actual destruction can chain powers."
   },
   {
     "id": "line-h",

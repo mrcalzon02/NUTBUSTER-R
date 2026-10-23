@@ -1,12 +1,12 @@
 {
   "collection": "elemental-nuts",
-  "enabled_for_gameplay": false,
+  "enabled_for_gameplay": true,
   "layout": [
     5,
     5,
     5
   ],
-  "role": "art-and-rules-preview",
+  "role": "live-whole-nut-elemental-powers",
   "schema": 1,
   "source": "drive-staged",
   "source_dimensions": [
