@@ -16,7 +16,7 @@ The new campaign has 500 normal stages, 100 in each chapter; the 500 original le
 
 ## Implementation contracts
 
-1. `web/level-design.js`: the authoritative ten-acts-per-chapter book and 30 authored spotlight profiles (six per new chapter). Non-spotlight stages derive names and objectives deterministically; no claim of 500 individually hand-designed boards.
+1. `web/level-design.js`: the authoritative ten-acts-per-chapter book and 30 new chapter spotlight profiles, plus 11 restored advanced-booster teaching profiles in the first campaign (six per new chapter). Non-spotlight stages derive names and objectives deterministically; no claim of 500 individually hand-designed boards.
 2. `web/engine.js`: accepts normal stages 1–1000 with continued score/quota ramp and repeating campaign-specific move budgets. Existing board sizes, booster algorithms and legal-start repairs remain intact.
 3. `web/campaign-maps.js`: exactly ten 100-marker chapters, image-relative route points and a second overview; first five routes preserve original coordinates. Each chapter art file must exist in the asset manifest and distribution bundle.
 4. `web/game.js`: two compact world selectors, five chapter buttons per world, map zoom/scroll, correct main-stage next buttons, world-aware return after gameplay, persistent `unlocked` and `stars` through 1000.

@@ -4,7 +4,7 @@ const M=require('../web/campaign-maps.js'),P=require('../web/progression.js');
 assert.equal(L.ACTS.length,10);
 assert.equal(L.CHAPTER_ACTS.length,10);
 assert.ok(L.CHAPTER_ACTS.every(acts=>acts.length===10),'Every chapter has ten named acts');
-assert.equal(Object.keys(L.LESSONS).length,97);
+assert.equal(Object.keys(L.LESSONS).length,108);
 const family=new Set(),shapes=new Set(),formation=new Set(),tutorial=new Set();
 for(let level=1;level<=1000;level++){
  const d=L.profile(level),cfg=E.makeLevel(level),g=E.create(level,level*91+7);
@@ -99,4 +99,4 @@ for(const level of [501,520,540,560,580,600,601,620,640,660,680,700,701,720,740,
  assert.equal(g.cfg.stageTitle,d.name);
  assert.ok(E.hasMove(g),'New spotlight must have a legal start '+level);
 }
-console.log('PASS: 1000 stage profiles, ten chapter act books, 97 spotlight lessons, objective feasibility and new chapter finales');
+console.log('PASS: 1000 stage profiles, ten chapter act books, 108 spotlight lessons, objective feasibility and new chapter finales');
