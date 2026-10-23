@@ -5,6 +5,7 @@ const C=typeof module!=='undefined'&&module.exports?require('./elemental-challen
 const P=typeof module!=='undefined'&&module.exports?require('./progression.js'):root.NutProgress;
 if(!C||!P)throw Error('Load elemental challenge profiles and progression first');
 const num=n=>Number.isFinite(Number(n))?Math.max(0,Math.min(999999,Math.trunc(Number(n)))):0;
+const credit=(balance,amount)=>Math.min(999999999,Math.max(0,Math.trunc(Number(balance)||0))+amount);
 function ensure(save){
  if(!save.elementalTrials||typeof save.elementalTrials!=='object'||Array.isArray(save.elementalTrials))save.elementalTrials={};
  if(!save.elementalRelics||typeof save.elementalRelics!=='object'||Array.isArray(save.elementalRelics))save.elementalRelics={};
@@ -19,7 +20,7 @@ function clear(save,id,score=0){
  save.elementalTrials[spec.id]=Math.max(1,num(score));
  const coins=250+spec.area*200+spec.local*30;
  const gems=4+spec.area*2+(spec.milestone?12:0)+(spec.mastery?18:0);
- save.coins=num(save.coins)+coins;save.gems=num(save.gems)+gems;
+ save.coins=credit(save.coins,coins);save.gems=credit(save.gems,gems);
  let contents={},relic=null;
  if(spec.milestone){
   const kind=spec.mastery?'finale':spec.local%10===5?'shop2':'treasure';
