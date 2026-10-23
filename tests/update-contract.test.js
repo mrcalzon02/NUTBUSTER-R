@@ -14,8 +14,14 @@ const pinned=fs.readFileSync(path.join(root,'config/nutbuster-publisher.sha256')
 assert.equal(pinned,'cdde49a6d72b49e50d1cf3454ebb0a1e63444640719e4afa40c6c74bd5c8b0b9','NUTBUSTER permanent certificate fingerprint');
 assert.match(gradle,/rootProject\.file\('\.\.\/config\/nutbuster-publisher\.sha256'\)/);
 assert.match(gradle,/signerHash != pinnedSigner/);
-assert.match(gradle,/haveSigning && signerHash == pinnedSigner/);
+assert.match(gradle,/buildConfigField 'boolean', 'UPDATE_CHANNEL_ENABLED', 'false'/,
+ 'Play distribution must permanently disable the GitHub sideload updater');
+assert.match(gradle,/PLAY_DISTRIBUTION', 'true'/);
+assert.match(gradle,/validatePublisherSigning/);
+assert.match(gradle,/bundleRelease/);
 assert.match(manifest,/android\.permission\.INTERNET/);
+assert.doesNotMatch(manifest,/REQUEST_INSTALL_PACKAGES|FileProvider/,
+ 'Google Play build cannot request GitHub APK install permissions');
 assert.match(main,/s\.setBlockNetworkLoads\(true\)/);
 assert.match(updates,/digest\.matches\("sha256:\[0-9a-f\]\{64\}"\)/);
 assert.match(updates,/private static String archiveFingerprint\(/,'Android 9/10 archive signer fallback');
