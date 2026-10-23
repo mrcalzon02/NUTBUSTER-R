@@ -77,6 +77,12 @@ function campaign(){
   </div></div><p class="map-hint">Choose a region. Five regions. One extremely ambitious loyalty program.</p>`;
  }
  const chapter=M.CHAPTERS[state.chapter-1],points=M.nodes(state.chapter);
+ const trialButtons=Array.from({length:30},(_,i)=>{
+  const spec=T.profile(501+(state.chapter-1)*30+i),done=T.done(saved,spec.id),open=T.available(saved,spec.id);
+  return '<button class="elemental-trial '+(done?'done':open?'open':'locked')+'" data-action="play" data-level="'+spec.id+'" '+(open?'':'disabled')+
+   ' aria-label="'+spec.name+', '+(done?'completed':open?'available':'clear level '+spec.requiredMainLevel+' and prior trial')+'" title="'+spec.name+'">'+
+   (done?'★ ':'✦ ')+spec.local+'</button>';
+ }).join('');
  const currentLevel=Math.min(chapter.end,Math.max(chapter.start,saved.unlocked));
  const buttons=points.map(p=>{
   const stars=saved.stars[p.level]||0,open=p.level<=saved.unlocked;
@@ -86,14 +92,14 @@ function campaign(){
  return `<div class="map-titlebar"><button class="btn ghost" data-action="world-map">← REGIONS</button><h2>${chapter.name} · ${chapter.start}–${chapter.end}</h2><div class="map-zoom"><button class="btn ghost" data-action="map-zoom" data-zoom="-.2" aria-label="Zoom map out">−</button><button class="btn ghost" data-action="map-zoom" data-zoom=".2" aria-label="Zoom map in">＋</button></div></div>
  <div class="map-viewport" data-map-scroll><div class="map-canvas" style="--map-w:${Math.round(M.WIDTH*state.mapZoom)}px;--map-h:${Math.round(M.HEIGHT*state.mapZoom)}px">
  <img class="map-background" src="${chapter.image}" alt="${chapter.name} winding adventure route" draggable="false">
- ${buttons}</div></div><p class="map-hint">100 stages · <b>${points.filter(p=>saved.stars[p.level]).length}</b> completed. Tap a marker to play; choose any marker to enter that stage. Move around the map by scrolling.</p>`;
+ ${buttons}</div></div><div class="elemental-trials"><b>ELEMENTAL TRIALS · ${T.regionProgress(saved,state.chapter)}/30</b><small>Share the daily move bank · Booster prize every fifth · Elemental relic every tenth</small><div class="elemental-trial-strip">${trialButtons}</div></div><p class="map-hint">100 stages · <b>${points.filter(p=>saved.stars[p.level]).length}</b> completed. Tap a marker to play; choose any marker to enter that stage. Move around the map by scrolling.</p>`;
 }
 
 function art(category,name,emoji,cls='art'){return `<span class="${cls}"><img class="art-image" src="art/primary/${category}/${name}.png" alt="" onload="this.classList.add('loaded')" onerror="this.style.display='none';this.nextElementSibling.style.visibility='visible'"><span class="icon-fallback" aria-hidden="true">${emoji}</span></span>`;}
 function piece(type){if(type===null||type===undefined)return '';const name=E.TYPES[type];
  return `<img class="piece" src="art/primary/nuts/${name}.png" alt="" draggable="false" onload="this.classList.add('loaded')" onerror="this.style.display='none';this.nextElementSibling.style.visibility='visible'"><span class="fallback" aria-hidden="true">${icons[type]||'🌰'}</span>`;
 }
-function nutVisual(c){return `<span class="nut-visual">${piece(c.type)}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}${c.hold?`<span class="hold-marker" aria-hidden="true"><img src="art/additions/effects/focus-ring.png" alt="" draggable="false"><b>${c.hold}</b></span>`:''}</span>`;}
+function nutVisual(c){return `<span class="nut-visual">${piece(c.type)}${c.elemental?`<img class="elemental-emblem" src="art/primary/nuts/elemental/${c.elemental}.png" alt="" draggable="false">`:''}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}${c.hold?`<span class="hold-marker" aria-hidden="true"><img src="art/additions/effects/focus-ring.png" alt="" draggable="false"><b>${c.hold}</b></span>`:''}</span>`;}
 function blockerVisual(c){
  // The ordinary nut remains visible beneath translucent tile blockers.
  const sprite=c.ice?'frost':c.lock?'chain-lock':c.chest?'chest':null;
@@ -109,7 +115,8 @@ function cellLabel(c,i,w){
  const obstacle=c.ice?' pinned beneath ice '+c.ice+' hits remaining':c.lock?' pinned beneath a chain '+c.lock+' hits remaining':c.chest?' pinned beneath a chest '+c.chest+' hits remaining':'';
  const hazard=(c.jam?' sticky butter':'')+(c.fuse?' timed acorn '+c.fuse+' turns':'');
  const hold=c.hold?' held for '+c.hold+' gravity drops':'';
- return nut+obstacle+hazard+hold+' row '+(Math.floor(i/w)+1)+' column '+(i%w+1);
+ const elemental=c.elemental?' '+c.elemental+' elemental power':'';
+ return nut+elemental+obstacle+hazard+hold+' row '+(Math.floor(i/w)+1)+' column '+(i%w+1);
 }
 function featureVisual(features,i){
  if(!features)return '';
@@ -121,7 +128,7 @@ function featureVisual(features,i){
   (portal?'<span class="board-feature portal" aria-hidden="true">◎</span>':'')+
  (wind?`<span class="board-feature wind" data-wind-direction="${dir}" aria-hidden="true">${dir==='up'?'↑':'↓'}</span>`:'');
 }
-function nutKey(c){return c.type+':'+(c.special||'')+':'+(c.hold||0)+':'+Number(!!(c.ice||c.lock||c.chest));}
+function nutKey(c){return c.type+':'+(c.special||'')+':'+(c.elemental||'')+':'+(c.hold||0)+':'+Number(!!(c.ice||c.lock||c.chest));}
 function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.jam||0)+':'+(c.fuse||0);}
 function cellMarkup(c,i,w){if(!c)return '<div class="cell void" aria-hidden="true"></div>';
  return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${cellLabel(c,i,w)}" title="${cellLabel(c,i,w)}">${featureVisual(state.game.cfg.features,i)}${nutVisual(c)}${blockerVisual(c)}</button>`;
@@ -270,7 +277,7 @@ async function transportAnimation(stage,epoch){
   const a=from.getBoundingClientRect(),b=to.getBoundingClientRect(),fly=document.createElement('span');
   fly.className='transport-nut';fly.style.left=(a.left-origin.left)+'px';fly.style.top=(a.top-origin.top)+'px';
   fly.style.width=a.width+'px';fly.style.height=a.height+'px';
-  fly.innerHTML=nutVisual({type:transfer.type,special:transfer.special});
+  fly.innerHTML=nutVisual({type:transfer.type,special:transfer.special,elemental:transfer.elemental});
   board.appendChild(fly);sprites.push(fly);
   const dx=b.left-a.left,dy=b.top-a.top;
   const frames=stage.mode==='portal'?
@@ -361,14 +368,14 @@ async function applyMove(result){
   concludeMove(result);
  }finally{if(epoch===state.epoch){reconcileBoardNuts();state.animating=false;}}
 }
-function outcome(){const g=state.game,won=state.outcome==='win',stars=g.moves>10?3:g.moves>3?2:1;
+function outcome(){const g=state.game,won=state.outcome==='win',stars=g.moves>10?3:g.moves>3?2:1,trial=T.profile(g.level),next=trial?(trial.local===30?null:g.level+1):Math.min(500,g.level+1);
  return `<div class="outcome-screen"><div class="outcome-symbol">${won?'🏆':'💔'}</div><h1>${won?'LEVEL COMPLETE!':'OUT OF MOVES!'}</h1>
  <p>${won?'YOUR NUTS ARE LEGENDARY!':'A devastating development for the premium nut economy.'}</p>
  <div class="outcome-stars">${won?'★'.repeat(stars)+'☆'.repeat(3-stars):'☆ ☆ ☆'}</div>
  <div class="outcome-numbers"><span>Level <b>${g.level}</b></span><span>Score <b>${g.score.toLocaleString()}</b></span><span>Objective <b>${objectiveDisplay(g)}</b></span></div>
- <div class="actions">${won?`<button class="btn green" data-action="play" data-level="${Math.min(500,g.level+1)}">NEXT LEVEL →</button>`:`<button class="btn green" data-action="continue-level">CONTINUE · +5 MOVES</button><button class="btn secondary" data-action="restart">RETRY LEVEL</button>`}
+ <div class="actions">${won?(next===null?`<button class="btn secondary" data-nav="campaign">AREA TRIALS CLEARED</button>`:`<button class="btn green" data-action="play" data-level="${next}">NEXT ${trial?'TRIAL':'LEVEL'} →</button>`):`<button class="btn green" data-action="continue-level">CONTINUE · +5 MOVES</button><button class="btn secondary" data-action="restart">RETRY LEVEL</button>`}
  <button class="btn secondary" data-nav="campaign">LEVEL MAP</button>${won?'<button class="btn secondary" data-nav="homestead">🏡 HOMESTEAD</button>':''}</div>
- ${won?'<p class="muted">Reward: 500 Golden Nuts + 10 Gems</p>':'<p class="muted">Need a little help? The Continue offer has a surprise at checkout.</p>'}${won&&state.levelReward?`<p class="earned-power">${state.levelReward}</p>`:''}</div>`;
+ ${won?(trial?'<p class="muted">One-time trial rewards paid automatically</p>':'<p class="muted">Reward: 500 Golden Nuts + 10 Gems</p>'):'<p class="muted">Daily moves carry over; retrying never refills them.</p>'}${won&&state.levelReward?`<p class="earned-power">${state.levelReward}</p>`:''}</div>`;
 }
 function beginCheckout(index,from=state.page){
  if(!Number.isInteger(index)||!offers[index])return;
@@ -631,9 +638,11 @@ function render(){const previousDay=saved.dailyMoves?.day;D.ensure(saved,Date.no
  }
 }
 function start(n){state.epoch++;state.animating=false;
+ const requested=Math.trunc(Number(n)||1),trial=T.profile(requested);
+ if(trial&&!T.available(saved,requested)){notice('CLEAR THE REQUIRED CAMPAIGN STAGE AND EARLIER TRIAL');return;}
  if(movesLeft()<1){notice('DAILY MOVES EXHAUSTED · REFILLS TOMORROW');return;}
  if(saved.hearts<=0){saved.hearts=5;notice('ENERGY RESTORED!');}
- saved.hearts--;persist();const level=Math.min(500,Math.max(1,Number(n)||1));
+ saved.hearts--;persist();const level=trial?requested:Math.min(500,Math.max(1,requested));
  closeNutdex();state.game=E.create(level,Math.floor(Math.random()*0xffffffff));state.game.moves=movesLeft();state.page='game';state.selected=-1;state.tool=null;state.holdTool=null;state.outcome=null;state.levelReward='';
  playSFX('ui');state.announcer=state.game.cfg.newNut?'NEW NUT: '+state.game.cfg.newNut.replace('-',' ').toUpperCase()+'!':'PREPARE TO BUST SOME NUTS!';render();window.NutAudio?.voice('nutbuster-soft');
  window.NutbusterUpdates?.autoCheck?.('level');
@@ -641,6 +650,13 @@ function start(n){state.epoch++;state.animating=false;
 function concludeMove(result){
  if(result.hazards?.expired?.length)notice('TIMED ACORN DETONATED · 2 MOVES LOST PER ACORN');
  if(result.won){const g=state.game,stars=g.moves>10?3:g.moves>3?2:1;
+  if(T.profile(g.level)){
+   const win=R.clear(saved,g.level,g.score);
+   state.levelReward=win.first?'ELEMENTAL TRIAL · +'+win.coins+' GOLDEN NUTS · +'+win.gems+' GEMS'+
+     (Object.keys(win.contents).length?' · '+boosterSummary(win.contents):'')+
+     (win.relic?' · UNLOCKED '+win.relic.toUpperCase()+' RELIC':''):'TRIAL REPLAY · REWARD ALREADY CLAIMED';
+   persist();playSFX('victory');announce('ELEMENTAL NUTRAVAGANZA!','nutravaganza');
+  }else{
   const firstTime=!saved.stars[g.level];
   saved.stars[g.level]=Math.max(stars,saved.stars[g.level]||0);saved.unlocked=Math.max(saved.unlocked,Math.min(500,g.level+1));saved.completed++;
   const prize=firstTime?P.firstClear(saved,g.level):{unlock:[],contents:{}};
@@ -660,7 +676,7 @@ function concludeMove(result){
        if(newOutfits.length)state.levelReward+=(state.levelReward?' · ':'')+'AVATAR OUTFIT UNLOCKED: '+newOutfits.map(c=>c.name).join(', ');
     }
 
-  gain(500,10);persist();playSFX('victory');if(g.level%5===0)announce('NUTRAVAGANZA! YOUR NUTS ARE LEGENDARY!','nutravaganza');else announce('UNBELIEVABLE PERFORMANCE! YOUR NUTS ARE LEGENDARY!','win');}
+  gain(500,10);persist();playSFX('victory');if(g.level%5===0)announce('NUTRAVAGANZA! YOUR NUTS ARE LEGENDARY!','nutravaganza');else announce('UNBELIEVABLE PERFORMANCE! YOUR NUTS ARE LEGENDARY!','win');}}
  else if(result.lost){playSFX('failure');announce('OOOH... THAT WAS CLOSE.','close');}
  else if(result.hazards?.expired?.length)announce('LOOK OUT!','look-out');
  else if(result.specialCombo)announce('NUT DESTRUCTION!','nut-destruction');
