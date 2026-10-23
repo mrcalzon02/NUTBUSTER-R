@@ -191,7 +191,13 @@ const BOOSTER_ART=Object.freeze({
  shuffle:'art/additions/effects/rainbow-pulse.png',
  extra:'art/additions/economy/hourglass.png',
  drill:'art/additions/effects/rocket-impact.png',
- unlock:'art/additions/effects/chain-break.png'
+ unlock:'art/additions/effects/chain-break.png',
+ quake:'art/primary/powerups/nut-burst.png',
+ 'triple-row':'art/primary/powerups/row-clear.png',
+ 'triple-column':'art/additions/effects/vertical-clear.png',
+ starburst:'art/additions/effects/rocket-impact.png',
+ spectrum:'art/primary/powerups/rainbow.png',
+ frostbreaker:'art/additions/effects/chest-pop.png'
 });
 function boosterIcon(id){
  const sprite=BOOSTER_ART[id];
@@ -199,13 +205,21 @@ function boosterIcon(id){
  return '<img class="booster-icon" src="'+sprite+'" alt="" draggable="false" aria-hidden="true">';
 }
 function toolButtons(){
- return E.BOOSTERS.map(tool=>{
+ return E.BOOSTERS.slice(0,10).map(tool=>{
   const d=E.BOOSTER_META[tool],earned=P.unlocked(saved,tool),qty=P.count(saved,tool);
   return `<button data-tool="${tool}" class="${earned?qty?'ready':'empty':'locked'}" title="${earned?d.tip:'Beat level '+P.LEVEL_BY_TOOL[tool]+' to unlock'}" aria-label="${d.label}: ${earned?qty+' stocked, '+d.tip:'unlocks after level '+P.LEVEL_BY_TOOL[tool]}">${boosterIcon(tool)}<span class="booster-label">${d.label}</span><small data-stock>${earned?'×'+qty:'LV '+P.LEVEL_BY_TOOL[tool]}</small></button>`;
  }).join('')+Object.entries(P.HOLD_ITEMS).map(([id,item])=>{
   const qty=P.holdCount(saved,id);
   return `<button data-hold-tool="${id}" class="${qty?'ready':'empty'}" title="${item.tip}" aria-label="${item.label}: ${qty} stocked. ${item.tip}"><img class="hold-icon" src="${item.art}" alt="" draggable="false"><span class="booster-label">${id==='butter_hold'?'Butter':'Jam'} ${item.drops}↓</span><small data-stock>${qty?'×'+qty:'BUY'}</small></button>`;
  }).join('');
+}
+function advancedBoosterMenu(){
+ const advanced=E.BOOSTERS.slice(10);
+ return '<details class="advanced-booster-menu"><summary>✦ ADVANCED BOOSTERS · '+advanced.reduce((n,id)=>n+P.count(saved,id),0)+' STOCKED</summary><div class="advanced-booster-grid">'+advanced.map(tool=>{
+  const meta=E.BOOSTER_META[tool],earned=P.unlocked(saved,tool),stock=P.count(saved,tool);
+  return '<button data-tool="'+tool+'" class="'+(earned?stock?'ready':'empty':'locked')+'" title="'+meta.tip+'" aria-label="'+meta.label+' '+stock+' stocked">'+boosterIcon(tool)+
+   '<span class="booster-label">'+meta.label+'</span><small data-stock>'+(earned?'×'+stock:'LV '+P.LEVEL_BY_TOOL[tool])+'</small></button>';
+ }).join('')+'</div></details>';
 }
 function game(){
  const g=state.game;if(!g)return '<p>Choose a level from the campaign map.</p>';
@@ -231,7 +245,7 @@ function game(){
   </div>
   <div class="board-wrap"><div class="board" style="--cols:${g.cfg.width};--rows:${g.cfg.height}" role="group" aria-label="Nutbuster match-three board">${g.cells.map((c,i)=>cellMarkup(c,i,g.cfg.width)).join('')}</div></div>
   <div class="announcer"><span id="announcer" class="announcer-line" aria-live="off">${state.announcer||'SHOW ME THOSE NUTS!'}</span><span class="play-wallet"><button data-nav="shop" aria-label="Open shop, nut balance"><img src="art/primary/economy/golden-nuts.png" alt="" draggable="false"><b id="play-wallet">${saved.coins.toLocaleString()}</b></button><button data-nav="shop" aria-label="Open shop, gem balance"><img src="art/additions/economy/prismatic-acorn.png" alt="" draggable="false"><b id="play-gems">${saved.gems.toLocaleString()}</b></button></span></div>
-  <div class="boosters" role="group" aria-label="Tactical boosters">${toolButtons()}</div>
+  <div class="boosters" role="group" aria-label="Tactical boosters">${toolButtons()}</div>${advancedBoosterMenu()}
   <button class="nutdex-tab" data-action="nutdex-open" aria-haspopup="dialog" aria-label="NUTDEX special mechanics">NUTDEX ◀</button>
  </section>`;
 }
