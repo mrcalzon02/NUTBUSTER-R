@@ -52,5 +52,32 @@ function unzip(bytes){
  files.push({name,data:plain});at+=46+fn+ex+comment;
  }return files;
 }
-const api={fromBase64,toBase64,unzip,inflate};
+async function importBatch(tools,{start,limit=8,extras=false,repository="mrcalzon02/NUTBUSTER-R"}){
+ if(!Number.isInteger(start)||start<0||!Number.isInteger(limit)||limit<1||limit>10)throw Error("Invalid batch parameters");
+ const drive=await tools.mcp__Google_Drive__fetch({url:"https://drive.google.com/file/d/1ySfEltY1N0rS5w2RWOSxFh0WbHXaY_l2/view",download_raw_file:true,include_base64:true});
+ if(!drive.result?.b64_string)throw Error("Owner source archive cannot be downloaded");
+ const all=unzip(fromBase64(drive.result.b64_string));
+ const files=all.filter(x=>extras?
+ (x.name==="QA-REPORT.json"||x.name==="assets/source/expansion/nutvale-mining-pickaxes-gloves-original.png"||x.name==="web/art/nutvale/mining-tools/manifest.json"||x.name==="web/art/nutvale/mining-tools/atlas-pickaxes.png"||x.name==="web/art/nutvale/mining-tools/atlas-gloves.png"||x.name==="web/art/nutvale/mining-tools/preview-pickaxes.png"||x.name==="web/art/nutvale/mining-tools/preview-gloves.png"):
+ /^web\/art\/nutvale\/mining-tools\/(pickaxes|gloves)\/[^/]+\.png$/.test(x.name))
+ .map(x=>({path:x.name==="QA-REPORT.json"?"docs/assets/nutvale-mining-tool-qa-report.json":x.name,data:x.data}))
+ .sort((a,b)=>a.path.localeCompare(b.path));
+ if(files.length!==(extras?7:86))throw Error("Source archive file count mismatch "+files.length);
+ const jobs=files.slice(start,start+limit),uploaded=[];if(!jobs.length)throw Error("Batch beyond file count");
+ let i=0;const errors=[];
+ async function worker(){while(i<jobs.length){const item=jobs[i++];try{
+ const result=await tools.mcp__GitHub__create_blob({repository_full_name:repository,content:toBase64(item.data),encoding:"base64"});
+ uploaded.push({path:item.path,sha:result.result.sha,bytes:item.data.length});
+ }catch(error){errors.push({path:item.path,error:String(error).slice(0,170)})}}}
+ await Promise.all(Array.from({length:Math.min(6,jobs.length)},worker));
+ if(errors.length)throw Error("Blob failures: "+JSON.stringify(errors));
+ const head=JSON.parse((await tools.mcp__GitHub__fetch({url:"https://api.github.com/repos/"+repository+"/git/ref/heads/main"})).result.content).object.sha;
+ const baseTree=JSON.parse((await tools.mcp__GitHub__fetch({url:"https://api.github.com/repos/"+repository+"/git/commits/"+head})).result.content).tree.sha;
+ const tree=(await tools.mcp__GitHub__create_tree({repository_full_name:repository,base_tree_sha:baseTree,tree_elements:uploaded.map(item=>({path:item.path,mode:"100644",type:"blob",sha:item.sha}))})).result.sha;
+ const commit=(await tools.mcp__GitHub__create_commit({repository_full_name:repository,tree_sha:tree,parent_sha:head,message:"assets(nutvale): verified "+(extras?"production files":"sprites")+" "+(start+1)+"-"+(start+jobs.length)+" of "+files.length})).result.sha;
+ const updated=await tools.mcp__GitHub__update_ref({repository_full_name:repository,branch_name:"main",sha:commit,expected_sha:head});
+ if(!updated.result.success)throw Error("Branch update not confirmed");
+ return {commit,start,count:jobs.length,expected:files.length,bytes:uploaded.reduce((s,x)=>s+x.bytes,0),lastPath:jobs[jobs.length-1].path};
+}
+const api={fromBase64,toBase64,unzip,inflate,importBatch};
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
