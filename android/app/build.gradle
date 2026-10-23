@@ -23,8 +23,7 @@ android {
         versionCode buildCode
         versionName buildCode > 1 ? '0.1.0-test.' + buildCode : '0.1.0-alpha'
         buildConfigField 'String', 'DISTRIBUTION_SIGNER_SHA256', '"' + signerHash + '"'
-        buildConfigField 'boolean', 'UPDATE_CHANNEL_ENABLED', (haveSigning && signerHash == pinnedSigner).toString()
-    }
+        buildConfigField 'boolean', 'UPDATE_CHANNEL_ENABLED', 'false'
         // Play branch: unset integration IDs fail closed, never free-grant a paid product.
         buildConfigField 'boolean', 'PLAY_DISTRIBUTION', 'true'
         def verifier = (project.findProperty('nutbusterPlayVerifierUrl') ?: '').toString()
@@ -38,6 +37,7 @@ android {
         resValue 'string', 'play_achievement_level_100', (project.findProperty('playAchievementLevel100') ?: '').toString()
         resValue 'string', 'play_achievement_level_500', (project.findProperty('playAchievementLevel500') ?: '').toString()
         resValue 'string', 'play_achievement_level_1000', (project.findProperty('playAchievementLevel1000') ?: '').toString()
+    }
     // android/app -> ../../web. The earlier ../../../web pointed outside the repository.
     sourceSets { main { assets.srcDirs = ['../../web'] } }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
@@ -77,7 +77,7 @@ tasks.register('validatePublisherSigning') {
     }
 }
 tasks.configureEach { task ->
-    if (task.name == 'assembleRelease') task.dependsOn('validatePublisherSigning')
+    if (task.name == 'assembleRelease' || task.name == 'bundleRelease') task.dependsOn('validatePublisherSigning')
 }
 
 tasks.register('validatePlayReleaseConfiguration') {
