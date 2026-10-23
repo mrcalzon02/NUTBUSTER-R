@@ -44,3 +44,14 @@
 .mines-shop-wallet .mines-economy-icon{height:32px;width:32px;vertical-align:middle;margin:-5px 3px -5px 0}
 .mines-upgrade>.mines-economy-icon{width:50px;height:50px;flex:0 0 50px}
 @media(max-width:390px){.mine-resource-strip .mines-economy-icon{width:23px;height:23px}}
+
+/* Actual art on mine navigation, controls and resource counters. */
+.mine-ui-icon{display:inline-block;width:25px;height:25px;object-fit:contain;vertical-align:middle;flex:0 0 auto;filter:drop-shadow(0 1px 2px #140f1688)}
+.topline h2>.mine-ui-icon{width:32px;height:32px}
+.mines-tab{display:inline-flex;align-items:center;justify-content:center;gap:3px}
+.mines-tab .mine-ui-icon{width:23px;height:23px}
+.mine-resource-strip b{display:inline-flex;align-items:center;gap:4px}
+.mine-resource-strip .mine-ui-icon{width:28px;height:28px}
+.mine-mode .btn{gap:4px}
+.mine-mode .mine-ui-icon{width:28px;height:28px}
+@media(max-width:390px){.mines-tab .mine-ui-icon{width:20px;height:20px}.mine-resource-strip .mine-ui-icon{width:22px;height:22px}}
