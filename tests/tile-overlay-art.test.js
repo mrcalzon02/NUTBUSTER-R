@@ -4,7 +4,7 @@ const base=path.join(__dirname,'../web/art/tile-overlays');
 const manifest=JSON.parse(fs.readFileSync(path.join(base,'manifest.json'),'utf8'));
 const names=Object.keys(manifest.sprites);
 assert.equal(names.length,16,'Exactly 16 specialist tile overlay icons were approved');
-const live=['bomb','sticky-butter','frost','chain-lock'];
+const live=['bomb','sticky-butter','frost','chain-lock','arcane','poison','radiance','nature-vines','shadow','fire','water','storm','lightning','magma','crystal'];
 assert.deepEqual(Object.keys(manifest.live_bindings).sort(),['bomb','sticky-butter'],'previous imported package bindings remain preserved');
 for(const name of names){
  const item=manifest.sprites[name],file=path.join(base,item.path);
@@ -17,7 +17,7 @@ for(const name of names){
  assert.ok(data.length>1000,'Tile overlay unexpectedly empty: '+name);
  const e=C.entries.find(e=>e.id==='tile-'+name&&e.group==='tile-effects');
  assert.ok(e,'NUTDEX Tile FX entry missing for '+name);
- assert.equal(e.live,live.includes(name),'Four implemented statuses must be LIVE: '+name);
+ assert.equal(e.live,live.includes(name),'All enabled tile status mechanics must be LIVE: '+name);
  assert.equal(e.art,'art/primary/overlays/'+name+'.png');
  const csv=fs.readFileSync(path.join(__dirname,'../docs/contracts/nutbuster-primary-mechanics-and-asset-lock.csv'),'utf8');
  const gitBlob=crypto.createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex');
@@ -31,8 +31,8 @@ assert.ok(game.includes('class="status-count"'),'Countdown must stay readable ov
 assert.ok(css.includes('.cell .hazard.tile-status .status-art'),'Tile art must occupy the square without replacing the nut');
 assert.ok(game.includes('piece(c.type)'),'Ordinary nut remains visible beneath tile overlay');
 assert.ok(!game.includes("c.ice||c.lock||c.chest?'':piece(c.type)"),'Pinned cells must not hide the underlying nut');
-assert.equal(C.entries.filter(e=>e.group==='tile-effects'&&e.live).length,4);
-console.log('PASS: 16 PNG tile overlays, SHA contract, Nutdex previews, two active statuses and whole-piece separation');
+assert.equal(C.entries.filter(e=>e.group==='tile-effects'&&e.live).length,15);
+console.log('PASS: 16 PNG tile overlays, SHA contract, Nutdex previews, live status families and whole-piece separation');
 
 /* Render both legal stackings: a tile status around a free nut, and a tile
    status around an anchored replacement piece. The status never supplies its
