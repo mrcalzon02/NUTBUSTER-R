@@ -531,6 +531,7 @@ function advanceHazards(g,result){
  g.turns++;
  if(g.won||g.lost)return result;
  const auraExpired=[],auraBefore=snapshot(g).cells;
+ const activeTimer=auraBefore.some(c=>c&&(c.auraTurns>0||c.poison>0||c.ward>0||c.frozen>0));
  for(let i=0;i<g.cells.length;i++){const c=g.cells[i];if(!c)continue;
   if(c.frozen>0)c.frozen--;
   if(c.ward>0)c.ward--;
@@ -541,7 +542,12 @@ function advanceHazards(g,result){
   const summary={removed:0,cracked:0};
   for(const item of auraExpired)resolveTileAura(g,item.at,item.kind,summary);
   const powered=resolveElementals(g,summary),falls=[];
-  if(summary.removed){gravity(g,falls);const settled=collapse(g);
+  if(summary.removed)gravity(g,falls);
+  // Root growth and arcane transmutation can create matches without directly
+  // destroying nuts; settle those naturally instead of leaving free triples.
+  const ready=matches(g);
+  if(ready.hit.size){
+   const settled=collapse(g,ready);
    result.stages.push(...settled.stages);result.loops=(result.loops||0)+settled.loops;
    result.removed=(result.removed||0)+settled.removed;result.cracked=(result.cracked||0)+settled.cracked;
   }
@@ -550,7 +556,7 @@ function advanceHazards(g,result){
   result.stages.push({kind:'aura',before:auraBefore,expired:auraExpired,clear:powered,falls,cells:snapshot(g).cells});
   g.won=complete(g);result.won=g.won;
  }
- if(!g.cfg.jam&&!g.cfg.bombs&&!auraExpired.length&&!g.cells.some(c=>c&&(c.poison>0||c.auraTurns>0)))return result;
+ if(!g.cfg.jam&&!g.cfg.bombs&&!activeTimer&&!auraExpired.length)return result;
  const spread=[],expired=[];
  // One sticky spread every third swap; deterministic and bounded by board size.
  // It never creates a brand-new bomb or alters the void layout.
@@ -571,7 +577,7 @@ function advanceHazards(g,result){
   c.fuse--;
   if(!c.fuse){expired.push(i);g.moves=Math.max(0,g.moves-2);}
  }
- if(spread.length||expired.length||g.cfg.bombs>0||auraExpired.length)
+ if(spread.length||expired.length||g.cfg.bombs>0||auraExpired.length||activeTimer)
   result.stages.push({kind:'hazard',cells:snapshot(g).cells,spread,expired});
  if(!g.won&&!g.lost&&!hasMove(g)){
   if(!repairMove(g))throw Error('Cannot repair overlay deadlock');
@@ -687,5 +693,5 @@ function booster(g,type,index){
   won:g.won,lost:g.lost,stages:[stage,...r.stages],objectives:objectiveState(g)};
 }
 function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,turns:g.turns,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,jam:c.jam,fuse:c.fuse,special:c.special,hold:c.hold||0,elemental:c.elemental||null,frozen:c.frozen||0,poison:c.poison||0,ward:c.ward||0,aura:c.aura||null,auraTurns:c.auraTurns||0}:null)};}
-const api={TYPES,ORIGINAL,NEW,RETIRED_NUTS,NEW_INTRODUCTIONS,TILE_OVERLAY_UNLOCKS,overlayPlan,rosterForLevel,difficultyAt,BOOSTERS,BOOSTER_META,HOLD_DROPS,makeLevel,create,matches,adjacent,hasMove,gravity,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,applyHold,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
+const api={TYPES,ORIGINAL,NEW,RETIRED_NUTS,NEW_INTRODUCTIONS,TILE_OVERLAY_UNLOCKS,overlayPlan,ELEMENTAL_ABILITIES:POWERS.ABILITIES,rosterForLevel,difficultyAt,BOOSTERS,BOOSTER_META,HOLD_DROPS,makeLevel,create,matches,adjacent,hasMove,gravity,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,applyHold,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
 })(typeof window!=='undefined'?window:globalThis);
