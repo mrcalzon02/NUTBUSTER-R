@@ -499,3 +499,13 @@
 .promo-coupon-icon{display:inline-block;width:35px;height:35px;object-fit:contain;vertical-align:middle;flex:0 0 auto}
 .promo-redeem summary .promo-coupon-icon{width:23px;height:23px}
 @media(max-width:365px){.promo-feature-button .promo-coupon-icon{width:28px;height:28px}.shop-offer-icon{width:76px;height:76px}}
+
+/* Only optional Lifetime VIP is a real-money purchase in the Google Play edition. */
+.vip-support-panel{display:flex;align-items:flex-start;gap:20px;margin:16px 0 24px;padding:24px;border:2px solid #cfa35b;border-radius:18px;background:linear-gradient(120deg,rgba(78,41,73,.94),rgba(52,25,49,.96));}
+.vip-support-icon{width:92px;height:92px;object-fit:contain;flex:0 0 auto;}
+.vip-support-copy{flex:1;min-width:0;}
+.vip-support-copy h2,.vip-support-checkout h1{font-size:clamp(1.35rem,3vw,2rem);line-height:1.2;margin:0 0 12px;}
+.vip-support-copy p,.vip-support-checkout p{line-height:1.6;}
+.vip-support-disclaimer{font-size:1.12rem;line-height:1.65;padding:12px 0;}
+.vip-support-checkout .checkout-sheet{max-width:680px;margin:auto;padding:24px;}
+@media(max-width:500px){.vip-support-panel{flex-direction:column;padding:16px;}.vip-support-icon{width:72px;height:72px;}.vip-support-checkout .checkout-sheet{padding:16px;}}

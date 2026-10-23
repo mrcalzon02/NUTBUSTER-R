@@ -10,28 +10,26 @@
 |---|---|---|
 | Android delivery | Signed GitHub Release APK | Google Play app bundle (`bundleRelease`) once credentials/config are ready |
 | Updates | Native GitHub release discovery, checksum and publisher-signature validation; manual download/install | Google Play Core flexible in-app updates; **no sideload permission** or FileProvider |
-| Store packages | Explicit $0 checkout parody; local grants | Google Play Billing 9.1 catalog and native checkout; grants only after remote verification response |
-| Price | Fictional display prices | **Only** localized Play product catalog prices; missing SKUs are unavailable |
+| Store packages | Explicit $0 checkout parody; local grants | **All non-VIP packages are FREE ($0.00)**; only optional Lifetime VIP uses verified Google Play Billing |
+| Price | Fictional display prices | FREE on every non-VIP offer; **only** VIP displays a localized Google Play price |
 | Heart and moves refills | Free 12-hour claim | Still free and independent |
 | Invites and sharing | GitHub release-link sharesheet/browser copy | Play listing-link sharesheet/browser copy, including Facebook where installed |
 | Achievements and friends | Offline/local progress | Play Games v2 achievement client and permission-based Friends read; local play must remain possible without sign-in |
 | Facebook Login / account friends | Not present | **Not yet linked; requires Meta app, IDs, permissions, review and real-device testing** |
 | Cross-device save sync | Local save only | Still local. An optional safe reconciliation system must be designed separately |
 
-### Catalog SKUs
+### One paid SKU — Lifetime VIP
 
-| Existing store index | Play Console one-time product ID | Type |
-|---|---|---|
-| 0 | `nutbuster_gigantic_nuts` | Consumable |
-| 1 | `nutbuster_premium_gems` | Consumable |
-| 2 | `nutbuster_royal_bundle` | Consumable |
-| 3 | `nutbuster_century_chest` | Consumable |
-| 4 | `nutbuster_lifetime_vip` | One-time durable non-consumable, **not** a subscription |
-| 5 | `nutbuster_booster_crate` | Fixed-content consumable, no paid random outcome |
-| 6–7 | No Play SKU | Free emergency hearts / free +5 moves |
-| 8 | `nutbuster_royal_manor` | One-time durable cosmetic |
+**Only `nutbuster_lifetime_vip` (existing shop index 4) is a real transaction.**
+This is a one-time durable, non-consumable in-app product processed with Google Play Billing, never a subscription. The actual localized price is read from Play, not from the app's illustrative price array. Intended starting sticker price in the game design is $2.99, subject to Play Console regional prices.
 
-Keep product IDs immutable once created. The actual localized Play offer metadata, available purchase options and configured Google Play price prevail over internal planning stickers. Promotional fake-ad discounts must **not** affect real Play transactions. Never automatically translate previously free parody purchases on `main` into paid rights on `feature/google-play-contingency`: migration/grandfather rules must be approved and tested.
+The offer explicitly thanks the player for enjoying NUTBUSTER, invites voluntary support, and makes clear that gameplay and all other packages remain FREE. VIP has the already-described fixed daily bonuses and initial pack; no randomized real-money purchases. This is an optional digital supporter purchase, **not a charitable or tax-deductible donation**.
+
+Shop indices **0, 1, 2, 3, 5, 6, 7 and 8 are all FREE**; none has an active Play Billing SKU. Even when an obsolete SKU exists in a future Play Console, the app deliberately cannot query, initiate, validate, consume, or acknowledge it. The Royal Manor kit is free. VIP purchase confirmation is idempotent and requires verification.
+
+VIP already unlocked locally through a previous free build or valid promotion does not automatically count as a paid supporter purchase. A separate verified receipt determines whether the supporter product has actually been bought. Users need not pay to retain locally unlocked game benefits.
+
+The separate Play shop displays a large thank-you and **ENTIRELY OPTIONAL** disclaimer; its checkout repeats the disclosure and offers a visible **NO THANKS · KEEP PLAYING FREE** action before entering the real Google Play payment flow.
 
 ## Native Play code
 
@@ -45,7 +43,7 @@ Keep product IDs immutable once created. The actual localized Play offer metadat
 
 1. Register Google Play developer account; create app package **`io.github.mrcalzon02.nutbuster`** and its Play Games game project. Review Play Console account verification, country, testers, merchant setup and payments profile.
 2. Decide and verify signing migration before first upload. Existing signed GitHub APKs will upgrade in place only if installed-update certificates are compatible. Never replace the NUTBUSTER publisher key or break the GitHub installation lineage by accident. Configure Play App Signing / upload key using actual Play Console instructions and certificate fingerprints.
-3. Create all seven active Play Console in-app products with exact IDs and types. Assign regional prices, availability, license testers and product offers; confirm each catalog is returned on a Play-installed test app.
+3. Create **only the single** non-consumable Play Console in-app product `nutbuster_lifetime_vip`. Assign regional prices, availability, license testers and product offers; verify its catalog price on a Play-installed test app. Do not create paid products for any other bundle.
 4. Enable Android Publisher API for the Cloud project, authorize a server-side service account to read purchase states, provision **Firestore** and deploy `services/play-verifier` to Cloud Run with HTTPS. Do **not** put credentials into `gradle.properties`, `assets`, source code or the APK.
 5. Supply `-PnutbusterPlayVerifierUrl=https://YOUR-VERIFIER/verify` and `-PnutbusterPlayGamesProjectId=YOUR_NUMERIC_PROJECT_ID` at Play build time; optional `-PplayAchievementLevel1=...`, `-PplayAchievementLevel100=...`, `-PplayAchievementLevel500=...`, `-PplayAchievementLevel1000=...`. Product/achievement IDs can only come from real Play Console configuration.
 6. For Facebook account-linked friends, separately create a Meta developer application, obtain Facebook Login Android configuration, add corresponding URL/deep-link handling, request any applicable review for `user_friends`, and implement meaningful consent/permission-declined UX. This API can reveal only **participating app-using friends** who provided the required permissions, not a general list of Facebook friends. The existing Android sharesheet can already target Facebook without Facebook Login.
@@ -56,9 +54,9 @@ Local dev check: `gradle -p android --no-daemon :app:assembleDebug`, `node tests
 ## Mandatory pre-launch gates — unresolved
 
 - [ ] Compile Android APK + AAB against resolved Play libraries; launch it on a real Play-installed internal-test build. Browser/static source checks are not sufficient.
-- [ ] Test each SKU with Play license testers: localized prices, cancellations, pending payments, duplicate callbacks, lost network, Play unavailable, restore after reinstall, Google Play account changes, exact guaranteed contents and one-time VIP / Manor ownership.
+- [ ] Test the VIP SKU with Play license testers: localized price, cancellations, pending payments, duplicate callbacks, lost network, Play unavailable, restore after reinstall, Google Play account changes, and exact guaranteed VIP contents. Confirm **all other bundles remain free** and never invoke BillingClient.
 - [ ] **Security gate:** authenticated backend account binding / Play Integrity anti-abuse, coherent multi-device product ownership, robust transaction journal and failure-safe acknowledgment. Present receipt bridge and local save remain insufficient as final high-value monetary authority; an instrumented client can change local state. Do not claim a secure production economy until independently verified.
-- [ ] **Recovery gate:** consumable grants, missing localStorage and interrupted/reinstalled installs must recover safely without double grant or losing an already paid but unacknowledged order. Install-bound consumable ledger needs an account-linked recovery route.
+- [ ] **Recovery gate:** missing localStorage and interrupted/reinstalled installs must recover the non-consumable VIP entitlement safely, without double grants or losing an already paid but unacknowledged order. The native Play owned-purchase query and verified account restore require device testing.
 - [ ] Verify refunds, chargebacks and voided purchases / RTDN server notifications. A valid receipt once does not prove the purchase remains valid forever.
 - [ ] Verify Play Games authentication, consent, achievement IDs, platform opt-out and friend data minimization. Restore genuinely completed milestones after opt-in if wanted, without fabricating achievements.
 - [ ] Complete Meta Login + reviewed Facebook friend functionality, if it remains required for Play launch. Sharesheet is not Facebook friend integration.

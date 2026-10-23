@@ -1,5 +1,5 @@
 /* NUTBUSTER purchase disclosure authority. Read live rewards and rates.
- * No payment provider: real-money storefront offers remain fictional.
+ * Play contingency: only optional Lifetime VIP has real Google Play Billing.
  * This module never mutates a player's save. */
 (function(root){
 'use strict';
@@ -15,7 +15,10 @@ function offer(index,products,pack,E){
  if(index===8)return {name:p[0],lines:['One permanent-for-this-save Royal Manor entitlement.','Platinum Royal avatar, Platinum Fountain, and Diamond Throne decorations become eligible for use.','Golden Nuts +0; Gems +0; boosters: none.','Fixed result; 100% certainty. No random rewards.']};
  return {name:p[0],lines:['Golden Nuts +'+money(p[2]),'Gems +'+money(p[3]),
  ...packLines(pack,E).map(line=>'Booster: '+line),
- ...(index===4?['One-time permanent VIP status for this local save; no recurring subscription.',
+ ...(index===4?['Completely optional ONE-TIME REAL-MONEY purchase through Google Play; no subscription.',
+ 'Thank you for enjoying NUTBUSTER! Supporting development is entirely voluntary.',
+ 'All other packages and the full game remain FREE. Buying VIP is never required.',
+ 'One-time permanent VIP entitlement for the local save with Google Play restoration.',
  'Each 24-hour daily reset: +5 extra daily moves automatically.',
  'Each 24-hour daily reset: +250 Golden Nuts automatically.',
  'Each 24-hour daily reset: +4 boosters (2 Hammers, 1 Extra Moves, 1 Shuffle), with locked kinds converted to the strongest already earned.',
