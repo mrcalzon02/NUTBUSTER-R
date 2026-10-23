@@ -53,6 +53,12 @@ function issue(opts){
  const key=crypto.createPrivateKey(fs.readFileSync(pemPath));
  if(key.asymmetricKeyType!=='ec'||key.asymmetricKeyDetails?.namedCurve!=='prime256v1')throw Error('Expected P-256 issuer key');
  if(!/^[a-zA-Z0-9-]{1,32}$/.test(opts.kid))throw Error('Invalid kid');
+ const manifest=path.join(path.dirname(pemPath),'issuer-public.jwk.json');
+ if(!fs.existsSync(manifest))throw Error('Missing adjacent issuer-public.jwk.json; cannot verify issuer identity');
+ const metadata=JSON.parse(fs.readFileSync(manifest,'utf8'));
+ const derived=crypto.createPublicKey(key).export({format:'jwk'});
+ if(metadata.kid!==opts.kid||metadata.jwk?.x!==derived.x||metadata.jwk?.y!==derived.y)
+  throw Error('Signing key / public registry / key ID mismatch');
  const grant=JSON.parse(opts.grant);
  const nbf=parseTime(opts.nbf,'nbf'),exp=parseTime(opts.exp,'exp');
  const count=Number(opts.count||1);
