@@ -99,15 +99,15 @@ function grant(save,outcome){
  }
  return result;
 }
-function open(save,id,random=Math.random){
+function open(save,id,random=Math.random,options={}){
  const crate=CRATES[id];if(!crate)return {valid:false,reason:'crate'};
  const n=F.ensure(save),balance=countCurrency(save,crate.currency);
- if(balance<crate.cost)return {valid:false,reason:'funds',missing:crate.cost-balance};
+ if(!options.free&&balance<crate.cost)return {valid:false,reason:'funds',missing:crate.cost-balance};
  const x=Number(random());if(!Number.isFinite(x)||x<0||x>=1)return {valid:false,reason:'rng'};
  // A single weighted roll per crate; exact probabilities shown by odds().
  const picked=rngChoice(crate,x),rewards=[];
- if(crate.currency==='dollars')n.dollars-=crate.cost;
- else save[crate.currency]=balance-crate.cost;
+ if(!options.free){if(crate.currency==='dollars')n.dollars-=crate.cost;
+ else save[crate.currency]=balance-crate.cost;}
  if(crate.fixed?.booster){
   grantBooster(save,crate.fixed.booster,1);
   rewards.push({label:'1 × '+root.NutEngine.BOOSTER_META[crate.fixed.booster].label+' (guaranteed)',kind:'booster',rarity:'guaranteed'});
@@ -117,7 +117,10 @@ function open(save,id,random=Math.random){
   rewards.push({label:crate.fixed.amount+' × Honest Worm (guaranteed)',kind:'bait',rarity:'guaranteed'});
  }
  const rolled=grant(save,picked);rewards.push(rolled);
- return {valid:true,id,cost:crate.cost,currency:crate.currency,style:crate.style,name:crate.name,
+ if(!Array.isArray(save.crateHistory))save.crateHistory=[];
+ save.crateHistory.push({id,outcome:picked.id,rarity:picked.rarity,weight:picked.weight,price:options.free?0:crate.cost,currency:crate.currency,at:Date.now(),rewards:rewards.map(x=>x.label)});
+ if(save.crateHistory.length>50)save.crateHistory=save.crateHistory.slice(-50);
+ return {valid:true,id,cost:options.free?0:crate.cost,currency:crate.currency,style:crate.style,name:crate.name,
   art:crate.art,icon:crate.icon,rewards,roll:x,rolled:picked.id,rarity:picked.rarity,weight:picked.weight};
 }
 for(const c of Object.values(CRATES)){
