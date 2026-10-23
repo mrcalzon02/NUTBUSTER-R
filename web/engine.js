@@ -546,7 +546,7 @@ function booster(g,type,index){
   for(const i of ids){cracked+=g.cells[i].ice;g.cells[i].ice=0;}
   g.progress.ice+=cracked;g.boosterUsed++;g.uses.frostbreaker=(g.uses.frostbreaker||0)+1;
   g.won=complete(g);g.lost=g.moves<=0&&!g.won;
-  return {valid:true,type,cracked,stages:[{kind:'cascade',before,afterClear:snapshot(g).cells,clear:ids,falls:[],cells:snapshot(g).cells}],objectives:objectiveState(g),won:g.won,lost:g.lost};
+  return {valid:true,type,removed:0,cracked,stages:[{kind:'cascade',before,afterClear:snapshot(g).cells,clear:ids,falls:[],cells:snapshot(g).cells}],objectives:objectiveState(g),won:g.won,lost:g.lost};
  }
  if(type==='shuffle'){
   const before=snapshot(g).cells;

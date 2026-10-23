@@ -8,7 +8,7 @@ for(const [role,item] of Object.entries(icons.icons)){
  const file=path.join(web,item);assert.ok(fs.existsSync(file),role+' missing: '+item);
  assert.ok(fs.statSync(file).size>1000,role+' unexpectedly tiny');
 }
-assert.equal(map.assets.length,6);
+assert.equal(map.assets.length,12,'Ten individual chapter maps and two campaign overviews');
 for(const asset of map.assets){
  const p=path.join(web,asset.path);assert.ok(fs.existsSync(p),asset.path);
  const bytes=fs.readFileSync(p);assert.equal(bytes.length,asset.bytes);

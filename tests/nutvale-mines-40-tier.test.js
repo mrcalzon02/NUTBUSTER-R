@@ -126,6 +126,6 @@ ui.mineTab='refinery';assert.match(UI.render(broken,ui),/REFINE 1/);
 ui.mineTab='writs';assert.match(UI.render(broken,ui),/BUY 1/);
 assert.match(UI.render(locked,ui),/CLEAR CAMPAIGN LEVEL 500/);
 const markup=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
-assert.ok(markup.includes('<script src="nutvale-mining-gear.js"></script><script src="nutvale-mines.js"></script><script src="nutvale-mines-ui.js"></script>'));
+assert.ok(/<script src="nutvale-mining-gear\.js"><\/script><script src="nutvale-mines\.js"><\/script><script src="nutvale-economy-art\.js"><\/script><script src="nutvale-mines-ui\.js"><\/script>/.test(markup));
 assert.ok(!markup.includes('<script src="nutravaganza-expedition.js">'),'Legacy prototype must not be loaded');
 console.log('PASS Nutvale Mines: 40+40 upgrades, full daily ranges, 86 art IDs, bounded wallet, seeded digging, cart, refinery, Writs, UI and migration');

@@ -78,8 +78,8 @@ for(const level of [1,3,15,28,50,85,120,151,210,300,375,490]){
  if(pair)verifyStages(E.swap(g,...pair).stages,'swap level '+level);
  for(const type of E.BOOSTERS){
   const test=E.create(level,level*777+19);
-  if(type==='unlock'&&!test.cells.some(c=>c?.lock>0))continue;
-  const index=['extra','shuffle','unlock'].includes(type)?-1:test.cells.findIndex(c=>c&&c.type!==null);
+  if(type==='unlock'&&!test.cells.some(c=>c?.lock>0)||type==='frostbreaker'&&!test.cells.some(c=>c?.ice>0))continue;
+  const index=['extra','shuffle','unlock','frostbreaker'].includes(type)?-1:test.cells.findIndex(c=>c&&c.type!==null);
   const result=E.booster(test,type,index);
   assert.equal(result.valid,true,'Real booster must work: '+type+' on level '+level);
   verifyStages(result.stages,'booster '+type+' level '+level);

@@ -36,7 +36,7 @@ assert.equal(A.equip(save,'constructor'),false,'No prototype injection');
 assert.equal(A.current(save).id,'tier-03');
 save.stars[5]=1;assert.equal(A.equip(save,'spring-blossom'),true);
 assert.equal(A.current(save).category,'seasonal');
-assert.equal(A.summary(save).seasonal,1);
+assert.equal(A.summary(save).seasonal,2,'Existing level-25 and newly won level-5 costumes are both owned');
 const original=JSON.stringify(save);
 A.ensure(save);
 assert.equal(JSON.stringify(save),original,'Repeated migration is non-destructive');

@@ -46,7 +46,7 @@ assert.equal(save.coins,4000);assert.equal(save.gems,25,'Fishing economy must be
 const oldCapacity=F.capacity(save.nutravaganza);
 assert.equal(F.upgrade(save,'tank',tomorrow).valid,true);assert.equal(F.capacity(save.nutravaganza),oldCapacity+3);
 const view=U.wharf(save,{fishBait:'worm'},E,P),tank=U.aquarium(save);
-assert.match(view,/data-action="fish-trade" data-booster=/);assert.doesNotMatch(view,/data-action="fish-trade" data-tool=/);
+const exchange=U.exchangeSheet(save,E,P,true);assert.match(exchange,/data-action="fish-trade" data-booster=/);assert.doesNotMatch(exchange,/data-action="fish-trade" data-tool=/);
 assert.match(tank,/aquarium-fish/);
 const sprites=JSON.parse(fs.readFileSync(path.join(__dirname,'../web/art/primary/nuts/expansion-v2-manifest.json')));
 assert.equal(Object.keys(sprites.sprites).length,12);assert.equal(E.NEW.length,12);
@@ -67,10 +67,11 @@ const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallen
 vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8'),{window,document,localStorage:{getItem:k=>local[k],setItem:(k,v)=>{local[k]=v;}},setTimeout:()=>1,clearTimeout(){},console});
 const app=window.NutbusterApp,click=dataset=>handlers.click({target:{closest:()=>({dataset})}});
 app.nav('homestead');assert.match(html,/data-nav="fishing"/);
-app.nav('fishing');assert.match(html,/NUTVALE FISHING WHARF/);
+app.nav('fishing');assert.match(html,/NUTVALE FISHING/);
+app.nav('bait-shop');assert.match(html,/data-action="fish-trade"/);
 const held=P.count(app.getSave(),'hammer');click({action:'fish-trade',booster:'hammer'});
 assert.equal(P.count(app.getSave(),'hammer'),held-1,'Click delegation must honor bait exchange');
-click({action:'fish-cast'});assert.ok(app.getSave().nutravaganza.fight);assert.match(html,/LINE TENSION/);
+app.nav('fishing');click({action:'fish-cast'});assert.ok(app.getSave().nutravaganza.fight);assert.match(html,/LINE TENSION/);
 app.nav('aquarium');assert.match(html,/NUTVALE AQUARIUM/);
 app.nav('fishing');assert.match(html,/LINE TENSION/,'Navigating away does not discard active fish');
 assert.ok(local['nutbuster.v1'],'New state persists in existing save');

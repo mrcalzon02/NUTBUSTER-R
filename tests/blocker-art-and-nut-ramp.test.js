@@ -70,6 +70,6 @@ assert.ok(icy);icy.ice=1;app.nav('home');app.nav('game');
 assert.match(html,/art\/primary\/overlays\/frost\.png/);assert.match(html,/data-strength="1"/,'damaged ice retains visible one-hit state');
 app.start(49);assert.match(html,/art\/primary\/overlays\/chain-lock\.png/);
 app.start(77);assert.match(html,/art\/primary\/blockers\/chest\.png/);
-app.start(401);assert.match(html,/NEW NUT: GOLD ACORN!/);
+app.start(401);assert.equal(app.getState().game.cfg.newNut,'gold-acorn','Chapter five introduces the gold acorn');
 assert.match(fs.readFileSync(path.join(root,'web/style.css'),'utf8'),/\.overlay\.blocker-art .blocker-sprite/);
 console.log('PASS: blocker artwork and staged 3–9 matchable nut types, 11 introduced expansion species, duplicate retired');

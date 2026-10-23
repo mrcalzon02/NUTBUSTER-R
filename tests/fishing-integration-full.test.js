@@ -87,7 +87,7 @@ for(const fish of F.FISH.filter(x=>x.art)){
  assert.equal(F.ensure(savedFish,d).fish[0].id,fish.id,'Aquarium resident lost after serialization: '+fish.id);
 }
 n.fish=[];
-const wharf=U.wharf(save,{fishBait:'worm'},{BOOSTERS:[]},{unlocked:()=>false});
+const wharf=U.baitShop(save,{fishBait:'worm'},{BOOSTERS:[]},{unlocked:()=>false});
 assert.equal((wharf.match(/class="fish-catch-entry"/g)||[]).length,80);
 for(const item of published)assert.ok(wharf.includes('src="'+item.art+'"'),'Species not indexed: '+item.id);
 // Source-set references automatically package web art into Android and desktop builds.

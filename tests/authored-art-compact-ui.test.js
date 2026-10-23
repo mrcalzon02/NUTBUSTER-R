@@ -17,8 +17,8 @@ assert.match(css,/\.play-wallet button\{[^}]*background:none/,'play currency but
 assert.doesNotMatch(source,/BOOSTER_ICON_PATHS|return '<svg class="booster-icon"/,'no hand-drawn substitute symbols');
 const art=source.match(/const BOOSTER_ART=Object\.freeze\(\{([\s\S]*?)\}\)/)?.[1];
 assert.ok(art,'booster art mapping missing');
-const paths=[...art.matchAll(/^\s*(\w+):'([^']+)'/gm)];
-assert.equal(paths.length,10,'ten tactical boosters have authored sprite maps');
+const paths=[...art.matchAll(/^\s*['"]?([\w-]+)['"]?:'([^']+)'/gm)];
+assert.equal(paths.length,16,'all sixteen tactical boosters have authored sprite maps');
 for(const [,id,src] of paths)assert.ok(fs.existsSync(path.join(root,'web',src)),id+' missing original art: '+src);
 assert.match(css,/#app\.playing \.game-active \.boosters \.booster-icon\{[^}]*object-fit:contain/);
 const E=require('../web/engine.js'),P=require('../web/progression.js');
@@ -32,12 +32,12 @@ const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallen
 vm.runInNewContext(source,{window,document,localStorage:{getItem(){return null},setItem(){}},setTimeout(){},clearTimeout(){},console});
 window.NutbusterApp.start(12);
 assert.ok(playing);
-assert.equal((html.match(/<img class="booster-icon"/g)||[]).length,10);
+assert.equal((html.match(/<img class="booster-icon"/g)||[]).length,16);
 assert.doesNotMatch(html,/<svg class="booster-icon"/);
 assert.equal((html.match(/<img class="hold-icon"/g)||[]).length,2,'New hold powers use existing original illustrations');
 assert.equal((html.match(/class="play-wallet"/g)||[]).length,1);
 assert.match(html,/id="play-wallet">250</);
 assert.match(html,/id="play-gems">25</);
 window.NutbusterApp.start(500);
-assert.equal((html.match(/<img class="booster-icon"/g)||[]).length,10);
+assert.equal((html.match(/<img class="booster-icon"/g)||[]).length,16);
 console.log('PASS: no SVG currency/booster/nav substitutions, 12 existing artwork paths, minimized play header, 10 illustrated boosts and compact in-play balances');

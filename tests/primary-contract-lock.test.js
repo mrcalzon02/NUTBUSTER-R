@@ -106,7 +106,12 @@ for(const [id,art] of boosts){
  assert(game.includes(id+":'"+art+"'"),'Runtime icon mapping changed '+id);
 }
 const ladder=require('../web/progression.js').LADDER;
-for(const item of ladder)assert(boosts.some(([id])=>id===item.id),'Unlocked booster not registered: '+item.id);
+for(const item of ladder){
+ if(boosts.some(([id])=>id===item.id))continue;
+ const extras=['quake','triple-row','triple-column','starburst','spectrum','frostbreaker'];
+ assert.ok(extras.includes(item.id),'Unknown advanced unlock: '+item.id);
+ assert.ok(game.includes(item.id+":'")||game.includes("'"+item.id+"':"),'Advanced power art mapping absent: '+item.id);
+}
 assert.equal(rows.filter(r=>r.domain==='avatar-outfit').length,60);
 assert.equal(rows.filter(r=>r.domain==='homestead-tier').length,40);
 assert.equal(rows.filter(r=>r.domain==='campaign-map').length,6);

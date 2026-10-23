@@ -6,7 +6,8 @@ const E=require('../web/engine.js'),P=require('../web/progression.js'),
 const source=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
 const html=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
 const css=fs.readFileSync(path.join(__dirname,'../web/style.css'),'utf8');
-assert.ok(html.includes('<script src="fake-ads.js"></script><script src="purchase-disclosures.js"></script><script src="promo-keys.js"></script><script src="promo-codes.js"></script><script src="game.js"></script>'));
+const dependencies=['fake-ads.js','purchase-disclosures.js','promo-keys.js','promo-codes.js','game.js'];
+let prior=-1;for(const name of dependencies){const position=html.indexOf('<script src="'+name+'"></script>');assert.ok(position>prior,'Dependency missing or incorrectly ordered: '+name);prior=position;}
 assert.ok(css.includes('.fake-ad-poster img')&&css.includes('@keyframes fake-ad-wobble'));
 assert.ok(css.includes('@media(prefers-reduced-motion:reduce)'));
 assert.ok(css.includes('#app.fake-ad-active .bottom'),'Support old Android WebViews without :has');

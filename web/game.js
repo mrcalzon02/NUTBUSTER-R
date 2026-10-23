@@ -179,7 +179,7 @@ function art(category,name,emoji,cls='art'){return `<span class="${cls}"><img cl
 function piece(type){if(type===null||type===undefined)return '';const name=E.TYPES[type];
  return `<img class="piece" src="art/primary/nuts/${name}.png" alt="" draggable="false" onload="this.classList.add('loaded')" onerror="this.style.display='none';this.nextElementSibling.style.visibility='visible'"><span class="fallback" aria-hidden="true">${icons[type]||'🌰'}</span>`;
 }
-function nutVisual(c){return `<span class="nut-visual">${piece(c.type)}${c.elemental?`<img class="elemental-emblem" src="art/primary/nuts/elemental/${c.elemental}.png" alt="" draggable="false">`:''}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}${c.hold?`<span class="hold-marker" aria-hidden="true"><img src="art/additions/effects/focus-ring.png" alt="" draggable="false"><b>${c.hold}</b></span>`:''}</span>`;}
+function nutVisual(c){if(c.ice||c.lock||c.chest)return '';return `<span class="nut-visual">${piece(c.type)}${c.elemental?`<img class="elemental-emblem" src="art/primary/nuts/elemental/${c.elemental}.png" alt="" draggable="false">`:''}${c.special?`<span class="nut-special">${c.special==='rainbow'?'🌈':c.special==='blast'?'💥':c.special==='line-v'?'↕':'↔'}</span>`:''}${c.hold?`<span class="hold-marker" aria-hidden="true"><img src="art/additions/effects/focus-ring.png" alt="" draggable="false"><b>${c.hold}</b></span>`:''}</span>`;}
 function blockerVisual(c){
  // The ordinary nut remains visible beneath translucent tile blockers.
  const sprite=c.ice?'frost':c.lock?'chain-lock':c.chest?'chest':null;
@@ -191,7 +191,7 @@ function blockerVisual(c){
  return layer+(c.jam?'<span class="hazard tile-status jam" aria-hidden="true"><img class="status-art" src="art/primary/overlays/sticky-butter.png" alt="" draggable="false"></span>':'')+(c.fuse?`<span class="hazard tile-status fuse" aria-hidden="true"><img class="status-art" src="art/primary/overlays/bomb.png" alt="" draggable="false"><b class="status-count">${c.fuse}</b></span>`:'');
 }
 function cellLabel(c,i,w){
- const nut=c.type===null?'empty':E.TYPES[c.type];
+ const nut=c.lock?'locked walnut':c.type===null?'empty':E.TYPES[c.type];
  const obstacle=c.ice?' pinned beneath ice '+c.ice+' hits remaining':c.lock?' pinned beneath a chain '+c.lock+' hits remaining':c.chest?' pinned beneath a chest '+c.chest+' hits remaining':'';
  const hazard=(c.jam?' sticky butter':'')+(c.fuse?' timed acorn '+c.fuse+' turns':'');
  const hold=c.hold?' held for '+c.hold+' gravity drops':'';
@@ -296,7 +296,7 @@ function paintCells(cells){
  for(let i=0;i<cells.length;i++){const c=cells[i];if(!c)continue;
   const el=board.querySelector(`[data-cell="${i}"]`);if(!el)continue;
   const nk=nutKey(c),bk=blockKey(c);
-  if(el.dataset.nutKey!==nk){const vis=el.querySelector('.nut-visual');if(vis)vis.outerHTML=nutVisual(c);el.dataset.nutKey=nk;}
+  if(el.dataset.nutKey!==nk){const vis=el.querySelector('.nut-visual');if(vis)vis.outerHTML=nutVisual(c);else if(!(c.ice||c.lock||c.chest))el.insertAdjacentHTML('beforeend',nutVisual(c));el.dataset.nutKey=nk;}
   if(el.dataset.blockKey!==bk){el.querySelectorAll('.overlay, .hazard').forEach(node=>node.remove());el.insertAdjacentHTML('beforeend',blockerVisual(c));el.dataset.blockKey=bk;}
   el.setAttribute('aria-label',cellLabel(c,i,g.cfg.width));
  }
@@ -314,7 +314,7 @@ function reconcileBoardNuts(){
   if(!vis)continue;
   vis.style.visibility='';
   // A late transport/fall frame may leave an old image in a reused fixed tile.
-  const image=vis.querySelector('.piece');
+  const image=vis.querySelector?.('.piece');
   const expected=c.type===null||c.ice||c.lock||c.chest?null:'art/primary/nuts/'+E.TYPES[c.type]+'.png';
   if(!expected&&image)vis.outerHTML=nutVisual(c);
   else if(expected&&(!image||image.getAttribute('src')!==expected))vis.outerHTML=nutVisual(c);

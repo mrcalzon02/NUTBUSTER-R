@@ -1,8 +1,8 @@
 const assert=require('node:assert/strict');
 const P=require('../web/progression.js'),E=require('../web/engine.js'),M=require('../web/campaign-maps.js');
-assert.equal(P.LADDER.length,10);
-assert.deepEqual(P.LADDER.map(x=>x.level),[1,5,10,18,26,37,49,62,77,92]);
-assert.deepEqual(P.LADDER.map(x=>x.id),['hammer','extra','row','shuffle','column','blast','cross','color','drill','unlock']);
+assert.equal(P.LADDER.length,16);
+assert.deepEqual(P.LADDER.map(x=>x.level),[1,5,10,18,26,37,49,62,77,92,120,160,205,260,330,420]);
+assert.deepEqual(P.LADDER.map(x=>x.id),['hammer','extra','row','shuffle','column','blast','cross','color','drill','unlock','quake','triple-row','triple-column','starburst','spectrum','frostbreaker']);
 assert.deepEqual([...P.LADDER].map(x=>x.id).sort(),[...E.BOOSTERS].sort());
 const fresh={unlocked:1,stars:{},coins:250,hearts:5};
 P.migrate(fresh);
@@ -33,12 +33,12 @@ for(const entry of P.LADDER.slice(1)){
  assert.deepEqual(P.firstClear(fresh,entry.level).unlock,[],'Unlock cannot be farmed');
  assert.equal(P.unlocked(fresh,entry.id),true);
 }
-assert.equal(P.available(fresh).length,10);
+assert.equal(P.available(fresh).length,16);
 const lateBundle=P.actualPack(fresh,'shop4');
 assert.equal(Object.keys(lateBundle).length,10);
 const prior=Object.fromEntries(P.available(fresh).map(id=>[id,P.count(fresh,id)]));
 P.grant(fresh,lateBundle);
-for(const id of P.available(fresh))assert.equal(P.count(fresh,id),prior[id]+lateBundle[id]);
+for(const id of P.available(fresh))assert.equal(P.count(fresh,id),prior[id]+(lateBundle[id]||0));
 const migrated={unlocked:78,stars:{},coins:91};
 P.migrate(migrated);
 assert.equal(P.count(migrated,'drill'),3,'Preserve unlocks from old alpha level progress');

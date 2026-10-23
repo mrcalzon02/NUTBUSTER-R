@@ -49,7 +49,7 @@ n.rodStock.woodland=0;assert.equal(F.repairRod(save,'woodland',day).cost,0,'star
 const blocked={nutravaganza:{dollars:99999,rod:0}};
 F.ensure(blocked,day);assert.equal(F.buyRod(blocked,'prismatic',day).reason,'tier');
 n.rodStock.glacier--; // show partial-wear repair control in the UI
-const html=U.wharf(save,{fishBait:'worm'},{BOOSTERS:[],BOOSTER_META:{}},{unlocked:()=>false,count:()=>0});
+const html=U.baitShop(save,{fishBait:'worm'},{BOOSTERS:[],BOOSTER_META:{}},{unlocked:()=>false,count:()=>0});
 assert.equal((html.match(/class="fish-rod-card/g)||[]).length,16,'rod gallery must list all models');
 assert.match(html,/data-action="fish-rod-buy"/);
 assert.match(html,/data-action="fish-rod-equip"/);

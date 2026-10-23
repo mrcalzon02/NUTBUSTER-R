@@ -17,5 +17,5 @@ for(const [name,pattern] of Object.entries({
   crash:/FATAL EXCEPTION/,
   diagnostics:/android26-smoke-steps\.txt/,
 })) assert.match(script,pattern,name+' gate must exist');
-assert.match(flow,/tests\/android-emulator-smoke-contract\.test\.js/,'enforce smoke test design in CI');
+assert.match(flow,/for suite in tests\/\*\.test\.js|tests\/android-emulator-smoke-contract\.test\.js/,'enforce smoke test design in CI');
 console.log('PASS: bounded Android 26 emulator startup/install/launch/screenshot, explicit checks, preserved diagnostics');

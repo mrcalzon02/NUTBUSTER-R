@@ -31,9 +31,9 @@ for(const level of [1,10,30,70,100,200,500]){
  app.start(level);const g=app.getState().game;
  assert.ok(appPlaying,'Play layout flag should be present');
  assert.match(html,new RegExp('aria-label="LEVEL '+level+':'));
- assert.equal((html.match(/data-tool=/g)||[]).length,10,'All ten standard powers present for level '+level);
+ assert.equal((html.match(/data-tool=/g)||[]).length,16,'Ten primary and six advanced boosters present for level '+level);
  assert.equal((html.match(/data-hold-tool=/g)||[]).length,2,'Two gravity holds visible for level '+level);
- assert.equal((html.match(/class="booster-icon"/g)||[]).length,10,'Each power has a clear graphic');
+ assert.equal((html.match(/class="booster-icon"/g)||[]).length,16,'Each power has a clear graphic');
  assert.equal((html.match(/data-cell=/g)||[]).length,g.cfg.mask.filter(Boolean).length);
  assert.ok(html.includes('--rows:'+g.cfg.height),'Board rows match stage dimensions');
  assert.ok(!html.includes('game-actions'),'Extra controls should be in compact overflow menu');
