@@ -515,8 +515,8 @@ function checkout(){const p=offers[state.checkout];if(!p)return '<p>Offer unavai
 }
 // One dedicated premium-package illustration per offer; reuse only for that same offer's checkout.
 const shopSprites=Object.freeze([
- 'art/additions/economy/grand-bundle.png',
- 'art/nutvale/mining-economy/currency/gemmed-currency-chest.png',
+ 'art/nutvale/currency-atlas/golden-nut.png',
+ 'art/nutvale/currency-atlas/rainbow-prism-gem.png',
  'art/additions/economy/mystery-gift.png',
  'art/additions/economy/locked-chest.png',
  'art/additions/economy/vip-shield.png',
