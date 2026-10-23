@@ -21,6 +21,7 @@ const BUNDLES=Object.freeze({
  shop2:{column:2,cross:2,blast:1},
  shop3:{drill:2,unlock:2,hammer:2},
  shop4:{hammer:1,extra:1,row:1,column:1,shuffle:1,blast:1,cross:1,color:1,drill:1,unlock:1},
+ vipDaily:{hammer:2,extra:1,shuffle:1},
  shop5:{blast:2,drill:1,color:2},
  daily:{hammer:1,extra:1,shuffle:1},
  chest:{blast:1,drill:1,extra:1},
