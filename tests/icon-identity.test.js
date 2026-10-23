@@ -14,6 +14,14 @@ assert.equal(shopSprites.length,6,'Each of six premium products has an illustrat
 assert.equal(new Set(shopSprites).size,6,'Premium packages must not share product artwork');
 for(const src of shopSprites)assert.ok(fs.existsSync(path.join(ROOT,src)),src+' missing');
 assert.match(game,/class="shop-offer-icon"/,'Shop cards must display their unique sprites');
+
+const rewards=game.slice(game.indexOf('function rewards()'),game.indexOf('function homestead()'));
+const rewardSprites=[...rewards.matchAll(/class="reward-feature-icon" src="([^"]+)" /g)].map(m=>m[1]);
+assert.equal(rewardSprites.length,7,'Each of seven reward features must have an illustration');
+const featureSprites=[...shopSprites,...rewardSprites];
+assert.equal(new Set(featureSprites).size,featureSprites.length,'Distinct shop and reward features must not share art');
+for(const src of rewardSprites)assert.ok(fs.existsSync(path.join(ROOT,src)),src+' missing');
+
 assert.match(game,/class="checkout-offer-icon"/,'Checkout must show the SAME ordered product sprite');
 assert.ok(!game.includes("art('economy',shopSprites[i]"),'No legacy duplicate shop icon loop');
 assert.match(game,/art\/additions\/economy\/premium-ticket\.png/,'Use Nutvale premium coupon art');
