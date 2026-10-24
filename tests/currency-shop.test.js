@@ -101,7 +101,8 @@ function fresh(){const save={unlocked:500,stars:{},coins:10000,gems:200,hearts:0
  const screen={classList:classes,addEventListener:(kind,fn)=>handlers[kind]=fn,
   get innerHTML(){return html},set innerHTML(next){html=next},
   querySelector(){return null},querySelectorAll(){return []}};
- const document={getElementById:id=>({screen,app:{classList:classes},toast:{textContent:'',classList:classes},wallet:{textContent:''},gems:{textContent:''}})[id]||null,
+ const wallet={textContent:''},gemCounter={textContent:''};
+ const document={getElementById:id=>({screen,app:{classList:classes},toast:{textContent:'',classList:classes},wallet,gems:gemCounter})[id]||null,
   querySelector(){return null},querySelectorAll(){return []}};
  const window={
   NutDailyMoves:D,NutBenefits:B,NutPurchases:Purchases,NutFishing:require('../web/fishing.js'),
@@ -126,12 +127,15 @@ function fresh(){const save={unlocked:500,stars:{},coins:10000,gems:200,hearts:0
  click({action:'shop-currency-buy',offer:'heart-gems'});
  assert.match(html,/Confirm purchase and exact contents/);
  assert.equal(s.gems,beforeGems,'Showing confirmation does not spend');
+ assert.equal(gemCounter.textContent,'200','Preview does not change displayed Gems');
  click({action:'purchase-cancel'});
  assert.equal(s.hearts,1);
  click({action:'shop-currency-buy',offer:'heart-gems'});
  click({action:'purchase-confirm'});
  assert.equal(s.hearts,5);
  assert.equal(s.gems,beforeGems-12);
+ assert.equal(gemCounter.textContent,'188','Confirm immediately updates visible Gem balance');
+ assert.match(html,/GEMS 200 → 188/,'Store shows exactly how many Gems were deducted');
  assert.equal(JSON.parse(store['nutbuster.v1']).hearts,5,'Lives persisted');
  const count=P.count(s,'hammer'),cost=P.GEM_BOOSTER_PRICES.hammer;
  click({action:'booster-gems-buy',booster:'hammer'});
@@ -139,11 +143,15 @@ function fresh(){const save={unlocked:500,stars:{},coins:10000,gems:200,hearts:0
  click({action:'purchase-confirm'});
  assert.equal(P.count(s,'hammer'),count+4);
  assert.equal(s.gems,beforeGems-12-cost);
+ assert.equal(gemCounter.textContent,(beforeGems-12-cost).toLocaleString(),'Gem booster updates HUD');
+ assert.ok(html.includes('GEMS '+(beforeGems-12).toLocaleString()+' → '+(beforeGems-12-cost).toLocaleString()),'Gem booster has a visible debit receipt');
  assert.equal(JSON.parse(store['nutbuster.v1']).boosterInventory.hammer,count+4,'Gem booster grant persisted');
  const coins=s.coins,bank=D.left(s);
  click({action:'shop-currency-buy',offer:'move-nuts'});
  click({action:'purchase-confirm'});
  assert.equal(s.coins,coins-1200);
+ assert.equal(wallet.textContent,(coins-1200).toLocaleString(),'Nuts-to-moves purchase updates visible Golden Nut balance');
+ assert.ok(html.includes('GOLDEN NUTS '+coins.toLocaleString()+' → '+(coins-1200).toLocaleString()),'Nuts-to-moves receipt shows the debit');
  assert.equal(D.left(s),bank+2);
  assert.equal(JSON.parse(store['nutbuster.v1']).dailyMoves.remaining,bank+2);
  assert.equal(B.ready(s,'moves'),true,'Free cooldown move redemption remains independent');
@@ -151,5 +159,13 @@ function fresh(){const save={unlocked:500,stars:{},coins:10000,gems:200,hearts:0
  click({action:'booster-buy',booster:'hammer'});click({action:'purchase-confirm'});
  assert.equal(P.count(s,'hammer'),stock+1);
  assert.equal(s.coins,coins2-P.BOOSTER_PRICES.hammer);
+ assert.equal(wallet.textContent,(coins2-P.BOOSTER_PRICES.hammer).toLocaleString(),'Nuts-to-booster purchase updates visible balance');
+ assert.ok(html.includes('GOLDEN NUTS '+coins2.toLocaleString()+' → '+(coins2-P.BOOSTER_PRICES.hammer).toLocaleString()),'Nuts-to-booster receipt shows debit');
+ const holdStart=s.gems;
+ click({action:'hold-offer',holdId:'butter_hold'});
+ click({action:'hold-buy',holdId:'butter_hold'});
+ assert.equal(s.gems,holdStart-P.HOLD_ITEMS.butter_hold.gems,'Held-nut Gem purchase debits wallet');
+ assert.equal(gemCounter.textContent,s.gems.toLocaleString(),'Held-nut purchase updates visible Gem balance');
+ assert.ok(html.includes('GEMS '+holdStart.toLocaleString()+' → '+s.gems.toLocaleString()),'Held-nut Gem purchase receipt is visible');
 }
 console.log('PASS: four currency exchanges, Gems booster bundles, original Nuts boosters, heart/move limits, UI confirmation and saved deductions');
