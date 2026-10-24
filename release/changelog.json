@@ -1,30 +1,24 @@
 {
   "schema": 1,
-  "headline": "New woodland Nut Buster title card welcomes you to Nutvale",
+  "headline": "Nutvale title card and compact two-column Nut Emporium shop",
   "changes": [
     {
-      "title": "A warmer welcome to Nutvale",
-      "detail": "The main menu now displays the approved squirrel-and-harbor woodland title card, replacing the old text-only welcome banner while preserving the navigation and Play controls.",
+      "title": "Four shop offers now fit in two columns",
+      "detail": "The Lives and Moves currency offers now use a compact two-column mobile grid. Duplicate shop explanation and the persistent last-purchase balance recap are removed, while wallet totals, purchase confirmations, and saved debits continue working.",
       "files": [
         "web/game.js",
         "web/style.css",
-        "web/art/banners/nutbuster-woodland-title.webp"
+        "tests/currency-shop.test.js"
       ]
     },
     {
-      "title": "Restore the full translucent overlay illustrations",
-      "detail": "Removed the radial mask that had cut away most of the tile-status images. All 16 original transparent overlay PNGs remain intact, visible in the Nutdex and layered above ordinary nuts during play.",
+      "title": "A warmer welcome to Nutvale",
+      "detail": "The main menu now displays the approved squirrel-and-harbor woodland title card in place of the text-only welcome banner, preserving Play and navigation controls.",
       "files": [
+        "web/game.js",
         "web/style.css",
-        "tests/tile-overlay-visibility.test.js"
-      ]
-    },
-    {
-      "title": "Prepare independent Google Play upload signing",
-      "detail": "The Android build now supports separately configured Play upload credentials without replacing the existing test-build signing identity or changing the game's currency and account data.",
-      "files": [
-        "android/app/build.gradle",
-        "docs/GOOGLE_PLAY_UPLOAD_SIGNING.md"
+        "web/art/banners/nutbuster-woodland-title.webp",
+        "tests/ui-smoke.test.js"
       ]
     }
   ]
