@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "headline": "Functional tests no longer dictate Nut Buster artwork",
+  "headline": "Original premium and interface icons restored without neighboring-art bleed",
   "changes": [
     {
       "title": "Remove obsolete artwork and layout regression suites",
@@ -18,6 +18,59 @@
         "tests/fishing-integration-full.test.js",
         "tests/homestead-ui.test.js",
         "tests/tile-overlay-mechanics.test.js"
+      ]
+    },
+    {
+      "title": "Premium economy artwork repaired from untouched source atlases",
+      "detail": "Restored twenty original premium, currency-package and shop-item illustrations by isolating each sprite's opaque core and antialiased edge. Corrected chopped nut bars, chests, VIP shields, gifts and timers without changing their item identities.",
+      "files": [
+        "web/art/additions/economy/acorn-pile.png",
+        "web/art/additions/economy/prismatic-acorn.png",
+        "web/art/additions/economy/shell-coins.png",
+        "web/art/additions/economy/squirrel-cash.png",
+        "web/art/additions/economy/achievement-medal.png",
+        "web/art/additions/economy/premium-ticket.png",
+        "web/art/additions/economy/locked-chest.png",
+        "web/art/additions/economy/open-lootbox.png",
+        "web/art/additions/economy/booster-pack.png",
+        "web/art/additions/economy/piggy-bank.png",
+        "web/art/additions/economy/energy-heart.png",
+        "web/art/additions/economy/hourglass.png",
+        "web/art/additions/economy/timed-chest.png",
+        "web/art/additions/economy/squirrel-pass.png",
+        "web/art/additions/economy/vip-shield.png",
+        "web/art/additions/economy/daily-calendar.png",
+        "web/art/additions/economy/mystery-gift.png",
+        "web/art/additions/economy/level-badge.png",
+        "web/art/additions/economy/friends-gift.png",
+        "web/art/additions/economy/grand-bundle.png"
+      ]
+    },
+    {
+      "title": "Original interface icons restored without crop spillover",
+      "detail": "Re-exported all twenty-one menu and interface sprites as independent transparent PNGs, including shop, coupon-related icons, settings, navigation and timer. Existing button mappings, spacing and click behavior remain unchanged.",
+      "files": [
+        "web/art/additions/ui/title-acorn.png",
+        "web/art/additions/ui/home.png",
+        "web/art/additions/ui/play.png",
+        "web/art/additions/ui/pause.png",
+        "web/art/additions/ui/settings.png",
+        "web/art/additions/ui/campaign-map.png",
+        "web/art/additions/ui/store.png",
+        "web/art/additions/ui/gift.png",
+        "web/art/additions/ui/treasure.png",
+        "web/art/additions/ui/vip-crown.png",
+        "web/art/additions/ui/sound-on.png",
+        "web/art/additions/ui/sound-off.png",
+        "web/art/additions/ui/music-on.png",
+        "web/art/additions/ui/music-off.png",
+        "web/art/additions/ui/back.png",
+        "web/art/additions/ui/next.png",
+        "web/art/additions/ui/restart.png",
+        "web/art/additions/ui/help.png",
+        "web/art/additions/ui/trophy.png",
+        "web/art/additions/ui/timer.png",
+        "web/art/additions/ui/life.png"
       ]
     }
   ]
