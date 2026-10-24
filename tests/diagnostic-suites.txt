@@ -9,6 +9,7 @@ companion-ui.test.js
 fake-ad-audio.test.js
 fx.test.js
 ice-animation.test.js
+home-icon-identity.test.js
 nutvale-mines-design-lock.test.js
 premium-icon-integrity.test.js
 release-news.test.js
