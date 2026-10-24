@@ -85,9 +85,9 @@ for(const [id,crate] of Object.entries(C.CRATES)){
  assert.equal((markup.match(/data-action="crate-open"/g)||[]).length,8,'All eight random crates must appear');
  assert.match(markup,/RANDOM LOOT BUNDLES/);
  assert.match(markup,/SEE EXACT DROP CHANCES/);
- assert.match(markup,/100\.00%/);
+ assert.match(markup,/Odds total 100%/,'Visible listing must explain normalized 100% odds');
  const click=data=>clickHandler({target:{closest:()=>({dataset:data})}});
- const before=play.coins,stock=play.nutravaganza.baits;
+ const before=play.coins,beforeRoyal=play.nutravaganza.baits.royal;
  click({action:'crate-open',crate:'acorn'});
  assert.equal(opens,0,'Showing odds never rolls a reward');
  assert.equal(play.coins,before,'Preview cannot debit balance');
@@ -100,7 +100,7 @@ for(const [id,crate] of Object.entries(C.CRATES)){
  click({action:'purchase-confirm'});
  assert.equal(opens,1,'Confirmation causes exactly one random roll');
  assert.equal(play.coins,before-C.CRATES.acorn.cost,'Exact cost debited after confirmation');
- assert.equal(play.nutravaganza.baits.royal,stock.royal+1,'Real reward must be written to existing fishing bait inventory');
+ assert.equal(play.nutravaganza.baits.royal,beforeRoyal+1,'Real reward must be written to existing fishing bait inventory');
  assert.equal(play.crateHistory.length,1);
  assert.equal(JSON.parse(store['nutbuster.v1']).crateHistory.length,1,'Roll is persisted before visual reveal');
  assert.equal(wallet.textContent,(before-C.CRATES.acorn.cost).toLocaleString(),'Wallet visibly reflects debit');
