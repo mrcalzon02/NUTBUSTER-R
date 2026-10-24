@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "status": "four-verified-live-fx-repairs; all unreviewed effect candidates quarantined",
+  "source": "assets/source/original-non-nut-atlases/effects-original.png",
+  "source_sha256": "e9f7873bfcf260566bf7013877733dc3e69848086ebf3a9138fe32660dd02ea6",
+  "source_dimensions": [
+    1448,
+    1086
+  ],
+  "review": "Manual examination of original sheet, previous rendered live sprite, and checkerboard recovery image; only intact images with no adjacent spill were approved.",
+  "review_sheet": "assets/recovery/original-non-nut/effects-reviewed-QA.png",
+  "rules": "Never regenerate/reassign any icon on routine updates; keep unchanged images unchanged. Future fixes require independent visual review of overlapping glows.",
+  "repaired": {
+    "sparkle-burst": {
+      "path": "web/art/additions/effects/sparkle-burst.png",
+      "git_blob_sha": "7a77184a95d32ea687341b2e3d345c860f52844b",
+      "sha256": "9e34e0b2b68cb44c539f38f4a6b737808b9dfd5bc8876b64f2f5bff9a85bfa88",
+      "bytes": 129673,
+      "source_bbox": [
+        16,
+        119,
+        209,
+        330
+      ],
+      "visible_output_bbox": [
+        41,
+        27,
+        345,
+        357
+      ],
+      "size": [
+        384,
+        384
+      ],
+      "padding_min": 12
+    },
+    "match-burst": {
+      "path": "web/art/additions/effects/match-burst.png",
+      "git_blob_sha": "acb0571e9479118471393befca201ffcfec84f6b",
+      "sha256": "3d32eb1faf1c58ccd945ada12ad8f4efae639277125a09ff615146eb83098e8f",
+      "bytes": 162250,
+      "source_bbox": [
+        232,
+        107,
+        455,
+        344
+      ],
+      "visible_output_bbox": [
+        34,
+        27,
+        350,
+        360
+      ],
+      "size": [
+        384,
+        384
+      ],
+      "padding_min": 12
+    },
+    "shell-ring": {
+      "path": "web/art/additions/effects/shell-ring.png",
+      "git_blob_sha": "c0c52b7f7bcb0c373c46c1e7021f5ea574f3d761",
+      "sha256": "09b8bb5f75082bad6a728b3df21dbc3f61a021c5dc508342a60335034692f731",
+      "bytes": 191252,
+      "source_bbox": [
+        0,
+        719,
+        260,
+        1006
+      ],
+      "visible_output_bbox": [
+        39,
+        23,
+        345,
+        361
+      ],
+      "size": [
+        384,
+        384
+      ],
+      "padding_min": 12
+    },
+    "confetti": {
+      "path": "web/art/additions/effects/confetti.png",
+      "git_blob_sha": "ee490429ede93c3c16c29990aad47ac9aa70379b",
+      "sha256": "06bab6ef8395695d646129f9ab9dd06076bb0fe2bc1a31efecb830b2bc7a42fa",
+      "bytes": 189207,
+      "source_bbox": [
+        1198,
+        718,
+        1443,
+        1008
+      ],
+      "visible_output_bbox": [
+        49,
+        23,
+        332,
+        360
+      ],
+      "size": [
+        384,
+        384
+      ],
+      "padding_min": 12
+    }
+  },
+  "unchangedAlreadyAcceptable": [
+    "golden-acorn-glow",
+    "ice-shatter"
+  ],
+  "quarantinedCandidates": [
+    "chain-break",
+    "chest-pop",
+    "coin-shower",
+    "focus-ring",
+    "horizontal-clear",
+    "rainbow-pulse",
+    "rocket-impact",
+    "royal-boost",
+    "shell-fragments",
+    "shell-supernova",
+    "time-boost",
+    "vertical-clear"
+  ],
+  "quarantine_reason": "Source FX glows or fragments overlap; attempted candidate had a clipped feature, severe mask-boundary opacity, or foreign fragment. No production replacement was permitted."
+}

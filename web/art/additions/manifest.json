@@ -551,24 +551,26 @@
     "effects/confetti": {
       "alpha_mode": "RGBA",
       "output_pixels": [
-        256,
-        256
+        384,
+        384
       ],
       "path": "art/additions/effects/confetti.png",
-      "sha256": "80f38b97898d5ad02c6909a74085ff471a20bfb9b9a67488e432c55d7bf16801",
+      "sha256": "06bab6ef8395695d646129f9ab9dd06076bb0fe2bc1a31efecb830b2bc7a42fa",
       "source": "effects.png",
       "source_rect": [
-        1190,
-        691,
-        1448,
-        1062
+        1198,
+        718,
+        1443,
+        1008
       ],
       "visible_pixels": [
-        0,
-        0,
-        251,
-        312
-      ]
+        49,
+        23,
+        332,
+        360
+      ],
+      "reviewed_origin": "content-isolated-from-preserved-effects-original.png",
+      "verified_source_sha256": "e9f7873bfcf260566bf7013877733dc3e69848086ebf3a9138fe32660dd02ea6"
     },
     "effects/focus-ring": {
       "alpha_mode": "RGBA",
@@ -661,24 +663,26 @@
     "effects/match-burst": {
       "alpha_mode": "RGBA",
       "output_pixels": [
-        256,
-        256
+        384,
+        384
       ],
       "path": "art/additions/effects/match-burst.png",
-      "sha256": "a1f148edb5a6bba7515980cd670fcdb7e699b65d33bb5e20fa5b20b32b7d478c",
+      "sha256": "3d32eb1faf1c58ccd945ada12ad8f4efae639277125a09ff615146eb83098e8f",
       "source": "effects.png",
       "source_rect": [
-        224,
-        56,
-        471,
-        367
+        232,
+        107,
+        455,
+        344
       ],
       "visible_pixels": [
-        12,
-        54,
-        247,
-        293
-      ]
+        34,
+        27,
+        350,
+        360
+      ],
+      "reviewed_origin": "content-isolated-from-preserved-effects-original.png",
+      "verified_source_sha256": "e9f7873bfcf260566bf7013877733dc3e69848086ebf3a9138fe32660dd02ea6"
     },
     "effects/rainbow-pulse": {
       "alpha_mode": "RGBA",
@@ -771,24 +775,26 @@
     "effects/shell-ring": {
       "alpha_mode": "RGBA",
       "output_pixels": [
-        256,
-        256
+        384,
+        384
       ],
       "path": "art/additions/effects/shell-ring.png",
-      "sha256": "a401eaaa566cd0b638e8fb321d0353b507f930464534e8dbedf83043700b4138",
+      "sha256": "09b8bb5f75082bad6a728b3df21dbc3f61a021c5dc508342a60335034692f731",
       "source": "effects.png",
       "source_rect": [
         0,
-        689,
-        263,
-        1040
+        719,
+        260,
+        1006
       ],
       "visible_pixels": [
-        0,
-        0,
-        263,
-        313
-      ]
+        39,
+        23,
+        345,
+        361
+      ],
+      "reviewed_origin": "content-isolated-from-preserved-effects-original.png",
+      "verified_source_sha256": "e9f7873bfcf260566bf7013877733dc3e69848086ebf3a9138fe32660dd02ea6"
     },
     "effects/shell-supernova": {
       "alpha_mode": "RGBA",
@@ -815,24 +821,26 @@
     "effects/sparkle-burst": {
       "alpha_mode": "RGBA",
       "output_pixels": [
-        256,
-        256
+        384,
+        384
       ],
       "path": "art/additions/effects/sparkle-burst.png",
-      "sha256": "2311a4df3f115fbf14ef5bfb9b1d07d73ca84231c7a11871e2754a3536c9281f",
+      "sha256": "9e34e0b2b68cb44c539f38f4a6b737808b9dfd5bc8876b64f2f5bff9a85bfa88",
       "source": "effects.png",
       "source_rect": [
-        0,
-        48,
-        241,
-        358
+        16,
+        119,
+        209,
+        330
       ],
       "visible_pixels": [
-        20,
-        73,
-        241,
-        280
-      ]
+        41,
+        27,
+        345,
+        357
+      ],
+      "reviewed_origin": "content-isolated-from-preserved-effects-original.png",
+      "verified_source_sha256": "e9f7873bfcf260566bf7013877733dc3e69848086ebf3a9138fe32660dd02ea6"
     },
     "effects/time-boost": {
       "alpha_mode": "RGBA",
