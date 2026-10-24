@@ -94,13 +94,16 @@ function fresh(){const save={unlocked:500,stars:{},coins:10000,gems:200,hearts:0
 }
 {
  const source=fs.readFileSync(path.join(root,'game.js'),'utf8');
+ const shopCss=fs.readFileSync(path.join(root,'style.css'),'utf8');
+ assert.match(shopCss,/\.currency-offer-grid\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Currency offers must use two columns even on mobile');
+ assert.doesNotMatch(shopCss,/\.currency-offer-grid\{grid-template-columns:1fr\}/,'Do not regress to one card per row');
  let html='',store={},handlers={};
  const classes={add(){},remove(){},toggle(){}};
  const screen={classList:classes,addEventListener:(kind,fn)=>handlers[kind]=fn,
   get innerHTML(){return html},set innerHTML(next){html=next},
   querySelector(){return null},querySelectorAll(){return []}};
- const wallet={textContent:''},gemCounter={textContent:''};
- const document={getElementById:id=>({screen,app:{classList:classes},toast:{textContent:'',classList:classes},wallet,gems:gemCounter})[id]||null,
+ const wallet={textContent:''},gemCounter={textContent:''},toast={textContent:'',classList:classes};
+ const document={getElementById:id=>({screen,app:{classList:classes},toast,wallet,gems:gemCounter})[id]||null,
   querySelector(){return null},querySelectorAll(){return []}};
  const window={
   NutDailyMoves:D,NutBenefits:B,NutPurchases:Purchases,NutFishing:require('../web/fishing.js'),
@@ -115,7 +118,9 @@ function fresh(){const save={unlocked:500,stars:{},coins:10000,gems:200,hearts:0
  const app=window.NutbusterApp,s=app.getSave();
  s.hearts=1;s.coins=10000;s.gems=200;
  app.nav('shop');
- assert.match(html,/LIVES & MOVES · IN-GAME CURRENCY/);
+ assert.match(html,/<section class="panel currency-store" aria-label="Lives and moves for in-game currency"><div class="currency-offer-grid">/);
+ assert.doesNotMatch(html,/LIVES & MOVES · IN-GAME CURRENCY|Golden Nuts purchase small top-ups/,'Redundant currency explainer must stay removed');
+ const noReceipt=()=>assert.doesNotMatch(html,/store-debit-receipt|LAST PURCHASE|BALANCE UPDATED|GOLDEN NUTS [\d,]+ → [\d,]+|GEMS [\d,]+ → [\d,]+/,'Purchase should update wallet, not display a running tally');
  assert.equal((html.match(/data-action="shop-currency-buy"/g)||[]).length,4,'Four real currency offers');
  assert.equal((html.match(/data-action="booster-gems-buy"/g)||[]).length,E.BOOSTERS.length,'Every booster has a Gems option');
  assert.equal((html.match(/data-action="booster-buy"/g)||[]).length,E.BOOSTERS.length,'Original Nuts purchases preserved');
@@ -133,7 +138,8 @@ function fresh(){const save={unlocked:500,stars:{},coins:10000,gems:200,hearts:0
  assert.equal(s.hearts,5);
  assert.equal(s.gems,beforeGems-12);
  assert.equal(gemCounter.textContent,'188','Confirm immediately updates visible Gem balance');
- assert.match(html,/GEMS 200 → 188/,'Store shows exactly how many Gems were deducted');
+ assert.equal(toast.textContent,'PURCHASE COMPLETE','Brief confirmation must not repeat currency amounts');
+ noReceipt();
  assert.equal(JSON.parse(store['nutbuster.v1']).hearts,5,'Lives persisted');
  const count=P.count(s,'hammer'),cost=P.GEM_BOOSTER_PRICES.hammer;
  click({action:'booster-gems-buy',booster:'hammer'});
@@ -142,14 +148,14 @@ function fresh(){const save={unlocked:500,stars:{},coins:10000,gems:200,hearts:0
  assert.equal(P.count(s,'hammer'),count+4);
  assert.equal(s.gems,beforeGems-12-cost);
  assert.equal(gemCounter.textContent,(beforeGems-12-cost).toLocaleString(),'Gem booster updates HUD');
- assert.ok(html.includes('GEMS '+(beforeGems-12).toLocaleString()+' → '+(beforeGems-12-cost).toLocaleString()),'Gem booster has a visible debit receipt');
+ noReceipt();
  assert.equal(JSON.parse(store['nutbuster.v1']).boosterInventory.hammer,count+4,'Gem booster grant persisted');
  const coins=s.coins,bank=D.left(s);
  click({action:'shop-currency-buy',offer:'move-nuts'});
  click({action:'purchase-confirm'});
  assert.equal(s.coins,coins-1200);
  assert.equal(wallet.textContent,(coins-1200).toLocaleString(),'Nuts-to-moves purchase updates visible Golden Nut balance');
- assert.ok(html.includes('GOLDEN NUTS '+coins.toLocaleString()+' → '+(coins-1200).toLocaleString()),'Nuts-to-moves receipt shows the debit');
+ noReceipt();
  assert.equal(D.left(s),bank+2);
  assert.equal(JSON.parse(store['nutbuster.v1']).dailyMoves.remaining,bank+2);
  assert.equal(B.ready(s,'moves'),true,'Free cooldown move redemption remains independent');
@@ -158,12 +164,12 @@ function fresh(){const save={unlocked:500,stars:{},coins:10000,gems:200,hearts:0
  assert.equal(P.count(s,'hammer'),stock+1);
  assert.equal(s.coins,coins2-P.BOOSTER_PRICES.hammer);
  assert.equal(wallet.textContent,(coins2-P.BOOSTER_PRICES.hammer).toLocaleString(),'Nuts-to-booster purchase updates visible balance');
- assert.ok(html.includes('GOLDEN NUTS '+coins2.toLocaleString()+' → '+(coins2-P.BOOSTER_PRICES.hammer).toLocaleString()),'Nuts-to-booster receipt shows debit');
+ noReceipt();
  const holdStart=s.gems;
  click({action:'hold-offer',holdId:'butter_hold'});
  click({action:'hold-buy',holdId:'butter_hold'});
  assert.equal(s.gems,holdStart-P.HOLD_ITEMS.butter_hold.gems,'Held-nut Gem purchase debits wallet');
  assert.equal(gemCounter.textContent,s.gems.toLocaleString(),'Held-nut purchase updates visible Gem balance');
- assert.ok(html.includes('GEMS '+holdStart.toLocaleString()+' → '+s.gems.toLocaleString()),'Held-nut Gem purchase receipt is visible');
+ noReceipt();
 }
 console.log('PASS: four currency exchanges, Gems booster bundles, original Nuts boosters, heart/move limits, UI confirmation and saved deductions');
