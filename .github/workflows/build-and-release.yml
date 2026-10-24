@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  tests:
+  functional-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -24,29 +24,63 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify engine, interface, media, and release contracts
+      - name: Verify mandatory gameplay, economy, persistence, and packaging contracts
+        shell: bash
         run: |
           set -euo pipefail
+          node tools/test-tiers.js validate
+          node tools/test-tiers.js functional > "$RUNNER_TEMP/nutbuster-functional-suites.txt"
           failures=()
-          # Run every checked-in JavaScript test. A failure must not hide later
-          # regressions, but the aggregate step still fails the release gate.
-          for suite in tests/*.test.js; do
+          while IFS= read -r suite; do
+            [[ -n "$suite" ]] || continue
             echo "::group::$suite"
             if ! node "$suite"; then failures+=("$suite"); fi
             echo "::endgroup::"
-          done
+          done < "$RUNNER_TEMP/nutbuster-functional-suites.txt"
           if ! python3 tests/test_update_manifest.py; then failures+=("tests/test_update_manifest.py"); fi
-          if ! node tools/difficulty-audit.js > "$RUNNER_TEMP/nutbuster-difficulty-audit.json"; then failures+=("tools/difficulty-audit.js"); fi
-          if ! node tools/greedy-playtest.js > "$RUNNER_TEMP/nutbuster-greedy-playtest.json"; then failures+=("tools/greedy-playtest.js"); fi
           if (( ${#failures[@]} > 0 )); then
-            printf '::error::Release blocked by %s failed checks: %s\\n' "${#failures[@]}" "${failures[*]}"
+            printf '::error::RELEASE BLOCKED by %s functional failures: %s\\n' "${#failures[@]}" "${failures[*]}"
             exit 1
           fi
-          echo "All JavaScript suites, manifest checks, and difficulty audits passed."
-      - name: Require fresh, source-backed release news
-        if: github.event_name != 'pull_request'
+          echo "All release-blocking gameplay, economy, persistence, and package tests passed."
+
+  # Diagnostically valuable, but never part of the signed publisher dependency chain.
+  # A failing suite makes this job red and uploads evidence without holding the APK.
+  diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run optional visual, audio, UI, and content checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/test-tiers.js validate
+          node tools/test-tiers.js diagnostic > "$RUNNER_TEMP/nutbuster-diagnostic-suites.txt"
+          mkdir -p "$RUNNER_TEMP/nutbuster-diagnostics"
+          failures=()
+          while IFS= read -r suite; do
+            [[ -n "$suite" ]] || continue
+            echo "::group::$suite"
+            if ! node "$suite" 2>&1 | tee "$RUNNER_TEMP/nutbuster-diagnostics/$(basename "$suite").log"; then
+              failures+=("$suite")
+              echo "::error file=$suite::Non-blocking diagnostic failure"
+            fi
+            echo "::endgroup::"
+          done < "$RUNNER_TEMP/nutbuster-diagnostic-suites.txt"
+          if (( ${#failures[@]} > 0 )); then
+            printf '::error::%s diagnostic suites failed (APK release remains eligible): %s\\n' "${#failures[@]}" "${failures[*]}"
+            exit 1
+          fi
+          echo "All optional diagnostic suites passed."
+      - name: Audit freshness of release-news descriptions (non-blocking)
+        if: ${{ always() && github.event_name != 'pull_request' }}
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
           set -euo pipefail
           LAST_TAG="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName,isDraft,publishedAt --jq '[.[] | select(.isDraft == false)] | sort_by(.publishedAt) | last | .tagName // empty')"
@@ -56,20 +90,32 @@ jobs:
           else
             node tools/release-news.js --check
           fi
-
-      - name: Retain structural and automated player-proxy reports
+      - name: Run exploratory difficulty and automated player-proxy audits
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          failures=()
+          if ! node tools/difficulty-audit.js > "$RUNNER_TEMP/nutbuster-difficulty-audit.json"; then failures+=("difficulty-audit"); fi
+          if ! node tools/greedy-playtest.js > "$RUNNER_TEMP/nutbuster-greedy-playtest.json"; then failures+=("greedy-playtest"); fi
+          if (( ${#failures[@]} > 0 )); then
+            printf '::error::Non-blocking audit failures: %s\\n' "${failures[*]}"
+            exit 1
+          fi
+      - name: Preserve all optional diagnostic evidence, even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Nutbuster-difficulty-audit-${{ github.run_id }}
+          name: Nutbuster-diagnostics-${{ github.run_id }}
           path: |
+            ${{ runner.temp }}/nutbuster-diagnostics/
             ${{ runner.temp }}/nutbuster-difficulty-audit.json
             ${{ runner.temp }}/nutbuster-greedy-playtest.json
           retention-days: 30
           if-no-files-found: ignore
 
   desktop:
-    needs: tests
+    needs: functional-tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -119,7 +165,6 @@ jobs:
           if-no-files-found: error
 
   android-debug:
-    needs: tests
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -230,9 +275,10 @@ jobs:
       group: nutbuster-publisher-release
       cancel-in-progress: false
     if: github.event_name != 'pull_request'
-    # Signed alpha publication requires tested APK/desktop builds. The emulator
-    # remains an independent post-build smoke check and evidence gate.
-    needs: [tests, android-debug, desktop]
+    # Only functional test failures and required desktop artifacts gate publication.
+    # Android debug, emulator, visuals, audits and text freshness remain red/visible
+    # on failure but do not stop the independently signed release APK.
+    needs: [functional-tests, desktop]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:

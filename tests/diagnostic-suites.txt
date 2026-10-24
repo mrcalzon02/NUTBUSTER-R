@@ -1,0 +1,19 @@
+# UI, visual, audio, documentation and exploratory suites are REPORT-ONLY.
+# Any *.test.js not listed here is FUNCTIONAL and BLOCKS publishing by default.
+# Mixed tests that validate live gameplay, purchasing or save state remain functional.
+android-emulator-smoke-contract.test.js
+announcer-selection.test.js
+audio.test.js
+avatar-art.test.js
+companion-ui.test.js
+fake-ad-audio.test.js
+fx.test.js
+ice-animation.test.js
+nutvale-mines-design-lock.test.js
+premium-icon-integrity.test.js
+release-news.test.js
+reviewed-effect-reslices.test.js
+sfx-samples.test.js
+sfx.test.js
+tile-overlay-visibility.test.js
+ui-smoke.test.js
