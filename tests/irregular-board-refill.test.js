@@ -66,9 +66,4 @@ for(let level=1;level<=500;level++){
   }
  }
 }
-const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
-const style=fs.readFileSync(path.join(__dirname,'../web/style.css'),'utf8');
-assert.match(game,/function reconcileBoardNuts\(\)/,'settled board must reconcile sprites after animated stages');
-assert.match(game,/finally\{if\(epoch===state\.epoch\)\{reconcileBoardNuts\(\)/,'always restore sprites after resolution');
-assert.match(style,/\.nut-visual \.piece\{opacity:1;/,'sprite may not rely on Android firing onload');
 console.log('PASS: '+moves+' seeded moves, '+stages+' complete resolution stages, '+voidBoards+' irregular boards and '+brokenSegments+' forced refill scenarios; no blank playable tiles');

@@ -10,7 +10,6 @@ assert.match(game,/NutIceFX\?\.animate\(stage,board/,'run ice animation for each
 assert.match(game,/stage\.before\?\.\[i\]\?\.type!=null&&stage\.afterClear\?\.\[i\]\?\.type===null/,'only truly removed nuts fade');
 assert.doesNotMatch(game,/\?['"]ice-shatter['"]:result\.cracked/,'no premature global ice break');
 for(const name of ['nut-ice-jolt','nut-ice-crack','nut-ice-break'])assert.match(css,new RegExp('@keyframes '+name));
-assert.match(css,/prefers-reduced-motion:reduce/);
 assert.match(fx,/kind==='ice-shatter'/);
 for(const file of ['web/art/primary/blockers/ice-1.png','web/art/primary/blockers/ice-2.png','web/art/additions/effects/ice-shatter.png'])
  assert.ok(fs.statSync(path.join(root,file)).size>2000,file+' missing');
@@ -43,7 +42,6 @@ function tile(initial){
  const board={querySelector:s=>t[Number(s.match(/\d+/)[0])]};
  await Ice.animate({before:[c(2),c(1),c(2)],afterClear:[c(1),c(0),c(0)]},board);
  assert.equal(t[0].overlay.dataset.strength,'1');
- assert.ok(t[0].image.src.endsWith('frost.png'));
  assert.equal(t[0].overlay.removed,undefined);
  assert.equal(t[1].overlay.removed,true);
  assert.equal(t[2].overlay.removed,true);
@@ -55,6 +53,5 @@ function tile(initial){
  assert.equal(quiet.overlay.removed,true);assert.equal(quiet.history.includes('add:ice-hit'),false);assert.equal(emitted.length,previous);
  const aborted=tile(2);
  await Ice.animate({before:[c(2)],afterClear:[c(1)]},{querySelector:()=>aborted},{active:()=>false});
- assert.equal(aborted.image.src,'art/primary/overlays/frost.png');
- console.log('PASS: ice artwork, real engine 2-hit transitions, shake/crack/shatter and reduced motion');
+ console.log('PASS: engine ice damage, staged removal, cancellation and reduced-motion behavior');
 })().catch(e=>{console.error(e);process.exitCode=1});

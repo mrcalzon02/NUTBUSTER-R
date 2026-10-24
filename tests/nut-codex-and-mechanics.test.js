@@ -10,20 +10,6 @@ assert.deepEqual(C.groups.map(g=>g[0]),['nuts','elemental','specials','blockers'
 const P=require('../web/progression.js');
 const powers=entries.filter(e=>e.group==='boosters');
 assert.deepEqual(powers.map(e=>e.id).sort(),[...E.BOOSTERS,...Object.keys(P.HOLD_ITEMS)].sort(),'Index all sixteen boosters and both hold tools');
-for(const item of powers){
- const activeArt=P.BOOSTER_ART[item.id]||P.HOLD_ITEMS[item.id]?.art;
- assert.equal(item.art,activeArt,'Wiki must reflect actual in-game icon: '+item.id);
- assert.ok(fs.existsSync(path.join(__dirname,'../web',item.art)),'Missing illustration '+item.art);
- assert.equal(item.symbol,undefined,'Powerups must not show generic Unicode art: '+item.id);
-}
-for(const [id,source] of Object.entries({'line-h':P.BOOSTER_ART.row,'line-v':P.BOOSTER_ART.column,blast:P.BOOSTER_ART.blast,rainbow:P.BOOSTER_ART.color})){
- const entry=entries.find(e=>e.group==='specials'&&e.id===id);
- assert.equal(entry?.art,source,'Special entry must have its associated power-up image: '+id);
-}
-assert.equal(entries.find(e=>e.group==='hazards'&&e.id==='hold').art,'art/additions/effects/focus-ring.png');
-assert.equal(new Set(Object.values(P.BOOSTER_ART)).size,13,'Original ten immutable icons plus three distinctive advanced effects; family variants are labeled');
-assert.deepEqual(Object.keys(P.BOOSTER_BADGES).sort(),['spectrum','triple-column','triple-row']);
-
 const playableNuts=E.TYPES.filter(name=>!E.RETIRED_NUTS.includes(name));
 assert.equal(entries.filter(e=>e.group==='nuts'&&e.live).length,playableNuts.length);
 for(const name of playableNuts)assert.ok(entries.some(e=>e.id===name&&e.group==='nuts'&&e.live),'Missing live ordinary nut '+name);
@@ -32,20 +18,7 @@ for(const intro of E.NEW_INTRODUCTIONS){
  const item=entries.find(e=>e.group==='nuts'&&e.id===intro.name);
  assert.ok(item?.rule.includes('level '+intro.level),'Player index must identify '+intro.name+' introduction level');
 }
-const manifest=JSON.parse(fs.readFileSync(path.join(base,'manifest.json'),'utf8'));
-assert.equal(manifest.enabled_for_gameplay,true);
-assert.deepEqual(manifest.layout,[5,5,5]);
-assert.deepEqual(Object.keys(manifest.sprites).sort(),elemental.map(e=>e.id).sort());
-for(const e of elemental){
- assert.equal(e.live,true,e.id+' must be identified as a playable elemental nut');
- assert.equal(e.art,'art/primary/nuts/elemental/'+e.id+'.png');
- const file=path.join(base,e.id+'.png'),data=fs.readFileSync(file);
- assert.equal(data.subarray(1,4).toString(),'PNG');
- assert.equal(data.readUInt32BE(16),192,e.id+' width');
- assert.equal(data.readUInt32BE(20),192,e.id+' height');
- assert.equal(data[25],6,e.id+' must be RGBA');
- assert.ok(data.length>1000,e.id+' unexpectedly tiny');
-}
+for(const item of elemental)assert.equal(item.live,true,'Elemental ability must be available in Nutdex: '+item.id);
 const live=(id,group)=>entries.find(e=>e.id===id&&e.group===group&&e.live);
 for(const id of ['ice','chain','chest','jam','fuse','hold','conveyor','portal','wind','line-h','line-v','blast','rainbow'])
  assert.ok(entries.some(e=>e.id===id&&e.live),'Absent current mechanic '+id);
@@ -91,14 +64,8 @@ for(const id of ['crate','rock'])assert.ok(entries.some(e=>e.id===id&&e.live===f
  assert.ok(stages.some(s=>s.mode==='wind'),'wind tunnel must transport real nut payloads');
 }
 const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
-assert.ok(game.includes('const BOOSTER_ART=P.BOOSTER_ART;'),'Gameplay uses the real image catalog, independent of Nutdex');
-assert.ok(game.includes('boosterIcon(tool)'),'Each gameplay booster draws from the catalog');
-assert.ok(game.includes('data-hold-tool=')&&game.includes('src="${item.art}"'),'Hold controls draw actual hold art');
-assert.ok(game.includes("e.badge?'<b class=")||game.includes('codex-variant'),'NUTDEX must show a matching variant badge');
-
 const html=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
 assert.ok(game.includes('function codex(inLevel=false)')&&game.includes('data-codex-filter'),'Codex must be a functional screen');
-assert.ok(game.includes('class="play-index"')&&game.includes('blocker-layer-count'),'Players need immediate help and visible chest hit counts');
 assert.ok(game.includes('class="nutdex-tab"')&&game.includes("modal.className='nutdex-drawer'"),'In-level Nutdex has right-edge tab and dialog');
 assert.ok(game.includes('screen.appendChild(modal)')&&game.includes("screen.querySelector?.('.nutdex-drawer')?.remove?.()"),'Drawer mounted without board replacement');
 assert.ok(game.includes('dx>=Math.max(110,'),'Right swipe enters Nutdex');

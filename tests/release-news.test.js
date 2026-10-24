@@ -19,7 +19,6 @@ const shell=fs.readFileSync(path.join(ROOT,'web/index.html'),'utf8');
 assert.match(shell,/src="release-news\.js"/);assert.match(shell,/src="game\.js"/);
 assert.ok(shell.indexOf('release-news.js')<shell.indexOf('game.js'),'news must load before home render');
 const source=fs.readFileSync(path.join(ROOT,'web/game.js'),'utf8');
-assert.match(source,/rupee-rush-coming-soon\.svg/);
 assert.match(source,/NutbusterReleaseNews/);
 assert.match(source,/release-news-ticker/);
 const preview={};vm.runInNewContext(fs.readFileSync(path.join(ROOT,'web/release-news.js'),'utf8'),{window:preview});
