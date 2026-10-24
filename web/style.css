@@ -706,3 +706,7 @@
 .purchase-confirm-actions{display:grid;grid-template-columns:2fr 1fr;gap:8px;padding:11px 15px;background:#3e263e;border-top:1px solid #ae8555;flex-shrink:0}
 .purchase-confirm-actions .btn{min-height:44px;padding:8px 6px;font-size:12px}
 @media(max-width:380px){.purchase-confirm-dialog{max-height:94dvh}.purchase-confirm-head{padding:8px 10px}.purchase-confirm-head b{font-size:14px}.purchase-confirm-body{padding:9px 11px}.purchase-confirm-actions{padding:8px 10px}}
+
+/* Home's approved artwork uses fixed footprints: image identity changes must not resize or crop buttons. */
+.home-privilege-icon{display:block;width:48px;height:48px;max-width:100%;object-fit:contain;margin:0 auto;flex:none;filter:drop-shadow(0 2px 3px #130a17)}
+.actions .ui-icon{width:26px;height:26px;object-fit:contain;flex:none}
