@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "headline": "Random reward crates return to the Nut Emporium with disclosed odds",
+  "headline": "Confirm purchases in a centered pop-up with visible loot odds",
   "changes": [
     {
       "title": "Restore eight actual random loot crates in the shop",
@@ -16,6 +16,14 @@
       "detail": "Each crate shows its full exact percentage table before purchase, including guaranteed bonuses and duplicate compensation. Purchase confirmation repeats the odds; successful openings debit currency, persist the prize, and reveal the result.",
       "files": [
         "web/purchase-disclosures.js",
+        "web/game.js",
+        "web/style.css"
+      ]
+    },
+    {
+      "title": "Keep purchase confirmation above the shop scroll position",
+      "detail": "All Nut Emporium, Wharf, booster and mystery-crate confirmations open in a centered, dimmed viewport dialog without moving the underlying shop. The odds list scrolls inside the pop-up while Confirm and Cancel remain visible.",
+      "files": [
         "web/game.js",
         "web/style.css"
       ]

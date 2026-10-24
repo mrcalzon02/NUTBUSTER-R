@@ -513,12 +513,30 @@ function purchaseList(lines){return '<ul class="purchase-inventory">'+lines.map(
 function purchaseDialog(){
  const p=state.purchasePending;if(!p)return '';
  const d=p.details;
- return '<div class="purchase-overlay"><section class="purchase-confirm-dialog" role="dialog" aria-modal="true" aria-label="Confirm purchase and exact contents">'+
- '<div class="purchase-confirm-head"><b>'+escPurchase(d.name)+'</b><button class="btn ghost" data-action="purchase-cancel">✕ CLOSE</button></div><b class="purchase-confirm-label">'+(p.action==='crate-open'?'GUARANTEED REWARDS + RANDOM DROP ODDS':'EXACT CONTENTS AND COSTS')+'</b>'+
+ return '<div class="purchase-overlay"><section class="purchase-confirm-dialog" role="dialog" aria-modal="true" aria-label="Confirm purchase and exact contents" tabindex="-1">'+
+ '<div class="purchase-confirm-head"><b>'+escPurchase(d.name)+'</b><button class="btn ghost" data-action="purchase-cancel">✕ CLOSE</button></div><div class="purchase-confirm-body"><b class="purchase-confirm-label">'+(p.action==='crate-open'?'GUARANTEED REWARDS + RANDOM DROP ODDS':'EXACT CONTENTS AND COSTS')+'</b>'+
  purchaseList(d.lines)+(d.odds?'<details class="purchase-odds" open><summary>'+(p.action==='crate-open'?'ACTUAL DROP CHANCES · ':'ACTUAL CATCH ODDS · ')+d.odds.length+(p.action==='crate-open'?' POSSIBILITIES':' SPECIES')+'</summary>'+
  '<div class="purchase-odds-scroll">'+d.odds.map(x=>'<div><span>'+escPurchase(x.name)+'</span><b>'+(100*x.probability).toFixed(5)+'%</b></div>').join('')+'</div>'+
  '<small>'+(p.action==='crate-open'?'One independent weighted roll per crate. Exactly one listed random outcome; guaranteed items are additional. Odds sum to 100%. No real-money charge.':'Probabilities are computed for the disclosed rod and bait; percentages are rounded. The fishing minigame must still be won to keep or sell the catch.')+'</small></details>':'')+
- '<div class="purchase-confirm-actions"><button class="btn green" data-action="purchase-confirm">CONFIRM PURCHASE</button><button class="btn ghost" data-action="purchase-cancel">CANCEL</button></div></section></div>';
+ '</div><div class="purchase-confirm-actions"><button class="btn green" data-action="purchase-confirm">CONFIRM PURCHASE</button><button class="btn ghost" data-action="purchase-cancel">CANCEL</button></div></section></div>';
+}
+// Mount over the existing shop DOM. Re-rendering the entire shop for a dialog
+// destroys the visible scroll position and can put the confirmation below the fold.
+let purchaseOrigin=null;
+function dismissPurchasePopup(){
+ state.purchasePending=null;
+ document.body?.classList?.remove?.('purchase-modal-open');
+ const overlay=screen.querySelector?.('.purchase-overlay');
+ if(overlay?.remove)overlay.remove();else render();
+ purchaseOrigin?.focus?.({preventScroll:true});purchaseOrigin=null;
+}
+function showPurchasePopup(origin){
+ purchaseOrigin=origin||null;
+ if(typeof screen.insertAdjacentHTML!=='function'){render();return;}
+ screen.querySelector?.('.purchase-overlay')?.remove?.();
+ screen.insertAdjacentHTML('beforeend',purchaseDialog());
+ document.body?.classList?.add?.('purchase-modal-open');
+ screen.querySelector?.('.purchase-confirm-dialog')?.focus?.({preventScroll:true});
 }
 const CONFIRMED_PURCHASES=new Set(['crate-open','shop-currency-buy','booster-gems-buy','booster-buy','fish-bait-buy','fish-craft','fish-trade','fish-rod-buy','fish-rod-repair','fish-upgrade','homestead-tier-upgrade','homestead-build','homestead-renovate']);
 function beginCheckout(index,from=state.page){
@@ -857,6 +875,7 @@ function render(){syncDaily();if(window.NutFishing){const oldDay=saved.nutravaga
  screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');screen.classList?.toggle('codex-active',state.page==='codex');screen.classList?.toggle('mines-active',state.page==='mines');screen.classList?.toggle('companions-active',state.page==='companions');
  screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='companions'?(CompUI?CompUI.render(saved,state.companionNotice):'<p>Companions unavailable.</p>'):state.page==='homestead'?homestead():state.page==='mines'?(MineUI?MineUI.render(saved,state):'<p>Mining interface unavailable</p>'):state.page==='wharf'?window.NutFishingUI.hub(saved):state.page==='fishing'?window.NutFishingUI.wharf(saved,state,E,P):state.page==='bait-shop'?window.NutFishingUI.baitShop(saved,state,E,P):state.page==='aquarium'?window.NutFishingUI.aquarium(saved,state):state.page==='fish-records'?window.NutFishingUI.trophyHall(saved):state.page==='codex'?codex():state.page==='settings'?settings():state.page==='vip-benefits'?vipBenefits():state.page==='checkout'?checkout():state.page==='fake-ad'?fakeAdScreen():state.page==='outcome'?outcome():rewards();
  if(state.purchasePending)screen.innerHTML+=purchaseDialog();
+ document.body?.classList?.toggle?.('purchase-modal-open',!!state.purchasePending);
  updateFreeTimers();
  window.NutbusterUpdates?.syncStatus?.();
  if(state.page==='campaign'&&state.chapter&&typeof screen.querySelector==='function'){
@@ -1049,10 +1068,10 @@ function action(a,button){
  if(a==='codex-back'){nav(state.codexBack&&state.codexBack!=='codex'?state.codexBack:'home');return;}
  if(a==='nutdex-open'){openNutdex();return;}
  if(a==='nutdex-close'){closeNutdex();return;}
- if(a==='purchase-cancel'){state.purchasePending=null;render();return;}
+ if(a==='purchase-cancel'){dismissPurchasePopup();return;}
  if(a==='purchase-confirm'){
   const p=state.purchasePending;if(!p)return;
-  state.purchasePending=null;action(p.action,{dataset:p.data});return;
+  dismissPurchasePopup();action(p.action,{dataset:p.data});return;
  }
  if(a==='crate-open'){
   if(state.page!=='shop'||!Crates)return;
@@ -1268,7 +1287,7 @@ screen.addEventListener('click',e=>{window.NutAudio?.unlock();window.NutSFX?.unl
  if(state.purchasePending&&target.dataset.action!=='purchase-cancel'&&target.dataset.action!=='purchase-confirm')return;
  if(target.dataset.action&&CONFIRMED_PURCHASES.has(target.dataset.action)){
   const info=Purchases.describe(target.dataset.action,target.dataset,{save:saved,P,E,F:window.NutFishing,H,state});
-  if(info){state.purchasePending={action:target.dataset.action,data:{...target.dataset},details:info};render();return;}
+  if(info){state.purchasePending={action:target.dataset.action,data:{...target.dataset},details:info};showPurchasePopup(target);return;}
  }
  if(target.dataset.action)action(target.dataset.action,target);else if(target.dataset.nav)nav(target.dataset.nav);
 });
@@ -1305,7 +1324,19 @@ screen.addEventListener('input',e=>{
 document.addEventListener?.('visibilitychange',()=>{
  if(state.page==='fake-ad')Ads?.audio?.(state.sound&&!state.adMuted&&!document.hidden,saved.levels.voice);
 });
-window.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.page==='fake-ad'){const back=state.adReturn||'rewards';cancelFakeAd();state.page=back;render();}
+window.addEventListener('keydown',e=>{
+ if(state.purchasePending){
+  if(e.key==='Escape'){e.preventDefault?.();dismissPurchasePopup();return;}
+  if(e.key==='Tab'){
+   const focusable=Array.from(screen.querySelectorAll?.('.purchase-confirm-dialog button, .purchase-confirm-dialog summary')||[]);
+   const first=focusable[0],last=focusable.at(-1);
+   if(first&&(e.shiftKey&&document.activeElement===first||!e.shiftKey&&document.activeElement===last)){
+    e.preventDefault?.();(e.shiftKey?last:first)?.focus?.({preventScroll:true});
+   }
+  }
+  return;
+ }
+ if(e.key==='Escape'&&state.page==='fake-ad'){const back=state.adReturn||'rewards';cancelFakeAd();state.page=back;render();}
  else if(e.key==='Escape'&&state.page==='game'&&state.nutdexOpen)closeNutdex();else if(e.key==='Escape'&&state.page==='game')nav('campaign');else if(e.key==='Escape'&&state.page==='checkout')action('checkout-back',{});else if(e.key==='Escape'&&state.page==='codex')action('codex-back',{});});
 window.NutbusterApp={start,nav,getState:()=>state,getSave:()=>saved};render();
 })();

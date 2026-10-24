@@ -684,3 +684,25 @@
 
 /* Random crate shelf: two compact columns, odds available before purchase; never crop art. */
 .random-crate-shop{margin:14px 0}.random-crate-shop>h3{font-size:16px;color:#ffdc89;margin:4px 0}.random-crate-shop>small{display:block;color:#dec7b2;font-size:11px;margin:0 0 9px}.random-crate-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.random-crate-card{display:flex;align-items:center;gap:9px;padding:8px;min-width:0;border-radius:12px}.random-crate-icon{width:clamp(60px,11vw,90px);height:90px;object-fit:contain;flex-shrink:0}.random-crate-info{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}.random-crate-info>b{font-size:13px;color:#ffdd95;line-height:1.2}.random-crate-info>small{font-size:10px;line-height:1.3}.random-crate-info .btn{min-height:34px;font-size:11px;padding:5px 7px}.random-crate-odds summary{cursor:pointer;font-size:10px;color:#baf0ff}.random-crate-odds ul{list-style:none;margin:5px 0;padding:0;max-height:220px;overflow:auto}.random-crate-odds li{display:flex;justify-content:space-between;gap:6px;font-size:10px;padding:2px 0;border-bottom:1px solid #ffffff18}.random-crate-odds li b{color:#ffdb8a;white-space:nowrap}.random-crate-odds p,.random-crate-odds small{font-size:10px}.random-crate-reveal{padding:10px;margin-bottom:9px}.random-crate-reveal p{margin:4px 0 0;font-size:12px;overflow-wrap:anywhere}@media(max-width:580px){.random-crate-card{flex-direction:column;align-items:stretch;gap:4px}.random-crate-icon{height:64px;width:100%;max-width:130px;align-self:center}.random-crate-info>b{font-size:12px}.random-crate-info>small{font-size:9px}}
+
+/* Purchase review is a viewport modal, not another card at the bottom of the shop.
+   Only the dialog body scrolls; Confirm / Cancel stay visible on small screens. */
+.purchase-modal-open{overflow:hidden}
+.purchase-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));background:rgba(12,7,19,.87);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);overscroll-behavior:contain}
+.purchase-confirm-dialog{display:flex;flex-direction:column;min-height:0;width:min(100%,550px);max-height:min(90dvh,760px);background:linear-gradient(165deg,#56364b,#29182e 86%);border:2px solid #e8bb73;border-radius:16px;box-shadow:0 16px 60px #000e;color:#fff1d6;overflow:hidden}
+.purchase-confirm-dialog:focus{outline:none}
+.purchase-confirm-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;background:#57334a;border-bottom:1px solid #ae8555;flex-shrink:0}
+.purchase-confirm-head b{font-size:16px;line-height:1.25;color:#ffdf9d;overflow-wrap:anywhere}
+.purchase-confirm-head .btn{min-height:34px;padding:5px 9px;font-size:11px;flex-shrink:0}
+.purchase-confirm-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:13px 16px;flex:1;scrollbar-width:thin}
+.purchase-confirm-label{display:block;color:#ffe199;font-size:12px;letter-spacing:.04em;margin-bottom:8px}
+.purchase-inventory{margin:0;padding-left:18px;display:grid;gap:6px;font-size:12px;line-height:1.45}
+.purchase-odds{margin-top:12px;border:1px solid #937455;border-radius:10px;padding:8px;background:#291c31}
+.purchase-odds summary{cursor:pointer;color:#a8e8ff;font-size:12px;font-weight:850}
+.purchase-odds-scroll{display:grid;gap:4px;max-height:36dvh;overflow:auto;padding:7px 2px;scrollbar-width:thin}
+.purchase-odds-scroll>div{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:3px 0;border-bottom:1px solid #ffffff17;font-size:11px}
+.purchase-odds-scroll b{color:#ffdf96;flex-shrink:0;white-space:nowrap}
+.purchase-odds small{display:block;margin-top:6px;font-size:10px;color:#e9cbb4;line-height:1.35}
+.purchase-confirm-actions{display:grid;grid-template-columns:2fr 1fr;gap:8px;padding:11px 15px;background:#3e263e;border-top:1px solid #ae8555;flex-shrink:0}
+.purchase-confirm-actions .btn{min-height:44px;padding:8px 6px;font-size:12px}
+@media(max-width:380px){.purchase-confirm-dialog{max-height:94dvh}.purchase-confirm-head{padding:8px 10px}.purchase-confirm-head b{font-size:14px}.purchase-confirm-body{padding:9px 11px}.purchase-confirm-actions{padding:8px 10px}}
