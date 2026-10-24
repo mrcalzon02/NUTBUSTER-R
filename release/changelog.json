@@ -1,7 +1,16 @@
 {
   "schema": 1,
-  "headline": "Tile status artwork restored to full visibility in Nutdex and on game boards",
+  "headline": "New woodland Nut Buster title card welcomes you to Nutvale",
   "changes": [
+    {
+      "title": "A warmer welcome to Nutvale",
+      "detail": "The main menu now displays the approved squirrel-and-harbor woodland title card, replacing the old text-only welcome banner while preserving the navigation and Play controls.",
+      "files": [
+        "web/game.js",
+        "web/style.css",
+        "web/art/banners/nutbuster-woodland-title.webp"
+      ]
+    },
     {
       "title": "Restore the full translucent overlay illustrations",
       "detail": "Removed the radial mask that had cut away most of the tile-status images. All 16 original transparent overlay PNGs remain intact, visible in the Nutdex and layered above ordinary nuts during play.",

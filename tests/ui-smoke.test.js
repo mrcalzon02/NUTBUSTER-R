@@ -9,6 +9,13 @@ const audioCalls=[],window={NutDailyMoves:require('../web/daily-moves.js'),NutEl
 const context={window,document,localStorage,console,setTimeout:()=>1,clearTimeout:()=>{}};
 vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../web/game.js'),'utf8'),context);
 assert.match(html,/WELCOME TO NUTBUSTER/);
+assert.match(html,/src="art\/banners\/nutbuster-woodland-title\.webp"/,'Home should render the approved woodland title art');
+const titleAsset=fs.readFileSync(require('node:path').join(__dirname,'../web/art/banners/nutbuster-woodland-title.webp'));
+assert.equal(titleAsset.toString('ascii',0,4),'RIFF','Home title asset must be a real WebP image');
+assert.equal(titleAsset.toString('ascii',8,12),'WEBP','Home title image is corrupted or misnamed');
+const titleCSS=fs.readFileSync(require('node:path').join(__dirname,'../web/style.css'),'utf8');
+assert.match(titleCSS,/\.home-title-logo img\{[^}]*width:100%;height:auto;[^}]*object-fit:contain/,'Home title must scale without cropping');
+
 assert.match(html,/data-nav="wharf"[^>]*>.*NUTVALE WHARF/,'Wharf needs a visible home button');
 const shell=fs.readFileSync(require('node:path').join(__dirname,'../web/index.html'),'utf8');
 assert.match(shell,/<nav class="bottom"[^>]*>.*data-nav="wharf"/,'Wharf needs a persistent bottom tab');
