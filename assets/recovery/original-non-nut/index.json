@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "coverage": "73 independent RGBA exports from four original non-nut atlas sources",
+  "status": "staged-qa-do-not-auto-replace-production-icons",
+  "method": "opaque connected-component cores; whole-atlas nearest-core soft-alpha ownership; alpha threshold 8; source distance limit 38px; transparent 384x384 canvas with >=12px empty margin",
+  "per_category": {
+    "premium-core": 16,
+    "premium-expanded": 20,
+    "ui-original": 21,
+    "blockers-original": 16
+  },
+  "quarantine_notes": [
+    "All source PNGs preserved exactly. Do not modify already approved match-three nut sprites.",
+    "Removed one unrelated detached red fragment from blockers-original/key.png; independent main key kept.",
+    "A new slice is never an authorization to reassign existing HARD-locked image paths or replace working UI assets."
+  ],
+  "files": [
+    {
+      "path": "assets/source/original-non-nut-atlases/blockers-4x4.png",
+      "git_blob_sha": "c82c8090e23a60087d0d70f5bd7152f8bdac357f",
+      "sha256": "65cbae22244ec2e32bfc860c679568b735eb9ceab02969478eda096e74e53509"
+    },
+    {
+      "path": "assets/source/original-non-nut-atlases/premium-4x4.png",
+      "git_blob_sha": "cbeeb1b024a2a577a8d1fb33fd6772b857a4de7c",
+      "sha256": "07963f8b4e885c5973a5a43891beab3148a470c0da331aa33cb51e425da388af"
+    },
+    {
+      "path": "assets/source/original-non-nut-atlases/ui-5plus6.png",
+      "git_blob_sha": "16ed76ffbdb97b4bbeec1e3fa1483a514232e22c",
+      "sha256": "a37ce6fe440b8456a5afc57a7c771ccc50deb39ac8d4f30543cdb9e67776c7a2"
+    },
+    {
+      "path": "assets/source/original-non-nut-atlases/premium-expanded-5x4.png",
+      "git_blob_sha": "9629f2be3b3290dd741dccce03bbac6e80acb7a6",
+      "sha256": "cca962d8a07f56633a7a4c688a718f6f6617c352cb38f96a927a8e396c502a27"
+    },
+    {
+      "path": "assets/recovery/original-non-nut/premium-core-slices.zip",
+      "git_blob_sha": "ad84b8590c3a1984ad11ebb23fb0d177f397bbbe",
+      "sha256": "2db186e321cfe42d7643660b5e4e3a3f0ffe779014914193cb67085347266bd4"
+    },
+    {
+      "path": "assets/recovery/original-non-nut/premium-expanded-part1.zip",
+      "git_blob_sha": "02e49ed584dac1e662e1e3ff4d3ce0203864f6e0",
+      "sha256": "11e59d62c310452e2b6876de27f9330d986064727c27c9d35d914d675c24f271"
+    },
+    {
+      "path": "assets/recovery/original-non-nut/premium-expanded-part2.zip",
+      "git_blob_sha": "2900e59d08850eb8fd55426b9d7a52f95bbf7696",
+      "sha256": "06e99a247607fb4e5e5422666f99b83353ab8f95f28df4a8a9044537526284ab"
+    },
+    {
+      "path": "assets/recovery/original-non-nut/ui-original-part1.zip",
+      "git_blob_sha": "b0e72c33f604f86b5819391977ee58dfca909041",
+      "sha256": "14987f751e486a1294e95ecf3db03b6fbcdac56749ed0e49ea4a870cbf9a404d"
+    },
+    {
+      "path": "assets/recovery/original-non-nut/ui-original-part2.zip",
+      "git_blob_sha": "51221d4ae56465139c9dfb6a87c3ba57baba0ae5",
+      "sha256": "18a8c24875d29f4632896983b69eac81942d3842585b15d2b858753cb1a74013"
+    },
+    {
+      "path": "assets/recovery/original-non-nut/blockers-original-part1.zip",
+      "git_blob_sha": "347dfa7faab5bedd1545f07a7f815eb3ba3ddadd",
+      "sha256": "daa438210f10f4978d5b3810ec0e02bd0ab0080136e69cbad6f1cd7cd2fa7da4"
+    },
+    {
+      "path": "assets/recovery/original-non-nut/blockers-original-part2.zip",
+      "git_blob_sha": "87d890212f2ae1ee04abd0de9b4ab4b47f8b3e0f",
+      "sha256": "fc96f58e016ec51243f00451b2bc7193be6239e2775c42ddca4324b773f95179"
+    }
+  ]
+}
