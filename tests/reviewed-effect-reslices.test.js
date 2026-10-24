@@ -14,7 +14,7 @@ assert.equal(new Set([...expected.map(([n])=>n),...audit.unchangedAlreadyAccepta
 for(const [name,item] of expected){
  const file=fs.readFileSync(path.join(ROOT,item.path));
  assert.equal(file.length,item.bytes,name+' binary size');
- assert.equal(crypto.createHash('sha1').update(Buffer.from('blob '+file.length+'\\0')).update(file).digest('hex'),item.git_blob_sha,name+' changed without approval');
+ assert.equal(crypto.createHash('sha1').update(Buffer.from('blob '+file.length+'\0')).update(file).digest('hex'),item.git_blob_sha,name+' changed without approval');
  assert.equal(crypto.createHash('sha256').update(file).digest('hex'),item.sha256,name+' SHA-256 changed');
  assert.equal(file.toString('hex',0,8),'89504e470d0a1a0a',name+' invalid PNG signature');
  let p=8,wide=0,high=0,depth=0,type=0,idats=[];
