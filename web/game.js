@@ -50,14 +50,6 @@ function counters(){
   const el=document.getElementById(id);if(el)el.textContent=value.toLocaleString();
  }
 }
-// Each genuinely destroyed nut is one spendable Golden Nut, separate from score and completion rewards.
-// Pay immediately from the resolved engine result, so leaving during an animation cannot discard earnings.
-function creditClearedNuts(result){
- if(!result?.valid||!Number.isFinite(result.removed)||result.removed<=0)return 0;
- const earned=Math.trunc(result.removed);
- saved.coins=safeNum(Number(saved.coins||0)+earned);
- counters();return earned;
-}
 // A store purchase is complete when its exact wallet debit is visible and saved.
 function showStoreDebit(currency,before,cost,description){
  const after=Number(saved[currency]);
@@ -81,7 +73,6 @@ function activateBooster(id,index){const meta=E.BOOSTER_META[id];
  const result=E.booster(state.game,id,index);
  if(!result.valid){notice(result.reason==='no-locks'?'No chains to unlock.':'Choose a valid target.');return null;}
  if(!P.spend(saved,id))throw new Error('Inventory desynchronized after power activation');
- creditClearedNuts(result);
  const earnedRefunds=Math.max(0,(state.game.elementalRefunds||0)-priorRefunds);
  if(earnedRefunds)D.topUp(saved,earnedRefunds,Date.now(),dailyCap());
  if(id==='extra'){state.game.moves=D.topUp(saved,5,Date.now(),dailyCap());state.game.lost=false;}
@@ -931,7 +922,6 @@ function doSwap(a,b){if(state.animating||state.page!=='game')return;
  state.game.moves=movesLeft();
  if(earnedRefunds&&state.game.moves){state.game.lost=false;r.lost=false;}
  if(!r.won&&!state.game.moves){state.game.lost=true;r.lost=true;}
- creditClearedNuts(r);
  persist();void applyMove(r);
 }
 function cell(i){if(!state.game||state.game.won||state.game.lost||state.animating)return;
