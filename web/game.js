@@ -8,7 +8,7 @@ const Mines=window.NutvaleMines, MineUI=window.NutvaleMinesUI, Comp=window.NutCo
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);R.ensure(saved);H.ensure(saved);A.ensure(saved);if(Comp)Comp.ensure(saved);if(!['original','auditor'].includes(saved.announcerVoice))saved.announcerVoice='original';D.ensure(saved,Date.now(),E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null};let toastHandle;
+let state={page:'home',storeReceipt:null,resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});window.NutAudio.setAnnouncerVoice?.(saved.announcerVoice);}
 if(window.NutSFX){window.NutSFX.setEnabled(state.effects);window.NutSFX.setVolume(saved.levels.sfx);}
 function playSFX(name,opts){window.NutSFX?.play(name,opts);}
@@ -57,6 +57,14 @@ function creditClearedNuts(result){
  const earned=Math.trunc(result.removed);
  saved.coins=safeNum(Number(saved.coins||0)+earned);
  counters();return earned;
+}
+// A store purchase is complete when its exact wallet debit is visible and saved.
+function showStoreDebit(currency,before,cost,description){
+ const after=Number(saved[currency]);
+ if(!Number.isSafeInteger(after)||before-after!==cost)throw new Error('Store wallet debit mismatch: '+description);
+ const label=currency==='coins'?'GOLDEN NUTS':'GEMS';
+ state.storeReceipt=description+' · '+label+' '+before.toLocaleString()+' → '+after.toLocaleString();
+ persist();render();counters();playSFX('coin');notice(state.storeReceipt);
 }
 function boosterSummary(pack){return P.packText(pack,Object.fromEntries(E.BOOSTERS.map(id=>[id,E.BOOSTER_META[id].label])));}
 function inventorySummary(){return P.available(saved).map(id=>E.BOOSTER_META[id].label+' ×'+P.count(saved,id)).join(' · ');}
@@ -593,11 +601,12 @@ function nutToBoosterShop(){
 }
 function FRate(id){return window.NutFishing?.BOOSTER_BAIT?.[id]||0;}
 function shop(){
+ const receipt=state.storeReceipt?'<p class="panel muted store-debit-receipt" role="status"><b>LAST PURCHASE · BALANCE UPDATED</b> '+newsEscape(state.storeReceipt)+'</p>':'';
  const holdCards=Object.entries(P.HOLD_ITEMS).map(([id,item])=>{
   const pending=state.holdOffer===id;
   return `<div class="hold-offer"><img src="${item.art}" alt="" draggable="false"><div class="hold-offer-info"><b>${item.label}</b><small>${item.drops} gravity drop${item.drops===1?'':'s'} · held-nut matches ×3 · Owned ${P.holdCount(saved,id)}</small></div><div class="hold-offer-buy"><b>${item.gems} <img src="art/additions/economy/prismatic-acorn.png" alt="gems"></b><button class="btn secondary" data-action="hold-offer" data-hold-id="${id}" title="Spend ${item.gems} Gems for exactly one ${item.label} held-nut power-up; ${item.drops} gravity drops, held matches ×3">BUY</button></div>${pending?`<div class="hold-confirm" role="group" aria-label="Confirm ${item.label} purchase"><span>Spend ${item.gems} Gems; receive exactly 1 ${item.label} power-up. Hold one selected nut for ${item.drops} gravity drops; held matches score ×3. Guaranteed, no randomness. Balance: ${saved.gems.toLocaleString()} Gems.</span><button class="btn green" data-action="hold-buy" data-hold-id="${id}">CONFIRM</button><button class="btn ghost" data-action="hold-cancel">CANCEL</button></div>`:''}</div>`;
  }).join('');
- return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">OPTIONAL BUNDLES</span>'}</div>${promoSection(true)}${currencyExchangeShop()}<div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div>${nutToBoosterShop()}${window.NutFishingUI?.exchangeSheet?.(saved,E,P,false)||''}<p class="muted">Transparent contents, one-time bundles, no subscriptions or purchase countdowns.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item"><img class="shop-offer-icon" src="${shopSprites[i]}" alt="" loading="lazy"><h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><details class="offer-disclosure"><summary>EXACT CONTENTS · NO RANDOM CHANCE</summary>${purchaseList(Purchases.offer(i,offers,P.actualPack(saved,'shop'+i),E).lines)}</details><div class="offer-price">${p[4]}</div>${i===4?'<small>Daily +5 moves · 4 boosters · +250 Golden Nuts. Lifetime.</small>':''}<button class="btn green" data-action="${i===4&&saved.vip?'vip-benefits':'claim'}" data-item="${i}">${i===4&&saved.vip?'OWNED · VIEW BENEFITS':'BUY PACKAGE'}</button></div>`).join('')}</div>`;
+ return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">OPTIONAL BUNDLES</span>'}</div>${receipt}${promoSection(true)}${currencyExchangeShop()}<div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div>${nutToBoosterShop()}${window.NutFishingUI?.exchangeSheet?.(saved,E,P,false)||''}<p class="muted">Transparent contents, one-time bundles, no subscriptions or purchase countdowns.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item"><img class="shop-offer-icon" src="${shopSprites[i]}" alt="" loading="lazy"><h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><details class="offer-disclosure"><summary>EXACT CONTENTS · NO RANDOM CHANCE</summary>${purchaseList(Purchases.offer(i,offers,P.actualPack(saved,'shop'+i),E).lines)}</details><div class="offer-price">${p[4]}</div>${i===4?'<small>Daily +5 moves · 4 boosters · +250 Golden Nuts. Lifetime.</small>':''}<button class="btn green" data-action="${i===4&&saved.vip?'vip-benefits':'claim'}" data-item="${i}">${i===4&&saved.vip?'OWNED · VIEW BENEFITS':'BUY PACKAGE'}</button></div>`).join('')}</div>`;
 }
 function rewards(){const tiers=P.challengeRewards(saved),next=P.nextUnlock(saved),elemental=R.summary(saved);let mins=Math.max(0,Math.ceil((saved.chestReadyAt-Date.now())/60000));return `<div class="topline"><h2>REWARDS, REWARDS, REWARDS</h2></div><div class="panel reward-inventory"><b>FREE CLAIMS · 12-HOUR INDEPENDENT COOLDOWNS</b><p class="muted">Redeem manually when ready. Unlike the automatic 24-hour move refill, these do not stockpile.</p>${freeClaimButton("hearts","refill","REDEEM HEART REFILL")} ${freeClaimButton("moves","bonus-moves","REDEEM +5 MOVES")}</div>${promoSection()}<div class="panel reward-inventory"><b>BOOSTER VAULT</b><p class="muted">${inventorySummary()}</p>${next?'<p class="muted">Next power: '+E.BOOSTER_META[next.id].label+' · clear level '+next.level+'</p>':''}</div>
  <div class="panel challenge-rewards"><b>ELEMENTAL TRIAL REWARDS</b><p class="muted">${elemental.completed}/150 trials · ${elemental.relics.length}/15 relics · ${movesLeft()} daily moves left</p><div class="elemental-relics">${elemental.relics.map(id=>'<img src="art/primary/nuts/elemental/'+id+'.png" alt="'+id+' relic" title="'+id+' relic" loading="lazy">').join('')}</div></div><div class="panel challenge-rewards"><b>CHALLENGE REWARD TRACK</b><p class="muted">${P.challengeProgress(saved)}/25 challenge milestones cleared</p>
@@ -1045,6 +1054,8 @@ function action(a,button){
  }
  if(a==='shop-currency-buy'){
   if(state.page!=='shop'){notice('OPEN THE NUT EMPORIUM TO TRADE CURRENCY');return;}
+  const offer=P.SHOP_EXCHANGES[button.dataset.offer];
+  const before=Number(saved[offer?.currency]||0);
   const result=P.buyCurrencyOffer(saved,button.dataset.offer,D,Date.now(),dailyCap());
   if(!result.valid){
    notice(result.reason==='funds'?'NOT ENOUGH '+(result.currency==='gems'?'GEMS':'GOLDEN NUTS'):result.reason==='full'?'LIVES ALREADY FULL':result.reason==='limit'?'MOVE WALLET FULL':'CURRENCY OFFER UNAVAILABLE');return;
@@ -1053,25 +1064,26 @@ function action(a,button){
    state.game.moves=movesLeft();
    if(state.game.lost&&state.game.moves>0){state.game.lost=false;state.outcome=null;}
   }
-  persist();render();playSFX('coin');window.NutFX?.emit('coin-shower');
-  notice('PURCHASED '+result.granted+' '+(result.kind==='hearts'?(result.granted===1?'LIFE':'LIVES'):'MOVES')+' · PAID '+result.cost+' '+(result.currency==='gems'?'GEMS':'GOLDEN NUTS'));
+  showStoreDebit(result.currency,before,result.cost,'PURCHASED '+result.granted+' '+(result.kind==='hearts'?(result.granted===1?'LIFE':'LIVES'):'MOVES'));
+  window.NutFX?.emit('coin-shower');
   return;
  }
  if(a==='booster-gems-buy'){
   if(state.page!=='shop')return;
+  const before=Number(saved.gems||0);
   const result=P.buyGemBooster(saved,button.dataset.booster);
   if(!result.valid){notice(result.reason==='funds'?'NOT ENOUGH GEMS':result.reason==='locked'?'BOOSTER NOT YET UNLOCKED':'BOOSTER PURCHASE UNAVAILABLE');return;}
-  persist();render();playSFX('coin');notice('BOUGHT '+result.granted+' '+E.BOOSTER_META[result.id].label.toUpperCase()+' · '+result.cost+' GEMS');
+  showStoreDebit('gems',before,result.cost,'BOUGHT '+result.granted+' '+E.BOOSTER_META[result.id].label.toUpperCase());
   return;
  }
  if(a==='booster-buy'){
   if(state.page!=='shop'){notice('BOOSTERS CAN BE BOUGHT AT THE NUT EMPORIUM');return;}
+  const before=Number(saved.coins||0);
   const result=P.buyBooster(saved,button.dataset.booster);
   if(!result.valid){
    notice(result.reason==='coins'?'NOT ENOUGH GOLDEN NUTS':result.reason==='locked'?'CLEAR THE REQUIRED LEVEL FIRST':'BOOSTER PURCHASE UNAVAILABLE');return;
   }
-  persist();render();playSFX('coin');
-  notice('BOUGHT '+E.BOOSTER_META[result.id].label.toUpperCase()+' · '+result.cost+' GOLDEN NUTS');
+  showStoreDebit('coins',before,result.cost,'BOUGHT '+E.BOOSTER_META[result.id].label.toUpperCase());
   return;
  }
  if(a==='ad-daily'){startFakeAd('daily');return;}
@@ -1091,9 +1103,10 @@ function action(a,button){
  if(a==='hold-buy'){
   const id=button.dataset.holdId;
   if(id!==state.holdOffer||!P.HOLD_ITEMS[id])return;
+  const before=Number(saved.gems||0);
   const result=P.buyHold(saved,id);
   if(!result.valid){notice(result.reason==='gems'?'NOT ENOUGH GEMS · NEED '+result.short:'ITEM UNAVAILABLE');return;}
-  state.holdOffer=null;persist();render();playSFX('coin');notice(P.HOLD_ITEMS[id].label.toUpperCase()+' PURCHASED · ×'+result.stock);return;
+  state.holdOffer=null;showStoreDebit('gems',before,P.HOLD_ITEMS[id].gems,P.HOLD_ITEMS[id].label.toUpperCase()+' PURCHASED · ×'+result.stock);return;
  }
  if(a==='check-updates'){window.NutbusterUpdates?.check();return;}
   if(a==='open-releases'){window.NutbusterUpdates?.openReleases();return;}
