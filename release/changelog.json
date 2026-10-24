@@ -1,33 +1,7 @@
 {
   "schema": 1,
-  "headline": "Store wallet fixes and owner-approved Diamond Gems and Golden Acorn Nuts",
+  "headline": "Approved wallet symbols and safeguards against unexpected sprite changes",
   "changes": [
-    {
-      "title": "Nut and Gem purchases now show their exact wallet deductions",
-      "detail": "Confirmed purchases of lives, extra moves, boosters, and gravity-hold tools display the currency balance before and after payment. The shop and top currency counters refresh immediately, and deductions are saved.",
-      "files": [
-        "web/game.js",
-        "tests/currency-shop.test.js"
-      ]
-    },
-    {
-      "title": "Large Golden Nut and Gem balances are protected",
-      "detail": "Booster and hold-tool purchases use the full stored wallet balance instead of a smaller inventory cap, while elemental-trial rewards preserve existing large balances when adding prizes.",
-      "files": [
-        "web/progression.js",
-        "web/elemental-rewards.js",
-        "tests/elemental-trials-and-daily-integration.test.js"
-      ]
-    },
-    {
-      "title": "Booster illustrations fill their existing button faces",
-      "detail": "In-level power-up artwork is enlarged within the unchanged booster button grid, with stock counts over the art instead of tiny icons surrounded by oversized button framing.",
-      "files": [
-        "web/style.css",
-        "tests/booster-button-face.test.js",
-        "tests/primary-contract-lock.test.js"
-      ]
-    },
     {
       "title": "Distinct owner-approved currency symbols in every wallet",
       "detail": "Golden Nuts now display the existing golden acorn illustration, and Gems use the exact 01_r1c1_diamond slice from the Nut Buster Drive. The header, in-level balances, and gem-priced gravity-hold purchases share those identities, with gameplay currency values unchanged.",
@@ -36,7 +10,15 @@
         "web/index.html",
         "web/art/nutvale/currency-atlas/01_r1c1_diamond.png",
         "docs/contracts/nutbuster-primary-mechanics-and-asset-lock.csv",
-        "tests/primary-contract-lock.test.js"
+        "tests/primary-contract-lock.test.js",
+        "tests/authored-art-compact-ui.test.js"
+      ]
+    },
+    {
+      "title": "Guard previously exported art against packaging regressions",
+      "detail": "Every supplementary atlas sprite is checked against its committed SHA-256 manifest, and normal Android and desktop packaging paths are tested to ensure they do not silently rerun the atlas slicers. No artwork was re-exported.",
+      "files": [
+        "tests/package.test.js"
       ]
     }
   ]
