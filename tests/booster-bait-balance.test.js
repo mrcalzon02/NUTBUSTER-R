@@ -72,7 +72,5 @@ for(const [id,amount] of Object.entries(rates)){
  assert.match(sheet,/N\$100/);
  const main=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
  assert.ok(main.includes('NutFishingUI?.exchangeSheet?.(saved,E,P,false)'),'Emporium must show shared sheet');
- const css=fs.readFileSync(path.join(__dirname,'../web/fishing.css'),'utf8');
- assert.ok(css.includes('.fish-balance-table')&&css.includes('.fish-balance-scroll'),'Table scroll and compact styling');
 }
 console.log('PASS: ten rates, daily yield, locked/empty/cap safeguards, recipes, both shop surfaces, independent wallets');

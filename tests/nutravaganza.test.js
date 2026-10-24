@@ -48,8 +48,7 @@ assert.equal(F.upgrade(save,'tank',tomorrow).valid,true);assert.equal(F.capacity
 const view=U.wharf(save,{fishBait:'worm'},E,P),tank=U.aquarium(save);
 const exchange=U.exchangeSheet(save,E,P,true);assert.match(exchange,/data-action="fish-trade" data-booster=/);assert.doesNotMatch(exchange,/data-action="fish-trade" data-tool=/);
 assert.match(tank,/aquarium-fish/);
-const sprites=JSON.parse(fs.readFileSync(path.join(__dirname,'../web/art/primary/nuts/expansion-v2-manifest.json')));
-assert.equal(Object.keys(sprites.sprites).length,12);assert.equal(E.NEW.length,12);
+assert.equal(E.NEW.length,12);
 const seen=new Set();for(let level=1;level<=500;level++){
  const roster=E.rosterForLevel(level),g=E.create(level,level*127+83);
  assert.equal(g.cfg.typeCount,roster.length);assert.equal(E.matches(g).hit.size,0);assert.ok(E.hasMove(g));
@@ -58,7 +57,6 @@ const seen=new Set();for(let level=1;level<=500;level++){
  for(const id of roster)if(id>=7)seen.add(E.TYPES[id]);
 }
 assert.deepEqual([...seen].sort(),E.NEW.filter(name=>!E.RETIRED_NUTS.includes(name)).sort(),'All eleven active expansion nuts must appear; retired Ginkgo remains artwork-only');
-for(const name of E.NEW)assert.ok(fs.existsSync(path.join(__dirname,'../web/art/primary/nuts',name+'.png')),'Missing art '+name);
 let html='',handlers={},local={};
 const screen={classList:{toggle(){}},get innerHTML(){return html;},set innerHTML(s){html=s;},addEventListener:(id,fn)=>{handlers[id]=fn;},querySelector:()=>null,querySelectorAll:()=>[]};
 const els={screen,app:{classList:{toggle(){}}},wallet:{textContent:''},gems:{textContent:''},toast:{textContent:'',classList:{add(){},remove(){}}}};

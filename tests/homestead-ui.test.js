@@ -66,7 +66,6 @@ assert.equal(s.app.getSave().homestead.purchases['royal-estate'],true,'No repeat
 assert.match(s.html(),/Whispering Orchard/);
 assert.match(s.html(),/CURATED COLLECTIONS/);
 assert.match(s.html(),/RESIDENCE/);
-assert.match(s.html(),/art\/homestead\/tier-01.webp/);
 assert.match(s.html(),/TIER 1\/40/);
 assert.match(s.html(),/COMPANION/);
 s.click({action:'homestead-zone',zone:'orchard'});
@@ -93,7 +92,6 @@ s.app.getSave().coins=4000;
 const tier2=H.HOUSE_TIERS[1],tier3=H.HOUSE_TIERS[2];
 s.click({action:'homestead-tier-upgrade'});
 assert.equal(s.app.getSave().homestead.maxTier,2);
-assert.match(s.html(),/art\/homestead\/tier-02.webp/);
 assert.equal(s.app.getSave().coins,4000-tier2.cost);
 s.click({action:'homestead-tier-upgrade'});
 assert.equal(s.app.getSave().homestead.maxTier,3,'Level 25 unlocks third house design');

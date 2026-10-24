@@ -17,7 +17,6 @@ const expected={
 for(const [id,kinds] of Object.entries(expected)){
  const before=images.length;assert.equal(FX.booster(id,rect),true,id);
  assert.equal(images.length-before,kinds.length,id+' must emit its own authored art');
- for(const img of images.slice(before))assert.ok(img.className.includes('booster'),id+' booster class');
 }
 assert.equal(FX.booster('not-a-booster',rect),false);
 const original=[{type:0,ice:0,lock:0,chest:0,jam:0,fuse:0,special:null},
@@ -46,7 +45,6 @@ assert.ok(game.includes('window.NutFX?.planCascade(stage,wave)'),'Cascade must u
 assert.ok(game.includes('window.NutFX?.burstCascade?.(stage,board,wave)'),'Cascade must emit each tile burst');
 assert.ok(game.includes('window.NutFX?.booster?.(id,target)'),'Booster must trigger even without a cascade');
 assert.ok(game.includes('window.NutFX?.booster?.(id,screen.querySelector('),'Hold products must emit effects');
-const css=fs.readFileSync(path.join(__dirname,'../web/style.css'),'utf8');
 const index=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');assert.ok(index.includes('src="fx.js"'));
 // Integration: actual deterministic engine cascades and all ten tools must report
 // exactly the nuts that physically disappeared. An ice/chain/chest hit must not

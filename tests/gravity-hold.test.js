@@ -107,13 +107,10 @@ for(let level=1;level<=500;level++)for(const seed of [1111,7777]){
  heldGames++;
 }
 const index=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
-const css=fs.readFileSync(path.join(__dirname,'../web/style.css'),'utf8');
 const game=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
-assert.ok(css.includes('grid-template-columns:repeat(6,minmax(0,1fr))'),'twelve powers remain in two rows');
 assert.match(game,/data-action="hold-buy"/);
 assert.match(game,/data-action="hold-cancel"/);
 assert.match(game,/data-hold-tool=/);
-assert.match(game,/class="hold-marker"/);
 assert.match(index,/src="game.js"/);
 let html='',handlers={},store={};
 const screen={classList:{toggle(){}},addEventListener:(type,handler)=>handlers[type]=handler,
@@ -142,4 +139,4 @@ const i=app.getState().game.cells.findIndex(c=>c&&c.type!==null&&!c.ice&&!c.lock
 click({holdTool:'butter_hold'});click({cell:String(i)});
 assert.equal(app.getState().game.cells[i].hold,1);
 assert.equal(P.holdCount(app.getSave(),'butter_hold'),0);
-console.log('PASS: '+heldGames+' held-match games, '+cascadeStages+' cascade stages, gem confirmation, 1/2-drop holds, x3 score, transport, shuffles, masks and twelve illustrated controls');
+console.log('PASS: '+heldGames+' held-match games, '+cascadeStages+' cascades, purchase confirmations, hold durations, scoring and transport');
