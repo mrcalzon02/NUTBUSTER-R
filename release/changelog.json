@@ -1,24 +1,23 @@
 {
   "schema": 1,
-  "headline": "Nutvale title card and compact two-column Nut Emporium shop",
+  "headline": "Release-critical functional tests now separate from optional diagnostics",
   "changes": [
     {
-      "title": "Four shop offers now fit in two columns",
-      "detail": "The Lives and Moves currency offers now use a compact two-column mobile grid. Duplicate shop explanation and the persistent last-purchase balance recap are removed, while wallet totals, purchase confirmations, and saved debits continue working.",
+      "title": "Keep gameplay and purchasing tests release-blocking",
+      "detail": "The publisher now requires functional gameplay, economy, save, signing and packaging checks, while new test suites default to the mandatory tier. Signed APK verification and remote artifact integrity remain compulsory.",
       "files": [
-        "web/game.js",
-        "web/style.css",
-        "tests/currency-shop.test.js"
+        ".github/workflows/build-and-release.yml",
+        "tools/test-tiers.js",
+        "tests/test-tiers.test.js"
       ]
     },
     {
-      "title": "A warmer welcome to Nutvale",
-      "detail": "The main menu now displays the approved squirrel-and-harbor woodland title card in place of the text-only welcome banner, preserving Play and navigation controls.",
+      "title": "Report visual, audio, and emulator failures without blocking publication",
+      "detail": "Visual, UI, audio, release-news freshness, and difficulty tests now report failures independently. Android emulator evidence remains available even if an optional diagnostic fails, without stopping the signed release.",
       "files": [
-        "web/game.js",
-        "web/style.css",
-        "web/art/banners/nutbuster-woodland-title.webp",
-        "tests/ui-smoke.test.js"
+        ".github/workflows/build-and-release.yml",
+        "tests/diagnostic-suites.txt",
+        "tests/android-emulator-smoke-contract.test.js"
       ]
     }
   ]

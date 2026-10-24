@@ -17,5 +17,10 @@ for(const [name,pattern] of Object.entries({
   crash:/FATAL EXCEPTION/,
   diagnostics:/android26-smoke-steps\.txt/,
 })) assert.match(script,pattern,name+' gate must exist');
-assert.match(flow,/for suite in tests\/\*\.test\.js|tests\/android-emulator-smoke-contract\.test\.js/,'enforce smoke test design in CI');
+const diagnostics=fs.readFileSync(path.join(root,'tests/diagnostic-suites.txt'),'utf8');
+assert.match(diagnostics,/^android-emulator-smoke-contract\.test\.js$/m,'Emulator design check must run in the report-only diagnostic tier');
+assert.match(flow,/node tools\/test-tiers\.js diagnostic/,'Diagnostic test tier must execute in CI');
+const publisher=flow.slice(flow.indexOf('  publisher-release:'));
+assert.match(publisher,/needs: \[functional-tests, desktop\]/,'Functional tests, not emulator checks, gate the release');
+assert.doesNotMatch(publisher,/needs:.*(?:emulator-smoke|android-debug|diagnostics)/,'Emulator failure must not suppress signed publishing');
 console.log('PASS: bounded Android 26 emulator startup/install/launch/screenshot, explicit checks, preserved diagnostics');
