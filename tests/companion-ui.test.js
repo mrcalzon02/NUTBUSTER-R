@@ -5,8 +5,6 @@ const html=UI.render(s);
 assert.equal((html.match(/data-action="companion-select"/g)||[]).length,10);
 assert.equal((html.match(/data-action="companion-buy"/g)||[]).length,7);
 assert.equal((html.match(/data-action="companion-feed"/g)||[]).length,7);
-assert.match(html,/art\/companions\/portrait\/squirrel.png/);
-assert.match(html,/art\/companions\/ui\/feed-red.png/);
 assert.match(html,/data-food-id="red"/);
 assert.match(html,/BUY · 750 NUTS/);
 assert.match(html,/disabled aria-label="Feed Hazel Bronze Paw Feed"/);

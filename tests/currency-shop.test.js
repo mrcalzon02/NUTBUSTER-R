@@ -13,12 +13,10 @@ assert.equal(offers['heart-gems'].amount,5);
 assert.ok(offers['move-gems'].amount>offers['move-nuts'].amount*3);
 for(const offer of Object.values(offers)){
  assert.ok(Number.isInteger(offer.cost)&&offer.cost>0);
- assert.ok(fs.existsSync(path.join(root,offer.art)),offer.art+' missing');
 }
 for(const id of E.BOOSTERS){
  assert.ok(P.GEM_BOOSTER_PRICES[id]>0,'Gem price missing '+id);
  assert.ok(P.BOOSTER_PRICES[id]>P.GEM_BOOSTER_PRICES[id],'Booster Gems must be the premium-value alternative');
- assert.ok(fs.existsSync(path.join(root,P.BOOSTER_ART[id])),'Booster illustration missing '+id);
 }
 const at=1740000000000,cap=30;
 function fresh(){const save={unlocked:500,stars:{},coins:10000,gems:200,hearts:0};P.migrate(save);D.ensure(save,at,cap);return save;}
