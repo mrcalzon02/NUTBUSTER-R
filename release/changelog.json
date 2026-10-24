@@ -1,24 +1,23 @@
 {
   "schema": 1,
-  "headline": "Approved wallet symbols and safeguards against unexpected sprite changes",
+  "headline": "Functional tests no longer dictate Nut Buster artwork",
   "changes": [
     {
-      "title": "Distinct owner-approved currency symbols in every wallet",
-      "detail": "Golden Nuts now display the existing golden acorn illustration, and Gems use the exact 01_r1c1_diamond slice from the Nut Buster Drive. The header, in-level balances, and gem-priced gravity-hold purchases share those identities, with gameplay currency values unchanged.",
+      "title": "Remove obsolete artwork and layout regression suites",
+      "detail": "Deleted assertions that required fixed icon identities, sprite crop pixels, alpha thresholds, atlas coordinates, and button artwork layouts. These tests no longer force old graphics back into the game.",
       "files": [
-        "web/game.js",
-        "web/index.html",
-        "web/art/nutvale/currency-atlas/01_r1c1_diamond.png",
-        "docs/contracts/nutbuster-primary-mechanics-and-asset-lock.csv",
         "tests/primary-contract-lock.test.js",
-        "tests/authored-art-compact-ui.test.js"
+        "tests/package.test.js"
       ]
     },
     {
-      "title": "Guard previously exported art against packaging regressions",
-      "detail": "Every supplementary atlas sprite is checked against its committed SHA-256 manifest, and normal Android and desktop packaging paths are tested to ensure they do not silently rerun the atlas slicers. No artwork was re-exported.",
+      "title": "Keep gameplay, purchases, saving and navigation under test",
+      "detail": "Retained checks for real currencies, boosters, aquarium and fishing gameplay, homestead upgrades, campaign progression, overlay mechanics, and save persistence while removing art-specific expectations.",
       "files": [
-        "tests/package.test.js"
+        "tests/currency-shop.test.js",
+        "tests/fishing-integration-full.test.js",
+        "tests/homestead-ui.test.js",
+        "tests/tile-overlay-mechanics.test.js"
       ]
     }
   ]
