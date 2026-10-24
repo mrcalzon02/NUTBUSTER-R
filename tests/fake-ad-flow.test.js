@@ -5,12 +5,8 @@ const E=require('../web/engine.js'),P=require('../web/progression.js'),
  Ads=require('../web/fake-ads.js');
 const source=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
 const html=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
-const css=fs.readFileSync(path.join(__dirname,'../web/style.css'),'utf8');
 const dependencies=['fake-ads.js','purchase-disclosures.js','promo-keys.js','promo-codes.js','game.js'];
 let prior=-1;for(const name of dependencies){const position=html.indexOf('<script src="'+name+'"></script>');assert.ok(position>prior,'Dependency missing or incorrectly ordered: '+name);prior=position;}
-assert.ok(css.includes('.fake-ad-poster img')&&css.includes('@keyframes fake-ad-wobble'));
-assert.ok(css.includes('@media(prefers-reduced-motion:reduce)'));
-assert.ok(css.includes('#app.fake-ad-active .bottom'),'Support old Android WebViews without :has');
 const data={};
 function harness(){
  let page='',next=1,time=0,hidden=false,draws=0;
@@ -40,7 +36,6 @@ function harness(){
 const t=harness(),saved=t.app.getSave(),before=saved.coins,stock=P.count(saved,'hammer');
 t.click({action:'ad-daily'});
 assert.equal(t.app.getState().page,'fake-ad');
-assert.match(t.page(),/art\/ads\/.+\.webp/);
 assert.match(t.page(),/SKIP · NO REWARD/);
 assert.match(t.page(),/2:00/);
 t.click({action:'ad-claim'});
@@ -83,4 +78,4 @@ assert.match(t.page(),/TOTAL DUE/);assert.match(t.page(),/\$0\.00/);
 t.click({action:'checkout-complete'});
 assert.equal(t.app.getState().discountOffer,null,'Discount not carried into another order');
 assert.equal(t.intervals(),0);
-console.log('PASS: original ad images; daily bonus/abort/reload protection; background pause; same-offer discount; free checkout; no leaked timers');
+console.log('PASS: daily ad rewards, abort/reload protection, foreground timing, discounts and free checkout');

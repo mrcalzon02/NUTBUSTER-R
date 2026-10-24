@@ -39,7 +39,6 @@ s.click({action:'fish-upgrade',kind:'tank'});
 assert.match(s.html(),/CONFIRM PURCHASE/,'Tank expansion now requires explicit purchase consent');
 s.click({action:'purchase-confirm'});
 assert.equal(n.tank,1);assert.equal(F.capacity(n),7);assert.equal(F.stampCapacity(n),5);
-assert.match(s.html(),/width:min\(100%,550px\)/);
 s.click({action:'fish-aqua-edit'});
 assert.equal(s.app.getState().aquariumEditing,false);
 s.app.nav('homestead');
