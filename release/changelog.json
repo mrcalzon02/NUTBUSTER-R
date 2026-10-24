@@ -1,32 +1,31 @@
 {
   "schema": 1,
-  "headline": "Rupee Rush teaser and release-backed update news",
+  "headline": "Store wallet deductions, clear purchase receipts, and larger booster icons",
   "changes": [
     {
-      "title": "Rupee Rush is coming",
-      "detail": "A new gem-themed game teaser banner has been added to Nut Buster's home screen.",
+      "title": "Nut and Gem purchases now show their exact wallet deductions",
+      "detail": "Confirmed purchases of lives, extra moves, boosters, and gravity-hold tools display the currency balance before and after payment. The shop and top currency counters refresh immediately, and deductions are saved.",
       "files": [
-        "web/art/banners/rupee-rush-coming-soon.svg",
         "web/game.js",
-        "web/style.css"
+        "tests/currency-shop.test.js"
       ]
     },
     {
-      "title": "What's new on the home screen",
-      "detail": "A compact scrolling news ticker and expandable changes list now travel with each packaged release.",
+      "title": "Large Golden Nut and Gem balances are protected",
+      "detail": "Booster and hold-tool purchases use the full stored wallet balance instead of a smaller inventory cap, while elemental-trial rewards preserve existing large balances when adding prizes.",
       "files": [
-        "web/game.js",
-        "web/index.html",
-        "web/release-news.js"
+        "web/progression.js",
+        "web/elemental-rewards.js",
+        "tests/elemental-trials-and-daily-integration.test.js"
       ]
     },
     {
-      "title": "Every published update needs real notes",
-      "detail": "Release tests reject reused, empty, invented, or unrelated changelog entries; the publisher embeds the validated news and publishes matching release notes.",
+      "title": "Booster illustrations fill their existing button faces",
+      "detail": "In-level power-up artwork is enlarged within the unchanged booster button grid, with stock counts over the art instead of tiny icons surrounded by oversized button framing.",
       "files": [
-        "tools/release-news.js",
-        "tests/release-news.test.js",
-        ".github/workflows/build-and-release.yml"
+        "web/style.css",
+        "tests/booster-button-face.test.js",
+        "tests/primary-contract-lock.test.js"
       ]
     }
   ]
