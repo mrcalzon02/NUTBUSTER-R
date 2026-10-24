@@ -32,7 +32,7 @@ function describe(action,data,{save,P,E,F,H,state}){
   const price=info.currency==='dollars'?'Wharf Dollars '+money(info.cost):money(info.cost)+' Golden Nuts';
   return {name:'Open '+crate.name,lines:['Price: '+price+'.','One random outcome from the itemized odds table.',
    ...(info.fixed?[info.fixed]:[]),'All listed chances sum to 100%.',
-   'Duplicate outfits pay +600 Golden Nuts; capped upgrades pay N$800.',
+   'Duplicate outfits pay +600 Golden Nuts; full booster stock pays +800 Golden Nuts; capped upgrades or bait stock pay N$800.',
    'Bait won before its shop tier is unlocked remains stocked until usable.',
    'In-game currency only; no actual payment.'],odds:info.odds.map(o=>({name:o.label,probability:o.percent/100}))};
  }

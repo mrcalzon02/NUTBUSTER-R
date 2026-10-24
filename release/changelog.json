@@ -1,23 +1,23 @@
 {
   "schema": 1,
-  "headline": "Release-critical functional tests now separate from optional diagnostics",
+  "headline": "Random reward crates return to the Nut Emporium with disclosed odds",
   "changes": [
     {
-      "title": "Keep gameplay and purchasing tests release-blocking",
-      "detail": "The publisher now requires functional gameplay, economy, save, signing and packaging checks, while new test suites default to the mandatory tier. Signed APK verification and remote artifact integrity remain compulsory.",
+      "title": "Restore eight actual random loot crates in the shop",
+      "detail": "Reconnected the previously orphaned weighted crate engine and added four new bundles covering early and advanced boosters, seasonal cosmetics, aquarium tank upgrades, bait, Wharf Dollars, Golden Nuts and Gems. One disclosed random prize is rolled only after confirmation.",
       "files": [
-        ".github/workflows/build-and-release.yml",
-        "tools/test-tiers.js",
-        "tests/test-tiers.test.js"
+        "web/loot-crates.js",
+        "web/index.html",
+        "web/game.js"
       ]
     },
     {
-      "title": "Report visual, audio, and emulator failures without blocking publication",
-      "detail": "Visual, UI, audio, release-news freshness, and difficulty tests now report failures independently. Android emulator evidence remains available even if an optional diagnostic fails, without stopping the signed release.",
+      "title": "Disclose drop chances and show the prize actually received",
+      "detail": "Each crate shows its full exact percentage table before purchase, including guaranteed bonuses and duplicate compensation. Purchase confirmation repeats the odds; successful openings debit currency, persist the prize, and reveal the result.",
       "files": [
-        ".github/workflows/build-and-release.yml",
-        "tests/diagnostic-suites.txt",
-        "tests/android-emulator-smoke-contract.test.js"
+        "web/purchase-disclosures.js",
+        "web/game.js",
+        "web/style.css"
       ]
     }
   ]

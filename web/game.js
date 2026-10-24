@@ -3,12 +3,12 @@ const E=window.NutEngine, M=window.NutCampaignMaps, P=window.NutProgress, H=wind
 const icons=['🥜','🌰','🌰','🥜','🌰','🟢','🌟'];
 const D=window.NutDailyMoves, B=window.NutBenefits, T=window.NutElementalChallenges, R=window.NutElementalRewards;
 if(!D||!T||!R)throw new Error('Daily moves and elemental reward modules must load before gameplay');
-const Mines=window.NutvaleMines, MineUI=window.NutvaleMinesUI, Comp=window.NutCompanions, CompUI=window.NutCompanionsUI;
+const Mines=window.NutvaleMines, MineUI=window.NutvaleMinesUI, Comp=window.NutCompanions, CompUI=window.NutCompanionsUI, Crates=window.NutCrates;
  const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,announcerVoice:'original',levels:{voice:.9,music:.28,reactions:.38,sfx:.48},effects:true,completed:0};
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);R.ensure(saved);H.ensure(saved);A.ensure(saved);if(Comp)Comp.ensure(saved);if(!['original','auditor'].includes(saved.announcerVoice))saved.announcerVoice='original';D.ensure(saved,Date.now(),E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null};let toastHandle;
+let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,crateReveal:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});window.NutAudio.setAnnouncerVoice?.(saved.announcerVoice);}
 if(window.NutSFX){window.NutSFX.setEnabled(state.effects);window.NutSFX.setVolume(saved.levels.sfx);}
 function playSFX(name,opts){window.NutSFX?.play(name,opts);}
@@ -514,13 +514,13 @@ function purchaseDialog(){
  const p=state.purchasePending;if(!p)return '';
  const d=p.details;
  return '<div class="purchase-overlay"><section class="purchase-confirm-dialog" role="dialog" aria-modal="true" aria-label="Confirm purchase and exact contents">'+
- '<div class="purchase-confirm-head"><b>'+escPurchase(d.name)+'</b><button class="btn ghost" data-action="purchase-cancel">✕ CLOSE</button></div><b class="purchase-confirm-label">EXACT CONTENTS AND COSTS</b>'+
- purchaseList(d.lines)+(d.odds?'<details class="purchase-odds" open><summary>ACTUAL CATCH ODDS · '+d.odds.length+' SPECIES</summary>'+
+ '<div class="purchase-confirm-head"><b>'+escPurchase(d.name)+'</b><button class="btn ghost" data-action="purchase-cancel">✕ CLOSE</button></div><b class="purchase-confirm-label">'+(p.action==='crate-open'?'GUARANTEED REWARDS + RANDOM DROP ODDS':'EXACT CONTENTS AND COSTS')+'</b>'+
+ purchaseList(d.lines)+(d.odds?'<details class="purchase-odds" open><summary>'+(p.action==='crate-open'?'ACTUAL DROP CHANCES · ':'ACTUAL CATCH ODDS · ')+d.odds.length+(p.action==='crate-open'?' POSSIBILITIES':' SPECIES')+'</summary>'+
  '<div class="purchase-odds-scroll">'+d.odds.map(x=>'<div><span>'+escPurchase(x.name)+'</span><b>'+(100*x.probability).toFixed(5)+'%</b></div>').join('')+'</div>'+
- '<small>Probabilities are computed for the disclosed rod and bait; percentages are rounded. The fishing minigame must still be won to keep or sell the catch.</small></details>':'')+
+ '<small>'+(p.action==='crate-open'?'One independent weighted roll per crate. Exactly one listed random outcome; guaranteed items are additional. Odds sum to 100%. No real-money charge.':'Probabilities are computed for the disclosed rod and bait; percentages are rounded. The fishing minigame must still be won to keep or sell the catch.')+'</small></details>':'')+
  '<div class="purchase-confirm-actions"><button class="btn green" data-action="purchase-confirm">CONFIRM PURCHASE</button><button class="btn ghost" data-action="purchase-cancel">CANCEL</button></div></section></div>';
 }
-const CONFIRMED_PURCHASES=new Set(['shop-currency-buy','booster-gems-buy','booster-buy','fish-bait-buy','fish-craft','fish-trade','fish-rod-buy','fish-rod-repair','fish-upgrade','homestead-tier-upgrade','homestead-build','homestead-renovate']);
+const CONFIRMED_PURCHASES=new Set(['crate-open','shop-currency-buy','booster-gems-buy','booster-buy','fish-bait-buy','fish-craft','fish-trade','fish-rod-buy','fish-rod-repair','fish-upgrade','homestead-tier-upgrade','homestead-build','homestead-renovate']);
 function beginCheckout(index,from=state.page){
  if(!Number.isInteger(index)||!offers[index])return;
  if(index===4&&saved.vip){nav('vip-benefits');return;}
@@ -592,12 +592,24 @@ function nutToBoosterShop(){
  '<button class="btn ghost" data-nav="bait-shop">→ WHARF BAIT SHOP</button></details>';
 }
 function FRate(id){return window.NutFishing?.BOOSTER_BAIT?.[id]||0;}
+function randomCrateShop(){
+ if(!Crates)return '';
+ const currencyLabel=c=>c==='dollars'?'N$':'GOLDEN NUTS';
+ const cards=Object.entries(Crates.CRATES).map(([id,crate])=>{
+  const info=Crates.odds(saved,id),balance=crate.currency==='dollars'?window.NutFishing?.ensure(saved)?.dollars:saved.coins;
+  const affordable=Number(balance)>=crate.cost;
+  const odds=info.odds.map(item=>'<li><span>'+escPurchase(item.label)+'</span><b>'+item.percent.toFixed(2)+'%</b></li>').join('');
+  return '<article class="panel random-crate-card"><img src="'+crate.art+'" alt="" class="random-crate-icon" loading="lazy"><div class="random-crate-info"><b>'+escPurchase(crate.name)+'</b><small>'+info.odds.length+' possible outcomes · 1 random roll'+(info.fixed?' · guaranteed bonus':'')+'</small><details class="random-crate-odds"><summary>SEE EXACT DROP CHANCES</summary>'+(info.fixed?'<p>Guaranteed: '+escPurchase(info.fixed)+'</p>':'')+'<ul>'+odds+'</ul><small>Odds total 100%. Duplicates and full inventories receive the disclosed compensation.</small></details><button class="btn secondary" data-action="crate-open" data-crate="'+id+'" '+(affordable?'':'disabled')+' aria-label="Open '+escPurchase(crate.name)+' for '+crate.cost+' '+currencyLabel(crate.currency)+'">'+crate.cost.toLocaleString()+' '+currencyLabel(crate.currency)+' · OPEN</button></div></article>';
+ }).join('');
+ const reveal=state.crateReveal?'<div class="panel random-crate-reveal" role="status"><b>'+escPurchase(state.crateReveal.name)+' · RECEIVED</b><p>'+state.crateReveal.rewards.map(x=>escPurchase(x.label)).join(' · ')+'</p></div>':'';
+ return '<section class="random-crate-shop"><h3>RANDOM LOOT BUNDLES · PUBLISHED ODDS</h3><small>Golden Nuts and Wharf Dollars only · optional · actual contents vary with each confirmed opening · no cash purchase</small>'+reveal+'<div class="random-crate-grid">'+cards+'</div></section>';
+}
 function shop(){
  const holdCards=Object.entries(P.HOLD_ITEMS).map(([id,item])=>{
   const pending=state.holdOffer===id;
   return `<div class="hold-offer"><img src="${item.art}" alt="" draggable="false"><div class="hold-offer-info"><b>${item.label}</b><small>${item.drops} gravity drop${item.drops===1?'':'s'} · held-nut matches ×3 · Owned ${P.holdCount(saved,id)}</small></div><div class="hold-offer-buy"><b>${item.gems} <img src="art/nutvale/currency-atlas/01_r1c1_diamond.png" alt="gems"></b><button class="btn secondary" data-action="hold-offer" data-hold-id="${id}" title="Spend ${item.gems} Gems for exactly one ${item.label} held-nut power-up; ${item.drops} gravity drops, held matches ×3">BUY</button></div>${pending?`<div class="hold-confirm" role="group" aria-label="Confirm ${item.label} purchase"><span>Spend ${item.gems} Gems; receive exactly 1 ${item.label} power-up. Hold one selected nut for ${item.drops} gravity drops; held matches score ×3. Guaranteed, no randomness. Balance: ${saved.gems.toLocaleString()} Gems.</span><button class="btn green" data-action="hold-buy" data-hold-id="${id}">CONFIRM</button><button class="btn ghost" data-action="hold-cancel">CANCEL</button></div>`:''}</div>`;
  }).join('');
- return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">OPTIONAL BUNDLES</span>'}</div>${promoSection(true)}${currencyExchangeShop()}<div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div>${nutToBoosterShop()}${window.NutFishingUI?.exchangeSheet?.(saved,E,P,false)||''}<p class="muted">Transparent contents, one-time bundles, no subscriptions or purchase countdowns.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item"><img class="shop-offer-icon" src="${shopSprites[i]}" alt="" loading="lazy"><h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><details class="offer-disclosure"><summary>EXACT CONTENTS · NO RANDOM CHANCE</summary>${purchaseList(Purchases.offer(i,offers,P.actualPack(saved,'shop'+i),E).lines)}</details><div class="offer-price">${p[4]}</div>${i===4?'<small>Daily +5 moves · 4 boosters · +250 Golden Nuts. Lifetime.</small>':''}<button class="btn green" data-action="${i===4&&saved.vip?'vip-benefits':'claim'}" data-item="${i}">${i===4&&saved.vip?'OWNED · VIEW BENEFITS':'BUY PACKAGE'}</button></div>`).join('')}</div>`;
+ return `<div class="topline"><h2>THE PREMIER NUT EMPORIUM</h2>${state.game&&!state.game.won&&!state.game.lost?'<button class="btn ghost" data-nav="game">← GAME</button>':'<span class="pill">OPTIONAL BUNDLES</span>'}</div>${promoSection(true)}${currencyExchangeShop()}<div class="panel hold-store"><div class="hold-store-title"><b>GRAVITY HOLD POWER-UPS</b><span>Gems ${saved.gems.toLocaleString()}</span></div>${holdCards}</div>${nutToBoosterShop()}${randomCrateShop()}${window.NutFishingUI?.exchangeSheet?.(saved,E,P,false)||''}<p class="muted">Transparent contents, one-time bundles, no subscriptions or purchase countdowns.</p><div class="shop-grid">${products.map((p,i)=>`<div class="panel shop-item"><img class="shop-offer-icon" src="${shopSprites[i]}" alt="" loading="lazy"><h3>${p[0]}</h3><p class="muted">+${p[2].toLocaleString()} nuts · +${p[3].toLocaleString()} gems</p><p class="pack-contents">${boosterSummary(P.actualPack(saved,'shop'+i))}</p><details class="offer-disclosure"><summary>EXACT CONTENTS · NO RANDOM CHANCE</summary>${purchaseList(Purchases.offer(i,offers,P.actualPack(saved,'shop'+i),E).lines)}</details><div class="offer-price">${p[4]}</div>${i===4?'<small>Daily +5 moves · 4 boosters · +250 Golden Nuts. Lifetime.</small>':''}<button class="btn green" data-action="${i===4&&saved.vip?'vip-benefits':'claim'}" data-item="${i}">${i===4&&saved.vip?'OWNED · VIEW BENEFITS':'BUY PACKAGE'}</button></div>`).join('')}</div>`;
 }
 function rewards(){const tiers=P.challengeRewards(saved),next=P.nextUnlock(saved),elemental=R.summary(saved);let mins=Math.max(0,Math.ceil((saved.chestReadyAt-Date.now())/60000));return `<div class="topline"><h2>REWARDS, REWARDS, REWARDS</h2></div><div class="panel reward-inventory"><b>FREE CLAIMS · 12-HOUR INDEPENDENT COOLDOWNS</b><p class="muted">Redeem manually when ready. Unlike the automatic 24-hour move refill, these do not stockpile.</p>${freeClaimButton("hearts","refill","REDEEM HEART REFILL")} ${freeClaimButton("moves","bonus-moves","REDEEM +5 MOVES")}</div>${promoSection()}<div class="panel reward-inventory"><b>BOOSTER VAULT</b><p class="muted">${inventorySummary()}</p>${next?'<p class="muted">Next power: '+E.BOOSTER_META[next.id].label+' · clear level '+next.level+'</p>':''}</div>
  <div class="panel challenge-rewards"><b>ELEMENTAL TRIAL REWARDS</b><p class="muted">${elemental.completed}/150 trials · ${elemental.relics.length}/15 relics · ${movesLeft()} daily moves left</p><div class="elemental-relics">${elemental.relics.map(id=>'<img src="art/primary/nuts/elemental/'+id+'.png" alt="'+id+' relic" title="'+id+' relic" loading="lazy">').join('')}</div></div><div class="panel challenge-rewards"><b>CHALLENGE REWARD TRACK</b><p class="muted">${P.challengeProgress(saved)}/25 challenge milestones cleared</p>
@@ -1041,6 +1053,14 @@ function action(a,button){
  if(a==='purchase-confirm'){
   const p=state.purchasePending;if(!p)return;
   state.purchasePending=null;action(p.action,{dataset:p.data});return;
+ }
+ if(a==='crate-open'){
+  if(state.page!=='shop'||!Crates)return;
+  const result=Crates.open(saved,button.dataset.crate);
+  if(!result.valid){notice(result.reason==='funds'?'NOT ENOUGH '+(Crates.CRATES[button.dataset.crate]?.currency==='dollars'?'WHARF DOLLARS':'GOLDEN NUTS'):'CRATE UNAVAILABLE');return;}
+  // Grant, debit, and preserve the outcome before rendering or triggering visual effects.
+  persist();counters();state.crateReveal={name:result.name,rewards:result.rewards};
+  render();playSFX('coin');notice(result.name.toUpperCase()+' · REWARD RECEIVED');window.NutFX?.emit('chest-open');return;
  }
  if(a==='shop-currency-buy'){
   if(state.page!=='shop'){notice('OPEN THE NUT EMPORIUM TO TRADE CURRENCY');return;}
