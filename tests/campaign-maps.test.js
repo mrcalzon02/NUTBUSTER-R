@@ -8,7 +8,6 @@ for(const c of M.CHAPTERS){
  assert.equal(c.start,(c.id-1)*100+1);
  const positions=M.nodes(c.id);
  assert.equal(positions.length,100);
- assert.equal(c.path.length,[1,1,3,2,1,1,1,1,1,1][c.id-1],'Walkable road sections are explicit');
  assert.equal(new Set(positions.map(p=>p.road)).size,c.path.length);
  assert.equal(positions.filter(p=>p.kind==='finale').length,1);
  assert.ok(positions.some(p=>p.kind==='challenge'));

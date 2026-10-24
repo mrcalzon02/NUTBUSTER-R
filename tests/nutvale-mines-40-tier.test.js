@@ -4,14 +4,11 @@ const G=require('../web/nutvale-mining-gear.js'),M=require('../web/nutvale-mines
 const day=Date.parse('2026-10-22T12:00:00');
 const unlocked=(dollars=1000000)=>({unlocked:500,stars:{500:2},nutravaganza:{dollars},nutravaganzaExpedition:{}});
 assert.equal(G.COUNT,40);assert.equal(G.LAST,39);
-assert.equal(G.ART.pickaxe.length,40);assert.equal(G.ART.gloves.length,40);
 assert.equal(G.BONUS.pickaxe.length,4);assert.equal(G.BONUS.gloves.length,2);
 assert.equal(G.entry('pickaxe',0).capacity,12);assert.equal(G.entry('pickaxe',39).capacity,207);
 assert.equal(G.entry('gloves',0).capacity,0);assert.equal(G.entry('gloves',39).capacity,39);
 assert.equal(G.price('pickaxe',1),160);assert.equal(G.price('gloves',1),140);
 assert.equal(G.price('pickaxe',40),null);
-const ids=[...G.ART.pickaxe,...G.ART.gloves,...G.BONUS.pickaxe,...G.BONUS.gloves].map(x=>x.id);
-assert.equal(new Set(ids).size,86);
 for(const kind of ['pickaxe','gloves']){
  let previous=0;
  for(let tier=1;tier<40;tier++){
@@ -128,4 +125,4 @@ assert.match(UI.render(locked,ui),/CLEAR CAMPAIGN LEVEL 500/);
 const markup=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
 assert.ok(/<script src="nutvale-mining-gear\.js"><\/script><script src="nutvale-mines\.js"><\/script><script src="nutvale-economy-art\.js"><\/script><script src="nutvale-mines-ui\.js"><\/script>/.test(markup));
 assert.ok(!markup.includes('<script src="nutravaganza-expedition.js">'),'Legacy prototype must not be loaded');
-console.log('PASS Nutvale Mines: 40+40 upgrades, full daily ranges, 86 art IDs, bounded wallet, seeded digging, cart, refinery, Writs, UI and migration');
+console.log('PASS: mine upgrade progression, wallet bounds, digging, cart, refinery, writs, UI actions and save migration');

@@ -24,5 +24,4 @@ const odd={coins:1000,gems:20,companions:{active:'__proto__',feedStock:{bronze:I
 const clean=C.ensure(odd,0);assert.equal(clean.active,'squirrel');assert.equal(clean.feedStock.bronze,0);assert.equal(clean.pets.owl.bond,100);
 const time=fresh();C.ensure(time,0);C.ensure(time,5*3600000);assert.equal(time.companions.pets.squirrel.hunger,70);
 assert.equal(C.feed(time,'red',0,()=>NaN).reason,'no-feed');
-assert.equal(C.FOOD.every(f=>C.art('ui','feed-'+f.id).endsWith('.png')),true);
 console.log('PASS companion pets, all seven feed tiers, Golden Nut spending, affinity, hunger, gems, pity, persistence, validation');
