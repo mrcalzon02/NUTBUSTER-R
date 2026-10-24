@@ -53,10 +53,10 @@ async function run(){
  swap=findSwap(g,true);const score=g.score;click({cell:String(swap[0])});click({cell:String(swap[1])});
  await settle();assert.ok(g.score>score);assert.equal(renders,before);
  const removed=g.history.at(-1).removed;assert.ok(removed>0,'Matching move destroys nuts');
- assert.equal(app.getSave().coins,startingCoins+removed,'Destroyed nuts credit the spendable wallet');
- assert.equal(refs.wallet.textContent,(startingCoins+removed).toLocaleString(),'Main balance updates without rebuilding the board');
- assert.equal(refs['play-wallet'].textContent,(startingCoins+removed).toLocaleString(),'In-level balance updates during play');
- assert.equal(JSON.parse(saveStore['nutbuster.v1']).coins,startingCoins+removed,'Destroyed-nut currency persists on device');
+ assert.equal(app.getSave().coins,startingCoins,'Matches award score, not spendable Golden Nuts');
+ assert.equal(refs.wallet.textContent,startingCoins.toLocaleString(),'Main wallet stays unchanged during ordinary matching');
+ assert.equal(refs['play-wallet'].textContent,startingCoins.toLocaleString(),'In-level wallet stays unchanged during ordinary matching');
+ assert.equal(JSON.parse(saveStore['nutbuster.v1']).coins,startingCoins,'Match score does not create saved currency');
  app.start(1);attach();g=state().game;app.getSave().dailyMoves.remaining=1;g.moves=1;swap=findSwap(g,false);
  click({cell:String(swap[0])});click({cell:String(swap[1])});await settle();
  assert.equal(state().page,'outcome');assert.ok(html.includes('OUT OF MOVES!'));
@@ -66,7 +66,7 @@ async function run(){
  app.start(1);attach();g=state().game;g.score=g.cfg.goal-1;swap=findSwap(g,true);
  click({cell:String(swap[0])});click({cell:String(swap[1])});await settle();
  assert.equal(state().page,'outcome');assert.ok(html.includes('LEVEL COMPLETE!'));
- assert.equal(app.getSave().coins,startingCoins+removed+g.history.at(-1).removed+500,'Winning still credits the fixed 500 Golden Nut bonus on top of destroyed nuts');
+ assert.equal(app.getSave().coins,startingCoins+500,'Winning credits exactly the original 500 Golden Nuts, not per-nut match rewards');
  console.log('PASS UI: staged zero-dollar checkout and grant, no render-on-tap, move/cascade, loss +5 continuation, victory.');
 }
 run().catch(err=>{console.error(err);process.exitCode=1});
