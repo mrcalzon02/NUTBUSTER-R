@@ -1,76 +1,68 @@
 {
   "schema": 1,
-  "headline": "Original premium and interface icons restored without neighboring-art bleed",
+  "headline": "Verified premium sprite restoration: original artwork, no bleed or cropped edges",
   "changes": [
     {
-      "title": "Remove obsolete artwork and layout regression suites",
-      "detail": "Deleted assertions that required fixed icon identities, sprite crop pixels, alpha thresholds, atlas coordinates, and button artwork layouts. These tests no longer force old graphics back into the game.",
+      "title": "All twenty premium economy icons restored from original art",
+      "detail": "Re-extracted the exact matching shop and economy icon identities, including the purple Booster Crate bar, Lifetime VIP shield, Royal Squirrel gift, red chest and hourglass. Each transparent PNG has preserved margins and a pinned hash.",
       "files": [
-        "tests/primary-contract-lock.test.js",
-        "tests/package.test.js"
-      ]
-    },
-    {
-      "title": "Keep gameplay, purchases, saving and navigation under test",
-      "detail": "Retained checks for real currencies, boosters, aquarium and fishing gameplay, homestead upgrades, campaign progression, overlay mechanics, and save persistence while removing art-specific expectations.",
-      "files": [
-        "tests/currency-shop.test.js",
-        "tests/fishing-integration-full.test.js",
-        "tests/homestead-ui.test.js",
-        "tests/tile-overlay-mechanics.test.js"
-      ]
-    },
-    {
-      "title": "Premium economy artwork repaired from untouched source atlases",
-      "detail": "Restored twenty original premium, currency-package and shop-item illustrations by isolating each sprite's opaque core and antialiased edge. Corrected chopped nut bars, chests, VIP shields, gifts and timers without changing their item identities.",
-      "files": [
+        "web/art/additions/economy/achievement-medal.png",
         "web/art/additions/economy/acorn-pile.png",
+        "web/art/additions/economy/booster-pack.png",
+        "web/art/additions/economy/daily-calendar.png",
+        "web/art/additions/economy/energy-heart.png",
+        "web/art/additions/economy/friends-gift.png",
+        "web/art/additions/economy/grand-bundle.png",
+        "web/art/additions/economy/hourglass.png",
+        "web/art/additions/economy/level-badge.png",
+        "web/art/additions/economy/locked-chest.png",
+        "web/art/additions/economy/mystery-gift.png",
+        "web/art/additions/economy/open-lootbox.png",
+        "web/art/additions/economy/piggy-bank.png",
+        "web/art/additions/economy/premium-ticket.png",
         "web/art/additions/economy/prismatic-acorn.png",
         "web/art/additions/economy/shell-coins.png",
         "web/art/additions/economy/squirrel-cash.png",
-        "web/art/additions/economy/achievement-medal.png",
-        "web/art/additions/economy/premium-ticket.png",
-        "web/art/additions/economy/locked-chest.png",
-        "web/art/additions/economy/open-lootbox.png",
-        "web/art/additions/economy/booster-pack.png",
-        "web/art/additions/economy/piggy-bank.png",
-        "web/art/additions/economy/energy-heart.png",
-        "web/art/additions/economy/hourglass.png",
-        "web/art/additions/economy/timed-chest.png",
         "web/art/additions/economy/squirrel-pass.png",
-        "web/art/additions/economy/vip-shield.png",
-        "web/art/additions/economy/daily-calendar.png",
-        "web/art/additions/economy/mystery-gift.png",
-        "web/art/additions/economy/level-badge.png",
-        "web/art/additions/economy/friends-gift.png",
-        "web/art/additions/economy/grand-bundle.png"
+        "web/art/additions/economy/timed-chest.png",
+        "web/art/additions/economy/vip-shield.png"
       ]
     },
     {
-      "title": "Original interface icons restored without crop spillover",
-      "detail": "Re-exported all twenty-one menu and interface sprites as independent transparent PNGs, including shop, coupon-related icons, settings, navigation and timer. Existing button mappings, spacing and click behavior remain unchanged.",
+      "title": "Twenty-one original user-interface icons restored",
+      "detail": "Re-exported the original menu, shop, coupon-related, timer and navigation icons from their source atlas with whole-object alpha isolation. Images retain their existing names and button wiring; the nut sprites were not altered.",
       "files": [
-        "web/art/additions/ui/title-acorn.png",
-        "web/art/additions/ui/home.png",
-        "web/art/additions/ui/play.png",
-        "web/art/additions/ui/pause.png",
-        "web/art/additions/ui/settings.png",
-        "web/art/additions/ui/campaign-map.png",
-        "web/art/additions/ui/store.png",
-        "web/art/additions/ui/gift.png",
-        "web/art/additions/ui/treasure.png",
-        "web/art/additions/ui/vip-crown.png",
-        "web/art/additions/ui/sound-on.png",
-        "web/art/additions/ui/sound-off.png",
-        "web/art/additions/ui/music-on.png",
-        "web/art/additions/ui/music-off.png",
         "web/art/additions/ui/back.png",
-        "web/art/additions/ui/next.png",
-        "web/art/additions/ui/restart.png",
+        "web/art/additions/ui/campaign-map.png",
+        "web/art/additions/ui/gift.png",
         "web/art/additions/ui/help.png",
-        "web/art/additions/ui/trophy.png",
+        "web/art/additions/ui/home.png",
+        "web/art/additions/ui/life.png",
+        "web/art/additions/ui/music-off.png",
+        "web/art/additions/ui/music-on.png",
+        "web/art/additions/ui/next.png",
+        "web/art/additions/ui/pause.png",
+        "web/art/additions/ui/play.png",
+        "web/art/additions/ui/restart.png",
+        "web/art/additions/ui/settings.png",
+        "web/art/additions/ui/sound-off.png",
+        "web/art/additions/ui/sound-on.png",
+        "web/art/additions/ui/store.png",
         "web/art/additions/ui/timer.png",
-        "web/art/additions/ui/life.png"
+        "web/art/additions/ui/title-acorn.png",
+        "web/art/additions/ui/treasure.png",
+        "web/art/additions/ui/trophy.png",
+        "web/art/additions/ui/vip-crown.png"
+      ]
+    },
+    {
+      "title": "Immutable source atlases and verified recovery bundles archived",
+      "detail": "Committed untouched owner originals plus separate per-item QA recovery archives and an integrity test. Remaining complex power-up and effects originals are preserved without overwriting playable assets until their glow boundaries are reviewed.",
+      "files": [
+        "assets/source/original-non-nut-atlases/powerups-4x4.png",
+        "assets/source/original-non-nut-atlases/effects-original.png",
+        "assets/recovery/original-non-nut/index.json",
+        "tests/premium-icon-integrity.test.js"
       ]
     }
   ]

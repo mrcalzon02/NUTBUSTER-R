@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "coverage": "73 independent RGBA exports from four original non-nut atlas sources",
+  "coverage": "73 verified live-safe recovery slices from four atlases; all six owner-supplied non-nut original sources preserved",
   "status": "staged-qa-do-not-auto-replace-production-icons",
   "method": "opaque connected-component cores; whole-atlas nearest-core soft-alpha ownership; alpha threshold 8; source distance limit 38px; transparent 384x384 canvas with >=12px empty margin",
   "per_category": {
@@ -12,7 +12,8 @@
   "quarantine_notes": [
     "All source PNGs preserved exactly. Do not modify already approved match-three nut sprites.",
     "Removed one unrelated detached red fragment from blockers-original/key.png; independent main key kept.",
-    "A new slice is never an authorization to reassign existing HARD-locked image paths or replace working UI assets."
+    "A new slice is never an authorization to reassign existing HARD-locked image paths or replace working UI assets.",
+    "Two untouched original power-up/effect source sheets are preserved; no unreviewed halo-overlap slices from those sheets have been substituted into gameplay."
   ],
   "files": [
     {
@@ -69,6 +70,16 @@
       "path": "assets/recovery/original-non-nut/blockers-original-part2.zip",
       "git_blob_sha": "87d890212f2ae1ee04abd0de9b4ab4b47f8b3e0f",
       "sha256": "fc96f58e016ec51243f00451b2bc7193be6239e2775c42ddca4324b773f95179"
+    },
+    {
+      "path": "assets/source/original-non-nut-atlases/powerups-4x4.png",
+      "git_blob_sha": "4eb59b64fead656399e84d3eb3a26df10005cf44",
+      "sha256": "e1950815b5e8cb7eda1ca7fda3289c82b51fc18d03ee4567748ee5d1c9063513"
+    },
+    {
+      "path": "assets/source/original-non-nut-atlases/effects-original.png",
+      "git_blob_sha": "07db01cf20f12cd59e70ff9347c9937cb02aa481",
+      "sha256": "e9f7873bfcf260566bf7013877733dc3e69848086ebf3a9138fe32660dd02ea6"
     }
   ]
 }
