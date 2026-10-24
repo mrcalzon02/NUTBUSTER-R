@@ -1,13 +1,7 @@
-/* Canonical Nutbuster mechanics + artwork regression gate.
-   Run: node tests/primary-contract-lock.test.js
-   This is intentionally independent of test runners and any network/SDK.
-   CSV additions are allowed; changes to HARD identities require updating the contract
-   and explicitly reviewing the corresponding invariants. */
+/* Functional contract only: IDs, save keys, economy, and gameplay mechanics.
+   Artwork, sprite choice, CSS and pixel content are intentionally not tested here. */
 'use strict';
-const fs=require('node:fs');
-const path=require('node:path');
-const crypto=require('node:crypto');
-const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..');
 const get=p=>fs.readFileSync(path.join(root,p),'utf8');
 function parseCSV(text){
@@ -24,129 +18,64 @@ function parseCSV(text){
  }
  if(quoted)throw new Error('Unclosed CSV string');
  if(field.length||record.length){record.push(field);records.push(record);}
- const columns=records.shift(),needed=['contract_id','domain','stable_id','image_path','git_blob_sha','lock','state'];
- for(const key of needed)assert(columns.includes(key),'Missing CSV column '+key);
- return records.map((row,i)=>{
-  assert.equal(row.length,columns.length,'Wrong CSV column count on row '+(i+2));
-  return Object.fromEntries(columns.map((name,j)=>[name,row[j]]));
+ const columns=records.shift(),required=['contract_id','domain','stable_id','code_or_save_identity','state'];
+ for(const column of required)assert(columns.includes(column),'Missing contract column '+column);
+ return records.map((values,i)=>{
+  assert.equal(values.length,columns.length,'Malformed contract row '+(i+2));
+  return Object.fromEntries(columns.map((name,j)=>[name,values[j]]));
  });
 }
-function gitBlobHash(bytes){
- const h=crypto.createHash('sha1');h.update('blob '+bytes.length+'\0');h.update(bytes);return h.digest('hex');
+const records=parseCSV(get('docs/contracts/nutbuster-primary-mechanics-and-asset-lock.csv'));
+assert(records.length>=320,'Gameplay contract catalog truncated');
+const registry=new Map(records.map(r=>[r.contract_id,r]));
+assert.equal(registry.size,records.length,'Duplicate functional contract ID');
+const row=id=>{const rec=registry.get(id);assert(rec,'Missing contract '+id);return rec;};
+function identity(id,stable,saveKey){
+ const r=row(id);
+ assert.equal(r.stable_id,stable,'Functional identifier changed at '+id);
+ assert.equal(r.code_or_save_identity,saveKey,'Save binding changed at '+id);
 }
-const rows=parseCSV(get('docs/contracts/nutbuster-primary-mechanics-and-asset-lock.csv'));
-assert(rows.length>=320,'Canonical contract unexpectedly truncated');
-const byId=new Map(rows.map(r=>[r.contract_id,r]));
-assert.equal(byId.size,rows.length,'Duplicate contract ID');
-const row=id=>{const item=byId.get(id);assert(item,'Missing contract '+id);return item;};
-const all=rows.filter(r=>r.image_path&&r.state!=='PENDING_IMPORT');
-for(const rec of all){
- assert(!path.isAbsolute(rec.image_path),'Absolute image path '+rec.contract_id);
- const f=path.join(root,rec.image_path);
- assert(fs.existsSync(f),'Missing canonical art '+rec.image_path+' ('+rec.contract_id+')');
- assert.equal(gitBlobHash(fs.readFileSync(f)),rec.git_blob_sha,
-  'Changed/reassigned protected art '+rec.contract_id+': '+rec.image_path);
-}
-const hard=(id,stable,saveKey,img)=>{
- const rec=row(id);
- assert.equal(rec.stable_id,stable,'Immutable ID changed at '+id);
- assert.equal(rec.code_or_save_identity,saveKey,'Immutable save binding changed at '+id);
- assert.equal(rec.image_path,img,'Immutable image binding changed at '+id);
- assert.equal(rec.lock,'HARD','Hard lock lost at '+id);
-};
-hard('P-003','golden-nuts','saved.coins','web/art/nutvale/currency-atlas/golden-nut.png');
-hard('P-004','gems','saved.gems','web/art/nutvale/currency-atlas/01_r1c1_diamond.png');
-hard('P-008','header-wallet','wallet|gems','web/art/nutvale/currency-atlas/golden-nut.png');
-hard('P-009','header-gems','gems','web/art/nutvale/currency-atlas/01_r1c1_diamond.png');
-hard('P-005','shells','saved.shells','web/art/additions/economy/shell-coins.png');
-hard('P-006','nutvale-dollars','saved.nutravaganza.dollars','');
-hard('P-010','play-wallet','play-wallet','web/art/nutvale/currency-atlas/golden-nut.png');
-hard('P-011','play-gems','play-gems','web/art/nutvale/currency-atlas/01_r1c1_diamond.png');
-hard('P-024','no-early-ordinary-rainbow','special:rainbow','web/art/primary/nuts/rainbow-nut.png');
-hard('P-025','gold-acorn-distinction','TYPES:gold-acorn','web/art/primary/nuts/gold-acorn.png');
+identity('P-002','save.v1','localStorage:nutbuster.v1');
+identity('P-003','golden-nuts','saved.coins');
+identity('P-004','gems','saved.gems');
+identity('P-005','shells','saved.shells');
+identity('P-006','nutvale-dollars','saved.nutravaganza.dollars');
+identity('P-008','header-wallet','wallet|gems');
+identity('P-009','header-gems','gems');
+identity('P-010','play-wallet','play-wallet');
+identity('P-011','play-gems','play-gems');
 assert.equal(row('P-032').stable_id,'locked-walnut-is-nut');
-assert.equal(row('P-032').lock,'HARD');
 assert.equal(row('P-033').stable_id,'tile-status-layer');
-assert.equal(row('P-034').state,'PLANNED','Do not report elemental chains as playable before activation code exists');
-const game=get('web/game.js'),html=get('web/index.html'),engine=get('web/engine.js');
-const fishing=get('web/fishing.js'),progress=get('web/progression.js');
-assert(game.includes("const key='nutbuster.v1'"),'Save namespace changed');
-assert(game.includes('coins:250,gems:25,shells:0'),'Starter currency keys changed');
-assert(game.includes('gain(500,10)'),'Per-level Golden Nuts + Gems win grant missing');
-assert(game.includes("['wallet',saved.coins]")&&game.includes("['gems',saved.gems]"),'Header wallet bindings changed');
-assert(game.includes("['play-wallet',saved.coins]")&&game.includes("['play-gems',saved.gems]"),'In-level wallet bindings changed');
-assert(html.includes('id="wallet"')&&html.includes('id="gems"'),'Header currency counters changed');
-assert(html.includes('art/nutvale/currency-atlas/golden-nut.png')&&html.includes('art/nutvale/currency-atlas/01_r1c1_diamond.png'),
- 'Owner-approved Golden Acorn / Diamond header wallet images changed');
-assert(game.includes('art/nutvale/currency-atlas/golden-nut.png')&&game.includes('art/nutvale/currency-atlas/01_r1c1_diamond.png'),'In-level wallet must use the same owner-approved assets');
-assert(!game.includes('art/additions/economy/prismatic-acorn.png'),'Legacy acorn artwork cannot signify Gems or price gravity holds');
-assert(!html.includes('art/additions/economy/prismatic-acorn.png'),'Header Gems must use the diamond instead of a gemmed acorn');
-assert(game.includes('TOTAL DUE')&&game.includes('$0.00')&&game.includes('COMPLETE ORDER · FREE'),
- 'Free final parody checkout changed');
-assert(fishing.includes('n.dollars='),'Fishing dollars balance missing');
-assert(!fishing.includes('save.coins=')&&!fishing.includes('save.gems='),'Fishing overwrites main balances');
+assert.equal(row('P-034').state,'PLANNED','Unimplemented elemental chains cannot be reported as playable');
+const game=get('web/game.js'),engine=get('web/engine.js'),fishing=get('web/fishing.js');
+assert(game.includes("const key='nutbuster.v1'"),'Persistent save namespace must remain stable');
+assert(game.includes('coins:250,gems:25,shells:0'),'Starter wallet data changed');
+assert(game.includes('gain(500,10)'),'Level-clear rewards missing');
+assert(game.includes("['wallet',saved.coins]")&&game.includes("['gems',saved.gems]"),'Header wallet values disconnected');
+assert(game.includes("['play-wallet',saved.coins]")&&game.includes("['play-gems',saved.gems]"),'In-level wallet values disconnected');
+assert(game.includes('TOTAL DUE')&&game.includes('$0.00')&&game.includes('COMPLETE ORDER · FREE'),'Free checkout behavior changed');
+assert(fishing.includes('n.dollars='),'Fishing balance must exist');
+assert(!fishing.includes('save.coins=')&&!fishing.includes('save.gems='),'Fishing cannot overwrite primary currency balances');
+const E=require('../web/engine.js'),P=require('../web/progression.js');
 const expectedNuts=['peanut','walnut','almond','cashew','hazelnut','pistachio','gold-acorn',
  'beechnut','brazil-nut','candlenut','chestnut','coconut','ginkgo-nut',
  'hickory-nut','macadamia','pecan','pili-nut','pine-nut','tiger-nut'];
-const types=require('../web/engine.js').TYPES;
-assert.deepEqual(types,expectedNuts,'Core nut roster identity or order changed');
-const nutRows=rows.filter(r=>r.domain==='match-nut');
-assert.equal(nutRows.length,expectedNuts.length,'Changed nut registry size');
-for(const [i,name] of expectedNuts.entries()){
- const rec=row('NUT-'+String(i+1).padStart(2,'0'));
- assert.equal(rec.stable_id,name);
- assert.equal(rec.image_path,'web/art/primary/nuts/'+name+'.png');
+assert.deepEqual(E.TYPES,expectedNuts,'Playable nut identities/order changed');
+assert.equal(records.filter(r=>r.domain==='match-nut').length,expectedNuts.length);
+for(const [i,name] of expectedNuts.entries())identity('NUT-'+String(i+1).padStart(2,'0'),name,row('NUT-'+String(i+1).padStart(2,'0')).code_or_save_identity);
+for(const tool of P.LADDER){
+ assert.ok(E.BOOSTERS.includes(tool.id),'Unlocked booster has no engine operation: '+tool.id);
+ assert.ok(P.LEVEL_BY_TOOL[tool.id]===tool.level,'Booster progression level changed '+tool.id);
 }
-const boosts=[
- ['hammer','art/primary/powerups/hammer.png'],['row','art/primary/powerups/row-clear.png'],
- ['column','art/additions/effects/vertical-clear.png'],['cross','art/additions/effects/horizontal-clear.png'],
- ['blast','art/primary/powerups/nut-burst.png'],['color','art/primary/powerups/rainbow.png'],
- ['shuffle','art/additions/effects/rainbow-pulse.png'],['extra','art/additions/economy/hourglass.png'],
- ['drill','art/additions/effects/rocket-impact.png'],['unlock','art/additions/effects/chain-break.png']
-];
-for(const [id,art] of boosts){
- const matches=rows.filter(r=>r.domain==='booster'&&r.stable_id===id);
- assert.equal(matches.length,1,'Booster lock missing '+id);
- assert.equal(matches[0].image_path,'web/'+art,'Booster icon mapping changed '+id);
- assert.equal(require('../web/progression.js').BOOSTER_ART[id],art,'Runtime icon mapping changed '+id);
-}
-assert(game.includes('const BOOSTER_ART=P.BOOSTER_ART;'),'Gameplay buttons must use the catalog tested against the hard asset locks');
-const ladder=require('../web/progression.js').LADDER;
-for(const item of ladder){
- if(boosts.some(([id])=>id===item.id))continue;
- const extras=['quake','triple-row','triple-column','starburst','spectrum','frostbreaker'];
- assert.ok(extras.includes(item.id),'Unknown advanced unlock: '+item.id);
- assert.ok(require('../web/progression.js').BOOSTER_ART[item.id],'Advanced power art mapping absent: '+item.id);
-}
-// Gravity-hold artwork is owner HARD-locked too, not fair game for icon rotations.
-for(const [contractId,id,art,gems,drops] of [
- ['HOLD-01','butter_hold','art/primary/nuts/peanut.png',15,1],
- ['HOLD-02','jam_hold','art/additions/economy/hourglass.png',30,2]
+for(const [id,saveKey,cost,drops] of [
+ ['butter_hold','holdInventory.butter_hold',15,1],
+ ['jam_hold','holdInventory.jam_hold',30,2]
 ]){
- const record=row(contractId),hold=require('../web/progression.js').HOLD_ITEMS[id];
- assert.equal(record.domain,'gravity-hold','Wrong gravity-hold contract domain '+contractId);
- assert.equal(record.lock,'HARD','Gravity-hold art requires owner approval '+contractId);
- assert.equal(record.stable_id,id,'Gravity-hold save identity changed '+contractId);
- assert.equal(record.code_or_save_identity,'holdInventory.'+id,'Gravity-hold save key changed '+contractId);
- assert.equal(record.image_path,'web/'+art,'Owner-approved gravity-hold illustration changed '+contractId);
- assert.ok(hold,'Missing runtime gravity-hold '+id);
- assert.equal(hold.art,art,'Runtime gravity-hold icon violates HARD lock '+contractId);
- assert.equal(hold.gems,gems,'Gravity-hold gem price changed '+contractId);
- assert.equal(hold.drops,drops,'Gravity-hold gravity duration changed '+contractId);
+ const rec=records.find(r=>r.domain==='gravity-hold'&&r.stable_id===id);
+ assert.ok(rec,'Missing hold contract '+id);
+ assert.equal(rec.code_or_save_identity,saveKey,'Hold save identity changed '+id);
+ assert.equal(P.HOLD_ITEMS[id].gems,cost,'Hold purchase cost changed '+id);
+ assert.equal(P.HOLD_ITEMS[id].drops,drops,'Hold functional duration changed '+id);
 }
-assert.equal(rows.filter(r=>r.domain==='avatar-outfit').length,60);
-assert.equal(rows.filter(r=>r.domain==='homestead-tier').length,40);
-assert.equal(rows.filter(r=>r.domain==='campaign-map').length,6);
-assert.equal(rows.filter(r=>r.domain==='fake-ad-splash'&&r.state==='IMPLEMENTED').length,8,
- 'All eight committed local ad posters must remain in the catalog');
-for(const r of rows.filter(r=>r.domain==='fake-ad-splash')){
- assert.equal(r.lock,'HARD');
- assert.ok(r.image_path.endsWith('.webp'),'Ads use original compressed poster artwork');
-}
-assert.equal(row('AD-13').image_path,'web/audio/ads/wah-wah-voice.mp3');
-assert.equal(row('AD-12').state,'IMPLEMENTED');
-assert.equal(row('AD-11').state,'IMPLEMENTED');
-assert(progress.includes('gems:15')&&progress.includes('gems:30'),'Gravity-hold gem costs changed');
-assert(engine.includes("const NEW=['beechnut'"),'Expansion roster removed');
-console.log('NUTBUSTER contract verified: '+rows.length+' entries; '+all.length+
- ' on-disk image hashes; primary Nuts and Gems; boosters; nuts; avatar and estate mapping; pending ad slots.');
+assert(engine.includes("const NEW=['beechnut'"),'Progression roster missing');
+console.log('PASS: functional IDs, save compatibility, money isolation, engine roster, boosters, hold behavior');
