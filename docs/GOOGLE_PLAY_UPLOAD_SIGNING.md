@@ -1,0 +1,3 @@
+## New Google Play upload signing
+
+Use the NEW independent Nut Buster Play upload key generated on the owner's Windows PC by `mrcalzon02/Rupee-rush/scripts/generate-new-play-upload-keys.ps1` (see Rupee Rush `docs/GOOGLE_PLAY_NEW_KEYS.md`). The `:app:bundlePlay` variant requires the four `playUpload*` Gradle project properties and the exact `nutbuster-play-upload-v1` alias. It intentionally does not use the old pinned GitHub APK signer and disables the in-app GitHub update channel. Private signing files must never be committed. A Play Console enrollment and Google-managed device signing certificate remain separate actions.

@@ -1,6 +1,6 @@
 plugins { id 'com.android.application' }
 
-// Sole permanent NUTBUSTER signing lineage: NEVER use ReverieVR or generate a replacement key.
+// Legacy GitHub APK test signer only. NEW Google Play upload signer is a separate generation.
 def buildEpoch = (project.findProperty('nutbusterBuildEpochSeconds') ?: '0').toString().toLong()
 def buildCode = buildEpoch > 1577836800L ? (buildEpoch - 1577836800L).intValue() : 1
 def pinnedSigner = rootProject.file('../config/nutbuster-publisher.sha256').text.trim()
@@ -11,6 +11,13 @@ def storePass = (project.findProperty('phoneTestStorePassword') ?: '').toString(
 def publisherAlias = (project.findProperty('phoneTestKeyAlias') ?: '').toString()
 def publisherKeyPassword = (project.findProperty('phoneTestKeyPassword') ?: '').toString()
 def haveSigning = signingPath && storePass && publisherAlias && publisherKeyPassword && file(signingPath).isFile()
+// 2026 Play generation: requires a NEW upload key, never the phone-test publisher key.
+def playStore = (project.findProperty('playUploadKeystorePath') ?: '').toString()
+def playPassword = (project.findProperty('playUploadStorePassword') ?: '').toString()
+def playAlias = (project.findProperty('playUploadKeyAlias') ?: '').toString()
+def playKeyPassword = (project.findProperty('playUploadKeyPassword') ?: '').toString()
+def havePlaySigning = playStore && playPassword && playKeyPassword &&
+    playAlias == 'nutbuster-play-upload-v1' && file(playStore).isFile()
 
 android {
     namespace 'io.github.mrcalzon02.nutbuster'
@@ -37,6 +44,14 @@ android {
                 keyPassword publisherKeyPassword
             }
         }
+        if (havePlaySigning) {
+            playUpload {
+                storeFile file(playStore)
+                storePassword playPassword
+                keyAlias playAlias
+                keyPassword playKeyPassword
+            }
+        }
     }
     buildTypes {
         release {
@@ -45,6 +60,14 @@ android {
             if (haveSigning) signingConfig signingConfigs.phoneTest
         }
         debug { debuggable true }
+        // Play Store-only AAB: Google Play will apply its own device signing key.
+        play {
+            initWith release
+            signingConfig null
+            debuggable false
+            buildConfigField 'boolean', 'UPDATE_CHANNEL_ENABLED', 'false'
+            if (havePlaySigning) signingConfig signingConfigs.playUpload
+        }
     }
 }
 
@@ -60,4 +83,18 @@ tasks.register('validatePublisherSigning') {
 }
 tasks.configureEach { task ->
     if (task.name == 'assembleRelease') task.dependsOn('validatePublisherSigning')
+}
+
+tasks.register('validatePlayUploadSigning') {
+    doLast {
+        if (!havePlaySigning) {
+            throw new GradleException('Play bundle blocked: supply NEW nutbuster-play-upload-v1 upload key properties')
+        }
+        if (new File(playStore).canonicalPath == new File(signingPath ?: '/nonexistent').canonicalPath) {
+            throw new GradleException('Play bundle blocked: old GitHub publisher keystore cannot be used')
+        }
+    }
+}
+tasks.configureEach { task ->
+    if (task.name in ['bundlePlay', 'assemblePlay']) task.dependsOn('validatePlayUploadSigning')
 }
