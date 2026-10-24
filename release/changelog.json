@@ -1,25 +1,21 @@
 {
   "schema": 1,
-  "headline": "Original effects artwork restored without adjacent-sprite bleed",
+  "headline": "Tile status artwork restored to full visibility in Nutdex and on game boards",
   "changes": [
     {
-      "title": "Four original effects sprites corrected by visual comparison",
-      "detail": "Sparkle Burst, Match Burst, Shell Ring and Confetti were re-isolated from the preserved source atlas, inspected on checkerboard and repaired without changing their game identifiers or other artwork.",
+      "title": "Restore the full translucent overlay illustrations",
+      "detail": "Removed the radial mask that had cut away most of the tile-status images. All 16 original transparent overlay PNGs remain intact, visible in the Nutdex and layered above ordinary nuts during play.",
       "files": [
-        "web/art/additions/effects/sparkle-burst.png",
-        "web/art/additions/effects/match-burst.png",
-        "web/art/additions/effects/shell-ring.png",
-        "web/art/additions/effects/confetti.png"
+        "web/style.css",
+        "tests/tile-overlay-visibility.test.js"
       ]
     },
     {
-      "title": "Source-backed image contracts and visual review gate",
-      "detail": "Updated the protected sprite hashes and source coordinates, and added visual review evidence plus tests that keep rejected overlapping effects out of live replacements.",
+      "title": "Prepare independent Google Play upload signing",
+      "detail": "The Android build now supports separately configured Play upload credentials without replacing the existing test-build signing identity or changing the game's currency and account data.",
       "files": [
-        "docs/contracts/nutbuster-primary-mechanics-and-asset-lock.csv",
-        "web/art/additions/manifest.json",
-        "assets/recovery/original-non-nut/effects-reviewed.json",
-        "tests/reviewed-effect-reslices.test.js"
+        "android/app/build.gradle",
+        "docs/GOOGLE_PLAY_UPLOAD_SIGNING.md"
       ]
     }
   ]
