@@ -63,7 +63,7 @@ android {
         // Play Store-only AAB: Google Play will apply its own device signing key.
         play {
             initWith release
-            signingConfig null
+            signingConfig = null
             debuggable false
             buildConfigField 'boolean', 'UPDATE_CHANNEL_ENABLED', 'false'
             if (havePlaySigning) signingConfig signingConfigs.playUpload
