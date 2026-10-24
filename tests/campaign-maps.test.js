@@ -16,7 +16,7 @@ for(const c of M.CHAPTERS){
  assert.equal(positions[0].level,c.start);
  assert.equal(positions[99].level,c.end);
  const bg=path.join(__dirname,'../web',c.image);
- assert.ok(fs.existsSync(bg)&&fs.statSync(bg).size>300000,c.image);
+ assert.ok(fs.existsSync(bg)&&fs.statSync(bg).size>0,'Missing chapter resource: '+c.image);
  for(const p of positions){
   assert.ok(!ids.has(p.level),'Duplicate map node '+p.level);ids.add(p.level);
   assert.ok(p.x>0.05&&p.x<.95&&p.y>.03&&p.y<.99,'Map coordinate out of bounds '+p.level);

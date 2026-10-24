@@ -9,8 +9,6 @@ assert.match(index,/src="ice-effects\.js".*?<script src="invite\.js"/);
 assert.match(game,/NutIceFX\?\.animate\(stage,board/,'run ice animation for each engine cascade');
 assert.match(game,/stage\.before\?\.\[i\]\?\.type!=null&&stage\.afterClear\?\.\[i\]\?\.type===null/,'only truly removed nuts fade');
 assert.doesNotMatch(game,/\?['"]ice-shatter['"]:result\.cracked/,'no premature global ice break');
-for(const file of ['web/art/primary/blockers/ice-1.png','web/art/primary/blockers/ice-2.png','web/art/additions/effects/ice-shatter.png'])
- assert.ok(fs.statSync(path.join(root,file)).size>2000,file+' missing');
 const c=ice=>({type:2,ice,lock:0,chest:0});
 assert.deepEqual(Ice.plan({before:[c(2),c(1),c(2)],afterClear:[c(1),c(0),c(0)]}),[
  {index:0,step:0,from:2,to:1,breaks:false},

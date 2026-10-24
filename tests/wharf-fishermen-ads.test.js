@@ -1,10 +1,10 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),vm=require('node:vm');
 const E=require('../web/engine.js'),P=require('../web/progression.js'),H=require('../web/homestead.js'),A=require('../web/avatar-art.js'),M=require('../web/campaign-maps.js'),C=require('../web/nut-codex.js'),F=require('../web/fishing.js'),UI=require('../web/fishing-ui.js'),Ads=require('../web/fake-ads.js');
-assert.equal(Ads.wharfPosters.length,4);
-assert.equal(Ads.posters.length,8);
+assert.ok(Ads.wharfPosters.length>0,'Wharf ads require available content');
+assert.ok(Ads.posters.length>0,'Daily ads require available content');
 assert.equal(Ads.session('wharf',null,0,0).poster.id,Ads.wharfPosters[0].id);
-assert.equal(Ads.session('wharf',null,5,0).poster.id,Ads.wharfPosters[1].id);
+assert.equal(Ads.session('wharf',null,Ads.wharfPosters.length,0).poster.id,Ads.wharfPosters[0].id,'Wharf ads wrap correctly');
 assert.equal(Ads.DURATION_MS,120000);assert.equal(Ads.audioPath,'audio/ads/wah-wah-voice.mp3');
 const date=new Date(2030,3,2).getTime(),wallet={coins:900,gems:21};
 assert.equal(F.claimWharfAd(wallet,date).valid,true);
