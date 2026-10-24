@@ -56,7 +56,7 @@ const hard=(id,stable,saveKey,img)=>{
 };
 hard('P-003','golden-nuts','saved.coins','web/art/nutvale/currency-atlas/golden-nut.png');
 hard('P-004','gems','saved.gems','web/art/nutvale/currency-atlas/01_r1c1_diamond.png');
-hard('P-008','header-wallet','wallet','web/art/nutvale/currency-atlas/golden-nut.png');
+hard('P-008','header-wallet','wallet|gems','web/art/nutvale/currency-atlas/golden-nut.png');
 hard('P-009','header-gems','gems','web/art/nutvale/currency-atlas/01_r1c1_diamond.png');
 hard('P-005','shells','saved.shells','web/art/additions/economy/shell-coins.png');
 hard('P-006','nutvale-dollars','saved.nutravaganza.dollars','');
