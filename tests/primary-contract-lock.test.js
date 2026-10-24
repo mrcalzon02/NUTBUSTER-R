@@ -54,12 +54,14 @@ const hard=(id,stable,saveKey,img)=>{
  assert.equal(rec.image_path,img,'Immutable image binding changed at '+id);
  assert.equal(rec.lock,'HARD','Hard lock lost at '+id);
 };
-hard('P-003','golden-nuts','saved.coins','web/art/primary/economy/golden-nuts.png');
-hard('P-004','gems','saved.gems','web/art/additions/economy/prismatic-acorn.png');
+hard('P-003','golden-nuts','saved.coins','web/art/nutvale/currency-atlas/golden-nut.png');
+hard('P-004','gems','saved.gems','web/art/nutvale/currency-atlas/01_r1c1_diamond.png');
+hard('P-008','header-wallet','wallet','web/art/nutvale/currency-atlas/golden-nut.png');
+hard('P-009','header-gems','gems','web/art/nutvale/currency-atlas/01_r1c1_diamond.png');
 hard('P-005','shells','saved.shells','web/art/additions/economy/shell-coins.png');
 hard('P-006','nutvale-dollars','saved.nutravaganza.dollars','');
-hard('P-010','play-wallet','play-wallet','web/art/primary/economy/golden-nuts.png');
-hard('P-011','play-gems','play-gems','web/art/additions/economy/prismatic-acorn.png');
+hard('P-010','play-wallet','play-wallet','web/art/nutvale/currency-atlas/golden-nut.png');
+hard('P-011','play-gems','play-gems','web/art/nutvale/currency-atlas/01_r1c1_diamond.png');
 hard('P-024','no-early-ordinary-rainbow','special:rainbow','web/art/primary/nuts/rainbow-nut.png');
 hard('P-025','gold-acorn-distinction','TYPES:gold-acorn','web/art/primary/nuts/gold-acorn.png');
 assert.equal(row('P-032').stable_id,'locked-walnut-is-nut');
@@ -74,8 +76,11 @@ assert(game.includes('gain(500,10)'),'Per-level Golden Nuts + Gems win grant mis
 assert(game.includes("['wallet',saved.coins]")&&game.includes("['gems',saved.gems]"),'Header wallet bindings changed');
 assert(game.includes("['play-wallet',saved.coins]")&&game.includes("['play-gems',saved.gems]"),'In-level wallet bindings changed');
 assert(html.includes('id="wallet"')&&html.includes('id="gems"'),'Header currency counters changed');
-assert(html.includes('art/primary/economy/golden-nuts.png')&&html.includes('art/additions/economy/prismatic-acorn.png'),
- 'Header currency images changed');
+assert(html.includes('art/nutvale/currency-atlas/golden-nut.png')&&html.includes('art/nutvale/currency-atlas/01_r1c1_diamond.png'),
+ 'Owner-approved Golden Acorn / Diamond header wallet images changed');
+assert(game.includes('art/nutvale/currency-atlas/golden-nut.png')&&game.includes('art/nutvale/currency-atlas/01_r1c1_diamond.png'),'In-level wallet must use the same owner-approved assets');
+assert(!game.includes('art/additions/economy/prismatic-acorn.png'),'Legacy acorn artwork cannot signify Gems or price gravity holds');
+assert(!html.includes('art/additions/economy/prismatic-acorn.png'),'Header Gems must use the diamond instead of a gemmed acorn');
 assert(game.includes('TOTAL DUE')&&game.includes('$0.00')&&game.includes('COMPLETE ORDER · FREE'),
  'Free final parody checkout changed');
 assert(fishing.includes('n.dollars='),'Fishing dollars balance missing');

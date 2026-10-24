@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "headline": "Store wallet deductions, clear purchase receipts, and larger booster icons",
+  "headline": "Store wallet fixes and owner-approved Diamond Gems and Golden Acorn Nuts",
   "changes": [
     {
       "title": "Nut and Gem purchases now show their exact wallet deductions",
@@ -25,6 +25,17 @@
       "files": [
         "web/style.css",
         "tests/booster-button-face.test.js",
+        "tests/primary-contract-lock.test.js"
+      ]
+    },
+    {
+      "title": "Distinct owner-approved currency symbols in every wallet",
+      "detail": "Golden Nuts now display the existing golden acorn illustration, and Gems use the exact 01_r1c1_diamond slice from the Nut Buster Drive. The header, in-level balances, and gem-priced gravity-hold purchases share those identities, with gameplay currency values unchanged.",
+      "files": [
+        "web/game.js",
+        "web/index.html",
+        "web/art/nutvale/currency-atlas/01_r1c1_diamond.png",
+        "docs/contracts/nutbuster-primary-mechanics-and-asset-lock.csv",
         "tests/primary-contract-lock.test.js"
       ]
     }
