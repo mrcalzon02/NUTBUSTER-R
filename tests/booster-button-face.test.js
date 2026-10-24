@@ -30,7 +30,7 @@ assert.match(wrap,/width:100%/,'artwork occupies the full horizontal button face
 const power=rule(base+' .booster-icon');
 assert.match(power,/width:100%/);
 assert.match(power,/height:100%/);
-assert.match(power,/object-fit:contain/,'never crop the owner's icons');
+assert.match(power,/object-fit:contain/,"never crop the owner's icons");
 assert.match(power,/border:0/,'no nested icon frames');
 const hold=rule(base+' .hold-icon');
 assert.match(hold,/width:100%/,'gravity-hold art grows with normal power art');
