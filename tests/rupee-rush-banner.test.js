@@ -1,0 +1,16 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
+const root=path.resolve(__dirname,'..');
+const htmlSource=fs.readFileSync(path.join(root,'web/game.js'),'utf8');
+const css=fs.readFileSync(path.join(root,'web/style.css'),'utf8');
+const bannerPath=path.join(root,'web/art/banners/rupee-rush-coming-soon.png');
+const png=fs.readFileSync(bannerPath);
+assert.ok(png.length>100_000,'Rupee Rush banner must contain its illustrated art');
+assert.equal(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a','Banner must be a real PNG');
+assert.equal(png.readUInt32BE(16),2046,'Expected approved illustration width');
+assert.equal(png.readUInt32BE(20),768,'Expected approved illustration height');
+assert.match(htmlSource,/function rupeeTeaser\(\)\{[^\n]*rupee-rush-coming-soon\.png/,'Home slot must load the approved PNG');
+assert.doesNotMatch(htmlSource,/rupee-rush-coming-soon\.svg/,'Do not regress to the earlier placeholder SVG');
+assert.match(css,/\.rr-banner img\{[^}]*width:100%;height:auto;object-fit:contain/,'Teaser must display without cropping the words and artwork');
+console.log('PASS: approved Rupee Rush artwork renders in the existing teaser slot without cropping');

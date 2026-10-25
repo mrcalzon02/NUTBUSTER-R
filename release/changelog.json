@@ -1,22 +1,14 @@
 {
   "schema": 1,
-  "headline": "Restored Nutbuster home-screen artwork and protected icon identities",
+  "headline": "Rupee Rush gets a fully illustrated Nutbuster home-screen banner",
   "changes": [
     {
-      "title": "Restore the illustrated home-menu buttons",
-      "detail": "Replaced emoji stand-ins with the existing custom artwork for Nutvale Homestead, Nut Index, Invite Friends and Voice, Music and Effects controls. Play, Levels, companions, mines, wharf, shop and settings now use the same fixed icon registry without changing button placement.",
-      "files": [
-        "web/game.js"
-      ]
-    },
-    {
-      "title": "Bring back reward-card artwork and prevent silent icon swaps",
-      "detail": "Lives, VIP and Daily Loot cards once again show their approved image icons instead of heart, crown and gift emoji. Original asset files remain untouched, icon sizes stay within the existing cards, and a visual diagnostic checks the exact menu-to-image assignments.",
+      "title": "Show the new illustrated Rupee Rush banner",
+      "detail": "Replaced the flat teaser illustration with the approved squirrel-and-gem artwork, preserving the Coming Soon announcement and displaying the entire banner without cropping its title or artwork.",
       "files": [
         "web/game.js",
         "web/style.css",
-        "tests/home-icon-identity.test.js",
-        "tests/diagnostic-suites.txt"
+        "web/art/banners/rupee-rush-coming-soon.png"
       ]
     }
   ]

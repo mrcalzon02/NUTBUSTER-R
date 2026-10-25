@@ -18,3 +18,4 @@ sfx-samples.test.js
 sfx.test.js
 tile-overlay-visibility.test.js
 ui-smoke.test.js
+rupee-rush-banner.test.js
