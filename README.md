@@ -50,3 +50,7 @@ This alpha is a functional vertical slice, not a final content-complete match-th
 ## Campaign II — Nutravaganza (development)
 
 The main campaign now spans **levels 1–1000**, with ten 100-stage chapter maps and separate 30-per-chapter elemental trials using IDs **1001–1300**. The five new backgrounds and a new oceanside overview are committed under `web/art/maps/` and registered in `web/art/maps/manifest.json`; the chapter editor data is in `web/campaign-maps.js`. See `docs/wiki/Nutravaganza-Campaign-II.md` for authored beats, integration details and outstanding release gates. A code commit is not a verified Android installation or a published release.
+
+## Mandatory APK release compliance gate
+
+Every Android release test must include the [38-control release checklist](docs/APK_RELEASE_COMPLIANCE_GATE.md) and the release-blocking `tests/apk-release-compliance.test.js` functional check. This test validates policy-checklist presence and evidence-validator integrity only, never Play Console approval or device certification. For release signoff use `python3 tools/verify_apk_release_gate.py --evidence <manifest.json> --apk <signed.apk>` plus real signature/upgrade/console evidence. The development GitHub sideload channel stays active on `main`; the parked `google-play` branch has a separate stricter candidate gate and must not publish through the sideload signer. 
