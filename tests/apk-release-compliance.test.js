@@ -1,0 +1,21 @@
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const text = fs.readFileSync(path.join(root, 'docs/APK_RELEASE_COMPLIANCE_GATE.md'), 'utf8');
+const verifier = fs.readFileSync(path.join(root, 'tools/verify_apk_release_gate.py'), 'utf8');
+const sections = {ID:5, DS:10, MOD:4, PI:5, POL:2, PUB:7, OPS:5};
+const ids = Object.entries(sections).flatMap(([k, n]) =>
+  Array.from({length:n}, (_, i) => 'GP-' + k + '-' + String(i+1).padStart(2, '0')));
+assert.match(text, /13ITYsIxm-LV6xGN3FLlMfDQqOBCZwC8LnMvyBiqm0Ic/);
+const found = [...text.matchAll(/^- \[ \] (GP-(?:ID|DS|MOD|PI|POL|PUB|OPS)-\d\d):/gm)].map(m=>m[1]);
+assert.deepEqual(found, ids, 'All 38 canonical checklist controls must remain in exact order');
+assert.match(verifier, /validate_release/);
+assert.match(verifier, /artifact_sha256/);
+assert.match(verifier, /hashlib\.sha256/);
+assert.match(verifier, /NOT_APPLICABLE/);
+assert.match(text, /Hard HOLD/);
+assert.match(text, /sideload/);
+assert.match(text, /Google Play/);
+console.log('PASS: 38-control APK release checklist and artifact-bound fail-closed evidence verifier are present (static test only; no APK or Play approval claim)');
