@@ -4,6 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 require('../web/nutvale-mining-gear.js');
 const M=require('../web/nutvale-mines.js');
+require('../web/nutvale-economy-art.js');
 const UI=require('../web/nutvale-mines-ui.js');
 const ROOT=path.join(__dirname,'../web/art/nutvale/mining-ore');
 const DAY=Date.parse('2026-10-26T10:00:00');
