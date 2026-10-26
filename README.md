@@ -11,7 +11,8 @@ NUTBUSTER is an offline-first, nut-themed match-three parody of predatory mobile
 - Primary art is **the original five owner-generated glossy sprite sheets** from this project's design conversation. The sixth, labeled board reference sheet is supplementary only; it is not a replacement for the original art.
 - 84 cropped sprites generated from primary art by `tools/prepare_assets.py` (source sheets can be downloaded in the separately provided asset archive). Board geometry uses runtime CSS edges until seamless corner patches are verified.
 - Android native wrapper: minSdk **26**, compileSdk **36**, targetSdk **36**, matching verified ReverieVR `app/build.gradle` values as of 2026-10-20.
-- Desktop wrapper: a self-contained Go Windows/Linux launcher serving the **same** embedded `web/` game offline in the user’s default browser. An optional Electron shell also exists.
+- Fire tablet target: **Fire OS 7 (API 28) and Fire OS 8 (API 30)** use the same Android WebView APK, local saves, assets and pinned signer. Every signed release now includes a separately named `NUTBUSTER-FireOS-tablet.apk` byte-identical to the Android APK for convenient sideloading. No Google Play Services are required. Fire OS 5/6 devices fall below `minSdk 26`; actual Fire hardware and Amazon Appstore acceptance remain unverified.
+- Desktop wrapper: a self-contained Go Windows/Linux launcher serving the **same** embedded `web/` game offline in the user’s default browser. An optional Electron shell also exists. Windows and Linux x64 executables are already built and published by GitHub Actions. See [platform deployment targets](docs/wiki/Platform-Deployment-Targets.md).
 
 ## Run / test
 

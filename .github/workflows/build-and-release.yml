@@ -325,6 +325,39 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+  fire-tablet-smoke:
+    # AOSP API 30 tablet is a Google-free compatibility proxy, not a real Fire OS device.
+    # Keep this independent of the Android publisher so one emulator cannot block releases.
+    needs: android-debug
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Nutbuster-Android-debug-${{ github.run_id }}
+          path: validation/release
+      - name: Install and launch on a Google-free Android 30 tablet emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: default
+          arch: x86_64
+          profile: pixel_c
+          disable-animations: true
+          emulator-boot-timeout: 300
+          script: bash scripts/fireos-tablet-smoke.sh
+      - name: Preserve Fire tablet proxy launch evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nutbuster-FireOS-tablet-evidence-${{ github.run_id }}
+          path: |
+            validation/fireos-tablet-*.txt
+            validation/fireos-tablet-*.png
+          retention-days: 14
+          if-no-files-found: ignore
+
   publisher-release:
     # Protect the sole signed publisher channel without delaying other builds.
     concurrency:
@@ -435,11 +468,15 @@ jobs:
           fi
           cp release/desktop/NUTBUSTER-Windows-x64.exe release/publish/
           cp release/desktop/NUTBUSTER-Linux-x64 release/publish/
+          # Fire OS 7/8 sideload compatibility: same signed APK, same package/save identity.
+          # Never create a second application, signer, updater or set of game assets.
+          cp release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-FireOS-tablet.apk
+          bash scripts/verify_fireos_apk.sh release/publish/NUTBUSTER-FireOS-tablet.apk release/publish/NUTBUSTER-Android-phone-test.apk
           python3 scripts/generate_update_manifest.py "$TAG" '${{ steps.signed.outputs.code }}' '${{ steps.signing.outputs.sha }}'
           (cd release/publish && sha256sum NUTBUSTER-* > SHA256SUMS.txt)
           node tools/release-news.js --notes '${{ steps.signed.outputs.code }}' '${{ steps.signing.outputs.sha }}' > "$RUNNER_TEMP/nutbuster-release-notes.md"
           gh release create "$TAG" --draft --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes-file "$RUNNER_TEMP/nutbuster-release-notes.md"
-          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/NUTBUSTER-update.json release/publish/NUTBUSTER-news.json release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
+          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-FireOS-tablet.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/FIREOS-COMPATIBILITY.txt release/publish/NUTBUSTER-update.json release/publish/NUTBUSTER-news.json release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
           # GitHub computes SHA-256 for release assets. Refuse to publish until its digest matches our local artifact.
           # Draft tags may not exist yet. Resolve the draft ID through gh, which
           # can find unpublished releases, then read its assets by release ID.
@@ -465,6 +502,7 @@ jobs:
           name: Nutbuster-signed-release-evidence-${{ github.run_id }}
           path: |
             release/publish/BUILD-EVIDENCE.txt
+            release/publish/FIREOS-COMPATIBILITY.txt
             release/publish/SHA256SUMS.txt
             release/publish/release-proof.json
           retention-days: 30
