@@ -46,3 +46,6 @@ The native preview deliberately does **not** claim complete port parity: preview
 
 ## Native functional UI capture
 In addition to the default board and untouched mine, the Linux SDL3 CI job now calls the real mine-screen mouse handler to excavate a seeded non-barren rock. It asserts the strike count decreased and the rock became cleared, then captures `native-mine-dug.png`. It also captures `native-mine-equipment.png` and `native-mine-refinery.png`. Screenshots are evidence of native rendering/input, not evidence of complete feature parity, and the approved ore sprites remain the actual textures.
+
+## Approved equipment illustrations
+The SDL3 native equipment tab displays the exact approved 40-tier pickaxe and 40-tier glove artwork from `web/nutvale-mining-gear.js`. The build-time converter reads that authoritative catalog and rejects missing source sprites or missing tiers; tier images are shipped in `data/gear/` as native BMP format alongside the existing 24 ore sprites and 19 nut sprites. No emoji, SVG stand-ins, or hand-selected replacements are used. All five equipment upgrade operations retain their original costs and progression requirements; map/cart/refinery buttons remain text-only until their own correctly assigned icons are added.

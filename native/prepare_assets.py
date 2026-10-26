@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Convert committed approved art to SDL3-core-readable BMP without replacing art."""
 from pathlib import Path
+import json
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,6 +31,26 @@ def main() -> None:
             key=f"r{row}c{col}"
             transform(ROOT/"web"/"art"/"nutvale"/"mining-ore"/(key+".png"),
                       OUT/"mine"/(key+".bmp"))
-    print(f"Native SDL3 BMP sprite copies: {len(NUTS)+24} approved images.")
+    # Read the *authoritative* playable 40-tier equipment atlas, not a hand-picked
+    # or inferred mapping. Non-progression BONUS sprites aren't gear tiers.
+    source=(ROOT/"web"/"nutvale-mining-gear.js").read_text(encoding="utf-8")
+    prefix="const ART=Object.freeze("
+    start=source.find(prefix)
+    end=source.find(");",start+len(prefix))
+    if start<0 or end<0:
+        raise SystemExit("Approved mining gear catalog not found")
+    catalog=json.loads(source[start+len(prefix):end])
+    if set(catalog)!={"pickaxe","gloves"}:
+        raise SystemExit("Native gear catalog unexpected tracks")
+    for track,kind in (("pickaxe","pickaxes"),("gloves","gloves")):
+        rows=catalog[track]
+        if len(rows)!=40:
+            raise SystemExit(f"Expected exactly 40 approved {track} tiers")
+        for tier,entry in enumerate(rows):
+            src=ROOT/"web"/entry["image"]
+            if not src.resolve().is_relative_to((ROOT/"web"/"art"/"nutvale"/"mining-tools"/kind).resolve()):
+                raise SystemExit("Refusing non-approved gear source: "+str(src))
+            transform(src,OUT/"gear"/(f"{track}-{tier:02}.bmp"))
+    print(f"Native SDL3 BMP sprite copies: {len(NUTS)+24+80} approved images (80 tier-specific equipment).")
 if __name__=="__main__":
     main()

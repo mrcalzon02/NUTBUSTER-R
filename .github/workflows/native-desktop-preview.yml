@@ -53,6 +53,10 @@ jobs:
           test -s native/generated-assets/data/nuts/peanut.bmp
           test -s native/generated-assets/data/mine/r1c1.bmp
           test -s native/generated-assets/data/mine/r4c6.bmp
+          test -s native/generated-assets/data/gear/pickaxe-00.bmp
+          test -s native/generated-assets/data/gear/pickaxe-39.bmp
+          test -s native/generated-assets/data/gear/gloves-00.bmp
+          test -s native/generated-assets/data/gear/gloves-39.bmp
       - name: Configure C++17 SDL3 native game
         run: cmake -S native -B native/build -DCMAKE_BUILD_TYPE=Release
       - name: Compile and stage platform-native application
@@ -62,6 +66,8 @@ jobs:
           test -s "native/package/${{ matrix.binary }}"
           test -s native/package/data/nuts/peanut.bmp
           test -s native/package/data/mine/r3c4.bmp
+          test -s native/package/data/gear/pickaxe-39.bmp
+          test -s native/package/data/gear/gloves-39.bmp
       - name: Test native game logic without any GUI or browser
         run: "native/package/${{ matrix.binary }} --self-test"
       - uses: actions/setup-node@v4
@@ -100,6 +106,8 @@ jobs:
           if hits: raise SystemExit('Native output contains browser components: '+str(hits))
           assert len(list((base/'data'/'nuts').glob('*.bmp'))) == 19
           assert len(list((base/'data'/'mine').glob('*.bmp'))) == 24
+          assert len(list((base/'data'/'gear').glob('pickaxe-*.bmp'))) == 40
+          assert len(list((base/'data'/'gear').glob('gloves-*.bmp'))) == 40
           print('No Chromium, Electron, WebView, HTML or local server distribution.')
           PY
       - name: Produce native-only preview ZIP

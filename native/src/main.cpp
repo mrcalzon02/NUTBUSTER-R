@@ -99,6 +99,12 @@ struct Game {
       std::string key="mine/r"+std::to_string(row)+"c"+std::to_string(col);
       if(!texture(r,root,key))return false;
     }
+    for(const std::string& track:{"pickaxe","gloves"}){
+      for(int tier=0;tier<40;++tier){
+        std::string key="gear/"+track+"-"+(tier<10?"0":"")+std::to_string(tier);
+        if(!texture(r,root,key))return false;
+      }
+    }
     return true;
   }
   bool texture(SDL_Renderer* r,const fs::path& root,const std::string& key){
@@ -258,7 +264,16 @@ struct Game {
           const int price=mine.cost(names[size_t(i)]);
           std::string title=names[size_t(i)]+" TIER "+std::to_string(tiers[size_t(i)])+
              (price<0?" MAX":" UPGRADE N$"+std::to_string(price));
-          button(r,180,215+i*77,664,60,title);
+          const float top=float(215+i*77);
+          fill(r,180,top,664,60,{110,58,78,255});
+          fill(r,183,top+3,658,54,{64,31,58,255});
+          const bool gear=i<2;
+          label(r,gear?270.0f:196.0f,top+22,title,2);
+          if(gear){
+            const std::string key="gear/"+names[size_t(i)]+"-"+
+                 (tiers[size_t(i)]<10?"0":"")+std::to_string(tiers[size_t(i)]);
+            sprite(r,key,192,top+6,49,49);
+          }
         }
         label(r,165,647,"Pickaxe 12 + 5/tier daily strikes; gloves +1 survey/tier.",2);
       }else{
