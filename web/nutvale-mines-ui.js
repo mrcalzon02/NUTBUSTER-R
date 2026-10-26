@@ -1,7 +1,7 @@
 /* Render-only Nutvale Mines interface. Economy mutations live in NutvaleMines. */
 (function(root){'use strict';
-const M=root.NutvaleMines, G=root.NutMiningGear, Art=root.NutvaleEconomyArt;
-if(!M||!G||!Art)throw Error('Mining model, gear and artwork must load before Mine UI');
+const M=root.NutvaleMines, G=root.NutMiningGear, Art=root.NutvaleEconomyArt, OreAtlas=root.MineOreAtlas;
+if(!M||!G||!Art||!OreAtlas)throw Error('Mining model, gear and approved ore artwork must load before Mine UI');
 const format=n=>Number(n||0).toLocaleString('en-US');
 const art=(i,emoji)=>'<span class="mines-art"><img src="'+i.image+'" alt="" loading="lazy" onerror="this.hidden=true"><span aria-hidden="true">'+emoji+'</span></span>';
 const economy=(src,label,emoji)=>Art.image(src,label,emoji);
@@ -25,10 +25,10 @@ function dig(save,state){
  const odds=['BARREN','ORE','RICH','CRYSTAL'].map((name,i)=>name+' '+s.odds[i]+'%').join(' · ');
  const tiles=cells.map(c=>{
   const status=c.done?(c.exposed?'ORE WAITING · '+c.exposed:c.kind==='barren'?'EMPTY':c.kind.toUpperCase()):c.survey==='ore'?'ORE PRESENT':c.survey==='barren'?'BARREN':'ROCK';
-  const face=c.exposed?'💠':c.done?(c.kind==='barren'?'⚫':c.kind==='crystal'?'💎':'🟤'):c.survey==='ore'?'🔎':c.survey==='barren'?'◌':c.hits===0?'🪨':c.hits===1?'🪨':'💥';
-  return '<button class="mine-rock '+(c.done?'cleared ':'')+(c.exposed?'exposed ':'')+(c.scanned?'scanned':'')+'" data-action="mine-cell" data-x="'+c.x+'" data-y="'+c.y+'" aria-label="Rock '+(c.x+1)+','+(c.y+1)+': '+status+'" title="'+status+'"><span>'+face+'</span><small>'+((!c.done&&c.hits)?('CRACK '+c.hits+'/'+c.hardness):status)+'</small></button>';
+  const face=OreAtlas.sprite(c);
+  return '<button class="mine-rock '+(c.done?'cleared ':'')+(c.exposed?'exposed ':'')+(c.scanned?'scanned':'')+'" data-action="mine-cell" data-x="'+c.x+'" data-y="'+c.y+'" aria-label="Rock '+(c.x+1)+','+(c.y+1)+': '+status+'" title="'+status+'">'+face+'<small>'+((!c.done&&c.hits)?('CRACK '+c.hits+'/'+c.hardness):status)+'</small></button>';
  }).join('');
- return '<div class="mine-resource-strip"><b>'+gearIcon('pickaxe',s.pickTier)+' '+s.strikesLeft+'/'+s.strikeMax+'</b><b>'+gearIcon('gloves',s.gloveTier)+' '+s.scansLeft+'/'+s.scanMax+'</b><b>'+icon(ICONS.cart,'Cart')+' '+s.cartOre+'/'+s.cartMax+'</b><b>'+icon(ICONS.ore,'Ore')+' '+s.ore+' stored</b></div>'+
+ return '<div class="mine-resource-strip"><b>'+gearIcon('pickaxe',s.pickTier)+' '+s.strikesLeft+'/'+s.strikeMax+'</b><b>'+gearIcon('gloves',s.gloveTier)+' '+s.scansLeft+'/'+s.scanMax+'</b><b>'+icon(ICONS.cart,'Cart')+' '+s.cartOre+'/'+s.cartMax+'</b><b>'+OreAtlas.sprite({done:true,kind:'ordinary'})+' '+s.ore+' stored</b></div>'+
   '<div class="mine-mode"><button class="btn '+(!scan?'green':'secondary')+'" data-action="mine-mode" data-mode="dig" aria-pressed="'+(!scan)+'">'+icon(ICONS.digAction,'Dig')+' DIG</button><button class="btn '+(scan?'green':'secondary')+'" data-action="mine-mode" data-mode="scan" aria-pressed="'+scan+'">'+icon(ICONS.scanAction,'Scan')+' SCAN</button><button class="btn secondary" data-action="mine-unload" '+(s.cartOre?'':'disabled')+'>UNLOAD +'+s.cartOre+'</button></div>'+
   '<div class="mine-board-wrap"><div class="mine-board" style="--mine-grid:'+s.size+'">'+tiles+'</div></div>'+
   '<p class="mine-odds">SITE '+(s.site+1)+' · '+s.size+'×'+s.size+' · '+odds+' · Hardness: 55% 1-hit, 35% 2-hit, 10% 3-hit</p>';
@@ -51,7 +51,7 @@ function equipment(save){
 }
 function refinery(save){
  const s=M.stats(save),rate=M.ORE_PER_METAL[s.refineryTier];
- return '<div class="mine-resource-strip"><b>🪨 ORE '+s.ore+'</b><b>🔩 METAL '+s.metal+'</b><b>'+economy(Art.goods(s.refineryTier),'Produced goods','📦')+' GOODS '+s.goods+'</b><b>'+economy(Art.money(s.dollars),'Nutvale Dollars','💰')+' N$ '+format(s.dollars)+'</b></div>'+
+ return '<div class="mine-resource-strip"><b>'+OreAtlas.sprite({done:true,kind:'ordinary'})+' ORE '+s.ore+'</b><b>🔩 METAL '+s.metal+'</b><b>'+economy(Art.goods(s.refineryTier),'Produced goods','📦')+' GOODS '+s.goods+'</b><b>'+economy(Art.money(s.dollars),'Nutvale Dollars','💰')+' N$ '+format(s.dollars)+'</b></div>'+
  '<div class="mine-industrial-actions"><div class="mines-upgrade"><span>🔩</span><div><b>SMELT METAL</b><small>'+rate+' ore → 1 ingot</small></div><button class="btn green" data-action="mine-refine" '+(s.ore>=rate?'':'disabled')+'>REFINE 1</button></div>'+
  '<div class="mines-upgrade">'+economy(Art.goods(s.refineryTier),'Current manufactured crate','📦')+'<div><b>MANUFACTURE GOODS</b><small>2 ingots → 1 crate · style follows refinery tier '+(s.refineryTier+1)+'/6</small></div><button class="btn green" data-action="mine-craft" '+(s.metal>=2?'':'disabled')+'>CRAFT 1</button></div>'+
  '<div class="mines-upgrade">'+economy(Art.money(s.dollars),'Nutvale Dollars','💰')+'<div><b>SELL GOODS</b><small>1 crate → N$ '+M.SALE[s.refineryTier]+'</small></div><button class="btn green" data-action="mine-sell" '+(s.goods?'':'disabled')+'>SELL 1</button></div></div>';

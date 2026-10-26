@@ -55,3 +55,15 @@
 .mine-mode .btn{gap:4px}
 .mine-mode .mine-ui-icon{width:28px;height:28px}
 @media(max-width:390px){.mines-tab .mine-ui-icon{width:20px;height:20px}.mine-resource-strip .mine-ui-icon{width:22px;height:22px}}
+
+/* Pixel-accurate runtime slices of the approved 1448x1086 mining atlas.
+   Each displayed tile is a 212x215 crop; percentages account for the gutters. */
+.mine-ore-slice{
+ display:block;width:82%;aspect-ratio:212/215;max-height:75%;flex:0 0 auto;
+ background-image:url('art/nutvale/mines/nutvale-mines-ore-atlas-approved.png');
+ background-repeat:no-repeat;background-size:683.0189% 505.1163%;
+ border-radius:6px;pointer-events:none;
+}
+.mine-rock{overflow:hidden;position:relative}
+.mine-rock small{position:relative;z-index:1;padding:1px 2px;border-radius:3px;background:#171823b5;text-shadow:0 1px 2px #000}
+.mine-resource-strip .mine-ore-slice{display:inline-block;width:24px;height:24px;max-height:none;aspect-ratio:212/215;vertical-align:middle;margin-right:3px}
