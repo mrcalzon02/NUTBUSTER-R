@@ -17,7 +17,7 @@ FetchContent_Declare(SDL3
   GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(SDL3)
 
-add_library(nutbuster-core src/core.cpp)
+add_library(nutbuster-core src/core.cpp src/mine.cpp)
 target_include_directories(nutbuster-core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 add_executable(nutbuster-native src/main.cpp)
 target_link_libraries(nutbuster-native PRIVATE nutbuster-core SDL3::SDL3)

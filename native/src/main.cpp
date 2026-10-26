@@ -1,4 +1,6 @@
 #include "core.hpp"
+#include "mine.hpp"
+#include <ctime>
 #include <SDL3/SDL.h>
 #include <array>
 #include <algorithm>
@@ -42,48 +44,51 @@ uint32_t h32(uint32_t x){x^=x>>16;x*=0x7feb352dU;x^=x>>15;x*=0x846ca68bU;return 
 int roll(uint32_t seed,int x,int y,uint32_t salt){
   return int(h32(seed ^ (uint32_t(x+1)*15485863U) ^ (uint32_t(y+1)*32452843U) ^salt)%100);
 }
-struct Rock {int hits=0,hard=1,ore=0,mineral=-1;};
 struct Game {
   nut::Board board{1,7919};
   enum class Scene{Menu,Board,Mine,Won,Lost};
   Scene scene=Scene::Menu;
   std::map<std::string,SDL_Texture*> images;
-  int unlocked=1,selected=-1,down=-1,mineStrikes=12,mineOre=0,mineGems=0;
-  std::array<Rock,16> rocks{};
+  int unlocked=1,selected=-1,down=-1;
+  nut::Mine mine{};
+  enum class MineTab {Dig,Equipment,Workshop};
+  enum class MineMode {Dig,Scan,Blast,Lens,Collect};
+  MineTab mineTab=MineTab::Dig;
+  MineMode mineMode=MineMode::Dig;
   fs::path savePath;
   bool smoke=false,quitRequested=false;
   void load() {
     std::ifstream file(savePath);
     std::string signature;int level=1;
-    if(file>>signature>>level && signature=="NUTBUSTER_NATIVE_PREVIEW_V1")
-      unlocked=std::clamp(level,1,1000);
+    if(!(file>>signature>>level))return;
+    if(signature=="NUTBUSTER_NATIVE_PREVIEW_V1"){unlocked=std::clamp(level,1,1000);return;}
+    if(signature=="NUTBUSTER_NATIVE_PREVIEW_V2"){
+      nut::Mine loaded;
+      if(loaded.load(file)){mine=loaded;unlocked=std::clamp(level,1,1000);}
+    }
   }
   void save() {
     if(smoke)return;
     std::ofstream file(savePath,std::ios::trunc);
-    file<<"NUTBUSTER_NATIVE_PREVIEW_V1 "<<unlocked<<"\n";
+    file<<"NUTBUSTER_NATIVE_PREVIEW_V2 "<<unlocked<<"\n";
+    mine.save(file);
   }
   void startLevel() {
     board.reset(unlocked,uint32_t(unlocked)*7919U);
     selected=-1;scene=Scene::Board;
   }
   void makeMine(){
-    for(int y=0;y<4;++y)for(int x=0;x<4;++x){
-      Rock& t=rocks[y*4+x];t={};
-      const int chance=roll(4099,x,y,0x248fd19dU);
-      const int hardness=roll(4099,x,y,0x74220a3bU);
-      t.hard=hardness<55?1:hardness<90?2:3;
-      const int pick=roll(4099,x,y,0x6ad39f11U);
-      if(chance<45){t.ore=0;t.mineral=-1;}
-      else if(chance<85){t.ore=1;t.mineral=pick%4;}
-      else if(chance<97){t.ore=2;t.mineral=4+pick%8;}
-      else {t.ore=4;t.mineral=12+pick%5;}
-    }
-    mineStrikes=12;mineOre=0;mineGems=0;scene=Scene::Mine;
-  }
-  std::string rockSprite(const Rock& t)const{
-    if(t.hits<t.hard)return t.hits==0?"r1c1":t.hits==1?"r1c4":"r1c5";
-    return t.mineral<0?"r4c1":FINDS.at(size_t(t.mineral));
+    const std::time_t now=std::time(nullptr);
+    std::tm today{};
+#if defined(_WIN32)
+    localtime_s(&today,&now);
+#else
+    localtime_r(&now,&today);
+#endif
+    const int dayValue=(today.tm_year+1900)*10000+(today.tm_mon+1)*100+today.tm_mday;
+    mine.nextDay(dayValue);
+    mineTab=MineTab::Dig;
+    scene=Scene::Mine;
   }
   bool loadArt(SDL_Renderer* r,const fs::path& root){
     for(const char* nut:NUTS){
@@ -130,17 +135,46 @@ struct Game {
     }
     if(within(x,y,24,20,145,46)) {scene=Scene::Menu;selected=-1;return;}
     if(scene==Scene::Mine){
-      if(mineStrikes<=0)return;
-      const int tile=103,ox=(WIDTH-4*tile)/2,oy=176;
-      if(!within(x,y,float(ox),float(oy),412,412))return;
-      const int i=int((y-oy)/tile)*4+int((x-ox)/tile);
-      Rock& rock=rocks[size_t(i)];
-      if(rock.hits>=rock.hard)return;
-      --mineStrikes;++rock.hits;
-      if(rock.hits==rock.hard){
-        mineOre+=rock.ore;
-        if(rock.mineral>=5&&rock.mineral<=10)++mineGems;
+      if(within(x,y,175,111,180,42)){mineTab=MineTab::Dig;return;}
+      if(within(x,y,365,111,180,42)){mineTab=MineTab::Equipment;return;}
+      if(within(x,y,555,111,180,42)){mineTab=MineTab::Workshop;return;}
+      bool changed=false;
+      if(mineTab==MineTab::Equipment){
+        const std::array<std::string,5> upgrades{{"pickaxe","gloves","map","cart","refinery"}};
+        for(size_t i=0;i<upgrades.size();++i){
+          if(within(x,y,180,float(215+i*77),664,60))
+            changed=mine.upgrade(upgrades[i])||changed;
+        }
+      } else if(mineTab==MineTab::Workshop){
+        if(within(x,y,180,215,664,62))changed=mine.unload();
+        else if(within(x,y,180,289,664,62))changed=mine.refine();
+        else if(within(x,y,180,363,664,62))changed=mine.refine(true);
+        else if(within(x,y,180,437,664,62))changed=mine.manufacture();
+        else if(within(x,y,180,511,664,62))changed=mine.sell();
+        else if(within(x,y,180,585,664,62))changed=mine.buyWrit();
+      } else {
+        if(within(x,y,74,185,126,37)){mineMode=MineMode::Dig;return;}
+        if(within(x,y,206,185,126,37)){mineMode=MineMode::Scan;return;}
+        if(within(x,y,338,185,126,37)){mineMode=MineMode::Blast;return;}
+        if(within(x,y,470,185,126,37)){mineMode=MineMode::Lens;return;}
+        if(within(x,y,602,185,126,37)){mineMode=MineMode::Collect;return;}
+        if(within(x,y,780,185,152,37)){changed=mine.unload();}
+        else {
+          const int tile=std::min(72,440/mine.size());
+          const int ox=(WIDTH-mine.size()*tile)/2,oy=245;
+          if(within(x,y,float(ox),float(oy),float(tile*mine.size()),float(tile*mine.size()))){
+            const int cx=int((x-ox)/tile),cy=int((y-oy)/tile);
+            switch(mineMode){
+              case MineMode::Dig:changed=mine.dig(cx,cy);break;
+              case MineMode::Scan:changed=mine.survey(cx,cy);break;
+              case MineMode::Blast:changed=mine.dig(cx,cy,true);break;
+              case MineMode::Lens:changed=mine.survey(cx,cy,true);break;
+              case MineMode::Collect:changed=mine.collect(cx,cy);break;
+            }
+          }
+        }
       }
+      if(changed)save();
       return;
     }
     if(scene==Scene::Board){
@@ -187,29 +221,79 @@ struct Game {
       }
       label(r,220,700,"Drag one tile onto its neighbor, or click two tiles.",2);
     } else if(scene==Scene::Mine){
-      label(r,250,115,"NUTVALE MINES - APPROVED ORE ATLAS",2);
-      label(r,250,142,"STRIKES "+std::to_string(mineStrikes)+"   ORE "+std::to_string(mineOre)+"   GEMS "+std::to_string(mineGems),2);
-      const int tile=103,ox=(WIDTH-4*tile)/2,oy=176;
-      for(int i=0;i<16;++i){
-        int x=ox+(i%4)*tile,y=oy+(i/4)*tile;
-        fill(r,x,y,tile-4,tile-4,{58,35,56,255});
-        sprite(r,"mine/"+rockSprite(rocks[size_t(i)]),x+5,y+5,tile-14,tile-14);
+      button(r,175,111,180,42,"EXCAVATE");
+      button(r,365,111,180,42,"EQUIPMENT");
+      button(r,555,111,180,42,"REFINERY");
+      label(r,110,162,"N$ "+std::to_string(mine.dollars)+"  ORE "+std::to_string(mine.storedOre)+
+        "  METAL "+std::to_string(mine.metal)+"  GOODS "+std::to_string(mine.goods)+
+        "  WRITS "+std::to_string(mine.writs),2);
+      if(mineTab==MineTab::Dig){
+        label(r,85,715,"CART "+std::to_string(mine.cartOre)+"/"+std::to_string(mine.cartCapacity())+
+          "   STRIKES "+std::to_string(mine.strikes)+"   SCANS "+std::to_string(mine.scans)+
+          "   SITE "+std::to_string(mine.sites+1),2);
+        button(r,74,185,126,37,"DIG");
+        button(r,206,185,126,37,"SCAN");
+        button(r,338,185,126,37,"BLAST");
+        button(r,470,185,126,37,"LENS");
+        button(r,602,185,126,37,"COLLECT");
+        button(r,780,185,152,37,"UNLOAD");
+        const int tile=std::min(72,440/mine.size());
+        const int ox=(WIDTH-tile*mine.size())/2,oy=245;
+        for(int y=0;y<mine.size();++y)for(int x=0;x<mine.size();++x){
+          const int left=ox+x*tile,top=oy+y*tile;
+          const auto t=mine.tile(x,y);
+          fill(r,left,top,tile-3,tile-3,{58,35,56,255});
+          sprite(r,"mine/"+mine.sprite(x,y),left+4,top+4,tile-11,tile-11);
+          if(t.exposed>0)label(r,float(left+4),float(top+tile-19),"CART",1);
+          else if(t.scanned&&!t.cleared())
+            label(r,float(left+3),float(top+tile-19),t.ore>0?"ORE":"EMPTY",1);
+        }
+        label(r,90,738,"GEMS "+std::to_string(mine.gems)+" COAL "+std::to_string(mine.coal)+
+          " FOSSILS "+std::to_string(mine.fossils)+" RELICS "+std::to_string(mine.relics)+
+          " BLAST "+std::to_string(mine.blasts)+" LENS "+std::to_string(mine.lenses),1);
+      }else if(mineTab==MineTab::Equipment){
+        const std::array<std::string,5> names{{"pickaxe","gloves","map","cart","refinery"}};
+        const std::array<int,5> tiers{{mine.pickTier,mine.gloveTier,mine.mineTier,mine.cartTier,mine.refineryTier}};
+        for(int i=0;i<5;++i){
+          const int price=mine.cost(names[size_t(i)]);
+          std::string title=names[size_t(i)]+" TIER "+std::to_string(tiers[size_t(i)])+
+             (price<0?" MAX":" UPGRADE N$"+std::to_string(price));
+          button(r,180,215+i*77,664,60,title);
+        }
+        label(r,165,647,"Pickaxe 12 + 5/tier daily strikes; gloves +1 survey/tier.",2);
+      }else{
+        button(r,180,215,664,62,"UNLOAD CART   "+std::to_string(mine.cartOre)+" ORE");
+        button(r,180,289,664,62,"REFINE "+std::to_string(mine.orePerMetal())+" ORE -> 1 METAL");
+        button(r,180,363,664,62,"COAL REFINE -> 1 METAL");
+        button(r,180,437,664,62,"CRAFT 2 METAL -> 1 GOODS");
+        button(r,180,511,664,62,"SELL GOODS -> N$"+std::to_string(mine.saleValue()));
+        button(r,180,585,664,62,"BUY WRIT -> N$180");
       }
-      label(r,220,660,"Native mine interaction preview. Refinery/cart/equipment not ported.",2);
     }
   }
 };
 }
 int main(int argc,char** argv){
-  std::string screenshot;bool self=false,previewMine=false,previewBoard=false;
+  std::string screenshot,fixtureFile;bool self=false,previewMine=false,previewBoard=false;
   for(int i=1;i<argc;++i){
     std::string arg=argv[i];
     if(arg=="--self-test")self=true;
+    else if(arg=="--verify-mine-fixtures"&&i+1<argc)fixtureFile=argv[++i];
     else if(arg=="--preview-mine")previewMine=true;
     else if(arg=="--preview-board")previewBoard=true;
     else if(arg=="--smoke-render"&&i+1<argc)screenshot=argv[++i];
   }
-  if(self){std::string result;bool good=nut::selfTest(result);std::cout<<result<<"\n";return good?0:1;}
+  if(self){
+    std::string boardReport,mineReport;
+    bool boardOk=nut::selfTest(boardReport),mineOk=nut::mineSelfTest(mineReport);
+    std::cout<<boardReport<<"\n"<<mineReport<<"\n";return boardOk&&mineOk?0:1;
+  }
+  if(!fixtureFile.empty()){
+    std::ifstream fixtures(fixtureFile);
+    std::string report;
+    bool ok=fixtures&&nut::verifyMineFixtures(fixtures,report);
+    std::cout<<report<<"\n";return ok?0:1;
+  }
   if(!SDL_Init(SDL_INIT_VIDEO)){std::cerr<<SDL_GetError()<<"\n";return 1;}
   SDL_Window* win=SDL_CreateWindow("NUTBUSTER Native Desktop Preview",WIDTH,HEIGHT,
      screenshot.empty()?0:SDL_WINDOW_HIDDEN);

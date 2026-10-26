@@ -36,3 +36,10 @@ On Windows use `native/package/NUTBUSTER-Windows-x64.exe`. Keep the packaged `da
 6. Publish native desktop releases only after demonstrated feature parity.
 
 Only functional failures gate publication. Never replace the approved sprites with fallback symbols or screenshots.
+
+## Native mine mechanics parity pass (2026-10-26)
+The native mine no longer regenerates on opening. A dedicated `mine.hpp/mine.cpp` C++ simulation handles seeded geology (including coal, precious metals, gems, fossils, relics, blasting/lens charges), mining damage, surveys, cart/exposed ore, unloading, refinement, manufacturing, sales, Writs, daily equipment charges and the original mine/cart/refinery/pickaxe/glove upgrade price formulas. The SDL3 mine view now has **EXCAVATE / EQUIPMENT / REFINERY** tabs with working actions and saves on successful mutations. Mining progress is serialized in a guarded `MINE_V2` format beside native preview progression; older `V1` preview unlocked-level saves remain readable.
+
+The native preview deliberately does **not** claim complete port parity: preview mine saves are distinct from mobile saves, and the equipment/visual/sfx/UX still needs the finished-art and interactive parity review. Importing a mobile save has not been implemented. No native real-money transactions, app-store SDKs, or browser runtime are introduced.
+
+`native/generate_mine_fixtures.js` reads the existing JS mining engine to generate independent numeric geology fixtures for every map tier; CI compares these directly to the C++ implementation. `--self-test` now also exercises equipment purchasing, surveys, stored ore, refinery/manufacturing, Writs, blasts, daily reset and native mine save/reload. A failed functional native test blocks **preview ZIP creation**, not unrelated Android signed releases.

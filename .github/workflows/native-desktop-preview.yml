@@ -64,6 +64,13 @@ jobs:
           test -s native/package/data/mine/r3c4.bmp
       - name: Test native game logic without any GUI or browser
         run: "native/package/${{ matrix.binary }} --self-test"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compare native mining geology against existing JavaScript game
+        run: |
+          node native/generate_mine_fixtures.js > native-mine-fixtures.txt
+          native/package/${{ matrix.binary }} --verify-mine-fixtures native-mine-fixtures.txt
       - name: Render actual SDL3 game screens on Linux
         if: runner.os == 'Linux'
         run: |
