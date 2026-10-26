@@ -105,7 +105,30 @@ struct Game {
         if(!texture(r,root,key))return false;
       }
     }
+    for(const std::string& key:{"blocker/ice-1","blocker/ice-2","blocker/lock",
+       "blocker/chain-1","blocker/chain-2","blocker/chest","blocker/crate","blocker/rock",
+       "overlay/sticky-butter","overlay/bomb"}){
+      if(!textureRGBA(r,root,key))return false;
+    }
     return true;
+  }
+  bool textureRGBA(SDL_Renderer* r,const fs::path& root,const std::string& key){
+    const fs::path file=root/(key+".rgba");
+    std::ifstream input(file,std::ios::binary);
+    uint32_t dims[2]{};
+    if(!input.read(reinterpret_cast<char*>(dims),sizeof(dims)))return false;
+    const uint64_t pixels=uint64_t(dims[0])*uint64_t(dims[1])*4U;
+    if(dims[0]==0||dims[1]==0||dims[0]>4096||dims[1]>4096||
+       fs::file_size(file)!=pixels+sizeof(dims))return false;
+    std::vector<uint8_t> data(static_cast<size_t>(pixels));
+    if(!input.read(reinterpret_cast<char*>(data.data()),std::streamsize(pixels)))return false;
+    SDL_Surface* surface=SDL_CreateSurfaceFrom(int(dims[0]),int(dims[1]),
+        SDL_PIXELFORMAT_RGBA32,data.data(),int(dims[0])*4);
+    if(!surface)return false;
+    SDL_Texture* texture=SDL_CreateTextureFromSurface(r,surface);
+    SDL_DestroySurface(surface);
+    if(!texture)return false;
+    images[key]=texture;return true;
   }
   bool texture(SDL_Renderer* r,const fs::path& root,const std::string& key){
     auto path=root/(key+".bmp");
@@ -123,8 +146,8 @@ struct Game {
     SDL_RenderTexture(r,it->second,nullptr,&dst);
   }
   int cellAt(float x,float y)const {
-    int tile=std::min(80,480/board.width());
-    int ox=(WIDTH-tile*board.width())/2,oy=166;
+    int tile=std::min(74,490/board.height());
+    int ox=(WIDTH-tile*board.width())/2,oy=215;
     if(!within(x,y,float(ox),float(oy),float(tile*board.width()),float(tile*board.height())))return -1;
     return int((y-oy)/tile)*board.width()+int((x-ox)/tile);
   }
@@ -216,16 +239,36 @@ struct Game {
     }
     button(r,24,20,145,46,"BACK");
     if(scene==Scene::Board){
-      label(r,220,115,"LEVEL "+std::to_string(board.level())+"   MOVES "+std::to_string(board.moves()),2);
-      label(r,220,142,"SCORE "+std::to_string(board.score())+" / "+std::to_string(board.goal()),2);
-      const int tile=std::min(80,480/board.width());
-      const int ox=(WIDTH-tile*board.width())/2,oy=166;
-      for(int i=0;i<board.size();++i){
-        int x=ox+(i%board.width())*tile,y=oy+(i/board.width())*tile;
-        fill(r,x,y,tile-3,tile-3,i==selected?SDL_Color{209,166,80,255}:SDL_Color{58,35,56,255});
-        sprite(r,std::string("nuts/")+NUTS.at(size_t(board.tile(i))),x+5,y+5,tile-13,tile-13);
+      label(r,190,108,"LEVEL "+std::to_string(board.level())+"  MOVES "+
+                    std::to_string(board.moves()),2);
+      std::string title=board.stage().title;
+      if(title.size()>64)title=title.substr(0,64);
+      label(r,190,132,title,2);
+      for(int g=0;g<2;++g){
+        const auto& objective=board.stage().goals[size_t(g)];
+        if(objective.kind==nut::GoalKind::None)continue;
+        label(r,190,160+g*20,board.objectiveLabel(g)+" "+
+          std::to_string(board.objectiveValue(g))+"/"+std::to_string(objective.target),2);
       }
-      label(r,220,700,"Drag one tile onto its neighbor, or click two tiles.",2);
+      const int tile=std::min(74,490/board.height());
+      const int ox=(WIDTH-tile*board.width())/2,oy=215;
+      for(int i=0;i<board.size();++i){
+        const auto& c=board.cell(i);
+        if(c.type<0)continue; // preserve actual authored board silhouette
+        const int x=ox+(i%board.width())*tile,y=oy+(i/board.width())*tile;
+        fill(r,x,y,tile-3,tile-3,i==selected?
+          SDL_Color{209,166,80,255}:SDL_Color{58,35,56,255});
+        sprite(r,std::string("nuts/")+NUTS.at(size_t(c.type)),x+5,y+5,tile-13,tile-13);
+        if(c.chest>0)sprite(r,"blocker/chest",x+3,y+3,tile-9,tile-9);
+        if(c.lock>0)sprite(r,"blocker/chain-1",x+3,y+3,tile-9,tile-9);
+        if(c.ice>0)sprite(r,c.ice>2?"blocker/ice-2":"blocker/ice-1",x+3,y+3,tile-9,tile-9);
+        if(c.jam>0)sprite(r,"overlay/sticky-butter",x+3,y+3,tile-9,tile-9);
+        if(c.fuse>0)sprite(r,"overlay/bomb",x+3,y+3,tile-9,tile-9);
+        if(c.ice>1||c.lock>1||c.chest>1)
+          label(r,float(x+3),float(y+tile-18),
+             "x"+std::to_string(std::max({c.ice,c.lock,c.chest})),1);
+      }
+      label(r,204,715,"Drag adjacent nuts or click two tiles.",2);
     } else if(scene==Scene::Mine){
       button(r,175,111,180,42,"EXCAVATE");
       button(r,365,111,180,42,"EQUIPMENT");
@@ -301,6 +344,13 @@ int main(int argc,char** argv){
     else if(arg=="--preview-board")previewBoard=true;
     else if(arg=="--smoke-render"&&i+1<argc)screenshot=argv[++i];
   }
+  const fs::path data=fs::absolute(fs::path(argv[0])).parent_path()/"data";
+  std::ifstream campaignFile(data/"campaign.tsv");
+  std::string campaignError;
+  if(!campaignFile||!nut::loadCampaign(campaignFile,campaignError)){
+    std::cerr<<"Required authored NUTBUSTER campaign data unavailable: "<<campaignError<<"\n";
+    return 4;
+  }
   if(self){
     std::string boardReport,mineReport;
     bool boardOk=nut::selfTest(boardReport),mineOk=nut::mineSelfTest(mineReport);
@@ -322,7 +372,6 @@ int main(int argc,char** argv){
   char* pref=SDL_GetPrefPath("mrcalzon02","NUTBUSTER-Native-Preview");
   if(pref){game.savePath=fs::path(pref)/"progress.txt";SDL_free(pref);}
   if(!game.smoke&& !game.savePath.empty())game.load();
-  const fs::path data=fs::path(SDL_GetBasePath())/"data";
   if(!game.loadArt(renderer,data)){SDL_DestroyRenderer(renderer);SDL_DestroyWindow(win);SDL_Quit();return 2;}
   if(previewMine)game.makeMine();
   else if(previewBoard)game.startLevel();

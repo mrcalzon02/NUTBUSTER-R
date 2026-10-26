@@ -2,6 +2,7 @@
 """Convert committed approved art to SDL3-core-readable BMP without replacing art."""
 from pathlib import Path
 import json
+import struct
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,6 +23,17 @@ def transform(src: Path, dest: Path) -> None:
         background=Image.new("RGB",rgba.size,(38,22,45))
         background.paste(rgba,mask=rgba.getchannel("A"))
         background.save(dest,"BMP")
+def rgba(source: Path, destination: Path) -> None:
+    """Preserve every pixel and its alpha; SDL3 core receives raw RGBA."""
+    if not source.is_file():
+        raise SystemExit("Missing approved UI overlay: "+str(source))
+    destination.parent.mkdir(parents=True,exist_ok=True)
+    with Image.open(source) as original:
+        image=original.convert("RGBA")
+        if max(image.size)>4096 or min(image.size)<16:
+            raise SystemExit("Unsupported approved overlay dimensions: "+str(source))
+        destination.write_bytes(struct.pack("<II",*image.size)+image.tobytes())
+
 def main() -> None:
     for nut in NUTS:
         transform(ROOT/"web"/"art"/"primary"/"nuts"/(nut+".png"),
@@ -51,6 +63,14 @@ def main() -> None:
             if not src.resolve().is_relative_to((ROOT/"web"/"art"/"nutvale"/"mining-tools"/kind).resolve()):
                 raise SystemExit("Refusing non-approved gear source: "+str(src))
             transform(src,OUT/"gear"/(f"{track}-{tier:02}.bmp"))
-    print(f"Native SDL3 BMP sprite copies: {len(NUTS)+24+80} approved images (80 tier-specific equipment).")
+    blockers=("ice-1","ice-2","lock","chain-1","chain-2","chest","crate","rock")
+    overlays=("sticky-butter","bomb")
+    for name in blockers:
+        rgba(ROOT/"web"/"art"/"primary"/"blockers"/(name+".png"),
+             OUT/"blocker"/(name+".rgba"))
+    for name in overlays:
+        rgba(ROOT/"web"/"art"/"primary"/"overlays"/(name+".png"),
+             OUT/"overlay"/(name+".rgba"))
+    print(f"Native SDL3 sprites: {len(NUTS)+24+80} existing BMP assets and {len(blockers)+len(overlays)} faithful-alpha blocker/overlay assets.")
 if __name__=="__main__":
     main()
