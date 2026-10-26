@@ -2,6 +2,7 @@
 /* Release-blocking mining expansion behavior; no cosmetic image-judgment gate. */
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
+require('../web/nutvale-mining-gear.js');
 const M=require('../web/nutvale-mines.js');
 const UI=require('../web/nutvale-mines-ui.js');
 const ROOT=path.join(__dirname,'../web/art/nutvale/mining-ore');

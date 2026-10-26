@@ -26,7 +26,7 @@ assert.notEqual(Ore.select({x:0,y:0,done:true,kind:'barren'}).join(','),Ore.sele
 assert.equal(Ore.select({x:0,y:0,hits:0,done:false,kind:'crystal'}).join(','),Ore.select({x:0,y:0,hits:0,done:false,kind:'barren'}).join(','),'undug tiles must not disclose outcomes');
 assert.match(Ore.sprite({done:true,kind:'ordinary'}),/<img/);
 const ui=fs.readFileSync(path.join(root,'web/nutvale-mines-ui.js'),'utf8');
-assert.match(ui,/OreAtlas\.sprite\(c\)/);
+assert.match(ui,/M\.cellArt\(c\)/,'Live mine board must use approved deposit-specific PNGs');
 assert(!/[🪨💎💠💥🔎🟤⚫]/u.test(ui),'do not regress to mining tile emojis');
 assert(!ui.includes('art/primary/blockers/rock.png'),'no unrelated placeholder rock');
 console.log('PASS: 24 approved transparent sprites, exact SHA, mining tile selection and reveal privacy');
