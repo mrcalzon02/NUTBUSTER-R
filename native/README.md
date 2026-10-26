@@ -11,7 +11,7 @@ The desktop target is **C++17 + SDL3 native rendering**, NOT Chromium, Electron,
 - Headless C++ gameplay tests and Linux SDL3 frame capture.
 
 ## Gaps before a release
-**This is a playable prototype, not game parity.** The source JavaScript campaign design book, full stage objectives, boosters, blockers, detailed mines economy/cart/refinery/upgrades, Homestead, Wharf, Fishing, Shop, reward flows, audio and migration of existing saves have not been ported. It is wrong to advertise these as implemented.
+**This is a playable prototype, not game parity.** The source JavaScript campaign design book, full stage objectives, boosters, blockers, Homestead, Wharf, Fishing, Shop, reward flows, audio and migration of existing saves have not been ported. Native Mines now has its mechanical cart/refinery/equipment economy, but UI presentation, art completeness, day-rollover device testing, gameplay parity and save compatibility still require verification. It is wrong to advertise these as implemented.
 
 The old Go browser launchers and Electron shell are no longer part of the shipping release pipeline. Native Windows and Linux apps are uploaded as separate CI preview ZIP artifacts. Nothing browser-based is allowed to substitute for full-game native releases.
 
