@@ -76,10 +76,13 @@ jobs:
         run: |
           xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-board --smoke-render native-board.bmp
           xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-mine --smoke-render native-mine.bmp
+          xvfb-run -a native/package/NUTBUSTER-Linux-x64 --smoke-mine-dig --smoke-render native-mine-dug.bmp
+          xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-equipment --smoke-render native-mine-equipment.bmp
+          xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-refinery --smoke-render native-mine-refinery.bmp
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
-          for screen in ('native-board','native-mine'):
+          for screen in ('native-board','native-mine','native-mine-dug','native-mine-equipment','native-mine-refinery'):
               path=Path(screen+'.bmp')
               with Image.open(path) as im:
                   assert im.size==(1024,768), (screen,im.size)
@@ -123,5 +126,8 @@ jobs:
             NUTBUSTER-Native-${{ matrix.label }}-PREVIEW.zip
             native-board.png
             native-mine.png
+            native-mine-dug.png
+            native-mine-equipment.png
+            native-mine-refinery.png
           retention-days: 30
           if-no-files-found: error

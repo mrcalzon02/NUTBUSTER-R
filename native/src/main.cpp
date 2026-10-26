@@ -274,12 +274,15 @@ struct Game {
 };
 }
 int main(int argc,char** argv){
-  std::string screenshot,fixtureFile;bool self=false,previewMine=false,previewBoard=false;
+  std::string screenshot,fixtureFile;bool self=false,previewMine=false,previewBoard=false,smokeDig=false,previewEquip=false,previewRefinery=false;
   for(int i=1;i<argc;++i){
     std::string arg=argv[i];
     if(arg=="--self-test")self=true;
     else if(arg=="--verify-mine-fixtures"&&i+1<argc)fixtureFile=argv[++i];
     else if(arg=="--preview-mine")previewMine=true;
+    else if(arg=="--smoke-mine-dig"){previewMine=true;smokeDig=true;}
+    else if(arg=="--preview-equipment"){previewMine=true;previewEquip=true;}
+    else if(arg=="--preview-refinery"){previewMine=true;previewRefinery=true;}
     else if(arg=="--preview-board")previewBoard=true;
     else if(arg=="--smoke-render"&&i+1<argc)screenshot=argv[++i];
   }
@@ -308,6 +311,30 @@ int main(int argc,char** argv){
   if(!game.loadArt(renderer,data)){SDL_DestroyRenderer(renderer);SDL_DestroyWindow(win);SDL_Quit();return 2;}
   if(previewMine)game.makeMine();
   else if(previewBoard)game.startLevel();
+  if(previewEquip)game.mineTab=Game::MineTab::Equipment;
+  if(previewRefinery)game.mineTab=Game::MineTab::Workshop;
+  if(smokeDig){
+    bool sampled=false;
+    const int tile=std::min(72,440/game.mine.size());
+    const int ox=(WIDTH-tile*game.mine.size())/2,oy=245;
+    for(int y=0;y<game.mine.size()&&!sampled;++y)
+      for(int x=0;x<game.mine.size()&&!sampled;++x){
+        if(game.mine.tile(x,y).ore==0)continue;
+        const auto target=game.mine.tile(x,y);
+        const int before=game.mine.strikes;
+        for(int hit=0;hit<target.hardness;++hit)
+          game.click(float(ox+x*tile+tile/2),float(oy+y*tile+tile/2));
+        sampled=game.mine.tile(x,y).cleared() && game.mine.strikes==before-target.hardness;
+        if(sampled)std::cout<<"Functional SDL3 mine click: "<<x<<","<<y
+                             <<" sprite="<<game.mine.sprite(x,y)<<" consumed="<<target.hardness<<"\n";
+      }
+    if(!sampled){
+      std::cerr<<"Functional SDL3 mine-click smoke failed\n";
+      for(auto& image:game.images)SDL_DestroyTexture(image.second);
+      SDL_DestroyRenderer(renderer);SDL_DestroyWindow(win);SDL_Quit();
+      return 3;
+    }
+  }
   bool running=true;
   while(running){
     SDL_Event event;
