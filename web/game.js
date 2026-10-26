@@ -1035,13 +1035,25 @@ function action(a,button){
   persist();counters();render();return;
  }
  if(a==='mine-tab'){if(state.page!=='mines')return;const t=button.dataset.tab;if(!['dig','equipment','refinery','writs'].includes(t))return;state.mineTab=t;state.minePending=null;render();return;}
- if(a==='mine-mode'){if(state.page!=='mines')return;state.mineMode=['dig','scan','blast','lens'].includes(button.dataset.mode)?button.dataset.mode:'dig';render();return;}
+ if(a==='mine-mode'){
+  if(state.page!=='mines'||!Mines)return;
+  const mode=['dig','scan','blast','lens'].includes(button.dataset.mode)?button.dataset.mode:'dig';
+  const supplies=Mines.stats(saved);
+  if((mode==='scan'&&!supplies.scansLeft)||(mode==='blast'&&!supplies.blastCharges)||(mode==='lens'&&!supplies.lensCharges)){
+   notice(mode==='scan'?'NO DAILY SCANS LEFT':mode==='blast'?'NO BLAST CHARGES':'NO LENS CHARGES');return;
+  }
+  state.mineMode=mode;render();return;
+ }
  if(a==='mine-cell'){
   if(state.page!=='mines'||!Mines)return;
   const x=Number(button.dataset.x),y=Number(button.dataset.y);
   const prior=Mines.currentBoard(saved).find(c=>c.x===x&&c.y===y);
   const result=prior?.exposed?Mines.collect(saved,x,y):state.mineMode==='scan'?Mines.survey(saved,x,y):state.mineMode==='lens'?Mines.lensSurvey(saved,x,y):state.mineMode==='blast'?Mines.blast(saved,x,y):Mines.excavate(saved,x,y);
-  if(result.valid){persist();render();playSFX('crack');if(result.cleared){const gained=Object.entries(result.rewards||{}).map(([kind,amount])=>kind.toUpperCase()+' +'+amount).join(' · ');notice(result.kind==='barren'?'BARREN STONE · NO ORE':(result.find||'ORE')+' · '+(result.exposed?'ORE EXPOSED · UNLOAD CART':result.cartAdded+' ORE INTO CART')+(gained?' · '+gained:''));}else if(Object.prototype.hasOwnProperty.call(result,'orePresent'))notice(result.orePresent?'ORE PRESENT':'BARREN ROCK');else if(result.ore)notice('COLLECTED '+result.ore+' ORE');}
+  if(result.valid){
+   // Exhausted mining modes must not remain selected after their last valid use.
+   const supplies=Mines.stats(saved);
+   if((state.mineMode==='scan'&&!supplies.scansLeft)||(state.mineMode==='blast'&&!supplies.blastCharges)||(state.mineMode==='lens'&&!supplies.lensCharges))state.mineMode='dig';
+   persist();render();playSFX('crack');if(result.cleared){const gained=Object.entries(result.rewards||{}).map(([kind,amount])=>kind.toUpperCase()+' +'+amount).join(' · ');notice(result.kind==='barren'?'BARREN STONE · NO ORE':(result.find||'ORE')+' · '+(result.exposed?'ORE EXPOSED · UNLOAD CART':result.cartAdded+' ORE INTO CART')+(gained?' · '+gained:''));}else if(Object.prototype.hasOwnProperty.call(result,'orePresent'))notice(result.orePresent?'ORE PRESENT':'BARREN ROCK');else if(result.ore)notice('COLLECTED '+result.ore+' ORE');}
   else notice(result.reason==='strikes'?'NO DAILY STRIKES LEFT':result.reason==='scans'?'NO DAILY SCANS LEFT':result.reason==='cart'?'CART FULL · UNLOAD FIRST':result.reason==='blast'?'NO BLAST CHARGES':result.reason==='lens'?'NO LENS CHARGES':'INVALID MINING ACTION');
   return;
  }
