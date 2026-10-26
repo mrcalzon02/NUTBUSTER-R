@@ -12,11 +12,15 @@ for(const name of ['premium-icon-integrity','tile-overlay-visibility','release-n
 const wf=fs.readFileSync(path.join(root,'.github/workflows/build-and-release.yml'),'utf8');
 assert.match(wf,/^  functional-tests:\n/m);
 assert.match(wf,/^  diagnostics:\n/m);
-assert.match(wf,/^  desktop:\n    needs: functional-tests\n/m);
+assert.doesNotMatch(wf,/^  desktop:/m,'Browser-launching Go desktop job must not ship');
+const native=fs.readFileSync(path.join(root,'.github/workflows/native-desktop-preview.yml'),'utf8');
+assert.match(native,/NUTBUSTER native desktop previews/);
+assert.match(native,/--self-test/);
+assert.match(native,/SDL3 native game/);
 assert.match(wf,/^  android-debug:\n    runs-on:/m,'Debug build must not gate the signed publisher');
 assert.match(wf,/^  emulator-smoke:\n    needs: android-debug\n/m);
 const publish=wf.slice(wf.indexOf('  publisher-release:'));
-assert.match(publish,/needs: \[functional-tests, desktop\]/,'Publisher must wait for functional tests and required distributables');
+assert.match(publish,/needs: \[functional-tests\]/,'Android/Fire signed publisher must depend on functional tests, not obsolete browser launcher');
 assert.doesNotMatch(publish,/needs:.*(?:diagnostics|emulator-smoke|android-debug)/,'Diagnostic failures must not block release');
 assert.match(publish,/Validate Nutbuster-owned publisher signing secrets/);
 assert.match(publish,/Remote release asset size and GitHub SHA-256 verified/,'Remote integrity remains mandatory');
