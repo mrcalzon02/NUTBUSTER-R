@@ -1,0 +1,120 @@
+name: NUTBUSTER native desktop previews (SDL3, no browser)
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - native/**
+      - web/art/primary/nuts/**
+      - web/art/nutvale/mining-ore/**
+      - .github/workflows/native-desktop-preview.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - native/**
+      - web/art/primary/nuts/**
+      - web/art/nutvale/mining-ore/**
+      - .github/workflows/native-desktop-preview.yml
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            label: Linux-x64
+            binary: NUTBUSTER-Linux-x64
+          - os: windows-2022
+            label: Windows-x64
+            binary: NUTBUSTER-Windows-x64.exe
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install native Linux build requirements
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build xvfb libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxss-dev libxkbcommon-dev libwayland-dev libegl1-mesa-dev libasound2-dev
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Convert approved sprites to native BMP runtime format
+        run: |
+          python -m pip install --disable-pip-version-check Pillow
+          python native/prepare_assets.py
+          test -s native/generated-assets/data/nuts/peanut.bmp
+          test -s native/generated-assets/data/mine/r1c1.bmp
+          test -s native/generated-assets/data/mine/r4c6.bmp
+      - name: Configure C++17 SDL3 native game
+        run: cmake -S native -B native/build -DCMAKE_BUILD_TYPE=Release
+      - name: Compile and stage platform-native application
+        run: |
+          cmake --build native/build --config Release --parallel 4
+          cmake --install native/build --config Release --prefix native/package
+          test -s "native/package/${{ matrix.binary }}"
+          test -s native/package/data/nuts/peanut.bmp
+          test -s native/package/data/mine/r3c4.bmp
+      - name: Test native game logic without any GUI or browser
+        run: "native/package/${{ matrix.binary }} --self-test"
+      - name: Render actual SDL3 game screens on Linux
+        if: runner.os == 'Linux'
+        run: |
+          xvfb-run -a native/package/NUTBUSTER-Linux-x64 --smoke-render native-board.bmp
+          xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-mine --smoke-render native-mine.bmp
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          for screen in ('native-board','native-mine'):
+              path=Path(screen+'.bmp')
+              with Image.open(path) as im:
+                  assert im.size==(1024,768), (screen,im.size)
+                  im.convert('RGB').save(screen+'.png')
+              assert Path(screen+'.png').stat().st_size>10000
+              print('Native SDL3 screenshot:',screen+'.png')
+          PY
+      - name: Reject browser-based distribution artifacts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          base=Path('native/package')
+          forbidden={'electron','chrome','chromium','webview','node.exe','index.html'}
+          hits=[str(p) for p in base.rglob('*') if p.name.lower() in forbidden]
+          if hits: raise SystemExit('Native output contains browser components: '+str(hits))
+          assert len(list((base/'data'/'nuts').glob('*.bmp'))) == 19
+          assert len(list((base/'data'/'mine').glob('*.bmp'))) == 24
+          print('No Chromium, Electron, WebView, HTML or local server distribution.')
+          PY
+      - name: Produce native-only preview ZIP
+        run: |
+          python - <<'PY'
+          import os,zipfile
+          from pathlib import Path
+          dest=Path('NUTBUSTER-Native-${{ matrix.label }}-PREVIEW.zip')
+          root=Path('native/package')
+          with zipfile.ZipFile(dest,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+              for p in root.rglob('*'):
+                  if p.is_file():
+                      info=zipfile.ZipInfo.from_file(p,str(p.relative_to(root)))
+                      if os.name!='nt' and p.name=='NUTBUSTER-Linux-x64':
+                          info.external_attr=(0o100755 << 16)
+                      z.writestr(info,p.read_bytes(),compress_type=zipfile.ZIP_DEFLATED)
+          assert dest.stat().st_size>10000
+          print(dest,dest.stat().st_size)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nutbuster-Native-${{ matrix.label }}-PREVIEW-${{ github.run_id }}
+          path: |
+            NUTBUSTER-Native-${{ matrix.label }}-PREVIEW.zip
+            native-board.png
+            native-mine.png
+          retention-days: 30
+          if-no-files-found: error

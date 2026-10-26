@@ -1,4 +1,4 @@
-name: NUTBUSTER Android, desktop and signed update release
+name: NUTBUSTER Android and Fire OS signed release
 
 on:
   workflow_dispatch:
@@ -158,60 +158,6 @@ jobs:
           retention-days: 30
           if-no-files-found: ignore
 
-  desktop:
-    needs: functional-tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - name: Slice exact approved Nutvale ore art for this build
-        run: |
-          python3 -m pip install --quiet --disable-pip-version-check Pillow numpy scipy
-          python3 tools/slice_nutvale_ore.py
-      - name: Embed exact release notes in desktop launchers
-        run: node tools/release-news.js --generate "nutbuster-phone-test-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}" "$GITHUB_SHA"
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-      - name: Compile self-contained desktop launchers
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash tools/build_desktop_launchers.sh
-          test -s release/NUTBUSTER-Windows-x64.exe
-          test -s release/NUTBUSTER-Linux-x64
-          mkdir -p release/metadata
-          sha256sum release/NUTBUSTER-* > release/metadata/SHA256SUMS.txt
-          printf 'Git SHA: %s\n' "$GITHUB_SHA" > release/metadata/BUILD.txt
-          file release/NUTBUSTER-Windows-x64.exe release/NUTBUSTER-Linux-x64
-      - name: Verify Linux launch actually serves the game
-        shell: bash
-        run: |
-          set -euo pipefail
-          release/NUTBUSTER-Linux-x64 --no-browser > "$RUNNER_TEMP/nutbuster-server.log" 2>&1 &
-          pid=$!
-          trap 'kill "$pid" 2>/dev/null || true' EXIT
-          for i in {1..30}; do
-            if curl --fail --silent --show-error http://127.0.0.1:43823/__nutbuster_ping 2>/dev/null | grep -qx NUTBUSTER_OFFLINE_V1; then break; fi
-            sleep 1
-          done
-          curl -fsS http://127.0.0.1:43823/__nutbuster_ping | grep -qx NUTBUSTER_OFFLINE_V1
-          curl -fsSL http://127.0.0.1:43823/ -o "$RUNNER_TEMP/nutbuster-index.html"
-          grep -Fq 'NUTBUSTER' "$RUNNER_TEMP/nutbuster-index.html"
-          curl -fsS http://127.0.0.1:43823/audio/grunt-1.mp3 -o "$RUNNER_TEMP/grunt.mp3"
-          test -s "$RUNNER_TEMP/grunt.mp3"
-          curl -fsSL http://127.0.0.1:43823/art/maps/chapter-5-moonlit-golden-palace.webp -o "$RUNNER_TEMP/chapter-5.webp"
-          test -s "$RUNNER_TEMP/chapter-5.webp"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Nutbuster-Desktop-${{ github.run_id }}
-          path: |
-            release/NUTBUSTER-Windows-x64.exe
-            release/NUTBUSTER-Linux-x64
-            release/metadata/
-          retention-days: 30
-          if-no-files-found: error
-
   android-debug:
     runs-on: ubuntu-latest
     timeout-minutes: 35
@@ -364,10 +310,10 @@ jobs:
       group: nutbuster-publisher-release
       cancel-in-progress: false
     if: github.event_name != 'pull_request'
-    # Only functional test failures and required desktop artifacts gate publication.
+    # Only functional gameplay failures gate signed Android / Fire OS publication.
     # Android debug, emulator, visuals, audits and text freshness remain red/visible
     # on failure but do not stop the independently signed release APK.
-    needs: [functional-tests, desktop]
+    needs: [functional-tests]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -396,10 +342,6 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.1'
-      - uses: actions/download-artifact@v4
-        with:
-          name: Nutbuster-Desktop-${{ github.run_id }}
-          path: release/desktop
       - name: Validate Nutbuster-owned publisher signing secrets
         id: signing
         shell: bash
@@ -457,7 +399,7 @@ jobs:
           sha256sum release/publish/NUTBUSTER-Android-phone-test.apk > release/publish/SHA256SUMS.txt
           sha256sum -c release/publish/SHA256SUMS.txt
           printf 'Source revision: %s\nAndroid versionCode: %s\nCertificate SHA-256: %s\n' "$GITHUB_SHA" "$CODE" "$SIGNER" > release/publish/BUILD-EVIDENCE.txt
-      - name: Publish signed APK and desktop downloads after remote verification
+      - name: Publish signed Android / Fire OS APKs after remote verification
         shell: bash
         run: |
           set -euo pipefail
@@ -466,8 +408,6 @@ jobs:
             echo "::error::Release tag already exists; refusing to overwrite existing artifacts"
             exit 1
           fi
-          cp release/desktop/NUTBUSTER-Windows-x64.exe release/publish/
-          cp release/desktop/NUTBUSTER-Linux-x64 release/publish/
           # Fire OS 7/8 sideload compatibility: same signed APK, same package/save identity.
           # Never create a second application, signer, updater or set of game assets.
           cp release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-FireOS-tablet.apk
@@ -476,7 +416,7 @@ jobs:
           (cd release/publish && sha256sum NUTBUSTER-* > SHA256SUMS.txt)
           node tools/release-news.js --notes '${{ steps.signed.outputs.code }}' '${{ steps.signing.outputs.sha }}' > "$RUNNER_TEMP/nutbuster-release-notes.md"
           gh release create "$TAG" --draft --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes-file "$RUNNER_TEMP/nutbuster-release-notes.md"
-          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-FireOS-tablet.apk release/publish/NUTBUSTER-Windows-x64.exe release/publish/NUTBUSTER-Linux-x64 release/publish/FIREOS-COMPATIBILITY.txt release/publish/NUTBUSTER-update.json release/publish/NUTBUSTER-news.json release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
+          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-FireOS-tablet.apk release/publish/FIREOS-COMPATIBILITY.txt release/publish/NUTBUSTER-update.json release/publish/NUTBUSTER-news.json release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
           # GitHub computes SHA-256 for release assets. Refuse to publish until its digest matches our local artifact.
           # Draft tags may not exist yet. Resolve the draft ID through gh, which
           # can find unpublished releases, then read its assets by release ID.
