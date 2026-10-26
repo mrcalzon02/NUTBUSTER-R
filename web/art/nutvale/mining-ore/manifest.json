@@ -1,0 +1,448 @@
+{
+  "schema": "nutvale-approved-ore-sprites/v1",
+  "source": "web/art/nutvale/mines/nutvale-mines-ore-atlas-approved.png",
+  "source_drive_file_id": "1TeUAzgFkKEaAGDzKOSdz-l96P_z5fKuM",
+  "source_sha256": "e722b3a1b6e17e6ab5a30711f815eaee64f666a665de11988ea192abfab53db0",
+  "source_dimensions": [
+    1448,
+    1086
+  ],
+  "columns": 6,
+  "rows": 4,
+  "output_format": "224x224 transparent RGBA PNG",
+  "slicer": "tools/slice_nutvale_ore.py",
+  "sprites": [
+    {
+      "id": "r1c1",
+      "path": "art/nutvale/mining-ore/r1c1.png",
+      "row": 1,
+      "column": 1,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        32,
+        51,
+        254,
+        269
+      ],
+      "opaque_pixels": 42771,
+      "sha256": "19f4a5e9e2f673caac2c4be554280ba7d15cb917aaff928ea4ea1b08ddfcd34f"
+    },
+    {
+      "id": "r1c2",
+      "path": "art/nutvale/mining-ore/r1c2.png",
+      "row": 1,
+      "column": 2,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        264,
+        51,
+        486,
+        269
+      ],
+      "opaque_pixels": 38866,
+      "sha256": "178ceb7f2f64121d33ee5b933519af33b9cea7d5407b5d98a6138aea7ec010d8"
+    },
+    {
+      "id": "r1c3",
+      "path": "art/nutvale/mining-ore/r1c3.png",
+      "row": 1,
+      "column": 3,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        496,
+        51,
+        718,
+        269
+      ],
+      "opaque_pixels": 42635,
+      "sha256": "de660776035c280b95077ea21e238ef1faf5ffe70b3abb4eb6820b13f45a0af2"
+    },
+    {
+      "id": "r1c4",
+      "path": "art/nutvale/mining-ore/r1c4.png",
+      "row": 1,
+      "column": 4,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        729,
+        51,
+        951,
+        269
+      ],
+      "opaque_pixels": 42839,
+      "sha256": "20dab00588b0c73f606e36de9176e10b0d6248bb4e1c15c41afa30abf005fa83"
+    },
+    {
+      "id": "r1c5",
+      "path": "art/nutvale/mining-ore/r1c5.png",
+      "row": 1,
+      "column": 5,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        961,
+        51,
+        1183,
+        269
+      ],
+      "opaque_pixels": 42386,
+      "sha256": "3c1fe2862d4d7a04ce8f5b54dcb7bda8d637a9c3087001378d1f41d7612a6600"
+    },
+    {
+      "id": "r1c6",
+      "path": "art/nutvale/mining-ore/r1c6.png",
+      "row": 1,
+      "column": 6,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        1194,
+        51,
+        1416,
+        269
+      ],
+      "opaque_pixels": 40329,
+      "sha256": "81a8e415cd5604f4b1b6b2fc57e5401f43d0ccc2b55f27b6583ec0bdcf48c689"
+    },
+    {
+      "id": "r2c1",
+      "path": "art/nutvale/mining-ore/r2c1.png",
+      "row": 2,
+      "column": 1,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        32,
+        293,
+        254,
+        511
+      ],
+      "opaque_pixels": 42073,
+      "sha256": "61101fa08d44f0ea4f90123799f2f93e00e5a88b05b774bf237406ab469de99a"
+    },
+    {
+      "id": "r2c2",
+      "path": "art/nutvale/mining-ore/r2c2.png",
+      "row": 2,
+      "column": 2,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        264,
+        293,
+        486,
+        511
+      ],
+      "opaque_pixels": 40405,
+      "sha256": "f0c54b588f975d1ca7159b084d46e19ac867789581f2d54aaf62798005a590f9"
+    },
+    {
+      "id": "r2c3",
+      "path": "art/nutvale/mining-ore/r2c3.png",
+      "row": 2,
+      "column": 3,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        496,
+        293,
+        718,
+        511
+      ],
+      "opaque_pixels": 42441,
+      "sha256": "9d3a521e4aa54ca2476c507cb78c1eca348077e921beaec6fca70f4c0ca04cdb"
+    },
+    {
+      "id": "r2c4",
+      "path": "art/nutvale/mining-ore/r2c4.png",
+      "row": 2,
+      "column": 4,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        729,
+        293,
+        951,
+        511
+      ],
+      "opaque_pixels": 43432,
+      "sha256": "510320cc023aeb761b38ff3e33c79e3c6cf8635bca450c0710b06dee508dca3c"
+    },
+    {
+      "id": "r2c5",
+      "path": "art/nutvale/mining-ore/r2c5.png",
+      "row": 2,
+      "column": 5,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        961,
+        293,
+        1183,
+        511
+      ],
+      "opaque_pixels": 43400,
+      "sha256": "a4528ca5c0c520e4f89a45c99ef821f52179b084aa4fc14b0044a6d8628bab28"
+    },
+    {
+      "id": "r2c6",
+      "path": "art/nutvale/mining-ore/r2c6.png",
+      "row": 2,
+      "column": 6,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        1194,
+        293,
+        1416,
+        511
+      ],
+      "opaque_pixels": 43216,
+      "sha256": "3732549b9b9b5bf782644dcaea498fd5a81a6f14e8c7ac15bda83637ccc457ef"
+    },
+    {
+      "id": "r3c1",
+      "path": "art/nutvale/mining-ore/r3c1.png",
+      "row": 3,
+      "column": 1,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        32,
+        535,
+        254,
+        753
+      ],
+      "opaque_pixels": 42939,
+      "sha256": "46bd51661e1f9c41453b2e70e7f3dee7e062e644997a9060f5c3fcc135b88fa7"
+    },
+    {
+      "id": "r3c2",
+      "path": "art/nutvale/mining-ore/r3c2.png",
+      "row": 3,
+      "column": 2,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        264,
+        535,
+        486,
+        753
+      ],
+      "opaque_pixels": 42562,
+      "sha256": "b3576acb8b3271f02654f69486fcbbe76fbf8984207b3c10279fe6247e80ebec"
+    },
+    {
+      "id": "r3c3",
+      "path": "art/nutvale/mining-ore/r3c3.png",
+      "row": 3,
+      "column": 3,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        496,
+        535,
+        718,
+        753
+      ],
+      "opaque_pixels": 42307,
+      "sha256": "ed1dfa39ed53715e5ff6fe71dcb91bf99dfd7deb001d6fd54ec695ad5bea5765"
+    },
+    {
+      "id": "r3c4",
+      "path": "art/nutvale/mining-ore/r3c4.png",
+      "row": 3,
+      "column": 4,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        729,
+        535,
+        951,
+        753
+      ],
+      "opaque_pixels": 43015,
+      "sha256": "ecf45cae9f343684084f7ddde8f0ab3b54b184bc8280ec2646818c3248e4c752"
+    },
+    {
+      "id": "r3c5",
+      "path": "art/nutvale/mining-ore/r3c5.png",
+      "row": 3,
+      "column": 5,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        961,
+        535,
+        1183,
+        753
+      ],
+      "opaque_pixels": 43122,
+      "sha256": "c4883148b72975c88fe9f1f2d9cec14b2259b2e5f9f2e507cf29e1d9ed8f0bb1"
+    },
+    {
+      "id": "r3c6",
+      "path": "art/nutvale/mining-ore/r3c6.png",
+      "row": 3,
+      "column": 6,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        1194,
+        535,
+        1416,
+        753
+      ],
+      "opaque_pixels": 43071,
+      "sha256": "8eefff119b47ab4595524123f5c11cee20bad6de975ccc84960f54d6d49cbe74"
+    },
+    {
+      "id": "r4c1",
+      "path": "art/nutvale/mining-ore/r4c1.png",
+      "row": 4,
+      "column": 1,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        32,
+        778,
+        254,
+        996
+      ],
+      "opaque_pixels": 42437,
+      "sha256": "70a2c291c6a319f067870b3928d3b96c257a114cf3d0e2af1ee9d27a7b34701f"
+    },
+    {
+      "id": "r4c2",
+      "path": "art/nutvale/mining-ore/r4c2.png",
+      "row": 4,
+      "column": 2,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        264,
+        778,
+        486,
+        996
+      ],
+      "opaque_pixels": 42913,
+      "sha256": "222a032f7863d305bf39e8a5541902540ebb2ca3245e151744713cbaf04bf00d"
+    },
+    {
+      "id": "r4c3",
+      "path": "art/nutvale/mining-ore/r4c3.png",
+      "row": 4,
+      "column": 3,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        496,
+        778,
+        718,
+        996
+      ],
+      "opaque_pixels": 43789,
+      "sha256": "d3e8bbc8abcf8f7e039c9b6d0e91236c4bd37883903cd6759021041b6914b0d0"
+    },
+    {
+      "id": "r4c4",
+      "path": "art/nutvale/mining-ore/r4c4.png",
+      "row": 4,
+      "column": 4,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        729,
+        778,
+        951,
+        996
+      ],
+      "opaque_pixels": 43784,
+      "sha256": "5df799478b6e6b5edd06c9c2345b41c2f9cc7824a4b5d4b7a67f580688feb022"
+    },
+    {
+      "id": "r4c5",
+      "path": "art/nutvale/mining-ore/r4c5.png",
+      "row": 4,
+      "column": 5,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        961,
+        778,
+        1183,
+        996
+      ],
+      "opaque_pixels": 39031,
+      "sha256": "0b9232fc8c3d309568b5cd4576170d64d2dcbd83c43df61b63808006c6f79be9"
+    },
+    {
+      "id": "r4c6",
+      "path": "art/nutvale/mining-ore/r4c6.png",
+      "row": 4,
+      "column": 6,
+      "dimensions": [
+        224,
+        224
+      ],
+      "source_box": [
+        1194,
+        778,
+        1416,
+        996
+      ],
+      "opaque_pixels": 44501,
+      "sha256": "c01ea266d253057b2b86dff0061f72239c04efa1548a2119eb3da3488f294a74"
+    }
+  ]
+}
