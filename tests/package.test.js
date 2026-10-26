@@ -16,6 +16,6 @@ const nativeCi=fs.readFileSync(path.join(root,'.github/workflows/native-desktop-
 assert.match(cmake,/SDL3::SDL3/);assert.match(game,/SDL_CreateWindow/);
 assert.match(game,/SDL_RenderTexture/);assert.match(core,/Board::swap/);
 assert.match(nativeCi,/--self-test/);
-assert.doesNotMatch(publisher,/tools\\/build_desktop_launchers\\.sh/);
-assert.doesNotMatch(publisher,/release\\/desktop\\/NUTBUSTER-/);
+assert.ok(!publisher.includes('tools/build_desktop_launchers.sh'));
+assert.ok(!publisher.includes('release/desktop/NUTBUSTER-'));
 console.log('PASS: Android inputs and native C++ SDL3 desktop build contract (browser launchers excluded from publisher)');
