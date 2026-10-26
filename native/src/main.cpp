@@ -332,7 +332,7 @@ struct Game {
 };
 }
 int main(int argc,char** argv){
-  std::string screenshot,fixtureFile;bool self=false,previewMine=false,previewBoard=false,smokeDig=false,previewEquip=false,previewRefinery=false;
+  std::string screenshot,fixtureFile;int previewStage=0;bool self=false,previewMine=false,previewBoard=false,smokeDig=false,previewEquip=false,previewRefinery=false;
   for(int i=1;i<argc;++i){
     std::string arg=argv[i];
     if(arg=="--self-test")self=true;
@@ -342,6 +342,11 @@ int main(int argc,char** argv){
     else if(arg=="--preview-equipment"){previewMine=true;previewEquip=true;}
     else if(arg=="--preview-refinery"){previewMine=true;previewRefinery=true;}
     else if(arg=="--preview-board")previewBoard=true;
+    else if(arg=="--preview-stage"&&i+1<argc){
+      try{previewStage=std::stoi(argv[++i]);}
+      catch(...){std::cerr<<"Invalid native preview stage number\n";return 2;}
+      if(previewStage<1||previewStage>1000){std::cerr<<"Stage must be 1..1000\n";return 2;}
+    }
     else if(arg=="--smoke-render"&&i+1<argc)screenshot=argv[++i];
   }
   const fs::path data=fs::absolute(fs::path(argv[0])).parent_path()/"data";
@@ -374,6 +379,10 @@ int main(int argc,char** argv){
   if(!game.smoke&& !game.savePath.empty())game.load();
   if(!game.loadArt(renderer,data)){SDL_DestroyRenderer(renderer);SDL_DestroyWindow(win);SDL_Quit();return 2;}
   if(previewMine)game.makeMine();
+  else if(previewStage>0){
+    game.board.reset(previewStage,uint32_t(previewStage)*7919U);
+    game.scene=Game::Scene::Board;
+  }
   else if(previewBoard)game.startLevel();
   if(previewEquip)game.mineTab=Game::MineTab::Equipment;
   if(previewRefinery)game.mineTab=Game::MineTab::Workshop;

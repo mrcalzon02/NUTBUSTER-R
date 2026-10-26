@@ -89,6 +89,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-board --smoke-render native-board.bmp
+          xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-stage 3 --smoke-render native-stage-3.bmp
+          xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-stage 1000 --smoke-render native-stage-1000.bmp
           xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-mine --smoke-render native-mine.bmp
           xvfb-run -a native/package/NUTBUSTER-Linux-x64 --smoke-mine-dig --smoke-render native-mine-dug.bmp
           xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-equipment --smoke-render native-mine-equipment.bmp
@@ -96,13 +98,18 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
-          for screen in ('native-board','native-mine','native-mine-dug','native-mine-equipment','native-mine-refinery'):
+          for screen in ('native-board','native-stage-3','native-stage-1000','native-mine','native-mine-dug','native-mine-equipment','native-mine-refinery'):
               path=Path(screen+'.bmp')
               with Image.open(path) as im:
                   assert im.size==(1024,768), (screen,im.size)
                   im.convert('RGB').save(screen+'.png')
               assert Path(screen+'.png').stat().st_size>1024
               print('Native SDL3 screenshot:',screen+'.png')
+          import hashlib
+          src=[Path(x) for x in ('native-board.png','native-stage-3.png','native-stage-1000.png')]
+          digests=[hashlib.sha256(x.read_bytes()).hexdigest() for x in src]
+          assert len(set(digests))==3, 'Authoritative stages rendered identical: board selection failed'
+          print('Native stage 1, 3 and 1000 render differently as intended')
           PY
       - name: Reject browser-based distribution artifacts
         run: |
@@ -144,6 +151,8 @@ jobs:
           path: |
             NUTBUSTER-Native-${{ matrix.label }}-PREVIEW.zip
             native-board.png
+            native-stage-3.png
+            native-stage-1000.png
             native-mine.png
             native-mine-dug.png
             native-mine-equipment.png
