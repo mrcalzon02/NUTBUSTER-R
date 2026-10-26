@@ -59,3 +59,8 @@ Approved ice, chains, chests, jam and bomb sprites are read from their existing 
 
 ## Authored-layout visual evidence
 The Linux SDL3 preview workflow captures `native-board.png`, `native-stage-3.png` and `native-stage-1000.png` using a deliberately named `--preview-stage <level>` developer-only CLI parameter. These prove that the native renderer switches to the correct source-authored starting cells (the images must be different), including blocker layers and late dual-objective labels. Gameplay gaps in the later campaign are still documented above; displaying the correct layout alone does not establish full feature parity.
+
+## Native campaign navigation
+The new game-owned **CAMPAIGN** screen displays the approved campaign-overview image, sourced from `web/art/maps/campaign-overview.webp`, and reads the selected level's title, moves and objectives from the exported authoring data. Players can scroll backward or forward within **unlocked** stages and choose `PLAY THIS STAGE`, allowing replay without resetting completed progression. Successful completion advances the highest unlocked stage only if it was the current frontier; replaying a lower stage does not grant arbitrary new levels. This menu is SDL3 native rendering (not browser HTML), and CI captures `native-campaign.png` from the actual renderer.
+
+The existing `NUTBUSTER_NATIVE_PREVIEW_V2` save format continues to store highest unlocked level and mining state. Selected replay stage is session-local. No Android/Fire OS resources or saves are modified.

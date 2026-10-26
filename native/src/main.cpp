@@ -46,10 +46,10 @@ int roll(uint32_t seed,int x,int y,uint32_t salt){
 }
 struct Game {
   nut::Board board{1,7919};
-  enum class Scene{Menu,Board,Mine,Won,Lost};
+  enum class Scene{Menu,Campaign,Board,Mine,Won,Lost};
   Scene scene=Scene::Menu;
   std::map<std::string,SDL_Texture*> images;
-  int unlocked=1,selected=-1,down=-1;
+  int unlocked=1,selectedLevel=1,selected=-1,down=-1;
   nut::Mine mine{};
   enum class MineTab {Dig,Equipment,Workshop};
   enum class MineMode {Dig,Scan,Blast,Lens,Collect};
@@ -74,7 +74,7 @@ struct Game {
     mine.save(file);
   }
   void startLevel() {
-    board.reset(unlocked,uint32_t(unlocked)*7919U);
+    board.reset(selectedLevel,uint32_t(selectedLevel)*7919U);
     selected=-1;scene=Scene::Board;
   }
   void makeMine(){
@@ -91,6 +91,7 @@ struct Game {
     scene=Scene::Mine;
   }
   bool loadArt(SDL_Renderer* r,const fs::path& root){
+    if(!texture(r,root,"maps/campaign-overview"))return false;
     for(const char* nut:NUTS){
       std::string key=std::string("nuts/")+nut;
       if(!texture(r,root,key))return false;
@@ -153,13 +154,16 @@ struct Game {
   }
   void click(float x,float y){
     if(scene==Scene::Menu){
-      if(within(x,y,324,238,376,66))startLevel();
+      if(within(x,y,324,238,376,66)){selectedLevel=std::clamp(selectedLevel,1,unlocked);scene=Scene::Campaign;}
       else if(within(x,y,324,332,376,66)&&unlocked>500)makeMine();
       else if(within(x,y,324,426,376,66))quitRequested=true;
       return;
     }
     if(scene==Scene::Won||scene==Scene::Lost){
-      if(within(x,y,320,350,384,68)) { if(scene==Scene::Won)startLevel(); else scene=Scene::Menu; }
+      if(within(x,y,320,350,384,68)) {
+        if(scene==Scene::Won){selectedLevel=std::min(1000,std::min(unlocked,selectedLevel+1));startLevel();}
+        else scene=Scene::Campaign;
+      }
       return;
     }
     if(within(x,y,24,20,145,46)) {scene=Scene::Menu;selected=-1;return;}
@@ -206,6 +210,17 @@ struct Game {
       if(changed)save();
       return;
     }
+    if(scene==Scene::Campaign){
+      const int before=selectedLevel;
+      if(within(x,y,555,443,90,52))selectedLevel=std::max(1,selectedLevel-10);
+      else if(within(x,y,650,443,90,52))selectedLevel=std::max(1,selectedLevel-1);
+      else if(within(x,y,745,443,90,52))selectedLevel=std::min(unlocked,selectedLevel+1);
+      else if(within(x,y,840,443,90,52))selectedLevel=std::min(unlocked,selectedLevel+10);
+      else if(within(x,y,560,536,370,68))startLevel();
+      else if(within(x,y,560,615,370,54))scene=Scene::Menu;
+      if(before!=selectedLevel)selectedLevel=std::clamp(selectedLevel,1,unlocked);
+      return;
+    }
     if(scene==Scene::Board){
       int i=cellAt(x,y);if(i<0)return;
       if(selected>=0&&selected!=i)perform(selected,i);
@@ -216,7 +231,7 @@ struct Game {
     nut::Turn result=board.swap(a,b);
     selected=-1;
     if(!result.valid){selected=b;return;}
-    if(result.won){unlocked=std::min(1000,unlocked+1);save();scene=Scene::Won;}
+    if(result.won){unlocked=std::max(unlocked,std::min(1000,selectedLevel+1));save();scene=Scene::Won;}
     else if(result.lost)scene=Scene::Lost;
   }
   void render(SDL_Renderer* r){
@@ -225,11 +240,39 @@ struct Game {
     label(r,332,28,"NUTBUSTER",4);
     if(scene==Scene::Menu){
       label(r,292,155,"NATIVE WINDOWS / LINUX PREVIEW",2);
-      button(r,324,238,376,66,"PLAY LEVEL "+std::to_string(unlocked));
+      button(r,324,238,376,66,"CAMPAIGN");
       button(r,324,332,376,66,unlocked>500?"NUTVALE MINES":"MINES UNLOCK AT 500");
       button(r,324,426,376,66,"EXIT");
       label(r,160,590,"Native SDL3 rendering. No Chromium, Electron or WebView.",2);
       label(r,160,630,"Preview only: full design-book feature parity pending.",2);
+      return;
+    }
+    if(scene==Scene::Campaign){
+      const auto& target=nut::campaignStage(selectedLevel);
+      label(r,120,121,"CAMPAIGN - 1000 AUTHORED STAGES",2);
+      sprite(r,"maps/campaign-overview",76,177,448,465);
+      fill(r,545,181,410,521,{54,26,49,255});
+      label(r,575,215,"STAGE "+std::to_string(selectedLevel)+
+        " / "+std::to_string(unlocked),2);
+      std::string title=target.title;
+      if(title.size()>36)title=title.substr(0,36);
+      label(r,575,259,title,2);
+      label(r,575,307,"MOVES "+std::to_string(target.moves),2);
+      const std::array<std::string,6> goals{{"SCORE","COLLECT","ICE","LOCKS","CHESTS","BUTTER"}};
+      for(int i=0;i<2;++i){
+        const auto& g=target.goals[size_t(i)];
+        if(g.kind==nut::GoalKind::None)continue;
+        const int kind=int(g.kind);
+        const std::string objective=goals.at(size_t(kind))+" "+std::to_string(g.target)+
+          (g.kind==nut::GoalKind::Collect?" COLOR "+std::to_string(g.color):"");
+        label(r,575,float(342+i*32),objective,2);
+      }
+      button(r,555,443,90,52,"-10");
+      button(r,650,443,90,52,"-1");
+      button(r,745,443,90,52,"+1");
+      button(r,840,443,90,52,"+10");
+      button(r,560,536,370,68,"PLAY THIS STAGE");
+      button(r,560,615,370,54,"MAIN MENU");
       return;
     }
     if(scene==Scene::Won||scene==Scene::Lost){
@@ -332,7 +375,7 @@ struct Game {
 };
 }
 int main(int argc,char** argv){
-  std::string screenshot,fixtureFile;int previewStage=0;bool self=false,previewMine=false,previewBoard=false,smokeDig=false,previewEquip=false,previewRefinery=false;
+  std::string screenshot,fixtureFile;int previewStage=0;bool self=false,previewMine=false,previewBoard=false,previewCampaign=false,smokeDig=false,previewEquip=false,previewRefinery=false;
   for(int i=1;i<argc;++i){
     std::string arg=argv[i];
     if(arg=="--self-test")self=true;
@@ -342,6 +385,7 @@ int main(int argc,char** argv){
     else if(arg=="--preview-equipment"){previewMine=true;previewEquip=true;}
     else if(arg=="--preview-refinery"){previewMine=true;previewRefinery=true;}
     else if(arg=="--preview-board")previewBoard=true;
+    else if(arg=="--preview-campaign")previewCampaign=true;
     else if(arg=="--preview-stage"&&i+1<argc){
       try{previewStage=std::stoi(argv[++i]);}
       catch(...){std::cerr<<"Invalid native preview stage number\n";return 2;}
@@ -378,7 +422,8 @@ int main(int argc,char** argv){
   if(pref){game.savePath=fs::path(pref)/"progress.txt";SDL_free(pref);}
   if(!game.smoke&& !game.savePath.empty())game.load();
   if(!game.loadArt(renderer,data)){SDL_DestroyRenderer(renderer);SDL_DestroyWindow(win);SDL_Quit();return 2;}
-  if(previewMine)game.makeMine();
+  if(previewCampaign)game.scene=Game::Scene::Campaign;
+  else if(previewMine)game.makeMine();
   else if(previewStage>0){
     game.board.reset(previewStage,uint32_t(previewStage)*7919U);
     game.scene=Game::Scene::Board;

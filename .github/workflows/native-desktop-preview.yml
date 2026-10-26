@@ -59,6 +59,7 @@ jobs:
           python -m pip install --disable-pip-version-check Pillow
           python native/prepare_assets.py
           test -s native/generated-assets/data/nuts/peanut.bmp
+          test -s native/generated-assets/data/maps/campaign-overview.bmp
           test -s native/generated-assets/data/mine/r1c1.bmp
           test -s native/generated-assets/data/mine/r4c6.bmp
           test -s native/generated-assets/data/gear/pickaxe-00.bmp
@@ -73,6 +74,7 @@ jobs:
           cmake --install native/build --config Release --prefix native/package
           test -s "native/package/${{ matrix.binary }}"
           test -s native/package/data/nuts/peanut.bmp
+          test -s native/package/data/maps/campaign-overview.bmp
           test -s native/package/data/mine/r3c4.bmp
           test -s native/package/data/gear/pickaxe-39.bmp
           test -s native/package/data/gear/gloves-39.bmp
@@ -89,6 +91,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-board --smoke-render native-board.bmp
+          xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-campaign --smoke-render native-campaign.bmp
           xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-stage 3 --smoke-render native-stage-3.bmp
           xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-stage 1000 --smoke-render native-stage-1000.bmp
           xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-mine --smoke-render native-mine.bmp
@@ -98,7 +101,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
-          for screen in ('native-board','native-stage-3','native-stage-1000','native-mine','native-mine-dug','native-mine-equipment','native-mine-refinery'):
+          for screen in ('native-board','native-campaign','native-stage-3','native-stage-1000','native-mine','native-mine-dug','native-mine-equipment','native-mine-refinery'):
               path=Path(screen+'.bmp')
               with Image.open(path) as im:
                   assert im.size==(1024,768), (screen,im.size)
@@ -151,6 +154,7 @@ jobs:
           path: |
             NUTBUSTER-Native-${{ matrix.label }}-PREVIEW.zip
             native-board.png
+            native-campaign.png
             native-stage-3.png
             native-stage-1000.png
             native-mine.png

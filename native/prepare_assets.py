@@ -35,6 +35,8 @@ def rgba(source: Path, destination: Path) -> None:
         destination.write_bytes(struct.pack("<II",*image.size)+image.tobytes())
 
 def main() -> None:
+    transform(ROOT/"web"/"art"/"maps"/"campaign-overview.webp",
+              OUT/"maps"/"campaign-overview.bmp")
     for nut in NUTS:
         transform(ROOT/"web"/"art"/"primary"/"nuts"/(nut+".png"),
                   OUT/"nuts"/(nut+".bmp"))
