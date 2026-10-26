@@ -336,7 +336,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: Nutbuster-Android-debug-${{ github.run_id }}
-          path: validation/release
+          path: validation
       - name: Install and launch on a Google-free Android 30 tablet emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
