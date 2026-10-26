@@ -131,7 +131,7 @@ struct Game {
   void click(float x,float y){
     if(scene==Scene::Menu){
       if(within(x,y,324,238,376,66))startLevel();
-      else if(within(x,y,324,332,376,66)&&unlocked>=500)makeMine();
+      else if(within(x,y,324,332,376,66)&&unlocked>500)makeMine();
       else if(within(x,y,324,426,376,66))quitRequested=true;
       return;
     }
@@ -203,7 +203,7 @@ struct Game {
     if(scene==Scene::Menu){
       label(r,292,155,"NATIVE WINDOWS / LINUX PREVIEW",2);
       button(r,324,238,376,66,"PLAY LEVEL "+std::to_string(unlocked));
-      button(r,324,332,376,66,unlocked>=500?"NUTVALE MINES":"MINES UNLOCK AT 500");
+      button(r,324,332,376,66,unlocked>500?"NUTVALE MINES":"MINES UNLOCK AT 500");
       button(r,324,426,376,66,"EXIT");
       label(r,160,590,"Native SDL3 rendering. No Chromium, Electron or WebView.",2);
       label(r,160,630,"Preview only: full design-book feature parity pending.",2);
