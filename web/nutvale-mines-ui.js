@@ -15,23 +15,24 @@ const ICONS=Object.freeze({
  digAction:'art/nutvale/mining-tools/pickaxes/moonlit-silver.png',
  scanAction:'art/nutvale/mining-tools/gloves/jackolantern.png',
  cart:'art/nutvale/mining-economy/goods/crate-mining-supplies.png',
- ore:'art/nutvale/mining-ore/r2c1.png'
+ ore:M.oreArt('r2c4'),coal:M.oreArt('r2c1'),metal:M.oreArt('r2c5'),gem:M.oreArt('r2c6'),
+ fossil:M.oreArt('r3c4'),relic:M.oreArt('r4c4'),blast:M.oreArt('r4c5'),lens:M.oreArt('r4c4')
 });
 const icon=(src,label)=>'<img class="mine-ui-icon" src="'+src+'" alt="" aria-hidden="true" title="'+label+'" loading="lazy">';
 const gearIcon=(kind,tier)=>icon(G.entry(kind,tier).image,kind);
 function nav(tab,active){return ['dig','equipment','refinery','writs'].map(x=>'<button class="mines-tab '+(x===active?'selected':'')+'" data-action="mine-tab" data-tab="'+x+'" aria-pressed="'+(x===active)+'">'+icon(ICONS[x],x)+' '+({dig:'DIG',equipment:'EQUIPMENT',refinery:'REFINERY',writs:'WRITS'}[x])+'</button>').join('');}
 function dig(save,state){
- const s=M.stats(save),cells=M.currentBoard(save),scan=state.mineMode==='scan';
+ const s=M.stats(save),cells=M.currentBoard(save),mode=state.mineMode||'dig',scan=mode==='scan';
  const odds=['BARREN','ORE','RICH','CRYSTAL'].map((name,i)=>name+' '+s.odds[i]+'%').join(' · ');
  const tiles=cells.map(c=>{
-  const status=c.done?(c.exposed?'ORE WAITING · '+c.exposed:c.kind==='barren'?'EMPTY':c.kind.toUpperCase()):c.survey==='ore'?'ORE PRESENT':c.survey==='barren'?'BARREN':'ROCK';
-  const face=OreAtlas.sprite(c);
+  const status=c.done?(c.exposed?'ORE WAITING · '+c.exposed:c.kind==='barren'?'EMPTY':M.FIND[c.deposit]?.name||c.kind.toUpperCase()):c.survey==='ore'?'ORE PRESENT':c.survey==='barren'?'BARREN':'ROCK';
+  const face='<img class="mine-ore-slice" src="'+(c.scanned&&!c.done?M.oreArt(M.STONE.dark):M.cellArt(c))+'" alt="" aria-hidden="true" loading="eager" draggable="false">';
   return '<button class="mine-rock '+(c.done?'cleared ':'')+(c.exposed?'exposed ':'')+(c.scanned?'scanned':'')+'" data-action="mine-cell" data-x="'+c.x+'" data-y="'+c.y+'" aria-label="Rock '+(c.x+1)+','+(c.y+1)+': '+status+'" title="'+status+'">'+face+'<small>'+((!c.done&&c.hits)?('CRACK '+c.hits+'/'+c.hardness):status)+'</small></button>';
  }).join('');
- return '<div class="mine-resource-strip"><b>'+gearIcon('pickaxe',s.pickTier)+' '+s.strikesLeft+'/'+s.strikeMax+'</b><b>'+gearIcon('gloves',s.gloveTier)+' '+s.scansLeft+'/'+s.scanMax+'</b><b>'+icon(ICONS.cart,'Cart')+' '+s.cartOre+'/'+s.cartMax+'</b><b>'+OreAtlas.sprite({done:true,kind:'ordinary'})+' '+s.ore+' stored</b></div>'+
-  '<div class="mine-mode"><button class="btn '+(!scan?'green':'secondary')+'" data-action="mine-mode" data-mode="dig" aria-pressed="'+(!scan)+'">'+icon(ICONS.digAction,'Dig')+' DIG</button><button class="btn '+(scan?'green':'secondary')+'" data-action="mine-mode" data-mode="scan" aria-pressed="'+scan+'">'+icon(ICONS.scanAction,'Scan')+' SCAN</button><button class="btn secondary" data-action="mine-unload" '+(s.cartOre?'':'disabled')+'>UNLOAD +'+s.cartOre+'</button></div>'+
+ return '<div class="mine-resource-strip"><b>'+gearIcon('pickaxe',s.pickTier)+' '+s.strikesLeft+'/'+s.strikeMax+'</b><b>'+gearIcon('gloves',s.gloveTier)+' '+s.scansLeft+'/'+s.scanMax+'</b><b>'+icon(ICONS.cart,'Cart')+' '+s.cartOre+'/'+s.cartMax+'</b><b>'+icon(ICONS.ore,'Ore')+' '+s.ore+' stored</b></div>'+
+  '<div class="mine-mode"><button class="btn '+(mode==='dig'?'green':'secondary')+'" data-action="mine-mode" data-mode="dig" aria-pressed="'+(mode==='dig')+'">'+icon(ICONS.digAction,'Dig')+' DIG</button><button class="btn '+(scan?'green':'secondary')+'" data-action="mine-mode" data-mode="scan" aria-pressed="'+scan+'">'+icon(ICONS.scanAction,'Scan')+' SCAN</button><button class="btn '+(mode==='blast'?'green':'secondary')+'" data-action="mine-mode" data-mode="blast" aria-pressed="'+(mode==='blast')+'" '+(!s.blastCharges?'disabled':'')+'>'+icon(ICONS.blast,'Blast')+' BLAST '+s.blastCharges+'</button><button class="btn '+(mode==='lens'?'green':'secondary')+'" data-action="mine-mode" data-mode="lens" aria-pressed="'+(mode==='lens')+'" '+(!s.lensCharges?'disabled':'')+'>'+icon(ICONS.lens,'Lens')+' LENS '+s.lensCharges+'</button><button class="btn secondary" data-action="mine-unload" '+(s.cartOre?'':'disabled')+'>UNLOAD +'+s.cartOre+'</button></div>'+
   '<div class="mine-board-wrap"><div class="mine-board" style="--mine-grid:'+s.size+'">'+tiles+'</div></div>'+
-  '<p class="mine-odds">SITE '+(s.site+1)+' · '+s.size+'×'+s.size+' · '+odds+' · Hardness: 55% 1-hit, 35% 2-hit, 10% 3-hit</p>';
+  '<p class="mine-odds">SITE '+(s.site+1)+' · '+s.size+'×'+s.size+' · '+odds+' · Hardness: 55% 1-hit, 35% 2-hit, 10% 3-hit · Blast: two hits without daily strikes. Lens: one free survey.</p>';
 }
 function equipment(save){
  const s=M.stats(save),p=M.prices(save),list=[
@@ -50,11 +51,13 @@ function equipment(save){
  '<p class="mine-odds">Pickaxes and gloves each have 40 distinct named visual states; extras remain bonus cosmetic variants. Mining uses N$ only, not Golden Nuts or Gems.</p>';
 }
 function refinery(save){
- const s=M.stats(save),rate=M.ORE_PER_METAL[s.refineryTier];
- return '<div class="mine-resource-strip"><b>'+OreAtlas.sprite({done:true,kind:'ordinary'})+' ORE '+s.ore+'</b><b>METAL '+s.metal+'</b><b>'+economy(Art.goods(s.refineryTier),'Produced goods','📦')+' GOODS '+s.goods+'</b><b>'+economy(Art.money(s.dollars),'Nutvale Dollars','💰')+' N$ '+format(s.dollars)+'</b></div>'+
- '<div class="mine-industrial-actions"><div class="mines-upgrade"><div><b>SMELT METAL</b><small>'+rate+' ore → 1 ingot</small></div><button class="btn green" data-action="mine-refine" '+(s.ore>=rate?'':'disabled')+'>REFINE 1</button></div>'+
- '<div class="mines-upgrade">'+economy(Art.goods(s.refineryTier),'Current manufactured crate','📦')+'<div><b>MANUFACTURE GOODS</b><small>2 ingots → 1 crate · style follows refinery tier '+(s.refineryTier+1)+'/6</small></div><button class="btn green" data-action="mine-craft" '+(s.metal>=2?'':'disabled')+'>CRAFT 1</button></div>'+
- '<div class="mines-upgrade">'+economy(Art.money(s.dollars),'Nutvale Dollars','💰')+'<div><b>SELL GOODS</b><small>1 crate → N$ '+M.SALE[s.refineryTier]+'</small></div><button class="btn green" data-action="mine-sell" '+(s.goods?'':'disabled')+'>SELL 1</button></div></div>';
+ const s=M.stats(save),rate=M.ORE_PER_METAL[s.refineryTier],coalRate=Math.max(1,Math.ceil(rate/2));
+ return '<div class="mine-resource-strip"><b>'+icon(ICONS.ore,'Ore')+' ORE '+s.ore+'</b><b>'+icon(ICONS.coal,'Coal')+' COAL '+s.coal+'</b><b>'+icon(ICONS.metal,'Metal')+' METAL '+s.metal+'</b><b>'+icon(ICONS.gem,'Gems')+' GEMS '+s.gems+'</b><b>'+icon(ICONS.fossil,'Fossils')+' FOSSILS '+s.fossils+'</b><b>'+icon(ICONS.relic,'Relics')+' RELICS '+s.relics+'</b><b>'+economy(Art.goods(s.refineryTier),'Produced goods')+' GOODS '+s.goods+'</b><b>'+economy(Art.money(s.dollars),'Nutvale Dollars')+' N$ '+format(s.dollars)+'</b></div>'+
+ '<div class="mine-industrial-actions"><div class="mines-upgrade">'+icon(ICONS.metal,'Metal')+'<div><b>SMELT METAL</b><small>'+rate+' ore → 1 ingot</small></div><button class="btn green" data-action="mine-refine" '+(s.ore>=rate?'':'disabled')+'>REFINE 1</button></div>'+
+ '<div class="mines-upgrade">'+icon(ICONS.coal,'Coal')+'<div><b>COAL-FIRED SMELTING</b><small>1 coal + '+coalRate+' ore → 1 ingot</small></div><button class="btn green" data-action="mine-coal-refine" '+(s.coal>=1&&s.ore>=coalRate?'':'disabled')+'>FUEL 1</button></div>'+
+ '<div class="mines-upgrade">'+economy(Art.goods(s.refineryTier),'Current manufactured crate')+'<div><b>MANUFACTURE GOODS</b><small>2 ingots → 1 crate · style follows refinery tier '+(s.refineryTier+1)+'/6</small></div><button class="btn green" data-action="mine-craft" '+(s.metal>=2?'':'disabled')+'>CRAFT 1</button></div>'+
+ '<div class="mines-upgrade">'+economy(Art.money(s.dollars),'Nutvale Dollars')+'<div><b>SELL GOODS</b><small>1 crate → N$ '+M.SALE[s.refineryTier]+'</small></div><button class="btn green" data-action="mine-sell" '+(s.goods?'':'disabled')+'>SELL 1</button></div></div>'+
+ '<p class="mine-odds">Gems, fossils and relics are persistent archive finds; no hidden conversion to currency. Earn and use Blast and Lens charges on the dig board.</p>';
 }
 function writs(save){
  const s=M.stats(save);

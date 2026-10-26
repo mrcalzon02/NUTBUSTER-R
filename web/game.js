@@ -1035,19 +1035,19 @@ function action(a,button){
   persist();counters();render();return;
  }
  if(a==='mine-tab'){if(state.page!=='mines')return;const t=button.dataset.tab;if(!['dig','equipment','refinery','writs'].includes(t))return;state.mineTab=t;state.minePending=null;render();return;}
- if(a==='mine-mode'){if(state.page!=='mines')return;state.mineMode=button.dataset.mode==='scan'?'scan':'dig';render();return;}
+ if(a==='mine-mode'){if(state.page!=='mines')return;state.mineMode=['dig','scan','blast','lens'].includes(button.dataset.mode)?button.dataset.mode:'dig';render();return;}
  if(a==='mine-cell'){
   if(state.page!=='mines'||!Mines)return;
   const x=Number(button.dataset.x),y=Number(button.dataset.y);
   const prior=Mines.currentBoard(saved).find(c=>c.x===x&&c.y===y);
-  const result=prior?.exposed?Mines.collect(saved,x,y):state.mineMode==='scan'?Mines.survey(saved,x,y):Mines.excavate(saved,x,y);
-  if(result.valid){persist();render();playSFX('crack');if(result.cleared)notice(result.kind==='barren'?'BARREN STONE · NO ORE':result.exposed?'ORE EXPOSED · UNLOAD CART TO COLLECT':result.cartAdded+' ORE INTO CART');else if(Object.prototype.hasOwnProperty.call(result,'orePresent'))notice(result.orePresent?'ORE PRESENT':'BARREN ROCK');else if(result.ore)notice('COLLECTED '+result.ore+' ORE');}
-  else notice(result.reason==='strikes'?'NO DAILY STRIKES LEFT':result.reason==='scans'?'NO DAILY SCANS LEFT':result.reason==='cart'?'CART FULL · UNLOAD FIRST':'INVALID MINING ACTION');
+  const result=prior?.exposed?Mines.collect(saved,x,y):state.mineMode==='scan'?Mines.survey(saved,x,y):state.mineMode==='lens'?Mines.lensSurvey(saved,x,y):state.mineMode==='blast'?Mines.blast(saved,x,y):Mines.excavate(saved,x,y);
+  if(result.valid){persist();render();playSFX('crack');if(result.cleared){const gained=Object.entries(result.rewards||{}).map(([kind,amount])=>kind.toUpperCase()+' +'+amount).join(' · ');notice(result.kind==='barren'?'BARREN STONE · NO ORE':(result.find||'ORE')+' · '+(result.exposed?'ORE EXPOSED · UNLOAD CART':result.cartAdded+' ORE INTO CART')+(gained?' · '+gained:''));}else if(Object.prototype.hasOwnProperty.call(result,'orePresent'))notice(result.orePresent?'ORE PRESENT':'BARREN ROCK');else if(result.ore)notice('COLLECTED '+result.ore+' ORE');}
+  else notice(result.reason==='strikes'?'NO DAILY STRIKES LEFT':result.reason==='scans'?'NO DAILY SCANS LEFT':result.reason==='cart'?'CART FULL · UNLOAD FIRST':result.reason==='blast'?'NO BLAST CHARGES':result.reason==='lens'?'NO LENS CHARGES':'INVALID MINING ACTION');
   return;
  }
- if(a==='mine-unload'||a==='mine-refine'||a==='mine-craft'||a==='mine-sell'||a==='mine-writ'){
+ if(a==='mine-unload'||a==='mine-refine'||a==='mine-coal-refine'||a==='mine-craft'||a==='mine-sell'||a==='mine-writ'){
   if(state.page!=='mines'||!Mines)return;
-  const fn={ 'mine-unload':()=>Mines.unload(saved),'mine-refine':()=>Mines.refine(saved,1),'mine-craft':()=>Mines.manufacture(saved,1),'mine-sell':()=>Mines.sell(saved,1),'mine-writ':()=>Mines.buyWrits(saved,1)}[a];
+  const fn={ 'mine-unload':()=>Mines.unload(saved),'mine-refine':()=>Mines.refine(saved,1),'mine-coal-refine':()=>Mines.coalRefine(saved),'mine-craft':()=>Mines.manufacture(saved,1),'mine-sell':()=>Mines.sell(saved,1),'mine-writ':()=>Mines.buyWrits(saved,1)}[a];
   const result=fn();if(result.valid){persist();render();playSFX('coin');notice('TRANSACTION COMPLETE');}else notice('INSUFFICIENT MATERIALS OR CURRENCY');return;
  }
  if(a==='mine-upgrade'){

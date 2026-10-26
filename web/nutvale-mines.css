@@ -62,3 +62,10 @@
 .mine-rock.cleared{opacity:1}
 .mine-rock small{position:relative;z-index:1;padding:1px 2px;border-radius:3px;background:#171823b5;text-shadow:0 1px 2px #000}
 .mine-resource-strip .mine-ore-slice{display:inline-block;width:25px;height:25px;max-height:none;vertical-align:middle;margin-right:3px}
+
+/* All five actual-art actions remain tappable on narrow phones. */
+.mine-mode{flex-wrap:wrap;justify-content:stretch}
+.mine-mode .btn{flex:1 1 96px;min-width:74px;max-width:100%}
+.mine-rock .mine-ore-slice{width:100%;max-height:calc(100% - 13px);min-height:0;object-fit:contain}
+.mine-rock small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:390px){.mine-mode .btn{flex-basis:86px;font-size:11px;padding:5px 2px}.mine-mode .mine-ui-icon{width:22px;height:22px}}
