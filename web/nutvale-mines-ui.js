@@ -1,6 +1,6 @@
 /* Render-only Nutvale Mines interface. Economy mutations live in NutvaleMines. */
 (function(root){'use strict';
-const M=root.NutvaleMines, G=root.NutMiningGear, Art=root.NutvaleEconomyArt, OreAtlas=root.MineOreAtlas;
+const M=root.NutvaleMines, G=root.NutMiningGear, Art=root.NutvaleEconomyArt, OreAtlas=root.MineOreAtlas||(typeof module!=='undefined'&&module.exports?require('./mine-ore-atlas.js'):null);
 if(!M||!G||!Art||!OreAtlas)throw Error('Mining model, gear and approved ore artwork must load before Mine UI');
 const format=n=>Number(n||0).toLocaleString('en-US');
 const art=(i,emoji)=>'<span class="mines-art"><img src="'+i.image+'" alt="" loading="lazy" onerror="this.hidden=true"><span aria-hidden="true">'+emoji+'</span></span>';
