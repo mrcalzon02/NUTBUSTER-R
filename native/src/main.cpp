@@ -201,11 +201,12 @@ struct Game {
 };
 }
 int main(int argc,char** argv){
-  std::string screenshot;bool self=false,previewMine=false;
+  std::string screenshot;bool self=false,previewMine=false,previewBoard=false;
   for(int i=1;i<argc;++i){
     std::string arg=argv[i];
     if(arg=="--self-test")self=true;
     else if(arg=="--preview-mine")previewMine=true;
+    else if(arg=="--preview-board")previewBoard=true;
     else if(arg=="--smoke-render"&&i+1<argc)screenshot=argv[++i];
   }
   if(self){std::string result;bool good=nut::selfTest(result);std::cout<<result<<"\n";return good?0:1;}
@@ -222,6 +223,7 @@ int main(int argc,char** argv){
   const fs::path data=fs::path(SDL_GetBasePath())/"data";
   if(!game.loadArt(renderer,data)){SDL_DestroyRenderer(renderer);SDL_DestroyWindow(win);SDL_Quit();return 2;}
   if(previewMine)game.makeMine();
+  else if(previewBoard)game.startLevel();
   bool running=true;
   while(running){
     SDL_Event event;

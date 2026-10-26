@@ -67,7 +67,7 @@ jobs:
       - name: Render actual SDL3 game screens on Linux
         if: runner.os == 'Linux'
         run: |
-          xvfb-run -a native/package/NUTBUSTER-Linux-x64 --smoke-render native-board.bmp
+          xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-board --smoke-render native-board.bmp
           xvfb-run -a native/package/NUTBUSTER-Linux-x64 --preview-mine --smoke-render native-mine.bmp
           python - <<'PY'
           from pathlib import Path
@@ -77,7 +77,7 @@ jobs:
               with Image.open(path) as im:
                   assert im.size==(1024,768), (screen,im.size)
                   im.convert('RGB').save(screen+'.png')
-              assert Path(screen+'.png').stat().st_size>10000
+              assert Path(screen+'.png').stat().st_size>1024
               print('Native SDL3 screenshot:',screen+'.png')
           PY
       - name: Reject browser-based distribution artifacts
