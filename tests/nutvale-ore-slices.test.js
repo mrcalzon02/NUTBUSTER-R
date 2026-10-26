@@ -1,0 +1,32 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const root=path.resolve(__dirname,'..'),dir=path.join(root,'web/art/nutvale/mining-ore');
+const source=fs.readFileSync(path.join(root,'web/art/nutvale/mines/nutvale-mines-ore-atlas-approved.png'));
+const expected='e722b3a1b6e17e6ab5a30711f815eaee64f666a665de11988ea192abfab53db0';
+assert.equal(crypto.createHash('sha256').update(source).digest('hex'),expected,'owner-approved Drive source checksum');
+const manifest=JSON.parse(fs.readFileSync(path.join(dir,'manifest.json'),'utf8'));
+assert.equal(manifest.source_sha256,expected);
+assert.equal(manifest.sprites.length,24);
+const ids=new Set();
+for(const entry of manifest.sprites){
+ assert.match(entry.id,/^r[1-4]c[1-6]$/);
+ assert(!ids.has(entry.id));ids.add(entry.id);
+ const bytes=fs.readFileSync(path.join(root,'web',entry.path));
+ assert.equal(bytes.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+ assert.equal(bytes.readUInt32BE(16),224);
+ assert.equal(bytes.readUInt32BE(20),224);
+ assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),entry.sha256);
+}
+const Ore=require('../web/mine-ore-atlas.js');
+assert.equal(Ore.select({x:0,y:0,hits:0,done:false}).join(','),'0,0');
+assert.equal(Ore.select({x:0,y:0,hits:1,done:false}).join(','),'0,3');
+assert.equal(Ore.select({x:0,y:0,hits:2,done:false}).join(','),'0,4');
+assert.notEqual(Ore.select({x:0,y:0,done:true,kind:'barren'}).join(','),Ore.select({x:0,y:0,done:true,kind:'rich'}).join(','));
+assert.equal(Ore.select({x:0,y:0,hits:0,done:false,kind:'crystal'}).join(','),Ore.select({x:0,y:0,hits:0,done:false,kind:'barren'}).join(','),'undug tiles must not disclose outcomes');
+assert.match(Ore.sprite({done:true,kind:'ordinary'}),/<img/);
+const ui=fs.readFileSync(path.join(root,'web/nutvale-mines-ui.js'),'utf8');
+assert.match(ui,/OreAtlas\.sprite\(c\)/);
+assert(!/[🪨💎💠💥🔎🟤⚫]/u.test(ui),'do not regress to mining tile emojis');
+assert(!ui.includes('art/primary/blockers/rock.png'),'no unrelated placeholder rock');
+console.log('PASS: 24 approved transparent sprites, exact SHA, mining tile selection and reveal privacy');

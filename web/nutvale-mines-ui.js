@@ -1,10 +1,10 @@
 /* Render-only Nutvale Mines interface. Economy mutations live in NutvaleMines. */
 (function(root){'use strict';
-const M=root.NutvaleMines, G=root.NutMiningGear, Art=root.NutvaleEconomyArt, OreAtlas=root.MineOreAtlas||(typeof module!=='undefined'&&module.exports?require('./mine-ore-atlas.js'):null);
+const M=root.NutvaleMines, G=root.NutMiningGear, Art=root.NutvaleEconomyArt, OreAtlas=root.MineOreAtlas||(typeof require==='function'?require('./mine-ore-atlas.js'):null);
 if(!M||!G||!Art||!OreAtlas)throw Error('Mining model, gear and approved ore artwork must load before Mine UI');
 const format=n=>Number(n||0).toLocaleString('en-US');
-const art=(i,emoji)=>'<span class="mines-art"><img src="'+i.image+'" alt="" loading="lazy" onerror="this.hidden=true"><span aria-hidden="true">'+emoji+'</span></span>';
-const economy=(src,label,emoji)=>Art.image(src,label,emoji);
+const art=i=>'<span class="mines-art"><img src="'+i.image+'" alt="" loading="lazy"></span>';
+const economy=(src,label)=>Art.image(src,label,'');
 // Dedicated UI illustrations avoid unrelated emoji and preserve tier-specific gear art.
 const ICONS=Object.freeze({
  heading:'art/nutvale/mining-tools/pickaxes/deepsea-orb.png',
@@ -15,7 +15,7 @@ const ICONS=Object.freeze({
  digAction:'art/nutvale/mining-tools/pickaxes/moonlit-silver.png',
  scanAction:'art/nutvale/mining-tools/gloves/jackolantern.png',
  cart:'art/nutvale/mining-economy/goods/crate-mining-supplies.png',
- ore:'art/primary/blockers/rock.png'
+ ore:'art/nutvale/mining-ore/r2c1.png'
 });
 const icon=(src,label)=>'<img class="mine-ui-icon" src="'+src+'" alt="" aria-hidden="true" title="'+label+'" loading="lazy">';
 const gearIcon=(kind,tier)=>icon(G.entry(kind,tier).image,kind);
@@ -51,8 +51,8 @@ function equipment(save){
 }
 function refinery(save){
  const s=M.stats(save),rate=M.ORE_PER_METAL[s.refineryTier];
- return '<div class="mine-resource-strip"><b>'+OreAtlas.sprite({done:true,kind:'ordinary'})+' ORE '+s.ore+'</b><b>🔩 METAL '+s.metal+'</b><b>'+economy(Art.goods(s.refineryTier),'Produced goods','📦')+' GOODS '+s.goods+'</b><b>'+economy(Art.money(s.dollars),'Nutvale Dollars','💰')+' N$ '+format(s.dollars)+'</b></div>'+
- '<div class="mine-industrial-actions"><div class="mines-upgrade"><span>🔩</span><div><b>SMELT METAL</b><small>'+rate+' ore → 1 ingot</small></div><button class="btn green" data-action="mine-refine" '+(s.ore>=rate?'':'disabled')+'>REFINE 1</button></div>'+
+ return '<div class="mine-resource-strip"><b>'+OreAtlas.sprite({done:true,kind:'ordinary'})+' ORE '+s.ore+'</b><b>METAL '+s.metal+'</b><b>'+economy(Art.goods(s.refineryTier),'Produced goods','📦')+' GOODS '+s.goods+'</b><b>'+economy(Art.money(s.dollars),'Nutvale Dollars','💰')+' N$ '+format(s.dollars)+'</b></div>'+
+ '<div class="mine-industrial-actions"><div class="mines-upgrade"><div><b>SMELT METAL</b><small>'+rate+' ore → 1 ingot</small></div><button class="btn green" data-action="mine-refine" '+(s.ore>=rate?'':'disabled')+'>REFINE 1</button></div>'+
  '<div class="mines-upgrade">'+economy(Art.goods(s.refineryTier),'Current manufactured crate','📦')+'<div><b>MANUFACTURE GOODS</b><small>2 ingots → 1 crate · style follows refinery tier '+(s.refineryTier+1)+'/6</small></div><button class="btn green" data-action="mine-craft" '+(s.metal>=2?'':'disabled')+'>CRAFT 1</button></div>'+
  '<div class="mines-upgrade">'+economy(Art.money(s.dollars),'Nutvale Dollars','💰')+'<div><b>SELL GOODS</b><small>1 crate → N$ '+M.SALE[s.refineryTier]+'</small></div><button class="btn green" data-action="mine-sell" '+(s.goods?'':'disabled')+'>SELL 1</button></div></div>';
 }
