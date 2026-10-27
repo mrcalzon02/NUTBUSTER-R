@@ -14,33 +14,57 @@ if adb shell pm list packages | grep -Fq 'package:com.google.android.gms'; then
 fi
 timeout --signal=TERM --kill-after=5s 30s adb shell wm size 1280x800
 timeout --signal=TERM --kill-after=5s 30s adb shell wm density 240
-# The unaccelerated AOSP tablet occasionally breaks the ADB streamed install
-# transport even when package manager is healthy. Avoid streamed mode, retry
-# only on failure, and keep the real return status/evidence visible.
-echo '1/6: Installing signed-equivalent debug APK on Google-free AOSP tablet' | tee -a "$LOG"
-installed=0
-for attempt in 1 2; do
-  echo "ADB non-streaming install attempt $attempt/2" | tee -a "$LOG"
-  if timeout --signal=TERM --kill-after=5s 150s adb install --no-streaming -r "$APK" \
-      > "validation/fireos-tablet-install-${attempt}-stdout.txt" \
-      2> "validation/fireos-tablet-install-${attempt}-stderr.txt"; then
-    cat "validation/fireos-tablet-install-${attempt}-stdout.txt" | tee -a "$LOG"
-    installed=1
+# The API30 AOSP emulator may report sys.boot_completed before PackageManager
+# has recovered from slow cold boot. Check the actual service, not just ADB.
+echo '1/6: Wait for responsive Android package manager' | tee -a "$LOG"
+pm_ready=0
+for attempt in 1 2 3 4; do
+  if timeout --signal=TERM --kill-after=3s 25s adb shell pm list packages android \
+      > validation/fireos-tablet-package-manager.txt \
+      2> validation/fireos-tablet-package-manager-stderr.txt &&
+     grep -Fq 'package:android' validation/fireos-tablet-package-manager.txt; then
+    pm_ready=1
     break
-  else
-    result=$?
-    echo "::warning::Fire tablet APK installation failed (attempt $attempt, exit $result)" | tee -a "$LOG"
-    cat "validation/fireos-tablet-install-${attempt}-stderr.txt" | tee -a "$LOG"
-    if (( attempt < 2 )); then
-      timeout --signal=TERM --kill-after=3s 20s adb wait-for-device || true
-      sleep 5
-    fi
   fi
+  echo "::warning::PackageManager not ready (attempt $attempt/4)" | tee -a "$LOG"
+  sleep 6
 done
-if (( installed != 1 )); then
-  echo '::error::Fire tablet APK could not be installed; runtime compatibility remains UNVERIFIED' | tee -a "$LOG"
+if (( pm_ready != 1 )); then
+  echo '::error::Android PackageManager was not responsive; Fire proxy cannot install' | tee -a "$LOG"
   exit 1
 fi
+# No-streaming avoids the observed cold-boot 'cmd: Failure calling service
+# package: Broken pipe (32)' in ADB's streamed installation mode. Retry only
+# this transport/PM instability, never an APK compatibility/install rejection.
+echo '2/6: Install exact downloaded debug APK without ADB streamed mode' | tee -a "$LOG"
+installed=0
+for attempt in 1 2; do
+  install_log="validation/fireos-tablet-install-${attempt}.txt"
+  if timeout --signal=TERM --kill-after=5s 150s adb install --no-streaming -r "$APK" \
+      > "$install_log" 2>&1 && grep -Eq '^Success' "$install_log"; then
+    installed=1
+    echo "APK installed on attempt $attempt" | tee -a "$LOG"
+    break
+  else
+    status=$?
+  fi
+  cat "$install_log" | tee -a "$LOG"
+  if ! grep -Eqi 'Broken pipe|Connection reset|device offline|protocol fault|timed out|closed|service package|transport error' "$install_log"; then
+    echo "::error::APK installation rejected or failed non-transiently (attempt $attempt)" | tee -a "$LOG"
+    exit 1
+  fi
+  echo "::warning::Transient ADB/PackageManager install fault (attempt $attempt, status $status)" | tee -a "$LOG"
+  if (( attempt < 2 )); then sleep 8; fi
+done
+if (( installed != 1 )); then
+  echo '::error::Unable to install the APK on Fire proxy after bounded retries' | tee -a "$LOG"
+  exit 1
+fi
+timeout --signal=TERM --kill-after=5s 25s adb shell pm path "$PACKAGE" \
+    > validation/fireos-tablet-package-path.txt
+grep -Fq 'package:' validation/fireos-tablet-package-path.txt ||
+  { echo '::error::Installed APK is absent from PackageManager' | tee -a "$LOG"; exit 1; }
+echo '3/6: Launch installed APK and verify actual app process' | tee -a "$LOG"
 timeout --signal=TERM --kill-after=5s 30s adb shell am start -W -n "$PACKAGE/.MainActivity" > validation/fireos-tablet-launch.txt
 : > validation/fireos-tablet-pid.txt
 for attempt in $(seq 1 12); do

@@ -1,17 +1,24 @@
 {
   "schema": 1,
-  "headline": "Fire tablet emulator install diagnostics strengthened",
+  "headline": "Improve Fire tablet installation reliability checks",
   "changes": [
     {
-      "title": "Avoid unreliable streamed tablet APK installs",
-      "detail": "Changed the Google-free AOSP tablet smoke workflow to use bounded non-streaming ADB installation with a second attempt and saved stdout/stderr, after the previous emulator reported a broken pipe before opening the game.",
+      "title": "Wait for the Fire tablet package service to respond",
+      "detail": "After cold boot, the Google-free tablet emulator now requires a responsive Android package manager before attempting installation, with bounded readiness checks and explicit failure evidence.",
       "files": [
         "scripts/fireos-tablet-smoke.sh"
       ]
     },
     {
-      "title": "Protect the Fire smoke-test failure contract",
-      "detail": "Extended the optional emulator script checks to require non-streaming installation, a limited retry count, and a definitive failure if both installations fail. No Android application functionality or approved artwork has been changed.",
+      "title": "Avoid streamed APK installation broken pipes",
+      "detail": "Fire tablet compatibility testing now uses bounded non-streaming APK installation and retries only recognized temporary ADB transport faults. Real installation rejection still fails.",
+      "files": [
+        "scripts/fireos-tablet-smoke.sh"
+      ]
+    },
+    {
+      "title": "Verify the new tablet installation safeguards",
+      "detail": "The optional emulator contract checks package manager readiness, non-streaming installation, rejection handling, and installed-package verification without weakening release functional tests.",
       "files": [
         "tests/android-emulator-smoke-contract.test.js"
       ]

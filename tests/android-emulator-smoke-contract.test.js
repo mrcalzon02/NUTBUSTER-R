@@ -23,6 +23,12 @@ assert.match(fire,/adb install --no-streaming -r/,'Fire proxy avoids flaky strea
 assert.match(fire,/for attempt in 1 2;/,'Fire proxy bounds retry count');
 assert.match(fire,/installed != 1/,'Fire proxy cannot ignore two failed install attempts');
 assert.match(fire,/timeout[^\n]*45s adb exec-out screencap -p/,'Fire proxy retains real PNG screenshot');
+assert.match(fire,/adb shell pm list packages android/,'Fire proxy waits for the actual package manager');
+assert.match(fire,/adb install --no-streaming -r/,'Fire proxy avoids unstable streamed ADB installation');
+assert.match(fire,/for attempt in 1 2;/,'Fire proxy retries transport failures after cold boot');
+assert.match(fire,/installed != 1/,'Fire proxy must reject failed installations');
+assert.match(fire,/adb shell pm path "\$PACKAGE"/,'Fire proxy verifies installed application is visible to PackageManager');
+assert.match(fire,/APK installation rejected or failed non-transiently/,'Fire proxy never retries a real package-rejection as transport instability');
 assert.match(fire,/adb shell logcat -b crash -d -t 150 -s AndroidRuntime:E/,'Fire proxy uses bounded crash-buffer query, not full unbounded logcat');
 assert.match(fire,/for attempt in 1 2;/,'Fire proxy retries transient ADB logcat failures');
 assert.match(fire,/verified != 1/,'Fire proxy must not pass on an unread crash log');
