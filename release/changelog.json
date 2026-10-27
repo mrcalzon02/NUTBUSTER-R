@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "headline": "Correct strict planner evidence cross-check fixture",
+  "headline": "Strengthen release-news length validation for AI planning updates",
   "changes": [
     {
-      "title": "Test baseline divergence using a valid losing sample",
-      "detail": "The real-engine planner, seeded board replay, and benchmark passed. An optional negative test accidentally changed a winning synthetic sample into a mismatched loss, triggering the correct wallet and outcome validator first. The updated fixture changes a valid losing sample so it specifically verifies baseline divergence rejection without weakening any check.",
+      "title": "Test release-note field boundaries during optional validation",
+      "detail": "The three-ply planner and replay checks passed. A release description was longer than the repository's permitted 300 characters; this correction adds explicit tests at the 300/301-character boundary and rejects overlong titles without weakening the source-change audit.",
       "files": [
-        "tests/planning-integration.test.js"
+        "tests/release-news.test.js"
       ]
     }
   ]
