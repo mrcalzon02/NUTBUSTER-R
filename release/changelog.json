@@ -1,12 +1,28 @@
 {
   "schema": 1,
-  "headline": "Optional daily-wallet diagnostic validation corrected",
+  "headline": "Verify release news against the actual previous published build",
   "changes": [
     {
-      "title": "Keep missing-data errors precise in the optional difficulty report",
-      "detail": "The full daily-wallet simulation and its 20 optional tests have been verified. The balance report now checks for missing sparse-booster evidence before checking daily-wallet consistency, restoring the expected diagnostic error without changing gameplay or booster behavior.",
+      "title": "Resolve the last published ancestor instead of the current release",
+      "detail": "The optional news audit now selects the newest published tag strictly preceding the checked-out commit, excluding tags for the same revision or unrelated branches. A release published during CI can no longer make the changelog appear unchanged against itself.",
       "files": [
-        "tools/balance-risk-report.js"
+        "tools/release-news-base.js",
+        ".github/workflows/build-and-release.yml"
+      ]
+    },
+    {
+      "title": "Retain meaningful freshness and coverage failures",
+      "detail": "Complete git ancestry is available to the diagnostics job, and the unchanged source coverage validator still rejects missing release-note edits and unreported player-facing file changes.",
+      "files": [
+        ".github/workflows/build-and-release.yml"
+      ]
+    },
+    {
+      "title": "Test release-tag ordering and ancestry without touching gameplay",
+      "detail": "A report-only test covers self-tag exclusion, newer and unrelated tags, missing release history, and the existing release-news source-coverage safeguards.",
+      "files": [
+        "tests/release-news-base.test.js",
+        "tests/diagnostic-suites.txt"
       ]
     }
   ]

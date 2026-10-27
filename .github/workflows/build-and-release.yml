@@ -92,6 +92,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Slice exact approved Nutvale ore art for this build
         run: |
           python3 -m pip install --quiet --disable-pip-version-check Pillow numpy scipy
@@ -128,10 +130,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          LAST_TAG="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName,isDraft,publishedAt --jq '[.[] | select(.isDraft == false)] | sort_by(.publishedAt) | last | .tagName // empty')"
-          if [[ -n "$LAST_TAG" ]]; then
-            git fetch --no-tags origin "refs/tags/$LAST_TAG:refs/tags/$LAST_TAG"
-            NUTBUSTER_RELEASE_BASE="$LAST_TAG" node tools/release-news.js --check
+          # The publisher may tag this very SHA before the audit runs. Compare
+          # against the most recent STRICT ANCESTOR release, never HEAD itself.
+          # Keep genuine stale-news and missing player-facing-change failures.
+          BASE_TAG="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName,isDraft,publishedAt | node tools/release-news-base.js)"
+          if [[ -n "$BASE_TAG" ]]; then
+            echo "Release-news comparison: $BASE_TAG -> $GITHUB_SHA"
+            NUTBUSTER_RELEASE_BASE="$BASE_TAG" node tools/release-news.js --check
           else
             node tools/release-news.js --check
           fi

@@ -15,6 +15,7 @@ home-icon-identity.test.js
 nutvale-mines-design-lock.test.js
 premium-icon-integrity.test.js
 release-news.test.js
+release-news-base.test.js
 reviewed-effect-reslices.test.js
 sfx-samples.test.js
 sfx.test.js
