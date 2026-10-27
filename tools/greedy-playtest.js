@@ -5,6 +5,8 @@
    or human completion-rate model. Never give free boosters to game saves. */
 const E=require('../web/engine.js');
 const P=require('../web/progression.js');
+const D=require('../web/daily-moves.js');
+const TEST_TIME=1700000000000; // Fixed instant: tests never cross a real reset boundary.
 const CAMPAIGN_LEVELS=1000,CHAPTER_LENGTH=100;
 const trials=2,results=[],boosterProbes=[];
 const PROBE_EVERY=5,PROBE_TRIAL=0,MAX_HAMMERS_PER_PROBE=1;
@@ -56,28 +58,56 @@ function emergencyHammerTarget(g){
  }
  return best;
 }
+// Give EVERY attempt its own fresh, full, level-specific daily move wallet.
+// In the live game the cap is E.makeLevel(saved.unlocked).moves, not a flat 36.
+// A fixed timestamp prevents the simulator from ever granting mid-run refills.
 function play(level,trial,permitHammer){
- const g=E.create(level,level*16321+trial*7093+11),initial=g.moves;
- let usedHammer=0,totalTransport=0,totalHazards=0;
- while(!g.won&&!g.lost&&g.moves>0){
+ const g=E.create(level,level*16321+trial*7093+11);
+ const save={unlocked:level};
+ const initial=D.ensure(save,TEST_TIME,E.makeLevel(save.unlocked).moves).remaining;
+ if(initial!==g.cfg.moves)throw Error('Level-specific daily allowance diverged at '+level);
+ g.moves=initial;
+ let usedHammer=0,totalTransport=0,totalHazards=0,debitedMoves=0,earnedRefunds=0;
+ function creditEarned(previous){
+  const earned=Math.max(0,(g.elementalRefunds||0)-previous);
+  if(earned)D.topUp(save,earned,TEST_TIME,initial);
+  earnedRefunds+=earned;
+  g.moves=D.left(save,TEST_TIME,initial);
+  if(earned&&g.moves)g.lost=false;
+ }
+ while(!g.won&&!g.lost&&D.left(save,TEST_TIME,initial)>0){
+  g.moves=D.left(save,TEST_TIME,initial);
   if(permitHammer&&usedHammer<MAX_HAMMERS_PER_PROBE){
    const target=emergencyHammerTarget(g);
    if(target>=0){
+    const prior=g.elementalRefunds||0;
     const boost=E.booster(g,'hammer',target);
     if(!boost.valid)throw Error('Emergency Hammer rejected by real engine at level '+level);
     usedHammer++;
+    creditEarned(prior);
     if(g.won)break;
    }
   }
   const pair=choose(g);
   if(!pair)throw Error('No adjacent pair on playable level '+level);
+  const prior=g.elementalRefunds||0;
   const turn=E.swap(g,...pair);
   if(!turn.valid)throw Error('Bot swap not legal at level '+level);
+  // Mirror game.js doSwap: 1 move + 2 per expired hazard, capped by
+  // the current wallet; elemental moves are credited AFTER the debit.
+  const used=Math.min(D.left(save,TEST_TIME,initial),
+   1+2*(turn.hazards?.expired?.length||0));
+  if(!D.spend(save,used,TEST_TIME,initial))
+   throw Error('Daily wallet rejected move debit at '+level);
+  debitedMoves+=used;
+  creditEarned(prior);
+  if(!g.won&&!g.moves)g.lost=true;
   totalTransport+=turn.stages.filter(x=>x.kind==='transport').length;
   totalHazards+=(turn.hazards?.expired?.length||0);
  }
  return {won:g.won,spentMoves:initial-g.moves,transports:totalTransport,
-  hazards:totalHazards,hammerUsed:usedHammer};
+  hazards:totalHazards,hammerUsed:usedHammer,dailyAllotment:initial,
+  remainingMoves:D.left(save,TEST_TIME,initial),debitedMoves,earnedRefunds};
 }
 function allowSparseBoosterProbe(level,trial){
  return trial===PROBE_TRIAL&&level%PROBE_EVERY===0&&level>P.LEVEL_BY_TOOL.hammer;
@@ -96,7 +126,10 @@ for(let level=1;level<=CAMPAIGN_LEVELS;level++){
    const assisted=play(level,trial,true);
    boosterProbes.push({level,trial,baselineWon:baseline.won,assistedWon:assisted.won,
      hammerUsed:assisted.hammerUsed,baselineSpentMoves:baseline.spentMoves,
-     assistedSpentMoves:assisted.spentMoves});
+     assistedSpentMoves:assisted.spentMoves,
+     dailyAllotment:baseline.dailyAllotment,
+     baselineRemainingMoves:baseline.remainingMoves,assistedRemainingMoves:assisted.remainingMoves,
+     baselineEarnedRefunds:baseline.earnedRefunds,assistedEarnedRefunds:assisted.earnedRefunds});
   }
  }
  results.push({level,wins,trials,avgSpentMoves:+(totalTurns/trials).toFixed(1),
@@ -128,6 +161,7 @@ for(let start=1;start<=CAMPAIGN_LEVELS;start+=CHAPTER_LENGTH){
 }
 const comparison={
  kind:'SPARSE_EMERGENCY_HAMMER_PROBE_NOT_INVENTORY',
+ dailyAllowanceModel:'FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',
  note:'At most 1 Hammer, near defeat and only for an unfinished objective, in trial 0 of every fifth level; same seeds as the unchanged no-booster baseline. Hypothetical stock, no shop, saves or earned-inventory claims.',
  frequencyLevels:PROBE_EVERY,trial:PROBE_TRIAL,maxPerProbe:MAX_HAMMERS_PER_PROBE,
  attempts:boosterProbes.length,hammerUsed:boosterProbes.reduce((n,p)=>n+p.hammerUsed,0),
@@ -143,6 +177,8 @@ const comparison={
 };
 console.log(JSON.stringify({description:'Greedy baseline plus sparse emergency Hammer probe; not real human completion rates',
  campaignLevels:CAMPAIGN_LEVELS,botTrials:trials,seed:'level*16321 + trial*7093 + 11',
+ dailyAllowanceModel:'FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',
+ dailyAllowanceRule:'Each attempt begins with NutDailyMoves.ensure for the attempted level; spent moves, expired-fuse penalties and earned elemental refunds mirror game.js; no carryover or purchased moves.',
  chapters,bands,levels:results,boosterComparison:comparison},null,2));
 }
 if(require.main===module)runFullCampaign();

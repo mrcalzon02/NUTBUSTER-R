@@ -30,6 +30,28 @@ const clean=E.create(1,1049);
 clean.moves=2;
 clean.cfg.objectives=[{kind:'score',target:999999}];
 assert.equal(emergencyHammerTarget(clean),-1,'No wasteful booster on score-only goals');
+// Daily moves are NOT always 36: each attempt starts with the same level-
+ // dependent full allowance the real gameplay UI applies to a fresh wallet.
+const D=require('../web/daily-moves.js');
+for(const n of [1,37,210,501,1000]){
+ const cap=E.makeLevel(n).moves;
+ const baseline=play(n,0,false),again=play(n,0,false),assisted=play(n,0,true);
+ for(const run of [baseline,again,assisted]){
+  assert.equal(run.dailyAllotment,cap,'Full daily allowance at stage '+n);
+  assert.equal(run.spentMoves,cap-run.remainingMoves,'Daily wallet reconciled');
+  assert.equal(run.debitedMoves-run.earnedRefunds,run.spentMoves,'Hazard charges and refunds reconcile');
+  assert.ok(run.remainingMoves>=0,'No negative daily move balance');
+ }
+ assert.deepEqual(baseline,again,'A level attempt must not inherit any prior run\'s spent daily moves');
+}
+assert.notEqual(E.makeLevel(1).moves,E.makeLevel(1000).moves,'Daily allowance must remain level-dependent');
+const scratch={unlocked:37};
+const full=D.ensure(scratch,1700000000000,E.makeLevel(37).moves).remaining;
+assert.equal(full,E.makeLevel(37).moves);
+assert.equal(D.spend(scratch,1,1700000000000,full),true);
+assert.equal(D.left(scratch,1700000000000,full),full-1);
+assert.equal(play(37,0,false).dailyAllotment,full,'The simulator begins each independent attempt with a new allowance');
+
 const original=play(37,0,false);
 assert.equal(original.hammerUsed,0,'Baseline remains booster-free');
 const emergency=play(37,0,true);
@@ -39,5 +61,7 @@ assert.ok(Array.isArray(choose(E.create(1,11))),'Greedy baseline retains legal m
 const source=require('node:fs').readFileSync(require('node:path').join(__dirname,'../tools/greedy-playtest.js'),'utf8');
 assert.match(source,/PROBE_EVERY=5,PROBE_TRIAL=0,MAX_HAMMERS_PER_PROBE=1/);
 assert.match(source,/boosterComparison:comparison/);
+assert.match(source,/D\.ensure\(save,TEST_TIME,E\.makeLevel\(save\.unlocked\)\.moves\)/);
+assert.match(source,/D\.spend\(save,used,TEST_TIME,initial\)/);
 assert.doesNotMatch(source,/booster\(g,'extra'/,'Extra moves must not be granted for testing');
-console.log('PASS: sparse, late-emergency, real Hammer probe, one-use cap, matched-seed baseline and no shopping');
+console.log('PASS: full fresh per-level daily allowance, hazard-wallet charges, earned refunds, isolated runs and sparse emergency Hammer');

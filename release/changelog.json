@@ -1,29 +1,29 @@
 {
   "schema": 1,
-  "headline": "Difficulty testing adds a sparse emergency Hammer comparison",
+  "headline": "Daily allowance now resets fully for each simulated stage",
   "changes": [
     {
-      "title": "Exercise minimal booster use in the automated player",
-      "detail": "The 1,000-stage greedy playtest keeps its original no-booster results and adds a same-seed rescue run on every fifth level. The test bot may use at most one real Hammer near defeat when it helps an unfinished objective.",
+      "title": "Give every simulated level its own full daily move bank",
+      "detail": "The optional player simulator now starts each seed and matched emergency-Hammer trial with a new 24-hour move wallet using that stage's real level-dependent daily allowance. No unused or spent moves carry across attempts.",
       "files": [
         "tools/greedy-playtest.js"
       ]
     },
     {
-      "title": "Track emergency booster impact without altering gameplay",
-      "detail": "The optional balance report now compares paired baseline and Hammer-assisted outcomes, records actual uses and per-chapter results, and explicitly labels the hypothetical stock assumption.",
+      "title": "Match real hazard costs and earned move refunds",
+      "detail": "Automated move spending mirrors the live NutDailyMoves debit and credit rules, including two additional move charges for expired fuses and actual earned elemental move refunds. No purchased or free-claim extra moves are assumed.",
       "files": [
-        "tools/balance-risk-report.js",
-        "docs/diagnostics/CAMPAIGN_BALANCE_REVIEW_2026-10-26.md"
+        "tools/greedy-playtest.js",
+        "tools/balance-risk-report.js"
       ]
     },
     {
-      "title": "Verify sparse booster rules in optional tests",
-      "detail": "Added report-only tests for the Hammer target selection, late-use trigger, strict one-use limit, baseline preservation, and matched-seed report consistency without touching release-blocking suites.",
+      "title": "Verify independent full daily allotments in optional diagnostics",
+      "detail": "Report-only tests verify level-dependent full allowances, wallet reconciliation, isolated run restarts and explicit methodology documentation without changing gameplay, level goals or booster economy.",
       "files": [
         "tests/greedy-minimal-booster.test.js",
         "tests/balance-risk-report.test.js",
-        "tests/diagnostic-suites.txt"
+        "docs/diagnostics/CAMPAIGN_BALANCE_REVIEW_2026-10-26.md"
       ]
     }
   ]

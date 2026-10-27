@@ -8,6 +8,9 @@ function integer(n){return Number.isInteger(n)&&n>=0;}
 function review(structural,bot){
  requireValid(structural&&structural.campaignLevels===1000&&Array.isArray(structural.chapters)&&structural.chapters.length===10,'requires full 1,000-level structural audit');
  requireValid(bot&&bot.campaignLevels===1000&&bot.botTrials===2&&Array.isArray(bot.levels)&&bot.levels.length===1000&&Array.isArray(bot.chapters)&&bot.chapters.length===10,'requires full two-trial 1,000-level bot audit');
+ requireValid(bot.dailyAllowanceModel==='FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET'&&
+  typeof bot.dailyAllowanceRule==='string'&&bot.dailyAllowanceRule.includes('NutDailyMoves.ensure'),
+  'requires an independent, full daily-wallet allotment for each simulated level');
  const entries=bot.levels;
  for(let i=0;i<entries.length;i++){
   const x=entries[i];
@@ -34,6 +37,8 @@ function review(structural,bot){
  // Sparse comparison uses the SAME seed for a second run, not the
  // existing full-campaign no-booster baseline counted in the table above.
  const comparison=bot.boosterComparison;
+ requireValid(comparison?.dailyAllowanceModel==='FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',
+  'scarce-booster comparison must use the same fresh daily-wallet allowance');
  requireValid(comparison?.kind==='SPARSE_EMERGENCY_HAMMER_PROBE_NOT_INVENTORY'&&
   comparison.attempts===200&&comparison.frequencyLevels===5&&comparison.trial===0&&
   comparison.maxPerProbe===1&&Array.isArray(comparison.probes)&&comparison.probes.length===200&&
@@ -44,7 +49,14 @@ function review(structural,bot){
   const p=comparison.probes[i],level=(i+1)*5;
   requireValid(p.level===level&&p.trial===0&&integer(p.hammerUsed)&&p.hammerUsed<=1&&
    typeof p.baselineWon==='boolean'&&typeof p.assistedWon==='boolean'&&
-   integer(p.baselineSpentMoves)&&integer(p.assistedSpentMoves),
+   integer(p.dailyAllotment)&&p.dailyAllotment>=12&&p.dailyAllotment<=36&&
+   integer(p.baselineRemainingMoves)&&integer(p.assistedRemainingMoves)&&
+   integer(p.baselineEarnedRefunds)&&integer(p.assistedEarnedRefunds)&&
+   p.baselineRemainingMoves<=p.dailyAllotment+p.baselineEarnedRefunds&&
+   p.assistedRemainingMoves<=p.dailyAllotment+p.assistedEarnedRefunds&&
+   Number.isFinite(p.baselineSpentMoves)&&Number.isFinite(p.assistedSpentMoves)&&
+   p.baselineSpentMoves===p.dailyAllotment-p.baselineRemainingMoves&&
+   p.assistedSpentMoves===p.dailyAllotment-p.assistedRemainingMoves,
    'invalid scarce-booster probe at '+level);
   hammerUses+=p.hammerUsed;
   pairedBaselineWins+=Number(p.baselineWon);
@@ -81,6 +93,7 @@ function review(structural,bot){
   firstZeroWinStage:entries.find(x=>x.wins===0)?.level??null,
   lastBotWinStage:[...entries].reverse().find(x=>x.wins>0)?.level??null,
   lowOpeningChapters:openingPressure.map(x=>x.chapter),
+  dailyAllowanceModel:'FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',
   minimalBoosterComparison:{attempts:comparison.attempts,hammerUsed:hammerUses,
    baselineWins:pairedBaselineWins,assistedWins,
    maxHammersPerAttempt:1,comparisonsPerTenLevels:2,
@@ -100,6 +113,7 @@ function markdown(r){
  text+='| Chapter | Bot wins / 200 | Stages 0 / 2 | Opening swaps | Hazards | Review flag |\n|---|---:|---:|---:|---:|---|\n';
  for(const c of r.chapters)text+='| '+c.chapter+' | '+c.botWins+' | '+c.zeroWinStages+' | '+c.averageOpenings+' | '+c.hazardDetonations+' | '+c.reviewFlag+' |\n';
  text+='\nLongest zero-win streaks: '+r.topZeroWinStreaks.slice(0,4).map(x=>x.start+'–'+x.end+' ('+x.count+' levels)').join(', ')+'.\n';
+ text+='\n**Daily allowance:** Each simulated level starts with its own full, level-specific 24-hour move wallet. Real move debits, fuse penalties and earned refunds are applied; no unused moves carry between attempts.\n';
  text+='\n**Sparse booster comparison:** '+r.minimalBoosterComparison.attempts+
  ' same-seed rescue attempts; '+r.minimalBoosterComparison.hammerUsed+
  ' emergency Hammers actually used (maximum one on every fifth level, only when 1–2 moves remain). '+
