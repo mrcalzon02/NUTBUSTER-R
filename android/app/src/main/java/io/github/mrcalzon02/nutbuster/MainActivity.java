@@ -13,7 +13,7 @@ import android.webkit.WebViewClient;
 import org.json.JSONObject;
 
 /** Offline-first native game. Update checks use network; downloads and installation are opt-in. */
-public final class MainActivity extends Activity {
+public class MainActivity extends Activity {
     private WebView game;
     private NutUpdateService updater;
     @Override public void onCreate(Bundle state) {
@@ -67,6 +67,8 @@ public final class MainActivity extends Activity {
                 JSONObject.quote(message) + ")", null);
         });
     }
+    protected final WebView packagedGameView() { return game; }
+
     @Override public void onBackPressed() {
         if (game != null) game.evaluateJavascript("window.NutbusterApp && window.NutbusterApp.nav('campaign')", null);
     }
