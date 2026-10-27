@@ -357,6 +357,13 @@ function reconcileBoardNuts(){
   if(!expected&&image)vis.outerHTML=nutVisual(c);
   else if(expected&&(!image||image.getAttribute('src')!==expected))vis.outerHTML=nutVisual(c);
   else if(image?.complete&&image.naturalWidth>0)image.classList.add('loaded');
+  else if(image?.complete&&image.naturalWidth===0){
+   // A canceled/failed cached request can miss onerror during rapid WebView
+   // replacement. Reveal the existing fallback rather than leaving a blank tile.
+   image.style.display='none';
+   const fallback=vis.querySelector?.('.fallback');
+   if(fallback)fallback.style.visibility='visible';
+  }
  }
  board.querySelectorAll('.clearing').forEach(el=>el.classList.remove('clearing'));
  board.querySelectorAll('.falling-nut, .transport-nut').forEach(el=>el.remove());
@@ -489,10 +496,12 @@ async function cascadeAnimation(stage,epoch,wave=1){
  for(const fall of stage.falls){
   const target=board.querySelector(`[data-cell="${fall.to}"]`);if(!target)continue;
   const to=target.getBoundingClientRect(),from=fall.from>=0?board.querySelector(`[data-cell="${fall.from}"]`):null;
-  const source=from?.querySelector('.nut-visual'),fly=document.createElement('span');
+  const fly=document.createElement('span');
   fly.className='falling-nut';fly.style.left=(to.left-rect.left)+'px';fly.style.top=(to.top-rect.top)+'px';
   fly.style.width=to.width+'px';fly.style.height=to.height+'px';
-  fly.innerHTML=source?source.outerHTML:nutVisual({type:fall.type,special:fall.special});
+  // A previous swap/cascade may have hidden the source visual. Construct a
+  // fresh sprite from the authoritative fall payload, never clone hidden DOM.
+  fly.innerHTML=nutVisual({type:fall.type,special:fall.special,elemental:fall.elemental,hold:fall.hold});
   board.appendChild(fly);overlays.push(fly);
   const startY=from?from.getBoundingClientRect().top-to.top:(fall.startRow-Math.floor(fall.to/state.game.cfg.width))*(to.height+1);
   const duration=Math.min(760,360+Math.abs(startY)*.38);
