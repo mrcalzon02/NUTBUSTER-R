@@ -1,31 +1,12 @@
 {
   "schema": 1,
-  "headline": "Bounded real-engine AI planning trials added to campaign diagnostics",
+  "headline": "Correct strict planner evidence cross-check fixture",
   "changes": [
     {
-      "title": "Explore real game moves three turns ahead in a new diagnostic player",
-      "detail": "The optional test player now forks the live engine, preserving deterministic cascade randomness, and searches up to three swaps ahead with a strict 40-simulation decision budget. Game difficulty and actual board rules are unchanged.",
+      "title": "Test baseline divergence using a valid losing sample",
+      "detail": "The real-engine planner, seeded board replay, and benchmark passed. An optional negative test accidentally changed a winning synthetic sample into a mismatched loss, triggering the correct wallet and outcome validator first. The updated fixture changes a valid losing sample so it specifically verifies baseline divergence rejection without weakening any check.",
       "files": [
-        "tools/planning-policy.js"
-      ]
-    },
-    {
-      "title": "Compare smarter planning against existing bots on the same stages",
-      "detail": "Independent controlled trials compare one-turn objective evaluation, real-engine single-turn search, three-turn planning, and at most one emergency Hammer across twelve representative campaign stages with identical daily move allowances.",
-      "files": [
-        "tools/planning-integration.js",
-        "tools/planning-report.js"
-      ]
-    },
-    {
-      "title": "Test search integrity and preserve detailed run evidence",
-      "detail": "New optional suites verify reproducible RNG branching, isolated game states, wallet debits and simulator limits, while GitHub Actions saves paired outcomes and performance evidence for later difficulty investigations.",
-      "files": [
-        "tests/planning-policy.test.js",
-        "tests/planning-integration.test.js",
-        "tests/diagnostic-suites.txt",
-        ".github/workflows/build-and-release.yml",
-        "docs/diagnostics/PLANNING_PLAYER_INTEGRATION_2026-10-27.md"
+        "tests/planning-integration.test.js"
       ]
     }
   ]

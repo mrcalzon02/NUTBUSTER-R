@@ -50,5 +50,7 @@ assert.throws(()=>review(edit(0,x=>x.seed++),original),/original seed differs/);
 assert.throws(()=>review(edit(0,x=>{x.planned={...x.planned,simulatedSwaps:x.planned.decisions*41}}),original),/incorrect real-engine wallet/);
 assert.throws(()=>review(edit(0,x=>{x.objective={...x.objective,won:false}}),original),/incorrect real-engine wallet/);
 assert.throws(()=>review(edit(0,x=>{x.objective={...x.objective,remainingMoves:1}}),original),/incorrect real-engine wallet/);
-assert.throws(()=>review(edit(0,x=>{x.objective={...x.objective,debitedMoves:15,remainingMoves:1,failure:{...x.objective.failure,reason:'engine-ended-with-wallet-remaining',swaps:15}}}),original),/baseline policy diverged/);
+// Alter a real losing control sample while keeping its wallet internally valid.
+// The independent 1,000-level baseline must still catch the mismatch.
+assert.throws(()=>review(edit(2,x=>{x.objective={...x.objective,debitedMoves:15,remainingMoves:1,failure:{...x.objective.failure,reason:'engine-ended-with-wallet-remaining',swaps:15}}}),original),/baseline policy diverged/);
 console.log('PASS: fixed late-game samples, strict bounded search, exact wallet evidence, paired seed and original-bot consistency');
