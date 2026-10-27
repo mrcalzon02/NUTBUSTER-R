@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "headline": "Daily allowance now resets fully for each simulated stage",
+  "headline": "Fresh daily allowances verified across simulated campaign attempts",
   "changes": [
     {
       "title": "Give every simulated level its own full daily move bank",
@@ -24,6 +24,13 @@
         "tests/greedy-minimal-booster.test.js",
         "tests/balance-risk-report.test.js",
         "docs/diagnostics/CAMPAIGN_BALANCE_REVIEW_2026-10-26.md"
+      ]
+    },
+    {
+      "title": "Preserve precise optional diagnostic errors",
+      "detail": "Validated missing sparse-booster evidence before applying the new daily-wallet consistency check, retaining the existing diagnostic contract without weakening its requirements.",
+      "files": [
+        "tools/balance-risk-report.js"
       ]
     }
   ]

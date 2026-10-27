@@ -37,13 +37,13 @@ function review(structural,bot){
  // Sparse comparison uses the SAME seed for a second run, not the
  // existing full-campaign no-booster baseline counted in the table above.
  const comparison=bot.boosterComparison;
- requireValid(comparison?.dailyAllowanceModel==='FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',
-  'scarce-booster comparison must use the same fresh daily-wallet allowance');
  requireValid(comparison?.kind==='SPARSE_EMERGENCY_HAMMER_PROBE_NOT_INVENTORY'&&
   comparison.attempts===200&&comparison.frequencyLevels===5&&comparison.trial===0&&
   comparison.maxPerProbe===1&&Array.isArray(comparison.probes)&&comparison.probes.length===200&&
   Array.isArray(comparison.chapters)&&comparison.chapters.length===10,
   'requires 200 matched-seed, one-Hammer maximum comparison attempts');
+ requireValid(comparison?.dailyAllowanceModel==='FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',
+  'scarce-booster comparison must use the same fresh daily-wallet allowance');
  let hammerUses=0,pairedBaselineWins=0,assistedWins=0;
  for(let i=0;i<comparison.probes.length;i++){
   const p=comparison.probes[i],level=(i+1)*5;
