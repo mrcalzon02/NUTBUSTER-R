@@ -91,7 +91,11 @@ function impact(ledger,file){
  const affected=ledger.features.filter(f=>f.sources.some(p=>relevant.includes(p)));
  for(const f of affected)console.log('Changed gameplay feature: '+f.id+'; native='+f.native);
  if(relevant.length){
-  const synced=changed.some(p=>p.startsWith('native/')||p==='config/platform-parity.json');
+  const synced=changed.some(p=>
+    p.startsWith('native/src/')||
+    p==='native/prepare_assets.py'||
+    p.startsWith('native/generate_')||
+    p==='config/platform-parity.json');
   check(synced,'Gameplay changed without a native implementation update or explicit config/platform-parity.json review. '+relevant.join(', '));
  }
  console.log('PASS cross-platform change accounting: '+relevant.length+' game JS files; '+affected.length+' impacted features.');

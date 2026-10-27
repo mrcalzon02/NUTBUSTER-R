@@ -21,7 +21,7 @@ These are **four distribution targets but two active gameplay implementations**:
 
 - `validate`: checks all four target identities; shared Android/Fire release; C++/SDL3 desktop runtimes; that every present `web/*.js` gameplay module (except release-note metadata) is assigned to a feature; source/test paths; preview-only status and CI contract.
 - `report`: emits a readable inventory of partial or missing native features. This is the report attached to native CI preview packages.
-- `impact <changed-paths.txt>`: refuses unmapped new game JavaScript modules and flags mobile gameplay changes without **either** corresponding native source work **or** an explicit ledger review committed in that revision.
+- `impact <changed-paths.txt>`: refuses unmapped new game JavaScript modules and flags mobile gameplay changes without **either** corresponding native implementation source work (`native/src/` or native build-time data/art generators) **or** an explicit ledger review in that push. Native documentation alone does not count as an implementation.
 - `require-full`: fails while any required native feature is partial/unported or native targets lack deliberate production signoff. This is the required guard before establishing a desktop production release pipeline.
 
 The `functionally-tested` mobile label means there is source-level test coverage, **not** that every device or every feature flow has been tested. Likewise, native `preview-partial` indicates working portions verified in CI, **not** parity completion. Never substitute documentation updates for implemented gameplay.
@@ -39,6 +39,6 @@ The `functionally-tested` mobile label means there is source-level test coverage
 
 Functional diagnostics and release-integrity failures can block the **affected** artifact. Cosmetic/screenshot/text failures can report problems but must not become signed Android release dependencies. Native partial implementations or native runner failures do **not** block an otherwise verified signed Android/Fire OS release. They **do** prevent incorrectly declaring parity and creating a full desktop release. Fire OS proxy compatibility cannot be described as physical device certification.
 
-GitHub Actions triggers check modified source on each push, including changes made to the mobile game. When modifying a mobile gameplay script with no same-commit native work, include an explicit parity-ledger review in that commit. The automation checks **accountability and evidence**, not equivalence of every intermediate game state. Deterministic turn-by-turn JavaScript/C++ parity tests must be expanded as native mechanics are ported.
+GitHub Actions triggers check modified source across the **entire pushed commit range** (not merely the last commit), including changes made to the mobile game. When modifying a mobile gameplay script with no same-commit native work, include an explicit parity-ledger review in that commit. The automation checks **accountability and evidence**, not equivalence of every intermediate game state. Deterministic turn-by-turn JavaScript/C++ parity tests must be expanded as native mechanics are ported.
 
 The `config/platform-parity.json` file is a feature backlog and source-level contract, not a user-facing claim that all target builds offer all listed features.

@@ -32,6 +32,7 @@ function impact(files){
 try{
  assert.equal(impact(['native/src/core.cpp']).status,0,'Native catch-up patches must remain possible');
  assert.equal(impact(['web/engine.js','native/src/core.cpp']).status,0,'Cross-implementation patches must pass');
+ assert.notEqual(impact(['web/engine.js','native/README.md']).status,0,'Native documentation alone is not implementation work');
  assert.equal(impact(['web/engine.js','config/platform-parity.json']).status,0,'Explicit backlog review must pass');
  assert.notEqual(impact(['web/engine.js']).status,0,'Unaccounted mobile-only mechanics must be flagged');
  assert.match(impact(['web/surprise-new-game.js','native/src/core.cpp']).stderr,/lacks platform feature mapping/);
@@ -41,6 +42,7 @@ const native=fs.readFileSync(path.join(root,'.github/workflows/native-desktop-pr
 const mobile=fs.readFileSync(path.join(root,'.github/workflows/build-and-release.yml'),'utf8');
 assert.match(native,/web\/\*\*/,'Every gameplay web change must build both native previews');
 assert.match(native,/node tools\/platform-parity\.js impact/);
+assert.match(native,/git diff --name-only \"\$BEFORE_SHA\" HEAD/,'Every commit in a multi-commit mobile push must be audited');
 assert.match(native,/--self-test/);
 assert.match(mobile,/node tools\/platform-parity\.js validate/);
 const publish=mobile.slice(mobile.indexOf('  publisher-release:'));

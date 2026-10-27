@@ -49,7 +49,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - name: Install native Linux build requirements
         if: runner.os == 'Linux'
         run: |
@@ -62,9 +62,21 @@ jobs:
         with:
           node-version: '22'
       - name: Verify all release lines and account for changed gameplay modules
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           node tools/platform-parity.js validate
-          git diff --name-only HEAD^ HEAD > platform-changed-files.txt
+          if [[ "$EVENT_NAME" == "push" && "$BEFORE_SHA" =~ ^[0-9a-f]{40}$ && "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]]; then
+            # Compare the entire push range, not only the last commit.
+            git diff --name-only "$BEFORE_SHA" HEAD > platform-changed-files.txt
+          elif git rev-parse --verify HEAD^1 >/dev/null 2>&1; then
+            # PR merge commit: first parent is the current base branch.
+            git diff --name-only HEAD^1 HEAD > platform-changed-files.txt
+          else
+            echo '::error::Could not establish a base commit for parity impact audit'
+            exit 1
+          fi
           node tools/platform-parity.js impact platform-changed-files.txt
           node tools/platform-parity.js report > platform-parity-report.txt
       - name: Export authored NUTBUSTER layouts and objectives from source JS (build-time only)
