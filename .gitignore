@@ -8,3 +8,11 @@
 *.keystore
 .DS_Store
 *.log
+
+# Locally compiled native SDL3 app and converted copies of approved runtime art
+native/generated-assets/
+native/package/
+native-board.bmp
+native-board.png
+native-mine.bmp
+native-mine.png

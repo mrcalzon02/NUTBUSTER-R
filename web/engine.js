@@ -293,7 +293,7 @@ function gravity(g,falls=[]){
    c.type=s?s.type:g.cfg.roster[Math.floor(g.rand()*g.cfg.typeCount)];
    c.special=s?s.special:null;c.elemental=s?s.elemental:null;c.hold=s?s.hold:0;
    if(s){if(s.from!==i)falls.push({from:s.from,to:i,type:s.type,special:s.special,elemental:s.elemental,hold:s.hold});}
-   else falls.push({from:-1,to:i,startRow:y-fresh,type:c.type,special:null,elemental:null,hold:0});
+   else falls.push({from:-1,to:i,startRow:top===0?y-fresh:top,type:c.type,special:null,elemental:null,hold:0});
   }
  }
  for(let x=0;x<w;x++){

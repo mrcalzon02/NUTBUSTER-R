@@ -19,7 +19,7 @@ function classify(){
   const functional=all.filter(name=>!diagnostics.has(name));
   if(!functional.length)throw new Error('Functional release gate must never be empty');
   const mustBlock=['engine.test.js','currency-shop.test.js','progression.test.js','primary-contract-lock.test.js',
-    'update-contract.test.js','promo-codes.test.js','package.test.js','tile-overlay-mechanics.test.js'];
+    'update-contract.test.js','promo-codes.test.js','package.test.js','tile-overlay-mechanics.test.js','platform-parity.test.js'];
   for(const name of mustBlock)if(!functional.includes(name))throw new Error('Critical suite must remain release-blocking: '+name);
   return {functional:functional.map(n=>'tests/'+n),diagnostic:[...diagnostics].sort().map(n=>'tests/'+n)};
 }

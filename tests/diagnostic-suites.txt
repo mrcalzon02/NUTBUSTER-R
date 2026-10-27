@@ -2,6 +2,10 @@
 # Any *.test.js not listed here is FUNCTIONAL and BLOCKS publishing by default.
 # Mixed tests that validate live gameplay, purchasing or save state remain functional.
 android-emulator-smoke-contract.test.js
+balance-risk-report.test.js
+failure-analysis.test.js
+greedy-minimal-booster.test.js
+strategic-policy.test.js
 announcer-selection.test.js
 audio.test.js
 avatar-art.test.js
@@ -13,8 +17,10 @@ home-icon-identity.test.js
 nutvale-mines-design-lock.test.js
 premium-icon-integrity.test.js
 release-news.test.js
+release-news-base.test.js
 reviewed-effect-reslices.test.js
 sfx-samples.test.js
 sfx.test.js
 tile-overlay-visibility.test.js
 ui-smoke.test.js
+rupee-rush-banner.test.js

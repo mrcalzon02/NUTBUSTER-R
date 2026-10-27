@@ -17,7 +17,8 @@ const screen={classList:classes(),addEventListener:(k,f)=>{if(k==='click')clickH
  querySelectorAll:s=>s==='.nut-visual'?boardCells.filter(Boolean).map(x=>x.visual):[]
 };
 const currencyLinks=Array.from({length:2},()=>({dataset:{nav:'shop'},addEventListener(type,fn){if(type==='click')this.tap=fn;}}));
-const document={getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:selector=>selector==='[data-nav]'?currencyLinks:[],createElement:()=>({style:{},innerHTML:'',remove(){}})};
+const transientSprites=[];
+const document={getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:selector=>selector==='[data-nav]'?currencyLinks:[],createElement:()=>{const el={style:{},innerHTML:'',remove(){}};transientSprites.push(el);return el;}};
 const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutBenefits:require('../web/benefits.js'),NutPurchases:require('../web/purchase-disclosures.js'),NutProgress:P,NutHomestead:H,NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:M,addEventListener:()=>{},matchMedia:()=>({matches:true})};
 const saveStore={};const localStorage={getItem:k=>saveStore[k]??null,setItem:(k,v)=>{saveStore[k]=v;}};
 require('node:vm').runInNewContext(js,{window,document,localStorage,setTimeout:fn=>{if(typeof fn==='function')Promise.resolve().then(fn);return 0;},clearTimeout:()=>{},requestAnimationFrame:f=>f(),console});
@@ -25,7 +26,8 @@ const app=window.NutbusterApp, state=app.getState;
 const click=data=>clickHandler({target:{dataset:data,closest:()=>({dataset:data})}});
 function attach(){const g=state().game;boardCells=g.cells.map((c,i)=>!c?null:{
  dataset:{nutKey:c.type+':'+(c.special||''),blockKey:c.ice+':'+c.lock+':'+c.chest},classList:classes(),style:{},
- visual:{outerHTML:'<span class="nut-visual"></span>',style:{}},querySelector(s){return s==='.nut-visual'?this.visual:null;},
+ visual:{outerHTML:'<span class="nut-visual"></span>',style:{},image:null,fallback:null,
+  querySelector(s){return s==='.piece'?this.image:s==='.fallback'?this.fallback:null;}},querySelector(s){return s==='.nut-visual'?this.visual:null;},
  querySelectorAll:()=>[],insertAdjacentHTML:()=>{},setAttribute:()=>{},
  getBoundingClientRect:()=>({left:(i%g.cfg.width)*51,top:Math.floor(i/g.cfg.width)*51,width:50,height:50})});}
 function findSwap(g,wantMatch){for(let a=0;a<g.cells.length;a++)for(let b of [a+1,a+g.cfg.width]){
@@ -47,12 +49,25 @@ async function run(){
  app.start(1);attach();assert.ok(html.includes('--cols:4'));
  let g=state().game;g.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
  let swap=findSwap(g,false),before=renders,moves=g.moves,startingCoins=app.getSave().coins;
+ // Simulate an Android WebView cached sprite whose error callback was missed,
+ // plus an inline visibility hide left by a previous interrupted animation.
+ const staleIndex=g.cells.findIndex((c,i)=>c&&!swap.includes(i)),stale=boardCells[staleIndex].visual;
+ stale.style.visibility='hidden';
+ stale.image={complete:true,naturalWidth:0,style:{},getAttribute:()=> 'art/primary/nuts/'+E.TYPES[g.cells[staleIndex].type]+'.png'};
+ stale.fallback={style:{visibility:'hidden'}};
  click({cell:String(swap[0])});assert.equal(renders,before);
  click({cell:String(swap[1])});await settle();assert.equal(g.moves,moves-1);assert.equal(renders,before);
  assert.equal(app.getSave().coins,startingCoins,'A move removing no nuts does not mint currency');
+ assert.equal(stale.style.visibility,'','Interrupted animation hiding is cleared');
+ assert.equal(stale.image.style.display,'none','Cached broken sprite is hidden even without onerror');
+ assert.equal(stale.fallback.style.visibility,'visible','Broken image never leaves an empty playable tile');
  swap=findSwap(g,true);const score=g.score;click({cell:String(swap[0])});click({cell:String(swap[1])});
  await settle();assert.ok(g.score>score);assert.equal(renders,before);
  const removed=g.history.at(-1).removed;assert.ok(removed>0,'Matching move destroys nuts');
+ const falling=transientSprites.filter(x=>x.className==='falling-nut');
+ assert.ok(falling.length>0,'A scoring cascade generates falling nut sprites');
+ assert.ok(falling.every(x=>x.innerHTML.includes('class="piece"')&&!x.innerHTML.includes('visibility: hidden')),
+  'Falling sprites are rendered from nut data, not a previously hidden source element');
  assert.equal(app.getSave().coins,startingCoins,'Matches award score, not spendable Golden Nuts');
  assert.equal(refs.wallet.textContent,startingCoins.toLocaleString(),'Main wallet stays unchanged during ordinary matching');
  assert.equal(refs['play-wallet'].textContent,startingCoins.toLocaleString(),'In-level wallet stays unchanged during ordinary matching');
