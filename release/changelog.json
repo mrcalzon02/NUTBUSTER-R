@@ -1,12 +1,31 @@
 {
   "schema": 1,
-  "headline": "Correct sampled-seed fixture accounting in optional difficulty tests",
+  "headline": "Bounded real-engine AI planning trials added to campaign diagnostics",
   "changes": [
     {
-      "title": "Fix three-seed report fixtures to count sampled stages correctly",
-      "detail": "The expanded 300-attempt failure-cause audit ran successfully on actual engine states, but one optional synthetic assertion counted wins from twice as many selected levels. Corrected expected wins, daily exhaustions and hazard charges without weakening report validation or modifying gameplay.",
+      "title": "Explore real game moves three turns ahead in a new diagnostic player",
+      "detail": "The optional test player now forks the live engine, preserving deterministic cascade randomness, and searches up to three swaps ahead with a strict 40-simulation decision budget. Game difficulty and actual board rules are unchanged.",
       "files": [
-        "tests/balance-risk-report.test.js"
+        "tools/planning-policy.js"
+      ]
+    },
+    {
+      "title": "Compare smarter planning against existing bots on the same stages",
+      "detail": "Independent controlled trials compare one-turn objective evaluation, real-engine single-turn search, three-turn planning, and at most one emergency Hammer across twelve representative campaign stages with identical daily move allowances.",
+      "files": [
+        "tools/planning-integration.js",
+        "tools/planning-report.js"
+      ]
+    },
+    {
+      "title": "Test search integrity and preserve detailed run evidence",
+      "detail": "New optional suites verify reproducible RNG branching, isolated game states, wallet debits and simulator limits, while GitHub Actions saves paired outcomes and performance evidence for later difficulty investigations.",
+      "files": [
+        "tests/planning-policy.test.js",
+        "tests/planning-integration.test.js",
+        "tests/diagnostic-suites.txt",
+        ".github/workflows/build-and-release.yml",
+        "docs/diagnostics/PLANNING_PLAYER_INTEGRATION_2026-10-27.md"
       ]
     }
   ]

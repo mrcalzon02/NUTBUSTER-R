@@ -6,6 +6,8 @@ balance-risk-report.test.js
 failure-analysis.test.js
 greedy-minimal-booster.test.js
 strategic-policy.test.js
+planning-policy.test.js
+planning-integration.test.js
 announcer-selection.test.js
 audio.test.js
 avatar-art.test.js
