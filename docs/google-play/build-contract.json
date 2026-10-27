@@ -1,0 +1,11 @@
+{
+  "package": "io.github.mrcalzon02.nutbuster",
+  "module": "android/app",
+  "modules": [
+    "android/app"
+  ],
+  "allowed_permissions": [
+    "android.permission.INTERNET"
+  ],
+  "remove_install_permission": true
+}
