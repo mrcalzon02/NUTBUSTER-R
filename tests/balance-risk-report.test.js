@@ -35,7 +35,28 @@ const boosterComparison={kind:'SPARSE_EMERGENCY_HAMMER_PROBE_NOT_INVENTORY',
  attempts:200,frequencyLevels:5,trial:0,maxPerProbe:1,
  hammerUsed:20,baselineWins:20,assistedWins:40,
  chapters:boosterChapters,probes};
-const b={campaignLevels:1000,botTrials:2,levels,chapters,boosterComparison,
+const strategyProbes=probes.map(p=>({
+ level:p.level,trial:0,dailyAllotment:p.dailyAllotment,greedyWon:p.baselineWon,
+ strategicWon:p.level<=200,strategicHammerWon:p.level<=300,
+ hammerUsed:p.level>100?1:0,fallbackSwaps:0,
+ noBoosterRemainingMoves:20,minimalHammerRemainingMoves:18
+}));
+const strategyChapters=Array.from({length:10},(_,i)=>{
+ const slice=strategyProbes.slice(i*20,(i+1)*20);
+ return {chapter:i+1,attempts:20,greedyWins:slice.filter(p=>p.greedyWon).length,
+  strategicWins:slice.filter(p=>p.strategicWon).length,
+  strategicHammerWins:slice.filter(p=>p.strategicHammerWon).length,
+  hammerUsed:slice.reduce((n,p)=>n+p.hammerUsed,0),fallbackSwaps:0};
+});
+const strategicComparison={
+ kind:'MATCHED_SEED_OBJECTIVE_HAZARD_POLICY_NOT_HUMAN_WIN_RATE',
+ description:'Synthetic single-turn goal-aware policy; not human success.',
+ dailyAllowanceModel:'FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',
+ attempts:200,levelsPerProbe:5,trial:0,greedyWins:20,
+ strategicWins:40,strategicHammerWins:60,hammerUsed:180,fallbackSwaps:0,
+ chapters:strategyChapters,probes:strategyProbes
+};
+const b={campaignLevels:1000,botTrials:2,levels,chapters,boosterComparison,strategicComparison,
  dailyAllowanceModel:'FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',
  dailyAllowanceRule:'Each attempt begins with NutDailyMoves.ensure and a full level-specific daily allowance.'};
 const result=review(a,b);
@@ -57,12 +78,20 @@ assert.equal(result.minimalBoosterComparison.attempts,200);
 assert.equal(result.minimalBoosterComparison.hammerUsed,20);
 assert.equal(result.minimalBoosterComparison.baselineWins,20);
 assert.equal(result.minimalBoosterComparison.assistedWins,40);
+assert.equal(result.objectiveAwareComparison.attempts,200);
+assert.equal(result.objectiveAwareComparison.greedyWins,20);
+assert.equal(result.objectiveAwareComparison.objectiveAwareWins,40);
+assert.equal(result.objectiveAwareComparison.objectiveAwareHammerWins,60);
+assert.equal(result.objectiveAwareComparison.actualHammerUses,180);
+assert.equal(result.objectiveAwareComparison.policyFallbackSwaps,0);
 const summary=markdown(result);
 assert.match(summary,/heuristic bot, not player win rate/);
 assert.match(summary,/300 \/ 2000 greedy-bot wins/);
 assert.match(summary,/report-only/);
 assert.match(summary,/201–1000/);
 assert.match(summary,/Sparse booster comparison/);
+assert.match(summary,/Objective-aware paired simulation/);
+assert.match(summary,/objective-aware 40/);
 assert.match(summary,/Each simulated level starts with its own full/);
 assert.match(summary,/No-booster matched-seed wins: 20; emergency-Hammer wins: 40/);
 assert.throws(()=>review({...a,campaignLevels:500},b),/full 1,000-level structural/);
@@ -74,6 +103,10 @@ const badChapters=chapters.map(x=>({...x}));
 badChapters[9].greedyBotWinCount=20;
 assert.throws(()=>review(a,{...b,chapters:badChapters}),/bot chapter aggregation mismatch/);
 assert.throws(()=>review(a,{...b,dailyAllowanceModel:'REUSED_BALANCE'}),/full daily-wallet allotment/);
+const badStrategy=strategyProbes.slice();
+badStrategy[0]={...badStrategy[0],hammerUsed:2};
+assert.throws(()=>review(a,{...b,strategicComparison:{...strategicComparison,probes:badStrategy}}),/invalid objective-aware matched-seed/);
+assert.throws(()=>review(a,{...b,strategicComparison:undefined}),/requires 200 matched-seed objective-aware/);
 const corruptedProbes=probes.slice();
 corruptedProbes[0]={...probes[0],hammerUsed:2};
 assert.throws(()=>review(a,{...b,boosterComparison:{...boosterComparison,probes:corruptedProbes}}),/invalid scarce-booster probe/);

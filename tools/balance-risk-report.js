@@ -72,6 +72,45 @@ function review(structural,bot){
  requireValid(comparison.hammerUsed===hammerUses&&
   comparison.baselineWins===pairedBaselineWins&&comparison.assistedWins===assistedWins,
   'scarce-booster totals mismatch');
+ // Objective-aware runs are an additional same-seed comparison, NOT replacements
+ // for the original 2,000 greedy trials or the sparse greedy-Hammer probes.
+ const strategy=bot.strategicComparison;
+ requireValid(strategy?.kind==='MATCHED_SEED_OBJECTIVE_HAZARD_POLICY_NOT_HUMAN_WIN_RATE'&&
+  strategy.dailyAllowanceModel==='FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET'&&
+  strategy.attempts===200&&strategy.levelsPerProbe===5&&strategy.trial===0&&
+  Array.isArray(strategy.probes)&&strategy.probes.length===200&&
+  Array.isArray(strategy.chapters)&&strategy.chapters.length===10,
+  'requires 200 matched-seed objective-aware player trials');
+ let strategyWins=0,strategyHammerWins=0,strategyHammerUses=0,strategyFallbacks=0,pairedGreedyWins=0;
+ for(let i=0;i<200;i++){
+  const p=strategy.probes[i],b=comparison.probes[i],level=(i+1)*5;
+  requireValid(p.level===level&&p.trial===0&&p.dailyAllotment===b.dailyAllotment&&
+   p.greedyWon===b.baselineWon&&typeof p.strategicWon==='boolean'&&
+   typeof p.strategicHammerWon==='boolean'&&integer(p.hammerUsed)&&p.hammerUsed<=1&&
+   integer(p.fallbackSwaps)&&integer(p.noBoosterRemainingMoves)&&
+   integer(p.minimalHammerRemainingMoves),
+   'invalid objective-aware matched-seed trial '+level);
+  pairedGreedyWins+=Number(p.greedyWon);
+  strategyWins+=Number(p.strategicWon);
+  strategyHammerWins+=Number(p.strategicHammerWon);
+  strategyHammerUses+=p.hammerUsed;
+  strategyFallbacks+=p.fallbackSwaps;
+  if(i%20===19){
+   const a=strategy.probes.slice(i-19,i+1),c=strategy.chapters[Math.floor(i/20)];
+   requireValid(c.chapter===Math.floor(i/20)+1&&c.attempts===20&&
+    c.greedyWins===a.filter(x=>x.greedyWon).length&&
+    c.strategicWins===a.filter(x=>x.strategicWon).length&&
+    c.strategicHammerWins===a.filter(x=>x.strategicHammerWon).length&&
+    c.hammerUsed===a.reduce((n,x)=>n+x.hammerUsed,0)&&
+    c.fallbackSwaps===a.reduce((n,x)=>n+x.fallbackSwaps,0),
+    'objective-aware chapter aggregation mismatch');
+  }
+ }
+ requireValid(strategy.greedyWins===pairedGreedyWins&&strategyWins===strategy.strategicWins&&
+  strategyHammerWins===strategy.strategicHammerWins&&
+  strategyHammerUses===strategy.hammerUsed&&strategyFallbacks===strategy.fallbackSwaps&&
+  pairedGreedyWins===pairedBaselineWins,
+  'objective-aware comparison totals mismatch');
  // Contiguous zero-win stretches prioritize review, NOT proof of level impossibility.
  const streaks=[];
  for(let i=0;i<entries.length;){
@@ -94,6 +133,10 @@ function review(structural,bot){
   lastBotWinStage:[...entries].reverse().find(x=>x.wins>0)?.level??null,
   lowOpeningChapters:openingPressure.map(x=>x.chapter),
   dailyAllowanceModel:'FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',
+  objectiveAwareComparison:{attempts:strategy.attempts,greedyWins:pairedGreedyWins,
+   objectiveAwareWins:strategyWins,objectiveAwareHammerWins:strategyHammerWins,
+   actualHammerUses:strategyHammerUses,policyFallbackSwaps:strategyFallbacks,
+   limitations:strategy.description,chapters:strategy.chapters},
   minimalBoosterComparison:{attempts:comparison.attempts,hammerUsed:hammerUses,
    baselineWins:pairedBaselineWins,assistedWins,
    maxHammersPerAttempt:1,comparisonsPerTenLevels:2,
@@ -119,6 +162,18 @@ function markdown(r){
  ' emergency Hammers actually used (maximum one on every fifth level, only when 1–2 moves remain). '+
  'No-booster matched-seed wins: '+r.minimalBoosterComparison.baselineWins+
  '; emergency-Hammer wins: '+r.minimalBoosterComparison.assistedWins+'.\n';
+ text+='\n**Objective-aware paired simulation:** '+r.objectiveAwareComparison.attempts+
+ ' fresh-daily-wallet same-seed attempts; greedy '+r.objectiveAwareComparison.greedyWins+
+ ', objective-aware '+r.objectiveAwareComparison.objectiveAwareWins+
+ ', objective-aware with at most one emergency Hammer '+
+ r.objectiveAwareComparison.objectiveAwareHammerWins+
+ ' wins; actual Hammers '+r.objectiveAwareComparison.actualHammerUses+
+ '; scoring-swap policy fallbacks '+r.objectiveAwareComparison.policyFallbackSwaps+'.\n\n';
+ text+='| Chapter | Greedy / 20 | Goal-aware / 20 | Goal-aware + Hammer / 20 | Hammers used | Fallbacks |\n|---|---:|---:|---:|---:|---:|\n';
+ for(const c of r.objectiveAwareComparison.chapters)
+  text+='| '+c.chapter+' | '+c.greedyWins+' | '+c.strategicWins+
+   ' | '+c.strategicHammerWins+' | '+c.hammerUsed+' | '+c.fallbackSwaps+' |\n';
+ text+='\nThis second player ranks single-turn objective progress, specials and expiring hazards; it is **not** a multi-turn solver or a measure of human skill.\n';
  text+='\n**Interpretation:** The full 2,000-attempt baseline never uses boosters. The sparse, optional rescue probe uses a hypothetical single Hammer only; no purchase, earned stock, or real player progression is simulated. Flags are requests for further playtesting, not automatic balance changes. Findings remain **report-only** and cannot block Android, Fire OS, Windows or Linux builds.\n';
  return text;
 }

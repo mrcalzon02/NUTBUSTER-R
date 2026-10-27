@@ -1,28 +1,30 @@
 {
   "schema": 1,
-  "headline": "Verify release news against the actual previous published build",
+  "headline": "Compare full-campaign difficulty using a second objective-aware player",
   "changes": [
     {
-      "title": "Resolve the last published ancestor instead of the current release",
-      "detail": "The optional news audit now selects the newest published tag strictly preceding the checked-out commit, excluding tags for the same revision or unrelated branches. A release published during CI can no longer make the changelog appear unchanged against itself.",
+      "title": "Add an objective-aware simulated match player",
+      "detail": "The optional bot now independently ranks legal matches by pending objectives, urgent fuse penalties and special combinations without mutating game boards or changing live gameplay.",
       "files": [
-        "tools/release-news-base.js",
-        ".github/workflows/build-and-release.yml"
+        "tools/strategic-policy.js"
       ]
     },
     {
-      "title": "Retain meaningful freshness and coverage failures",
-      "detail": "Complete git ancestry is available to the diagnostics job, and the unchanged source coverage validator still rejects missing release-note edits and unreported player-facing file changes.",
+      "title": "Compare move selection on matched seeds with minimal booster use",
+      "detail": "Added 200 same-seed full-daily-wallet runs for objective-aware play plus 200 further runs allowing at most one emergency Hammer, preserving the original 2,000 greedy trials and earlier sparse booster samples.",
       "files": [
-        ".github/workflows/build-and-release.yml"
+        "tools/greedy-playtest.js"
       ]
     },
     {
-      "title": "Test release-tag ordering and ancestry without touching gameplay",
-      "detail": "A report-only test covers self-tag exclusion, newer and unrelated tags, missing release history, and the existing release-news source-coverage safeguards.",
+      "title": "Report competing strategies with measured evidence",
+      "detail": "The diagnostics record chapter wins for baseline, goal-aware, and limited-Hammer play, actual Hammer uses and fallback swaps. Added deterministic tests and documentation clarifying that these are not human win rates.",
       "files": [
-        "tests/release-news-base.test.js",
-        "tests/diagnostic-suites.txt"
+        "tools/balance-risk-report.js",
+        "tests/strategic-policy.test.js",
+        "tests/balance-risk-report.test.js",
+        "tests/diagnostic-suites.txt",
+        "docs/diagnostics/CAMPAIGN_BALANCE_REVIEW_2026-10-26.md"
       ]
     }
   ]

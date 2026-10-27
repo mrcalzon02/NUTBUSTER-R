@@ -4,6 +4,7 @@
 android-emulator-smoke-contract.test.js
 balance-risk-report.test.js
 greedy-minimal-booster.test.js
+strategic-policy.test.js
 announcer-selection.test.js
 audio.test.js
 avatar-art.test.js
