@@ -56,7 +56,28 @@ const strategicComparison={
  strategicWins:40,strategicHammerWins:60,hammerUsed:180,fallbackSwaps:0,
  chapters:strategyChapters,probes:strategyProbes
 };
-const b={campaignLevels:1000,botTrials:2,levels,chapters,boosterComparison,strategicComparison,
+const failureProbes=Array.from({length:300},(_,i)=>{
+ const level=(Math.floor(i/3)+1)*10,trial=i%3;
+ const matching=strategyProbes.find(p=>p.level===level);
+ const attempt=(won,hammerUsed)=>{
+  const spent=won?12:36,swaps=won?10:30,remainingMoves=36-spent;
+  const value=won?100:50;
+  return {won,reason:won?'won':'daily-moves-exhausted',
+   remainingMoves,hammerUsed,debitedMoves:spent,earnedRefunds:0,
+   swaps,hazardPenaltyMoves:spent-swaps,expiredFuses:won?1:3,noProgressSwaps:won?0:20,
+   startedCompleted:0,
+   objectives:[{kind:'score',color:null,target:100,value,remaining:100-value,
+    completion:value/100,startingValue:0}]};
+ };
+ return {level,trial,dailyAllotment:36,
+  noBooster:attempt(trial===0?matching.strategicWon:false,0),
+  minimalHammer:attempt(trial===0?matching.strategicHammerWon:false,trial===0?matching.hammerUsed:1)};
+});
+const failureAnalysis={kind:'DETAILED_FAILURE_CAUSE_SAMPLED_NOT_SOLVABILITY_PROOF',
+ description:'Three seeded boards on each 10th stage, no purchased boosters.',
+ sampledLevels:100,seedsPerLevel:3,attempts:300,chapterSize:100,
+ dailyAllowanceModel:'FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',probes:failureProbes};
+const b={campaignLevels:1000,botTrials:2,levels,chapters,boosterComparison,strategicComparison,failureAnalysis,
  dailyAllowanceModel:'FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',
  dailyAllowanceRule:'Each attempt begins with NutDailyMoves.ensure and a full level-specific daily allowance.'};
 const result=review(a,b);
@@ -84,6 +105,14 @@ assert.equal(result.objectiveAwareComparison.objectiveAwareWins,40);
 assert.equal(result.objectiveAwareComparison.objectiveAwareHammerWins,60);
 assert.equal(result.objectiveAwareComparison.actualHammerUses,180);
 assert.equal(result.objectiveAwareComparison.policyFallbackSwaps,0);
+assert.equal(result.failureCauses.attemptsPerMode,300);
+assert.equal(result.failureCauses.sampledLevels,100);
+assert.equal(result.failureCauses.seedsPerLevel,3);
+assert.equal(result.failureCauses.chapters.length,10);
+assert.equal(result.failureCauses.noBooster.wins,40);
+assert.equal(result.failureCauses.minimalHammer.wins,60);
+assert.equal(result.failureCauses.noBooster.dailyExhaustion,260);
+assert.equal(result.failureCauses.noBooster.hazardPenaltyMoves,40*2+260*6);
 const summary=markdown(result);
 assert.match(summary,/heuristic bot, not player win rate/);
 assert.match(summary,/300 \/ 2000 greedy-bot wins/);
@@ -91,6 +120,8 @@ assert.match(summary,/report-only/);
 assert.match(summary,/201–1000/);
 assert.match(summary,/Sparse booster comparison/);
 assert.match(summary,/Objective-aware paired simulation/);
+assert.match(summary,/Why the sampled objective-aware player loses/);
+assert.match(summary,/Exhausted daily moves \(no booster\)/);
 assert.match(summary,/objective-aware 40/);
 assert.match(summary,/Each simulated level starts with its own full/);
 assert.match(summary,/No-booster matched-seed wins: 20; emergency-Hammer wins: 40/);
@@ -103,6 +134,10 @@ const badChapters=chapters.map(x=>({...x}));
 badChapters[9].greedyBotWinCount=20;
 assert.throws(()=>review(a,{...b,chapters:badChapters}),/bot chapter aggregation mismatch/);
 assert.throws(()=>review(a,{...b,dailyAllowanceModel:'REUSED_BALANCE'}),/full daily-wallet allotment/);
+assert.throws(()=>review(a,{...b,failureAnalysis:undefined}),/requires 100 levels with three seeds/);
+const badCauses=failureProbes.slice();
+badCauses[0]={...badCauses[0],noBooster:{...badCauses[0].noBooster,hazardPenaltyMoves:99}};
+assert.throws(()=>review(a,{...b,failureAnalysis:{...failureAnalysis,probes:badCauses}}),/wallet or hazard accounting mismatch/);
 const badStrategy=strategyProbes.slice();
 badStrategy[0]={...badStrategy[0],hammerUsed:2};
 assert.throws(()=>review(a,{...b,strategicComparison:{...strategicComparison,probes:badStrategy}}),/invalid objective-aware matched-seed/);

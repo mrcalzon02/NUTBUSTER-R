@@ -9,7 +9,8 @@ const D=require('../web/daily-moves.js');
 const {chooseStrategic}=require('./strategic-policy.js');
 const TEST_TIME=1700000000000; // Fixed instant: tests never cross a real reset boundary.
 const CAMPAIGN_LEVELS=1000,CHAPTER_LENGTH=100;
-const trials=2,results=[],boosterProbes=[],strategicProbes=[];
+const trials=2,results=[],boosterProbes=[],strategicProbes=[],failureProbes=[];
+const FAILURE_SAMPLE_STEP=10,FAILURE_TRIALS=3;
 const PROBE_EVERY=5,PROBE_TRIAL=0,MAX_HAMMERS_PER_PROBE=1;
 function choose(g){
  const w=g.cfg.width,objective=g.cfg.objectives;
@@ -68,7 +69,10 @@ function play(level,trial,permitHammer,strategy=choose){
  const initial=D.ensure(save,TEST_TIME,E.makeLevel(save.unlocked).moves).remaining;
  if(initial!==g.cfg.moves)throw Error('Level-specific daily allowance diverged at '+level);
  g.moves=initial;
+ const startingObjectives=E.objectiveState(g);
  let usedHammer=0,totalTransport=0,totalHazards=0,debitedMoves=0,earnedRefunds=0,policyFallbacks=0;
+ let swaps=0,hazardPenaltyMoves=0,noProgressSwaps=0;
+ const startingDone=startingObjectives.filter(o=>o.done).length;
  function creditEarned(previous){
   const earned=Math.max(0,(g.elementalRefunds||0)-previous);
   if(earned)D.topUp(save,earned,TEST_TIME,initial);
@@ -92,6 +96,7 @@ function play(level,trial,permitHammer,strategy=choose){
   const ranked=strategy(g);
   const pair=ranked||choose(g);
   if(!ranked&&strategy!==choose)policyFallbacks++;
+  const objectiveBefore=E.objectiveState(g);
   if(!pair)throw Error('No adjacent pair on playable level '+level);
   const prior=g.elementalRefunds||0;
   const turn=E.swap(g,...pair);
@@ -100,17 +105,33 @@ function play(level,trial,permitHammer,strategy=choose){
   // the current wallet; elemental moves are credited AFTER the debit.
   const used=Math.min(D.left(save,TEST_TIME,initial),
    1+2*(turn.hazards?.expired?.length||0));
+  swaps++;
+  hazardPenaltyMoves+=used-1;
   if(!D.spend(save,used,TEST_TIME,initial))
    throw Error('Daily wallet rejected move debit at '+level);
   debitedMoves+=used;
   creditEarned(prior);
+  const objectiveAfter=E.objectiveState(g);
+  if(!objectiveAfter.some((o,i)=>o.value>objectiveBefore[i].value))noProgressSwaps++;
   if(!g.won&&!g.moves)g.lost=true;
   totalTransport+=turn.stages.filter(x=>x.kind==='transport').length;
   totalHazards+=(turn.hazards?.expired?.length||0);
  }
  return {won:g.won,spentMoves:initial-g.moves,transports:totalTransport,
   hazards:totalHazards,hammerUsed:usedHammer,dailyAllotment:initial,
-  remainingMoves:D.left(save,TEST_TIME,initial),debitedMoves,earnedRefunds,policyFallbacks};
+  remainingMoves:D.left(save,TEST_TIME,initial),debitedMoves,earnedRefunds,policyFallbacks,
+  failure:{
+   reason:g.won?'won':D.left(save,TEST_TIME,initial)===0?'daily-moves-exhausted':g.lost?'engine-ended-with-wallet-remaining':'unexpected-stop',
+   swaps,hazardPenaltyMoves,expiredFuses:totalHazards,noProgressSwaps,
+   objectives:E.objectiveState(g).map((o,i)=>({
+    kind:o.kind,color:g.cfg.objectives[i].color??null,target:o.target,
+    value:o.value,remaining:Math.max(0,o.target-o.value),
+    completion:o.target>0?Math.min(1,o.value/o.target):1,
+    startingValue:startingObjectives[i].value
+   })),
+   startedCompleted:startingDone
+  }
+ };
 }
 function allowSparseBoosterProbe(level,trial){
  return trial===PROBE_TRIAL&&level%PROBE_EVERY===0&&level>P.LEVEL_BY_TOOL.hammer;
@@ -118,6 +139,22 @@ function allowSparseBoosterProbe(level,trial){
 
 function runFullCampaign(){
 for(let level=1;level<=CAMPAIGN_LEVELS;level++){
+ if(level%FAILURE_SAMPLE_STEP===0){
+  for(let trial=0;trial<FAILURE_TRIALS;trial++){
+   const noBooster=play(level,trial,false,chooseStrategic);
+   const minimalHammer=play(level,trial,true,chooseStrategic);
+   failureProbes.push({level,trial,
+    dailyAllotment:noBooster.dailyAllotment,
+    noBooster:{won:noBooster.won,remainingMoves:noBooster.remainingMoves,
+     hammerUsed:noBooster.hammerUsed,debitedMoves:noBooster.debitedMoves,
+     earnedRefunds:noBooster.earnedRefunds,
+     ...noBooster.failure},
+    minimalHammer:{won:minimalHammer.won,remainingMoves:minimalHammer.remainingMoves,
+     hammerUsed:minimalHammer.hammerUsed,debitedMoves:minimalHammer.debitedMoves,
+     earnedRefunds:minimalHammer.earnedRefunds,
+     ...minimalHammer.failure}});
+  }
+ }
  let wins=0,totalTurns=0,totalTransport=0,totalHazards=0;
  for(let trial=0;trial<trials;trial++){
   const baseline=play(level,trial,false);
@@ -177,6 +214,20 @@ for(let start=1;start<=CAMPAIGN_LEVELS;start+=CHAPTER_LENGTH){
   totalTransports:section.reduce((s,r)=>s+r.transports,0),
   totalHazardDetonations:section.reduce((s,r)=>s+r.hazardDetonations,0)});
 }
+if(failureProbes.length!==CAMPAIGN_LEVELS/FAILURE_SAMPLE_STEP*FAILURE_TRIALS||
+ failureProbes.some((p,i)=>p.level!==(Math.floor(i/FAILURE_TRIALS)+1)*FAILURE_SAMPLE_STEP||
+  p.trial!==i%FAILURE_TRIALS||p.noBooster.hammerUsed!==0||p.minimalHammer.hammerUsed>1||
+  p.noBooster.hazardPenaltyMoves<0||p.minimalHammer.hazardPenaltyMoves<0))
+ throw Error('Expanded failure-cause probe budget or daily accounting violated');
+const failureAnalysis={
+ kind:'DETAILED_FAILURE_CAUSE_SAMPLED_NOT_SOLVABILITY_PROOF',
+ description:'100 levels spaced every ten stages, three deterministic board seeds per level; objective-aware player with zero vs at most one hypothetical emergency Hammer. Fresh daily allowance per independent attempt. No purchased items or new game rules.',
+ sampledLevels:CAMPAIGN_LEVELS/FAILURE_SAMPLE_STEP,
+ seedsPerLevel:FAILURE_TRIALS,attempts:failureProbes.length,
+ chapterSize:CHAPTER_LENGTH,
+ dailyAllowanceModel:'FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',
+ probes:failureProbes
+};
 const strategicComparison={
  kind:'MATCHED_SEED_OBJECTIVE_HAZARD_POLICY_NOT_HUMAN_WIN_RATE',
  description:'One-turn match, objective, specials and imminent-fuse aware ranker; no exhaustive search or human completion-rate inference. 200 matched seeds, full isolated daily wallets and an optional maximum one emergency Hammer.',
@@ -220,7 +271,7 @@ console.log(JSON.stringify({description:'Greedy baseline plus sparse emergency H
  dailyAllowanceModel:'FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',
  dailyAllowanceRule:'Each attempt begins with NutDailyMoves.ensure for the attempted level; spent moves, expired-fuse penalties and earned elemental refunds mirror game.js; no carryover or purchased moves.',
  chapters,bands,levels:results,boosterComparison:comparison,
- strategicComparison},null,2));
+ strategicComparison,failureAnalysis},null,2));
 }
 if(require.main===module)runFullCampaign();
 module.exports={choose,chooseStrategic,emergencyHammerTarget,allowSparseBoosterProbe,play};

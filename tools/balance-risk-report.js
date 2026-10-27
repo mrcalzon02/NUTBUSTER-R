@@ -3,6 +3,7 @@
 // Non-blocking assessment of the published campaign probes. Greedy bot outcomes
 // are NOT human completion rates, proof of unfairness, or proof of impossibility.
 const fs=require('node:fs');
+const {reviewFailureAnalysis,markdownFailureAnalysis}=require('./failure-analysis.js');
 function requireValid(ok,message){if(!ok)throw Error('Balance review: '+message);}
 function integer(n){return Number.isInteger(n)&&n>=0;}
 function review(structural,bot){
@@ -111,6 +112,7 @@ function review(structural,bot){
   strategyHammerUses===strategy.hammerUsed&&strategyFallbacks===strategy.fallbackSwaps&&
   pairedGreedyWins===pairedBaselineWins,
   'objective-aware comparison totals mismatch');
+ const failureCauses=reviewFailureAnalysis(bot.failureAnalysis,strategy);
  // Contiguous zero-win stretches prioritize review, NOT proof of level impossibility.
  const streaks=[];
  for(let i=0;i<entries.length;){
@@ -133,6 +135,7 @@ function review(structural,bot){
   lastBotWinStage:[...entries].reverse().find(x=>x.wins>0)?.level??null,
   lowOpeningChapters:openingPressure.map(x=>x.chapter),
   dailyAllowanceModel:'FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',
+  failureCauses,
   objectiveAwareComparison:{attempts:strategy.attempts,greedyWins:pairedGreedyWins,
    objectiveAwareWins:strategyWins,objectiveAwareHammerWins:strategyHammerWins,
    actualHammerUses:strategyHammerUses,policyFallbackSwaps:strategyFallbacks,
@@ -174,6 +177,7 @@ function markdown(r){
   text+='| '+c.chapter+' | '+c.greedyWins+' | '+c.strategicWins+
    ' | '+c.strategicHammerWins+' | '+c.hammerUsed+' | '+c.fallbackSwaps+' |\n';
  text+='\nThis second player ranks single-turn objective progress, specials and expiring hazards; it is **not** a multi-turn solver or a measure of human skill.\n';
+ text+=markdownFailureAnalysis(r.failureCauses);
  text+='\n**Interpretation:** The full 2,000-attempt baseline never uses boosters. The sparse, optional rescue probe uses a hypothetical single Hammer only; no purchase, earned stock, or real player progression is simulated. Flags are requests for further playtesting, not automatic balance changes. Findings remain **report-only** and cannot block Android, Fire OS, Windows or Linux builds.\n';
  return text;
 }

@@ -1,30 +1,31 @@
 {
   "schema": 1,
-  "headline": "Compare full-campaign difficulty using a second objective-aware player",
+  "headline": "Difficulty diagnostics now explain why simulated levels fail",
   "changes": [
     {
-      "title": "Add an objective-aware simulated match player",
-      "detail": "The optional bot now independently ranks legal matches by pending objectives, urgent fuse penalties and special combinations without mutating game boards or changing live gameplay.",
-      "files": [
-        "tools/strategic-policy.js"
-      ]
-    },
-    {
-      "title": "Compare move selection on matched seeds with minimal booster use",
-      "detail": "Added 200 same-seed full-daily-wallet runs for objective-aware play plus 200 further runs allowing at most one emergency Hammer, preserving the original 2,000 greedy trials and earlier sparse booster samples.",
+      "title": "Track exact objective progress and hazard costs for simulated attempts",
+      "detail": "The simulation now records unfinished targets, goal-progress stalls, real fuse expiries, wallet move debits and earned refunds, distinguishing true daily-move exhaustion from early engine termination without changing gameplay.",
       "files": [
         "tools/greedy-playtest.js"
       ]
     },
     {
-      "title": "Report competing strategies with measured evidence",
-      "detail": "The diagnostics record chapter wins for baseline, goal-aware, and limited-Hammer play, actual Hammer uses and fallback swaps. Added deterministic tests and documentation clarifying that these are not human win rates.",
+      "title": "Test a wider range of difficult stages and board seeds",
+      "detail": "A separate diagnostic tier repeats objective-aware play at every tenth level using three independent seeds, both without boosters and with at most one emergency Hammer. The original 2,000 greedy trials and 200 earlier paired trials remain intact.",
       "files": [
-        "tools/balance-risk-report.js",
-        "tests/strategic-policy.test.js",
-        "tests/balance-risk-report.test.js",
-        "tests/diagnostic-suites.txt",
+        "tools/greedy-playtest.js",
         "docs/diagnostics/CAMPAIGN_BALANCE_REVIEW_2026-10-26.md"
+      ]
+    },
+    {
+      "title": "Aggregate and verify specific loss causes without weakening release checks",
+      "detail": "The optional report now identifies dominant unfinished objectives, lost moves to expired fuses and stalled progress by chapter, with strict daily-wallet arithmetic and paired-seed tests. These statistics are not claims of level impossibility.",
+      "files": [
+        "tools/failure-analysis.js",
+        "tools/balance-risk-report.js",
+        "tests/failure-analysis.test.js",
+        "tests/balance-risk-report.test.js",
+        "tests/diagnostic-suites.txt"
       ]
     }
   ]
