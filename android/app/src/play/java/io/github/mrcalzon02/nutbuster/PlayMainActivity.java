@@ -1,14 +1,11 @@
 package io.github.mrcalzon02.nutbuster;
 
-import android.os.Bundle;
+import android.webkit.WebView;
 
-/** Google Play-only launcher; binds cloud saves to the packaged offline game. */
+/** Play-only launcher: bridge registration precedes the packaged page load. */
 public final class PlayMainActivity extends MainActivity {
-    @Override public void onCreate(Bundle state) {
-        super.onCreate(state);
-        if (packagedGameView() != null) {
-            packagedGameView().addJavascriptInterface(
-                new PlayCloudBridge(this, packagedGameView()), "NutPlayCloud");
-        }
+    @Override protected void prepareGameWebView(WebView game) {
+        game.addJavascriptInterface(
+            new PlayCloudBridge(this, game), "NutPlayCloud");
     }
 }
