@@ -5,7 +5,7 @@ const root=path.resolve(__dirname,'..');
 const all=fs.readdirSync(path.join(root,'tests')).filter(p=>p.endsWith('.test.js')).map(p=>'tests/'+p).sort();
 assert.deepEqual([...tiers.functional,...tiers.diagnostic].sort(),all,'Every test must run in exactly one tier');
 assert.ok(tiers.functional.includes('tests/test-tiers.test.js'),'Classification changes must be release-blocking');
-for(const name of ['engine','currency-shop','progression','primary-contract-lock','update-contract','promo-codes','package','apk-release-compliance'])
+for(const name of ['engine','currency-shop','progression','primary-contract-lock','update-contract','promo-codes','package','apk-release-compliance','platform-parity'])
   assert.ok(tiers.functional.includes('tests/'+name+'.test.js'),'Required gameplay/security suite not release-blocking: '+name);
 for(const name of ['premium-icon-integrity','tile-overlay-visibility','release-news','ui-smoke'])
   assert.ok(tiers.diagnostic.includes('tests/'+name+'.test.js'),'Purely visual/content checks should be diagnostics: '+name);

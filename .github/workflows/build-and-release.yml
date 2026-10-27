@@ -68,6 +68,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          node tools/platform-parity.js validate
           node tools/test-tiers.js validate
           node tools/test-tiers.js functional > "$RUNNER_TEMP/nutbuster-functional-suites.txt"
           failures=()

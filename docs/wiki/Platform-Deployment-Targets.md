@@ -32,3 +32,6 @@ Only functioning game tests block publishing; emulators and cosmetic observation
 ## Desktop decision: actual native executables
 
 The former Go programs were only HTTP servers opening a browser, and Electron was a Chromium window. Both are excluded from current distribution workflows. The only supported desktop direction is a direct C++17 SDL3 native render path; see [native port status](../../native/README.md). Previews are not falsely published as full-game releases. Android/Fire OS remain unchanged.
+
+## Standing cross-platform development contract
+For all future gameplay development, track the feature across **Android, Fire OS, Windows and Linux** in `config/platform-parity.json`. A change to `web/` automatically triggers native desktop checks. Source changes must include a native implementation update or explicit parity-ledger review; unported features remain preview-only. Full desktop publication is blocked while required native areas remain incomplete. See [Cross-platform feature parity](Cross-Platform-Feature-Parity.md) for the executable contract, status definitions and validation commands. Android and Fire OS continue sharing the exact same signed APK and are not held hostage by independent native preview failures.

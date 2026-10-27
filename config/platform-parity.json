@@ -1,0 +1,349 @@
+{
+  "schemaVersion": 1,
+  "description": "NUTBUSTER cross-platform implementation and verification ledger. Status describes code coverage, NOT real-device certification.",
+  "targets": {
+    "android": {
+      "implementation": "mobile",
+      "runtime": "android-webview",
+      "releaseLine": "signed-sideload-apk"
+    },
+    "fire_os": {
+      "implementation": "mobile",
+      "runtime": "android-webview",
+      "releaseLine": "same-signed-apk",
+      "sameArtifactAs": "android",
+      "deviceCertified": false
+    },
+    "windows": {
+      "implementation": "native",
+      "runtime": "cpp17-sdl3",
+      "releaseLine": "ci-preview",
+      "productionReady": false
+    },
+    "linux": {
+      "implementation": "native",
+      "runtime": "cpp17-sdl3",
+      "releaseLine": "ci-preview",
+      "productionReady": false
+    }
+  },
+  "rules": {
+    "requireFourTargets": true,
+    "sharedMobileSource": "web/",
+    "desktopExecutable": "native/src/main.cpp",
+    "androidPublisherIndependentOfNativePreview": true,
+    "fullDesktopReleaseRequiresAllFeaturesVerified": true,
+    "desktopMustNotEmbedBrowser": true,
+    "pendingParityBlocksDesktopProduction": true
+  },
+  "features": [
+    {
+      "id": "campaign-stages",
+      "name": "Authored campaign stages, replay and progression",
+      "sources": [
+        "web/level-design.js",
+        "web/progression.js",
+        "web/campaign-maps.js"
+      ],
+      "mobileTests": [
+        "tests/level-design.test.js",
+        "tests/progression.test.js"
+      ],
+      "nativeSources": [
+        "native/src/campaign.cpp",
+        "native/src/core.cpp",
+        "native/src/main.cpp"
+      ],
+      "mobile": "functionally-tested",
+      "native": "preview-partial",
+      "gap": "Native scripted stage mechanics and final progression/save parity remain incomplete."
+    },
+    {
+      "id": "matching-and-objectives",
+      "name": "Match-three swaps, board goals and gravity",
+      "sources": [
+        "web/engine.js",
+        "web/game.js"
+      ],
+      "mobileTests": [
+        "tests/engine.test.js"
+      ],
+      "nativeSources": [
+        "native/src/core.cpp",
+        "native/src/main.cpp"
+      ],
+      "mobile": "functionally-tested",
+      "native": "preview-partial",
+      "gap": "Later-stage blockers, specials, transport, combo effects and per-turn differential replay remain incomplete."
+    },
+    {
+      "id": "blockers-and-overlays",
+      "name": "Ice, locks, chests, jam and tile overlays",
+      "sources": [
+        "web/ice-effects.js",
+        "web/board-features.js",
+        "web/elemental-powers.js"
+      ],
+      "mobileTests": [
+        "tests/tile-overlay-mechanics.test.js"
+      ],
+      "nativeSources": [
+        "native/src/core.cpp",
+        "native/prepare_assets.py"
+      ],
+      "mobile": "functionally-tested",
+      "native": "preview-partial",
+      "gap": "Only a subset of original damage and movement/overlay effects runs natively."
+    },
+    {
+      "id": "boosters",
+      "name": "Boosters, held nut effects, combo specials",
+      "sources": [
+        "web/engine.js",
+        "web/game.js"
+      ],
+      "mobileTests": [
+        "tests/engine.test.js"
+      ],
+      "nativeSources": [],
+      "mobile": "functionally-tested",
+      "native": "not-ported",
+      "gap": "Implement source booster rules, approved icons, inventory and verified native interactions."
+    },
+    {
+      "id": "elemental-challenges",
+      "name": "Elemental powers, trial stages and rewards",
+      "sources": [
+        "web/elemental-challenges.js",
+        "web/elemental-rewards.js"
+      ],
+      "mobileTests": [
+        "tests/engine.test.js"
+      ],
+      "nativeSources": [],
+      "mobile": "functionally-tested",
+      "native": "not-ported",
+      "gap": "Port trial unlock flow, power resolution and elemental rewards."
+    },
+    {
+      "id": "nutvale-mines",
+      "name": "Nutvale mining, seeded ore and rewards",
+      "sources": [
+        "web/nutvale-mines.js",
+        "web/mine-ore-atlas.js",
+        "web/nutravaganza-expedition.js"
+      ],
+      "mobileTests": [
+        "tests/nutvale-mines-expanded.test.js"
+      ],
+      "nativeSources": [
+        "native/src/mine.cpp",
+        "native/src/main.cpp"
+      ],
+      "mobile": "functionally-tested",
+      "native": "preview-partial",
+      "gap": "Native mining input exists but mobile progression/save and wider minigame parity are incomplete."
+    },
+    {
+      "id": "mining-equipment",
+      "name": "Mining equipment and 40-tier approved artwork",
+      "sources": [
+        "web/nutvale-mining-gear.js",
+        "web/nutvale-mines-ui.js"
+      ],
+      "mobileTests": [
+        "tests/nutvale-mines-40-tier.test.js"
+      ],
+      "nativeSources": [
+        "native/src/mine.cpp",
+        "native/prepare_assets.py"
+      ],
+      "mobile": "functionally-tested",
+      "native": "preview-partial",
+      "gap": "Full UI, earned-currency integration and mobile save migration remain incomplete."
+    },
+    {
+      "id": "homestead",
+      "name": "Homestead and house/renovation systems",
+      "sources": [
+        "web/homestead.js"
+      ],
+      "mobileTests": [
+        "tests/homestead.test.js"
+      ],
+      "nativeSources": [],
+      "mobile": "functionally-tested",
+      "native": "not-ported",
+      "gap": "Native Homestead scenes, controls, inventory and progression are absent."
+    },
+    {
+      "id": "fishing-and-wharf",
+      "name": "Fishing, rods, catches and Wharf",
+      "sources": [
+        "web/fishing.js",
+        "web/fishing-ui.js"
+      ],
+      "mobileTests": [
+        "tests/fishing-integration-full.test.js"
+      ],
+      "nativeSources": [],
+      "mobile": "functionally-tested",
+      "native": "not-ported",
+      "gap": "Native fishing, Wharf and upgrades are absent."
+    },
+    {
+      "id": "shop-and-economy",
+      "name": "Shop bundles, random payouts and currency economy",
+      "sources": [
+        "web/loot-crates.js",
+        "web/purchase-disclosures.js",
+        "web/benefits.js"
+      ],
+      "mobileTests": [
+        "tests/currency-shop.test.js"
+      ],
+      "nativeSources": [],
+      "mobile": "functionally-tested",
+      "native": "not-ported",
+      "gap": "Native shops, paid-style free checkout, randomness and booster economy are absent."
+    },
+    {
+      "id": "rewards-and-account",
+      "name": "Daily rewards, promo codes and persistence",
+      "sources": [
+        "web/daily-moves.js",
+        "web/promo-codes.js",
+        "web/promo-keys.js"
+      ],
+      "mobileTests": [
+        "tests/progression.test.js",
+        "tests/promo-codes.test.js"
+      ],
+      "nativeSources": [
+        "native/src/main.cpp"
+      ],
+      "mobile": "functionally-tested",
+      "native": "preview-partial",
+      "gap": "Native preview saves progress and mine only; no mobile save import, promo or full account reset."
+    },
+    {
+      "id": "audio-and-announcer",
+      "name": "Sound, music and announcer playback",
+      "sources": [
+        "web/audio.js",
+        "web/sfx.js",
+        "web/announcer-lines.js"
+      ],
+      "mobileTests": [
+        "tests/package.test.js"
+      ],
+      "nativeSources": [],
+      "mobile": "functionally-tested",
+      "native": "not-ported",
+      "gap": "No native audio engine wired to gameplay yet."
+    },
+    {
+      "id": "updater-and-distribution",
+      "name": "Signed updater, platform-safe release packaging",
+      "sources": [
+        "web/update.js"
+      ],
+      "mobileTests": [
+        "tests/update-contract.test.js"
+      ],
+      "nativeSources": [
+        "native/CMakeLists.txt"
+      ],
+      "mobile": "functionally-tested",
+      "native": "preview-partial",
+      "gap": "Android signed updater exists; native desktop updater, installers and parity release gate are pending."
+    },
+    {
+      "id": "companions-and-avatars",
+      "name": "Companions, avatar art and customization",
+      "sources": [
+        "web/companions.js",
+        "web/companions-ui.js",
+        "web/avatar-art.js"
+      ],
+      "mobileTests": [
+        "tests/companions.test.js",
+        "tests/avatar-art.test.js"
+      ],
+      "nativeSources": [],
+      "mobile": "functionally-tested",
+      "native": "not-ported",
+      "gap": "Native companion models, avatar selection, wardrobe and home display are absent."
+    },
+    {
+      "id": "fake-ads",
+      "name": "Voluntary parody ads and earned rewards",
+      "sources": [
+        "web/fake-ads.js"
+      ],
+      "mobileTests": [
+        "tests/fake-ads.test.js"
+      ],
+      "nativeSources": [],
+      "mobile": "functionally-tested",
+      "native": "not-ported",
+      "gap": "Native ad-style reward scene and its free payout logic are absent."
+    },
+    {
+      "id": "visual-effects",
+      "name": "Game feedback effects and HUD transitions",
+      "sources": [
+        "web/fx.js"
+      ],
+      "mobileTests": [
+        "tests/fx.test.js"
+      ],
+      "nativeSources": [],
+      "mobile": "functionally-tested",
+      "native": "not-ported",
+      "gap": "Native direct-rendered effects and timed HUD feedback have not been ported."
+    },
+    {
+      "id": "invites-and-sharing",
+      "name": "User-invoked invites, share and platform integrations",
+      "sources": [
+        "web/invite.js"
+      ],
+      "mobileTests": [
+        "tests/update-and-invite.test.js"
+      ],
+      "nativeSources": [],
+      "mobile": "functionally-tested",
+      "native": "not-ported",
+      "gap": "Native desktop sharing and optional invitations are not implemented."
+    },
+    {
+      "id": "nut-codex",
+      "name": "Nutdex, authored icon identity and guides",
+      "sources": [
+        "web/nut-codex.js"
+      ],
+      "mobileTests": [
+        "tests/nut-codex-and-mechanics.test.js"
+      ],
+      "nativeSources": [],
+      "mobile": "functionally-tested",
+      "native": "not-ported",
+      "gap": "Native Nutdex encyclopedia, entries and icon-to-mechanic navigation are absent."
+    },
+    {
+      "id": "mining-art-economy",
+      "name": "Nutvale authored economy art and item display",
+      "sources": [
+        "web/nutvale-economy-art.js"
+      ],
+      "mobileTests": [
+        "tests/nutvale-mines-expanded.test.js"
+      ],
+      "nativeSources": [],
+      "mobile": "functionally-tested",
+      "native": "not-ported",
+      "gap": "Native economy item illustrations and fully matching catalog presentation are incomplete."
+    }
+  ]
+}

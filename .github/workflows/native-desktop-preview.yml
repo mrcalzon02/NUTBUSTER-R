@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - native/**
+      - web/**
+      - config/platform-parity.json
+      - tools/platform-parity.js
+      - tests/platform-parity.test.js
+      - .github/workflows/build-and-release.yml
       - web/art/primary/nuts/**
       - web/art/nutvale/mining-ore/**
       - .github/workflows/native-desktop-preview.yml
@@ -12,6 +17,11 @@ on:
     branches: [main]
     paths:
       - native/**
+      - web/**
+      - config/platform-parity.json
+      - tools/platform-parity.js
+      - tests/platform-parity.test.js
+      - .github/workflows/build-and-release.yml
       - web/art/primary/nuts/**
       - web/art/nutvale/mining-ore/**
       - .github/workflows/native-desktop-preview.yml
@@ -38,6 +48,8 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - name: Install native Linux build requirements
         if: runner.os == 'Linux'
         run: |
@@ -49,6 +61,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify all release lines and account for changed gameplay modules
+        run: |
+          node tools/platform-parity.js validate
+          git diff --name-only HEAD^ HEAD > platform-changed-files.txt
+          node tools/platform-parity.js impact platform-changed-files.txt
+          node tools/platform-parity.js report > platform-parity-report.txt
       - name: Export authored NUTBUSTER layouts and objectives from source JS (build-time only)
         run: |
           node native/generate_campaign_levels.js
@@ -153,6 +171,7 @@ jobs:
           name: Nutbuster-Native-${{ matrix.label }}-PREVIEW-${{ github.run_id }}
           path: |
             NUTBUSTER-Native-${{ matrix.label }}-PREVIEW.zip
+            platform-parity-report.txt
             native-board.png
             native-campaign.png
             native-stage-3.png

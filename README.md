@@ -59,3 +59,7 @@ Every Android release test must include the [38-control release checklist](docs/
 ## Native desktop development
 
 Windows/Linux desktop game targets use C++17, SDL3 and approved source sprites: **no Chromium, Electron, browser, WebView, or local server**. The old browser-based launchers are no longer part of new signed releases. Native desktop previews are built in `.github/workflows/native-desktop-preview.yml`; they do not yet implement the complete mobile game. See [native/README.md](native/README.md) for progress and missing systems.
+
+## Required four-target feature development
+
+Every gameplay addition or revision is an Android, Fire OS, Windows **and** Linux development item. The two implementations are the shared Android/Fire OS APK and the native Windows/Linux C++17/SDL3 executable; neither is silently substituted for the other. [Cross-platform development and release-line rules](docs/wiki/Cross-Platform-Feature-Parity.md) are enforced by `config/platform-parity.json`, `tools/platform-parity.js`, and native CI that runs whenever `web/**` gameplay changes. Desktop downloads remain **preview-only** until feature parity is verified; the signed Android/Fire OS publisher remains independent of unfinished desktop work.

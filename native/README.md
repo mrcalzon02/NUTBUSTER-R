@@ -11,7 +11,7 @@ The desktop target is **C++17 + SDL3 native rendering**, NOT Chromium, Electron,
 - Headless C++ gameplay tests and Linux SDL3 frame capture.
 
 ## Gaps before a release
-**This is a playable prototype, not game parity.** The source JavaScript campaign design book, full stage objectives, boosters, blockers, Homestead, Wharf, Fishing, Shop, reward flows, audio and migration of existing saves have not been ported. Native Mines now has its mechanical cart/refinery/equipment economy, but UI presentation, art completeness, day-rollover device testing, gameplay parity and save compatibility still require verification. It is wrong to advertise these as implemented.
+**This is a playable prototype, not game parity.** All 1000 authored campaign starting boards and objectives now load from the original game, with partial native blocker mechanics, but boosters, special combinations, elemental effects, complete board transports/hazards, Homestead, Wharf, Fishing, Shop, reward flows, audio and mobile save migration have **not** been fully ported. Native Mines now has its mechanical cart/refinery/equipment economy, but UI presentation, art completeness, day-rollover device testing, gameplay parity and save compatibility still require verification. It is wrong to advertise these as implemented.
 
 The old Go browser launchers and Electron shell are no longer part of the shipping release pipeline. Native Windows and Linux apps are uploaded as separate CI preview ZIP artifacts. Nothing browser-based is allowed to substitute for full-game native releases.
 
@@ -64,3 +64,8 @@ The Linux SDL3 preview workflow captures `native-board.png`, `native-stage-3.png
 The new game-owned **CAMPAIGN** screen displays the approved campaign-overview image, sourced from `web/art/maps/campaign-overview.webp`, and reads the selected level's title, moves and objectives from the exported authoring data. Players can scroll backward or forward within **unlocked** stages and choose `PLAY THIS STAGE`, allowing replay without resetting completed progression. Successful completion advances the highest unlocked stage only if it was the current frontier; replaying a lower stage does not grant arbitrary new levels. This menu is SDL3 native rendering (not browser HTML), and CI captures `native-campaign.png` from the actual renderer.
 
 The existing `NUTBUSTER_NATIVE_PREVIEW_V2` save format continues to store highest unlocked level and mining state. Selected replay stage is session-local. No Android/Fire OS resources or saves are modified.
+
+## Standing four-target development requirement (2026-10-26)
+Every future feature affects **Android, Fire OS, Windows and Linux** and must be tracked to the correct implementation. Android/Fire OS share **one** signed APK, while Windows/Linux share **one** native C++ SDL3 implementation. Updating the mobile game does **not** constitute implementing the change on desktops. Use [cross-platform feature parity rules](../docs/wiki/Cross-Platform-Feature-Parity.md) and the source-audited `config/platform-parity.json` ledger. The native pipeline now triggers on **all** mobile gameplay source changes and checks whether the native source was updated or the remaining gap was explicitly reviewed.
+
+Only source-level implementation/test evidence supports ledger statuses. Native full releases remain prohibited while required features are `preview-partial` or `not-ported`. Signed Android/Fire publishing still gates only its own functional and package integrity tests.
