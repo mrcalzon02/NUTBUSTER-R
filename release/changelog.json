@@ -1,26 +1,28 @@
 {
   "schema": 1,
-  "headline": "Expand difficulty diagnostics to all 1,000 NUTBUSTER stages",
+  "headline": "Full-campaign difficulty review identifies late-stage bottlenecks",
   "changes": [
     {
-      "title": "Audit initial-board difficulty across all ten chapters",
-      "detail": "Extended the nonblocking board-structure audit from 500 stages to the full 1,000-stage campaign, preserving original authored board seeds, opening-move checks, and existing difficulty-ramp assertions.",
+      "title": "Summarize 1,000 campaign stages from actual test evidence",
+      "detail": "Added a nonblocking balance-risk reviewer that checks the full diagnostic evidence, reports chapter-by-chapter greedy-bot outcomes, and highlights consecutive zero-win stretches without claiming human completion rates or changing stages.",
       "files": [
-        "tools/difficulty-audit.js"
+        "tools/balance-risk-report.js",
+        "docs/diagnostics/CAMPAIGN_BALANCE_REVIEW_2026-10-26.md"
       ]
     },
     {
-      "title": "Exercise complete campaign with the simple gameplay bot",
-      "detail": "Extended the non-booster greedy-player simulation to two seeded attempts on each of 1,000 stages, recording chapter-level successes and failures without presenting these as human completion rates.",
-      "files": [
-        "tools/greedy-playtest.js"
-      ]
-    },
-    {
-      "title": "Expose per-chapter diagnostic evidence in GitHub Actions",
-      "detail": "Added a report-only CI summary that verifies ten chapters, 1,000 audited stage layouts, and 2,000 bot attempts before displaying the per-chapter results. This does not gate signed Android releases.",
+      "title": "Preserve detailed difficulty signals in CI",
+      "detail": "The optional GitHub Actions diagnostics now archive a verified balance-risk JSON report and display the measured difficulty patterns separately from the signed release's functional gates.",
       "files": [
         ".github/workflows/build-and-release.yml"
+      ]
+    },
+    {
+      "title": "Test the risk report without blocking releases",
+      "detail": "Added synthetic full-campaign aggregation checks and classified the reviewer test as report-only, so missing evidence is visible without treating hard levels or cosmetic observations as release-blocking gameplay defects.",
+      "files": [
+        "tests/balance-risk-report.test.js",
+        "tests/diagnostic-suites.txt"
       ]
     }
   ]

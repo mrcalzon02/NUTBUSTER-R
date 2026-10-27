@@ -1,0 +1,52 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const {review,markdown}=require('../tools/balance-risk-report.js');
+const chapters=[],levels=[],structural=[];
+for(let chapter=1;chapter<=10;chapter++){
+ let wins=0,none=0,hazards=0,transports=0;
+ for(let j=1;j<=100;j++){
+  const level=(chapter-1)*100+j,attemptWins=chapter===1?2:chapter===2?1:0;
+  const x={level,trials:2,wins:attemptWins,avgSpentMoves:13,transports:chapter>1?2:0,hazardDetonations:chapter>2?1:0};
+  levels.push(x);
+  wins+=attemptWins;none+=attemptWins===0;hazards+=x.hazardDetonations;transports+=x.transports;
+ }
+ structural.push({chapter,levels:100,averageMoves:chapter===1?28:15,averageOpenings:chapter===1?3:1.5,minOpenings:1});
+ chapters.push({chapter,attempts:200,greedyBotWinCount:wins,zeroWinStages:none,totalHazardDetonations:hazards,totalTransports:transports});
+}
+const a={campaignLevels:1000,chapters:structural};
+const b={campaignLevels:1000,botTrials:2,levels,chapters};
+const result=review(a,b);
+assert.equal(result.stages,1000);
+assert.equal(result.attempts,2000);
+assert.equal(result.botWins,300);
+assert.equal(result.zeroWinStages,800);
+assert.equal(result.botWinPercent,15);
+assert.equal(result.firstZeroWinStage,201);
+assert.equal(result.lastBotWinStage,200);
+assert.deepEqual(result.topZeroWinStreaks[0],{start:201,end:1000,count:800,hazards:800});
+assert.equal(result.chapters[0].reviewFlag,'BASELINE');
+assert.equal(result.chapters[1].reviewFlag,'ELEVATED_BOT_DIFFICULTY');
+assert.equal(result.chapters[9].reviewFlag,'EXTREME_BOT_DIFFICULTY');
+assert.equal(result.chapters[9].hazardDetonations,100);
+assert.equal(result.lowOpeningChapters.length,9);
+const summary=markdown(result);
+assert.match(summary,/heuristic bot, not player win rate/);
+assert.match(summary,/300 \/ 2000 greedy-bot wins/);
+assert.match(summary,/report-only/);
+assert.match(summary,/201–1000/);
+assert.throws(()=>review({...a,campaignLevels:500},b),/full 1,000-level structural/);
+assert.throws(()=>review(a,{...b,levels:levels.slice(0,999)}),/full two-trial 1,000-level/);
+const edited=levels.slice();
+edited[100]={...edited[100],wins:3};
+assert.throws(()=>review(a,{...b,levels:edited}),/invalid gameplay sample/);
+const badChapters=chapters.map(x=>({...x}));
+badChapters[9].greedyBotWinCount=20;
+assert.throws(()=>review(a,{...b,chapters:badChapters}),/bot chapter aggregation mismatch/);
+const flow=fs.readFileSync(path.join(__dirname,'../.github/workflows/build-and-release.yml'),'utf8');
+assert.match(flow,/node tools\/balance-risk-report\.js/);
+assert.match(flow,/nutbuster-balance-risk\.json/);
+const diag=fs.readFileSync(path.join(__dirname,'diagnostic-suites.txt'),'utf8');
+assert.match(diag,/^balance-risk-report\.test\.js$/m);
+console.log('PASS: 1,000-stage, 2,000-attempt nonblocking balance-risk report contract and evidence validation');

@@ -147,26 +147,12 @@ jobs:
             printf '::error::Non-blocking audit failures: %s\\n' "${failures[*]}"
             exit 1
           fi
-          # Report coverage of all ten chapters, not just a green exit status.
-          node - <<'NODE'
-          const fs=require('node:fs');
-          const path=require('node:path');
-          const dir=process.env.RUNNER_TEMP;
-          const structural=JSON.parse(fs.readFileSync(path.join(dir,'nutbuster-difficulty-audit.json'),'utf8'));
-          const bot=JSON.parse(fs.readFileSync(path.join(dir,'nutbuster-greedy-playtest.json'),'utf8'));
-          if(structural.campaignLevels!==1000||structural.chapters.length!==10||
-             structural.chapters.reduce((n,x)=>n+x.levels,0)!==1000||
-             bot.campaignLevels!==1000||bot.chapters.length!==10||
-             bot.levels.length!==1000||bot.botTrials!==2||
-             bot.chapters.reduce((n,x)=>n+x.attempts,0)!==2000)
-            throw Error('Optional difficulty/playtest evidence omitted authored campaign levels');
-          let summary='### Optional gameplay difficulty probes (not real player win rates)\n\n';
-          summary+='All 1,000 campaign stages: structural initial-board audit and two no-booster greedy-bot attempts per stage.\n\n';
-          summary+='| Chapter | Average moves | Opening swaps | Greedy wins (of 200) | Stages with no bot wins |\n|---|---:|---:|---:|---:|\n';
-          for(let i=0;i<10;i++)summary+='| '+(i+1)+' | '+structural.chapters[i].averageMoves+' | '+structural.chapters[i].averageOpenings+' | '+bot.chapters[i].greedyBotWinCount+' | '+bot.chapters[i].zeroWinStages+' |\n';
-          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary);
-          console.log('PASS: Full 10-chapter diagnostic evidence accounted for (1,000 boards, 2,000 bot attempts)');
-          NODE
+          # Validate the evidence and flag weak-bot difficulty cliffs without
+          # touching authored levels, gameplay logic or the release gate.
+          node tools/balance-risk-report.js \
+            "$RUNNER_TEMP/nutbuster-difficulty-audit.json" \
+            "$RUNNER_TEMP/nutbuster-greedy-playtest.json" \
+            "$RUNNER_TEMP/nutbuster-balance-risk.json"
       - name: Preserve all optional diagnostic evidence, even on failure
         if: always()
         uses: actions/upload-artifact@v4
@@ -176,6 +162,7 @@ jobs:
             ${{ runner.temp }}/nutbuster-diagnostics/
             ${{ runner.temp }}/nutbuster-difficulty-audit.json
             ${{ runner.temp }}/nutbuster-greedy-playtest.json
+            ${{ runner.temp }}/nutbuster-balance-risk.json
           retention-days: 30
           if-no-files-found: ignore
 

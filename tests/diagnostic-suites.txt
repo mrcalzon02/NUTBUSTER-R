@@ -2,6 +2,7 @@
 # Any *.test.js not listed here is FUNCTIONAL and BLOCKS publishing by default.
 # Mixed tests that validate live gameplay, purchasing or save state remain functional.
 android-emulator-smoke-contract.test.js
+balance-risk-report.test.js
 announcer-selection.test.js
 audio.test.js
 avatar-art.test.js
