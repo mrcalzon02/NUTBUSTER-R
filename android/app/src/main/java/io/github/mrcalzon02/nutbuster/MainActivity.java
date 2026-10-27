@@ -58,6 +58,7 @@ public class MainActivity extends Activity {
         }, "NUTBUSTER_SHARE_BRIDGE");
         game.setOverScrollMode(View.OVER_SCROLL_NEVER);
         setContentView(game);
+        prepareGameWebView(game);
         game.loadUrl("file:///android_asset/index.html");
     }
     private void showUpdateStatus(String message) {
@@ -67,6 +68,8 @@ public class MainActivity extends Activity {
                 JSONObject.quote(message) + ")", null);
         });
     }
+    protected void prepareGameWebView(WebView view) { }
+
     protected final WebView packagedGameView() { return game; }
 
     @Override public void onBackPressed() {
