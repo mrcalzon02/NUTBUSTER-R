@@ -15,6 +15,7 @@ function playSFX(name,opts){window.NutSFX?.play(name,opts);}
 const Ads=window.NutFakeAds, Purchases=window.NutPurchases, Promos=window.NutPromo;let adTicker=null,promoBusy=false;
 const lootDay=()=>Ads?.dayKey?.()||(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
 const adNow=()=>typeof performance!=='undefined'&&typeof performance.now==='function'?performance.now():Date.now();
+let cloudStatus='Cloud backup has not been checked.', pendingCloudRestore=null;
 function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch(_){}}
 function dailyCap(){return E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves;}
 function syncDaily(now=Date.now()){
@@ -898,13 +899,16 @@ function settings(){
    : step===2
    ? '<section class="panel account-recovery"><b>DATA &amp; RECOVERY</b><p class="muted">Progress is stored on this device. There is no cloud backup or undo.</p><button class="btn danger-outline" data-action="account-reset-open">RESET ACCOUNT…</button><button class="btn ghost" data-action="settings-reset-back">BACK TO ADVANCED</button></section>'
    : '<section class="panel account-recovery account-reset-warning"><b>ERASE LOCAL ACCOUNT PROGRESS?</b><p>Permanent deletion: levels, currencies, VIP benefits, boosters, achievements, homestead, fishing, mining, rewards and redeemed codes on this device. This cannot be undone. The game will restart with a new account.</p><label for="account-reset-confirmation">Type RESET to authorize deletion<input id="account-reset-confirmation" data-reset-confirmation type="text" spellcheck="false" autocomplete="off" autocapitalize="characters" placeholder="RESET"></label><button class="btn danger-outline" data-action="account-reset-execute" disabled>ERASE THIS DEVICE\'S NUTBUSTER SAVE</button><button class="btn ghost" data-action="account-reset-cancel">CANCEL · KEEP MY PROGRESS</button></section>';
-  const choices=announcers.map(v=>`<button class="announcer-choice ${saved.announcerVoice===v.id?'selected':''}" type="button" data-action="announcer-set" data-voice-id="${v.id}" aria-pressed="${saved.announcerVoice===v.id?'true':'false'}"><strong>${saved.announcerVoice===v.id?'● ':'○ '}${v.label}</strong><small>${v.description}</small></button>`).join('');
+  const cloudPanel=window.NutPlayCloud
+   ? '<section class="panel account-recovery"><b>GOOGLE PLAY GAMES CLOUD BACKUP</b><p class="muted">Progress remains available offline. Back up or inspect remote progress before restoring it.</p><button class="btn green" data-action="cloud-backup">BACK UP TO PLAY GAMES</button><button class="btn secondary" data-action="cloud-restore">CHECK CLOUD SAVE</button><p>'+cloudStatus.replace(/[&<>]/g,'')+'</p>'+(pendingCloudRestore?'<p class="muted">Cloud profile: level '+pendingCloudRestore.unlocked+', '+pendingCloudRestore.coins+' nuts. Restoring overwrites local progress but saves a local rollback copy.</p><button class="btn danger-outline" data-action="cloud-apply">RESTORE CLOUD PROGRESS</button><button class="btn ghost" data-action="cloud-cancel">KEEP LOCAL PROGRESS</button>':'')+'</section>'
+   : '';
+ const choices=announcers.map(v=>`<button class="announcer-choice ${saved.announcerVoice===v.id?'selected':''}" type="button" data-action="announcer-set" data-voice-id="${v.id}" aria-pressed="${saved.announcerVoice===v.id?'true':'false'}"><strong>${saved.announcerVoice===v.id?'● ':'○ '}${v.label}</strong><small>${v.description}</small></button>`).join('');
  return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings">
  <div class="announcer-picker" role="group" aria-label="Select announcer"><b>ANNOUNCER VOICE</b><div class="announcer-choices">${choices}</div><div class="announcer-preview"><button class="btn secondary" data-action="announcer-preview">▶ PREVIEW SELECTED VOICE</button><small>${saved.announcerVoice==='auditor'?'Local MP3 voice pack · no speech engine':'Original recording · default'}</small></div></div>
  <p class="muted">Independent volume controls for speech, music, reactions and gameplay effects.</p>
  ${[['voice','Announcer'],['music','Music'],['reactions','Match reactions'],['sfx','Game effects']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}
  <div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div>
- <div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>${recovery}`;
+ ${window.NutPlayCloud?'':'<div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div>'}</div>${recovery}${cloudPanel}`;
 }
 function render(){syncDaily();if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');document.getElementById('app')?.classList?.toggle('fake-ad-active',state.page==='fake-ad');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
  screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');screen.classList?.toggle('codex-active',state.page==='codex');screen.classList?.toggle('mines-active',state.page==='mines');screen.classList?.toggle('companions-active',state.page==='companions');
@@ -1006,6 +1010,21 @@ function cell(i){if(!state.game||state.game.won||state.game.lost||state.animatin
  if(state.selected<0){selectCell(i);return;}if(state.selected===i){selectCell(-1);return;}doSwap(state.selected,i);
 }
 function action(a,button){
+ if(a==='cloud-backup'&&window.NutPlayCloud){cloudStatus='Submitting a backup...';window.NutPlayCloud.backup(JSON.stringify(saved));render();return;}
+ if(a==='cloud-restore'&&window.NutPlayCloud){cloudStatus='Loading your cloud save for review...';window.NutPlayCloud.restore();render();return;}
+ if(a==='cloud-cancel'){pendingCloudRestore=null;cloudStatus='Current device progress retained.';render();return;}
+ if(a==='cloud-apply'&&pendingCloudRestore){
+   try{
+     const prior=localStorage.getItem(key);if(prior)localStorage.setItem(key+'.before-cloud-restore',prior);
+     saved=pendingCloudRestore;pendingCloudRestore=null;
+     P.migrate(saved);R.ensure(saved);H.ensure(saved);A.ensure(saved);if(Comp)Comp.ensure(saved);
+     D.ensure(saved,Date.now(),E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves);
+     state.game=null;state.page='home';state.resetStep=0;persist();render();
+     cloudStatus='Cloud profile restored; previous local progress retained.';
+   }catch(error){cloudStatus='Restore aborted: '+error.message;render();}
+   return;
+ }
+
   if(a==='settings-advanced'&&state.page==='settings'){state.resetStep=1;render();return;}
   if(a==='settings-data'&&state.page==='settings'&&state.resetStep===1){state.resetStep=2;render();return;}
   if(a==='settings-reset-back'&&state.page==='settings'&&state.resetStep>0){state.resetStep--;render();return;}
@@ -1385,5 +1404,17 @@ window.addEventListener('keydown',e=>{
  }
  if(e.key==='Escape'&&state.page==='fake-ad'){const back=state.adReturn||'rewards';cancelFakeAd();state.page=back;render();}
  else if(e.key==='Escape'&&state.page==='game'&&state.nutdexOpen)closeNutdex();else if(e.key==='Escape'&&state.page==='game')nav('campaign');else if(e.key==='Escape'&&state.page==='checkout')action('checkout-back',{});else if(e.key==='Escape'&&state.page==='codex')action('codex-back',{});});
+window.NutPlayCloudMessage=function(response){
+ try{
+  if(response.action==='restore'&&response.ok){
+   const incoming=JSON.parse(response.payload);
+   if(!incoming||typeof incoming!=='object'||Array.isArray(incoming)||!Number.isInteger(incoming.unlocked)||incoming.unlocked<1||incoming.unlocked>1000||
+      !Number.isFinite(incoming.coins)||incoming.coins<0||!Number.isFinite(incoming.gems)||incoming.gems<0||
+      !incoming.stars||typeof incoming.stars!=='object'||Array.isArray(incoming.stars))throw Error('Invalid cloud progression/economy');
+   pendingCloudRestore=incoming;cloudStatus='Cloud profile loaded. Confirm restore or retain local progress.';
+  }else cloudStatus=String(response.detail||'Cloud operation finished.');
+ }catch(error){pendingCloudRestore=null;cloudStatus='Cloud save rejected: '+error.message;}
+ if(state.page==='settings')render();else notice(cloudStatus);
+};
 window.NutbusterApp={start,nav,getState:()=>state,getSave:()=>saved};render();
 })();
