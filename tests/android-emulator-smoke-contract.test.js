@@ -19,6 +19,9 @@ for(const [name,pattern] of Object.entries({
 })) assert.match(script,pattern,name+' gate must exist');
 const fire=fs.readFileSync(path.join(root,'scripts/fireos-tablet-smoke.sh'),'utf8');
 assert.match(fire,/timeout[^\n]*150s adb install/,'Fire proxy retains bounded APK installation');
+assert.match(fire,/adb install --no-streaming -r/,'Fire proxy avoids flaky streamed package-install transport');
+assert.match(fire,/for attempt in 1 2;/,'Fire proxy bounds retry count');
+assert.match(fire,/installed != 1/,'Fire proxy cannot ignore two failed install attempts');
 assert.match(fire,/timeout[^\n]*45s adb exec-out screencap -p/,'Fire proxy retains real PNG screenshot');
 assert.match(fire,/adb shell logcat -b crash -d -t 150 -s AndroidRuntime:E/,'Fire proxy uses bounded crash-buffer query, not full unbounded logcat');
 assert.match(fire,/for attempt in 1 2;/,'Fire proxy retries transient ADB logcat failures');

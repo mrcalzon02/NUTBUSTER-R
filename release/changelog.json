@@ -1,26 +1,19 @@
 {
   "schema": 1,
-  "headline": "Android and Fire tablet release diagnostics refined",
+  "headline": "Fire tablet emulator install diagnostics strengthened",
   "changes": [
     {
-      "title": "Correct the signed publisher diagnostic",
-      "detail": "Updated the optional emulator-contract assertions to check the existing functional-tests-only release dependency, without restoring an obsolete desktop publication gate.",
-      "files": [
-        "tests/android-emulator-smoke-contract.test.js"
-      ]
-    },
-    {
-      "title": "Make tablet crash verification bounded and explicit",
-      "detail": "The Google-free Fire tablet emulator smoke check now reads a limited Android crash buffer, retries a stalled ADB read, and preserves evidence rather than interpreting a timeout as a passing crash test.",
+      "title": "Avoid unreliable streamed tablet APK installs",
+      "detail": "Changed the Google-free AOSP tablet smoke workflow to use bounded non-streaming ADB installation with a second attempt and saved stdout/stderr, after the previous emulator reported a broken pipe before opening the game.",
       "files": [
         "scripts/fireos-tablet-smoke.sh"
       ]
     },
     {
-      "title": "Replace outdated release-news descriptions",
-      "detail": "The release changelog now describes these actual verification changes instead of repeatedly announcing the previously published Rupee Rush teaser artwork. Gameplay mechanics and approved artwork are unchanged.",
+      "title": "Protect the Fire smoke-test failure contract",
+      "detail": "Extended the optional emulator script checks to require non-streaming installation, a limited retry count, and a definitive failure if both installations fail. No Android application functionality or approved artwork has been changed.",
       "files": [
-        "release/changelog.json"
+        "tests/android-emulator-smoke-contract.test.js"
       ]
     }
   ]
