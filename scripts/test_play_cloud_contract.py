@@ -49,7 +49,7 @@ require('SnapshotsClient.RESOLUTION_POLICY_MANUAL' in java and
 
 require(all(x in java for x in ('void replace(String json, String inspectedVersion)',
         'fingerprint(current).equals(inspectedVersion)', 'Arrays.equals(current, data)',
-        'different progress', 'RESOLUTION_POLICY_MANUAL')),
+        'Different cloud progress', 'RESOLUTION_POLICY_MANUAL')),
         "Cloud writes require previewed version and explicit conflict choice",
         "Check remote snapshot fingerprint, reject divergent cloud saves without consent, and provide an explicit replace action.")
 require(all(x in game for x in ('pendingCloudVersion', 'cloud-replace',
