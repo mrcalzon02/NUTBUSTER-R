@@ -15,7 +15,7 @@ function playSFX(name,opts){window.NutSFX?.play(name,opts);}
 const Ads=window.NutFakeAds, Purchases=window.NutPurchases, Promos=window.NutPromo;let adTicker=null,promoBusy=false;
 const lootDay=()=>Ads?.dayKey?.()||(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
 const adNow=()=>typeof performance!=='undefined'&&typeof performance.now==='function'?performance.now():Date.now();
-let cloudStatus='Cloud backup has not been checked.', pendingCloudRestore=null;
+let cloudStatus='Cloud backup has not been checked.', pendingCloudRestore=null, pendingCloudVersion=null;
 function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch(_){}}
 function dailyCap(){return E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves;}
 function syncDaily(now=Date.now()){
@@ -900,7 +900,7 @@ function settings(){
    ? '<section class="panel account-recovery"><b>DATA &amp; RECOVERY</b><p class="muted">Progress is saved locally. In the Google Play version, optional cloud backup is available in Settings; resetting this device does not delete cloud backups.</p><button class="btn danger-outline" data-action="account-reset-open">RESET ACCOUNT…</button><button class="btn ghost" data-action="settings-reset-back">BACK TO ADVANCED</button></section>'
    : '<section class="panel account-recovery account-reset-warning"><b>ERASE LOCAL ACCOUNT PROGRESS?</b><p>Permanent deletion: levels, currencies, VIP benefits, boosters, achievements, homestead, fishing, mining, rewards and redeemed codes on this device. This cannot be undone. The game will restart with a new account.</p><label for="account-reset-confirmation">Type RESET to authorize deletion<input id="account-reset-confirmation" data-reset-confirmation type="text" spellcheck="false" autocomplete="off" autocapitalize="characters" placeholder="RESET"></label><button class="btn danger-outline" data-action="account-reset-execute" disabled>ERASE THIS DEVICE\'S NUTBUSTER SAVE</button><button class="btn ghost" data-action="account-reset-cancel">CANCEL · KEEP MY PROGRESS</button></section>';
   const cloudPanel=window.NutPlayCloud
-   ? '<section class="panel account-recovery"><b>GOOGLE PLAY GAMES CLOUD BACKUP</b><p class="muted">Progress remains available offline. Back up or inspect remote progress before restoring it.</p><button class="btn green" data-action="cloud-backup">BACK UP TO PLAY GAMES</button><button class="btn secondary" data-action="cloud-restore">CHECK CLOUD SAVE</button><p>'+cloudStatus.replace(/[&<>]/g,'')+'</p>'+(pendingCloudRestore?'<p class="muted">Cloud profile: level '+pendingCloudRestore.unlocked+', '+pendingCloudRestore.coins+' nuts. Restoring overwrites local progress but saves a local rollback copy.</p><button class="btn danger-outline" data-action="cloud-apply">RESTORE CLOUD PROGRESS</button><button class="btn ghost" data-action="cloud-cancel">KEEP LOCAL PROGRESS</button>':'')+'</section>'
+   ? '<section class="panel account-recovery"><b>GOOGLE PLAY GAMES CLOUD BACKUP</b><p class="muted">Progress remains available offline. Back up or inspect remote progress before restoring it.</p><button class="btn green" data-action="cloud-backup">BACK UP TO PLAY GAMES</button><button class="btn secondary" data-action="cloud-restore">CHECK CLOUD SAVE</button><p>'+cloudStatus.replace(/[&<>]/g,'')+'</p>'+(pendingCloudRestore?'<p class="muted">Cloud profile: level '+pendingCloudRestore.unlocked+', '+pendingCloudRestore.coins+' nuts. Restoring overwrites local progress but saves a local rollback copy.</p><button class="btn danger-outline" data-action="cloud-apply">RESTORE CLOUD PROGRESS</button><button class="btn ghost" data-action="cloud-cancel">KEEP LOCAL PROGRESS</button><p class="muted">Or explicitly replace the inspected cloud progress with this device save. This cannot be undone remotely.</p><button class="btn danger-outline" data-action="cloud-replace">REPLACE CLOUD WITH THIS DEVICE</button>':'')+'</section>'
    : '';
  const choices=announcers.map(v=>`<button class="announcer-choice ${saved.announcerVoice===v.id?'selected':''}" type="button" data-action="announcer-set" data-voice-id="${v.id}" aria-pressed="${saved.announcerVoice===v.id?'true':'false'}"><strong>${saved.announcerVoice===v.id?'● ':'○ '}${v.label}</strong><small>${v.description}</small></button>`).join('');
  return `<div class="topline"><h2>${uiIcon('settings')} AUDIO & SETTINGS</h2><button class="btn ghost" data-nav="home">BACK</button></div><div class="panel audio-settings">
@@ -1012,7 +1012,12 @@ function cell(i){if(!state.game||state.game.won||state.game.lost||state.animatin
 function action(a,button){
  if(a==='cloud-backup'&&window.NutPlayCloud){cloudStatus='Submitting a backup...';window.NutPlayCloud.backup(JSON.stringify(saved));render();return;}
  if(a==='cloud-restore'&&window.NutPlayCloud){cloudStatus='Loading your cloud save for review...';window.NutPlayCloud.restore();render();return;}
- if(a==='cloud-cancel'){pendingCloudRestore=null;cloudStatus='Current device progress retained.';render();return;}
+ if(a==='cloud-replace'&&window.NutPlayCloud&&pendingCloudRestore&&pendingCloudVersion){
+   cloudStatus='Replacing the inspected cloud revision with this device save...';
+   window.NutPlayCloud.replace(JSON.stringify(saved),pendingCloudVersion);
+   render();return;
+ }
+ if(a==='cloud-cancel'){pendingCloudRestore=null;pendingCloudVersion=null;cloudStatus='Current device progress retained.';render();return;}
  if(a==='cloud-apply'&&pendingCloudRestore){
    try{
      const prior=localStorage.getItem(key);if(prior)localStorage.setItem(key+'.before-cloud-restore',prior);
@@ -1411,9 +1416,10 @@ window.NutPlayCloudMessage=function(response){
    if(!incoming||typeof incoming!=='object'||Array.isArray(incoming)||!Number.isInteger(incoming.unlocked)||incoming.unlocked<1||incoming.unlocked>1000||
       !Number.isFinite(incoming.coins)||incoming.coins<0||!Number.isFinite(incoming.gems)||incoming.gems<0||
       !incoming.stars||typeof incoming.stars!=='object'||Array.isArray(incoming.stars))throw Error('Invalid cloud progression/economy');
-   pendingCloudRestore=incoming;cloudStatus='Cloud profile loaded. Confirm restore or retain local progress.';
+   if(!/^[0-9a-f]{64}$/.test(String(response.version||'')))throw Error('Cloud revision fingerprint missing');
+   pendingCloudRestore=incoming;pendingCloudVersion=response.version;cloudStatus='Cloud profile loaded. Confirm restore or retain local progress.';
   }else cloudStatus=String(response.detail||'Cloud operation finished.');
- }catch(error){pendingCloudRestore=null;cloudStatus='Cloud save rejected: '+error.message;}
+ }catch(error){pendingCloudRestore=null;pendingCloudVersion=null;cloudStatus='Cloud save rejected: '+error.message;}
  if(state.page==='settings')render();else notice(cloudStatus);
 };
 window.NutbusterApp={start,nav,getState:()=>state,getSave:()=>saved};render();
