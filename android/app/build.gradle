@@ -69,8 +69,8 @@ android {
         debug { debuggable true }
         // Play Store-only AAB: Google Play will apply its own device signing key.
         play {
-            resValue 'string', 'game_services_project_id', playGamesProjectId
             initWith release
+            resValue 'string', 'game_services_project_id', playGamesProjectId
             signingConfig = null
             debuggable false
             buildConfigField 'boolean', 'UPDATE_CHANNEL_ENABLED', 'false'
