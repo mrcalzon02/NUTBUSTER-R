@@ -33,6 +33,20 @@ require('GAME UPDATES' in game and 'window.NutPlayCloud?' in game,
  "Play UI hides sideload APK update controls", "Condition the GitHub APK update controls on absence of the Play bridge.")
 syntax = subprocess.run(['node','--check',str(root/'web/game.js')],text=True,capture_output=True)
 require(syntax.returncode==0,"Game JavaScript parses","Fix JavaScript syntax: "+syntax.stderr[-450:])
+main_activity = (root/"android/app/src/main/java/io/github/mrcalzon02/nutbuster/MainActivity.java").read_text()
+require('prepareGameWebView(game);' in main_activity and
+        main_activity.index('prepareGameWebView(game);') < main_activity.index('game.loadUrl('),
+        "Cloud bridge hooks before the first game page navigation",
+        "Call prepareGameWebView(game) before game.loadUrl() in MainActivity.")
+require('prepareGameWebView(WebView game)' in launcher and
+        '"NutPlayCloud"' in launcher,
+        "Play subclass registers the cloud JavaScript API at pre-navigation hook",
+        "Override prepareGameWebView(WebView game) and attach the bridge there.")
+require('SnapshotsClient.RESOLUTION_POLICY_MANUAL' in java and
+        'RESOLUTION_POLICY_MOST_RECENTLY_MODIFIED' not in java,
+        "Cloud snapshot conflicts are never auto-resolved by last-modified timestamp",
+        "Use RESOLUTION_POLICY_MANUAL and reject or explicitly reconcile divergent remote snapshots.")
+
 for label in failures: print("::error title=Nut Buster cloud-save contract::"+label)
 print("NUT BUSTER PLAY CLOUD CONTRACT: "+("FAIL" if failures else "PASS"))
 sys.exit(1 if failures else 0)
