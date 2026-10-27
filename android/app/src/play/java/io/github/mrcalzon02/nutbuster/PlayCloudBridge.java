@@ -141,9 +141,9 @@ public final class PlayCloudBridge {
                             return;
                         }
                         snap.getSnapshotContents().writeBytes(data);
-                    } catch (RuntimeException error) {
+                    } catch (Exception error) {
                         client.discardAndClose(snap);
-                        send("backup", false, "Cannot write cloud snapshot: " + error.getMessage(), null);
+                        send("backup", false, "Cannot inspect or write cloud snapshot: " + error.getMessage(), null);
                         return;
                     }
                     SnapshotMetadataChange metadata = new SnapshotMetadataChange.Builder()
