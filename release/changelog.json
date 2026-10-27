@@ -1,26 +1,26 @@
 {
   "schema": 1,
-  "headline": "Accelerated Fire tablet compatibility diagnostics",
+  "headline": "Expand difficulty diagnostics to all 1,000 NUTBUSTER stages",
   "changes": [
     {
-      "title": "Enable hardware acceleration for Fire tablet CI",
-      "detail": "The Google-free Android 30 emulator now receives KVM permissions before launch, matching the functioning Android 26 emulator rather than relying on unstable unaccelerated software emulation.",
+      "title": "Audit initial-board difficulty across all ten chapters",
+      "detail": "Extended the nonblocking board-structure audit from 500 stages to the full 1,000-stage campaign, preserving original authored board seeds, opening-move checks, and existing difficulty-ramp assertions.",
+      "files": [
+        "tools/difficulty-audit.js"
+      ]
+    },
+    {
+      "title": "Exercise complete campaign with the simple gameplay bot",
+      "detail": "Extended the non-booster greedy-player simulation to two seeded attempts on each of 1,000 stages, recording chapter-level successes and failures without presenting these as human completion rates.",
+      "files": [
+        "tools/greedy-playtest.js"
+      ]
+    },
+    {
+      "title": "Expose per-chapter diagnostic evidence in GitHub Actions",
+      "detail": "Added a report-only CI summary that verifies ten chapters, 1,000 audited stage layouts, and 2,000 bot attempts before displaying the per-chapter results. This does not gate signed Android releases.",
       "files": [
         ".github/workflows/build-and-release.yml"
-      ]
-    },
-    {
-      "title": "Detect and recover from interrupted Android package services",
-      "detail": "The Fire compatibility smoke keeps bounded install retries but now recognizes a disappearing package service as an emulator fault and requires PackageManager to recover before retrying.",
-      "files": [
-        "scripts/fireos-tablet-smoke.sh"
-      ]
-    },
-    {
-      "title": "Check tablet acceleration and crash-test safeguards",
-      "detail": "Updated the report-only emulator contract assertions to verify KVM access, interrupted PackageManager handling, and strict failure when crash and installation checks cannot finish.",
-      "files": [
-        "tests/android-emulator-smoke-contract.test.js"
       ]
     }
   ]

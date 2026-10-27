@@ -1,6 +1,7 @@
 /* Automated difficulty probe, NOT a prediction of real player win rates.
    A deliberately simple non-booster bot makes greedy matching moves. */
 const E=require('../web/engine.js');
+const CAMPAIGN_LEVELS=1000,CHAPTER_LENGTH=100;
 const trials=2,results=[];
 function choose(g){
  const w=g.cfg.width,objective=g.cfg.objectives;
@@ -26,7 +27,7 @@ function choose(g){
  }
  return best;
 }
-for(let level=1;level<=200;level++){
+for(let level=1;level<=CAMPAIGN_LEVELS;level++){
  let wins=0,totalTurns=0,totalTransport=0,totalHazards=0;
  for(let trial=0;trial<trials;trial++){
   const g=E.create(level,level*16321+trial*7093+11),initial=g.moves;
@@ -45,11 +46,25 @@ for(let level=1;level<=200;level++){
   transports:totalTransport,hazardDetonations:totalHazards});
 }
 const bands=[];
-for(let start=1;start<=200;start+=20){
+for(let start=1;start<=CAMPAIGN_LEVELS;start+=20){
  const section=results.slice(start-1,start+19);
  bands.push({levels:start+'-'+(start+19),greedyBotWinCount:section.reduce((s,r)=>s+r.wins,0),
   attempts:section.length*trials,zeroWinStages:section.filter(r=>r.wins===0).length,
   meanSpentMoves:+(section.reduce((s,r)=>s+r.avgSpentMoves,0)/section.length).toFixed(1)});
 }
+if(results.length!==CAMPAIGN_LEVELS||bands.reduce((n,b)=>n+b.attempts,0)!==CAMPAIGN_LEVELS*trials)
+ throw Error('Greedy diagnostic skipped authored campaign stages');
+const chapters=[];
+for(let start=1;start<=CAMPAIGN_LEVELS;start+=CHAPTER_LENGTH){
+ const section=results.slice(start-1,start+CHAPTER_LENGTH-1);
+ chapters.push({chapter:Math.floor((start-1)/CHAPTER_LENGTH)+1,
+  levels:start+'-'+(start+CHAPTER_LENGTH-1),
+  greedyBotWinCount:section.reduce((s,r)=>s+r.wins,0),
+  attempts:section.length*trials,
+  zeroWinStages:section.filter(r=>r.wins===0).length,
+  totalTransports:section.reduce((s,r)=>s+r.transports,0),
+  totalHazardDetonations:section.reduce((s,r)=>s+r.hazardDetonations,0)});
+}
 console.log(JSON.stringify({description:'Greedy non-booster bot; proxy diagnostic only, not real human completion rate',
- botTrials:trials,seed:'level*16321 + trial*7093 + 11',bands,levels:results},null,2));
+ campaignLevels:CAMPAIGN_LEVELS,botTrials:trials,seed:'level*16321 + trial*7093 + 11',
+ chapters,bands,levels:results},null,2));
