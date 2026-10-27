@@ -25,6 +25,13 @@ assert.match(fire,/installed != 1/,'Fire proxy cannot ignore two failed install 
 assert.match(fire,/timeout[^\n]*45s adb exec-out screencap -p/,'Fire proxy retains real PNG screenshot');
 assert.match(fire,/adb shell pm list packages android/,'Fire proxy waits for the actual package manager');
 assert.match(fire,/adb install --no-streaming -r/,'Fire proxy avoids unstable streamed ADB installation');
+const fireJob=flow.slice(flow.indexOf('  fire-tablet-smoke:'),flow.indexOf('  publisher-release:'));
+assert.ok(fireJob.startsWith('  fire-tablet-smoke:'),'Separate Fire tablet job must exist');
+assert.ok(fireJob.includes('sudo chmod 666 /dev/kvm'),'Fire tablet job must enable KVM hardware acceleration');
+assert.ok(fireJob.includes('test -w /dev/kvm'),'Fire tablet job must verify usable KVM permissions');
+assert.match(fire,/Can.t find service: package/,'Fire proxy treats temporary PackageManager disappearance as transport fault');
+assert.match(fire,/recovered != 1/,'Fire tablet must fail rather than retry while package service is absent');
+
 assert.match(fire,/for attempt in 1 2;/,'Fire proxy retries transport failures after cold boot');
 assert.match(fire,/installed != 1/,'Fire proxy must reject failed installations');
 assert.match(fire,/adb shell pm path "\$PACKAGE"/,'Fire proxy verifies installed application is visible to PackageManager');

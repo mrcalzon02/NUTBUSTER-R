@@ -1,24 +1,24 @@
 {
   "schema": 1,
-  "headline": "Improve Fire tablet installation reliability checks",
+  "headline": "Accelerated Fire tablet compatibility diagnostics",
   "changes": [
     {
-      "title": "Wait for the Fire tablet package service to respond",
-      "detail": "After cold boot, the Google-free tablet emulator now requires a responsive Android package manager before attempting installation, with bounded readiness checks and explicit failure evidence.",
+      "title": "Enable hardware acceleration for Fire tablet CI",
+      "detail": "The Google-free Android 30 emulator now receives KVM permissions before launch, matching the functioning Android 26 emulator rather than relying on unstable unaccelerated software emulation.",
+      "files": [
+        ".github/workflows/build-and-release.yml"
+      ]
+    },
+    {
+      "title": "Detect and recover from interrupted Android package services",
+      "detail": "The Fire compatibility smoke keeps bounded install retries but now recognizes a disappearing package service as an emulator fault and requires PackageManager to recover before retrying.",
       "files": [
         "scripts/fireos-tablet-smoke.sh"
       ]
     },
     {
-      "title": "Avoid streamed APK installation broken pipes",
-      "detail": "Fire tablet compatibility testing now uses bounded non-streaming APK installation and retries only recognized temporary ADB transport faults. Real installation rejection still fails.",
-      "files": [
-        "scripts/fireos-tablet-smoke.sh"
-      ]
-    },
-    {
-      "title": "Verify the new tablet installation safeguards",
-      "detail": "The optional emulator contract checks package manager readiness, non-streaming installation, rejection handling, and installed-package verification without weakening release functional tests.",
+      "title": "Check tablet acceleration and crash-test safeguards",
+      "detail": "Updated the report-only emulator contract assertions to verify KVM access, interrupted PackageManager handling, and strict failure when crash and installation checks cannot finish.",
       "files": [
         "tests/android-emulator-smoke-contract.test.js"
       ]

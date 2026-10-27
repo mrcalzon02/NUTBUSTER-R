@@ -49,12 +49,30 @@ for attempt in 1 2; do
     status=$?
   fi
   cat "$install_log" | tee -a "$LOG"
-  if ! grep -Eqi 'Broken pipe|Connection reset|device offline|protocol fault|timed out|closed|service package|transport error' "$install_log"; then
+  if ! grep -Eqi 'Broken pipe|Connection reset|device offline|protocol fault|timed out|closed|service package|Can.t find service: package|transport error' "$install_log"; then
     echo "::error::APK installation rejected or failed non-transiently (attempt $attempt)" | tee -a "$LOG"
     exit 1
   fi
   echo "::warning::Transient ADB/PackageManager install fault (attempt $attempt, status $status)" | tee -a "$LOG"
-  if (( attempt < 2 )); then sleep 8; fi
+  if (( attempt < 2 )); then
+    # PackageManager can disappear during an emulated cold boot. Require an
+    # actual recovery before the only allowed retry.
+    recovered=0
+    for recovery in 1 2 3; do
+      sleep 6
+      if timeout --signal=TERM --kill-after=3s 18s adb shell pm list packages android \
+          > validation/fireos-tablet-package-recovery.txt \
+          2> validation/fireos-tablet-package-recovery-stderr.txt &&
+         grep -Fq 'package:android' validation/fireos-tablet-package-recovery.txt; then
+        recovered=1
+        break
+      fi
+    done
+    if (( recovered != 1 )); then
+      echo '::error::Android package service did not recover; stopping before a meaningless reinstall' | tee -a "$LOG"
+      exit 1
+    fi
+  fi
 done
 if (( installed != 1 )); then
   echo '::error::Unable to install the APK on Fire proxy after bounded retries' | tee -a "$LOG"

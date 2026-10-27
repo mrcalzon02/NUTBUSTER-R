@@ -284,6 +284,20 @@ jobs:
         with:
           name: Nutbuster-Android-debug-${{ github.run_id }}
           path: validation
+      - name: Enable KVM hardware acceleration for the Fire OS AOSP proxy
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Unlike the passing Android 26 job, this job previously ran with
+          # /dev/kvm unreadable, forcing painfully slow software-only emulation.
+          if [[ ! -c /dev/kvm ]]; then
+            echo '::error::KVM is absent; cannot perform a reliable API30 tablet emulator test'
+            exit 1
+          fi
+          sudo chmod 666 /dev/kvm
+          test -r /dev/kvm
+          test -w /dev/kvm
+          ls -l /dev/kvm
       - name: Install and launch on a Google-free Android 30 tablet emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
