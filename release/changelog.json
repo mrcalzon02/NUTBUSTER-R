@@ -1,26 +1,27 @@
 {
   "schema": 1,
-  "headline": "Full-campaign difficulty review identifies late-stage bottlenecks",
+  "headline": "Difficulty testing adds a sparse emergency Hammer comparison",
   "changes": [
     {
-      "title": "Summarize 1,000 campaign stages from actual test evidence",
-      "detail": "Added a nonblocking balance-risk reviewer that checks the full diagnostic evidence, reports chapter-by-chapter greedy-bot outcomes, and highlights consecutive zero-win stretches without claiming human completion rates or changing stages.",
+      "title": "Exercise minimal booster use in the automated player",
+      "detail": "The 1,000-stage greedy playtest keeps its original no-booster results and adds a same-seed rescue run on every fifth level. The test bot may use at most one real Hammer near defeat when it helps an unfinished objective.",
+      "files": [
+        "tools/greedy-playtest.js"
+      ]
+    },
+    {
+      "title": "Track emergency booster impact without altering gameplay",
+      "detail": "The optional balance report now compares paired baseline and Hammer-assisted outcomes, records actual uses and per-chapter results, and explicitly labels the hypothetical stock assumption.",
       "files": [
         "tools/balance-risk-report.js",
         "docs/diagnostics/CAMPAIGN_BALANCE_REVIEW_2026-10-26.md"
       ]
     },
     {
-      "title": "Preserve detailed difficulty signals in CI",
-      "detail": "The optional GitHub Actions diagnostics now archive a verified balance-risk JSON report and display the measured difficulty patterns separately from the signed release's functional gates.",
+      "title": "Verify sparse booster rules in optional tests",
+      "detail": "Added report-only tests for the Hammer target selection, late-use trigger, strict one-use limit, baseline preservation, and matched-seed report consistency without touching release-blocking suites.",
       "files": [
-        ".github/workflows/build-and-release.yml"
-      ]
-    },
-    {
-      "title": "Test the risk report without blocking releases",
-      "detail": "Added synthetic full-campaign aggregation checks and classified the reviewer test as report-only, so missing evidence is visible without treating hard levels or cosmetic observations as release-blocking gameplay defects.",
-      "files": [
+        "tests/greedy-minimal-booster.test.js",
         "tests/balance-risk-report.test.js",
         "tests/diagnostic-suites.txt"
       ]

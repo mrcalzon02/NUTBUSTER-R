@@ -16,7 +16,22 @@ for(let chapter=1;chapter<=10;chapter++){
  chapters.push({chapter,attempts:200,greedyBotWinCount:wins,zeroWinStages:none,totalHazardDetonations:hazards,totalTransports:transports});
 }
 const a={campaignLevels:1000,chapters:structural};
-const b={campaignLevels:1000,botTrials:2,levels,chapters};
+const probes=Array.from({length:200},(_,i)=>{
+ const level=(i+1)*5,chapter=Math.floor((level-1)/100)+1;
+ return {level,trial:0,baselineWon:chapter===1,assistedWon:chapter<=2,
+  hammerUsed:chapter===2?1:0,baselineSpentMoves:13,assistedSpentMoves:13};
+});
+const boosterChapters=Array.from({length:10},(_,i)=>{
+ const block=probes.slice(i*20,(i+1)*20);
+ return {chapter:i+1,attempts:20,hammerUsed:block.reduce((n,p)=>n+p.hammerUsed,0),
+  baselineWins:block.filter(p=>p.baselineWon).length,
+  assistedWins:block.filter(p=>p.assistedWon).length};
+});
+const boosterComparison={kind:'SPARSE_EMERGENCY_HAMMER_PROBE_NOT_INVENTORY',
+ attempts:200,frequencyLevels:5,trial:0,maxPerProbe:1,
+ hammerUsed:20,baselineWins:20,assistedWins:40,
+ chapters:boosterChapters,probes};
+const b={campaignLevels:1000,botTrials:2,levels,chapters,boosterComparison};
 const result=review(a,b);
 assert.equal(result.stages,1000);
 assert.equal(result.attempts,2000);
@@ -31,11 +46,17 @@ assert.equal(result.chapters[1].reviewFlag,'ELEVATED_BOT_DIFFICULTY');
 assert.equal(result.chapters[9].reviewFlag,'EXTREME_BOT_DIFFICULTY');
 assert.equal(result.chapters[9].hazardDetonations,100);
 assert.equal(result.lowOpeningChapters.length,9);
+assert.equal(result.minimalBoosterComparison.attempts,200);
+assert.equal(result.minimalBoosterComparison.hammerUsed,20);
+assert.equal(result.minimalBoosterComparison.baselineWins,20);
+assert.equal(result.minimalBoosterComparison.assistedWins,40);
 const summary=markdown(result);
 assert.match(summary,/heuristic bot, not player win rate/);
 assert.match(summary,/300 \/ 2000 greedy-bot wins/);
 assert.match(summary,/report-only/);
 assert.match(summary,/201–1000/);
+assert.match(summary,/Sparse booster comparison/);
+assert.match(summary,/No-booster matched-seed wins: 20; emergency-Hammer wins: 40/);
 assert.throws(()=>review({...a,campaignLevels:500},b),/full 1,000-level structural/);
 assert.throws(()=>review(a,{...b,levels:levels.slice(0,999)}),/full two-trial 1,000-level/);
 const edited=levels.slice();
@@ -44,6 +65,10 @@ assert.throws(()=>review(a,{...b,levels:edited}),/invalid gameplay sample/);
 const badChapters=chapters.map(x=>({...x}));
 badChapters[9].greedyBotWinCount=20;
 assert.throws(()=>review(a,{...b,chapters:badChapters}),/bot chapter aggregation mismatch/);
+const corruptedProbes=probes.slice();
+corruptedProbes[0]={...probes[0],hammerUsed:2};
+assert.throws(()=>review(a,{...b,boosterComparison:{...boosterComparison,probes:corruptedProbes}}),/invalid scarce-booster probe/);
+assert.throws(()=>review(a,{...b,boosterComparison:undefined}),/requires 200 matched-seed/);
 const flow=fs.readFileSync(path.join(__dirname,'../.github/workflows/build-and-release.yml'),'utf8');
 assert.match(flow,/node tools\/balance-risk-report\.js/);
 assert.match(flow,/nutbuster-balance-risk\.json/);

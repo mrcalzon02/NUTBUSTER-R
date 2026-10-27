@@ -34,3 +34,11 @@ In total, the heuristic won **360 of 2,000 attempts**, 772 stages had no wins am
 The script `tools/balance-risk-report.js` converts the two optional JSON reports into an explicit severity review, including longest zero-win streaks and a GitHub Actions job summary. It validates completeness and aggregation but returns **0 for actual high difficulty**. Only missing/corrupt diagnostic evidence makes the optional job fail. It is listed as a report-only diagnostic in `tests/diagnostic-suites.txt`. No balance thresholds are added to the signed-publisher's functional release gate.
 
 **Decision:** Flag Chapters 6–10 for comparative playtesting; *do not* unilaterally make them easier or claim they are impossible based solely on a two-trial no-booster greedy bot.
+
+## Additional experimental probe: minimally assisted greedy player
+
+The original 2,000 **no-booster** trials remain unchanged as the reference baseline. In a separate same-seed rerun, the simulator now considers **at most one Hammer** on the first trial of **every fifth level** (200 selected trials across 1,000 levels). It only activates when one or two moves remain and an unfinished ice, lock, chest, jam, or collection objective has an applicable target. It never uses Extra Moves, free shop stock, paid boosters, or an all-purpose power-up. The real `NutEngine.booster()` handles the hit.
+
+This extra probe is intentionally *sparse*. It assumes one hypothetical available Hammer on each selected run, and **does not** model a save's real accumulated booster inventory, earned reward cadence or store purchases. The Hammer is unlocked at level 1 in `NutProgress.LEVEL_BY_TOOL`. An actual player could have more or fewer boosters, so the comparison is not a player win-rate estimate.
+
+The report records per-chapter matched-seed wins with/without that single emergency Hammer, **actual** booster activations (not allowances), and a hard maximum of one use per selected trial. The same-seed original baseline is preserved for comparison. All this stays in the optional diagnostic tier; none of the authored 1,000 level configurations, economy balances, art or release-blocking gameplay contracts is adjusted to match the simulated results.

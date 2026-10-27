@@ -3,6 +3,7 @@
 # Mixed tests that validate live gameplay, purchasing or save state remain functional.
 android-emulator-smoke-contract.test.js
 balance-risk-report.test.js
+greedy-minimal-booster.test.js
 announcer-selection.test.js
 audio.test.js
 avatar-art.test.js

@@ -31,6 +31,35 @@ function review(structural,bot){
    reviewFlag:chapterWins<=10?'EXTREME_BOT_DIFFICULTY':chapterWins<=40?'HIGH_BOT_DIFFICULTY':chapterWins<=100?'ELEVATED_BOT_DIFFICULTY':'BASELINE'});
   wins+=chapterWins;zeroWinLevels+=noWins;hazards+=chapterHazards;transports+=chapterTransports;
  }
+ // Sparse comparison uses the SAME seed for a second run, not the
+ // existing full-campaign no-booster baseline counted in the table above.
+ const comparison=bot.boosterComparison;
+ requireValid(comparison?.kind==='SPARSE_EMERGENCY_HAMMER_PROBE_NOT_INVENTORY'&&
+  comparison.attempts===200&&comparison.frequencyLevels===5&&comparison.trial===0&&
+  comparison.maxPerProbe===1&&Array.isArray(comparison.probes)&&comparison.probes.length===200&&
+  Array.isArray(comparison.chapters)&&comparison.chapters.length===10,
+  'requires 200 matched-seed, one-Hammer maximum comparison attempts');
+ let hammerUses=0,pairedBaselineWins=0,assistedWins=0;
+ for(let i=0;i<comparison.probes.length;i++){
+  const p=comparison.probes[i],level=(i+1)*5;
+  requireValid(p.level===level&&p.trial===0&&integer(p.hammerUsed)&&p.hammerUsed<=1&&
+   typeof p.baselineWon==='boolean'&&typeof p.assistedWon==='boolean'&&
+   integer(p.baselineSpentMoves)&&integer(p.assistedSpentMoves),
+   'invalid scarce-booster probe at '+level);
+  hammerUses+=p.hammerUsed;
+  pairedBaselineWins+=Number(p.baselineWon);
+  assistedWins+=Number(p.assistedWon);
+  if(i%20===19){
+   const block=comparison.probes.slice(i-19,i+1),c=comparison.chapters[Math.floor(i/20)];
+   requireValid(c.chapter===Math.floor(i/20)+1&&c.attempts===20&&
+    c.hammerUsed===block.reduce((n,x)=>n+x.hammerUsed,0)&&
+    c.baselineWins===block.filter(x=>x.baselineWon).length&&
+    c.assistedWins===block.filter(x=>x.assistedWon).length,'scarce-booster chapter mismatch');
+  }
+ }
+ requireValid(comparison.hammerUsed===hammerUses&&
+  comparison.baselineWins===pairedBaselineWins&&comparison.assistedWins===assistedWins,
+  'scarce-booster totals mismatch');
  // Contiguous zero-win stretches prioritize review, NOT proof of level impossibility.
  const streaks=[];
  for(let i=0;i<entries.length;){
@@ -52,6 +81,11 @@ function review(structural,bot){
   firstZeroWinStage:entries.find(x=>x.wins===0)?.level??null,
   lastBotWinStage:[...entries].reverse().find(x=>x.wins>0)?.level??null,
   lowOpeningChapters:openingPressure.map(x=>x.chapter),
+  minimalBoosterComparison:{attempts:comparison.attempts,hammerUsed:hammerUses,
+   baselineWins:pairedBaselineWins,assistedWins,
+   maxHammersPerAttempt:1,comparisonsPerTenLevels:2,
+   note:'Hypothetical emergency Hammer only, at most one in trial 0 every fifth level; no earned-inventory or purchasing model.',
+   chapters:comparison.chapters},
   priorityStageSamples:[
    ...entries.filter(x=>x.wins===0&&x.level<=100).slice(0,12).map(x=>x.level),
    ...[500,600,700,800,900,1000]
@@ -66,7 +100,12 @@ function markdown(r){
  text+='| Chapter | Bot wins / 200 | Stages 0 / 2 | Opening swaps | Hazards | Review flag |\n|---|---:|---:|---:|---:|---|\n';
  for(const c of r.chapters)text+='| '+c.chapter+' | '+c.botWins+' | '+c.zeroWinStages+' | '+c.averageOpenings+' | '+c.hazardDetonations+' | '+c.reviewFlag+' |\n';
  text+='\nLongest zero-win streaks: '+r.topZeroWinStreaks.slice(0,4).map(x=>x.start+'–'+x.end+' ('+x.count+' levels)').join(', ')+'.\n';
- text+='\n**Interpretation:** Bot is deliberately simplistic and never uses boosters. Flags are requests for further playtesting, not automatic balance changes. Findings remain **report-only** and cannot block Android, Fire OS, Windows or Linux builds.\n';
+ text+='\n**Sparse booster comparison:** '+r.minimalBoosterComparison.attempts+
+ ' same-seed rescue attempts; '+r.minimalBoosterComparison.hammerUsed+
+ ' emergency Hammers actually used (maximum one on every fifth level, only when 1–2 moves remain). '+
+ 'No-booster matched-seed wins: '+r.minimalBoosterComparison.baselineWins+
+ '; emergency-Hammer wins: '+r.minimalBoosterComparison.assistedWins+'.\n';
+ text+='\n**Interpretation:** The full 2,000-attempt baseline never uses boosters. The sparse, optional rescue probe uses a hypothetical single Hammer only; no purchase, earned stock, or real player progression is simulated. Flags are requests for further playtesting, not automatic balance changes. Findings remain **report-only** and cannot block Android, Fire OS, Windows or Linux builds.\n';
  return text;
 }
 if(require.main===module){
