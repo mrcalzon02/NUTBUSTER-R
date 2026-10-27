@@ -19,6 +19,13 @@ def playKeyPassword = (project.findProperty('playUploadKeyPassword') ?: '').toSt
 def havePlaySigning = playStore && playPassword && playKeyPassword &&
     playAlias == 'nutbuster-play-upload-v1' && file(playStore).isFile()
 
+// A Play build can compile in CI with ID=0, but production eligibility
+// is blocked until the actual Play Console Games services project ID is set.
+def playGamesProjectId = (project.findProperty('playGamesProjectId') ?: '0').toString()
+if (!(playGamesProjectId ==~ /[0-9]{1,24}/)) {
+    throw new GradleException('Invalid playGamesProjectId: use the decimal Games services project ID shown in Play Console')
+}
+
 android {
     namespace 'io.github.mrcalzon02.nutbuster'
     compileSdk 36
@@ -62,6 +69,7 @@ android {
         debug { debuggable true }
         // Play Store-only AAB: Google Play will apply its own device signing key.
         play {
+            resValue 'string', 'game_services_project_id', playGamesProjectId
             initWith release
             signingConfig = null
             debuggable false
@@ -71,7 +79,10 @@ android {
     }
 }
 
-dependencies { implementation 'androidx.core:core:1.13.1' }
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+    playImplementation 'com.google.android.gms:play-services-games-v2:22.1.0'
+}
 
 // Never accidentally publish a release APK signed with the debug key or without the pinned signer.
 tasks.register('validatePublisherSigning') {
