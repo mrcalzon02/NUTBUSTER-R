@@ -1,34 +1,10 @@
 {
   "schema": 1,
-  "headline": "Fresh daily allowances verified across simulated campaign attempts",
+  "headline": "Optional daily-wallet diagnostic validation corrected",
   "changes": [
     {
-      "title": "Give every simulated level its own full daily move bank",
-      "detail": "The optional player simulator now starts each seed and matched emergency-Hammer trial with a new 24-hour move wallet using that stage's real level-dependent daily allowance. No unused or spent moves carry across attempts.",
-      "files": [
-        "tools/greedy-playtest.js"
-      ]
-    },
-    {
-      "title": "Match real hazard costs and earned move refunds",
-      "detail": "Automated move spending mirrors the live NutDailyMoves debit and credit rules, including two additional move charges for expired fuses and actual earned elemental move refunds. No purchased or free-claim extra moves are assumed.",
-      "files": [
-        "tools/greedy-playtest.js",
-        "tools/balance-risk-report.js"
-      ]
-    },
-    {
-      "title": "Verify independent full daily allotments in optional diagnostics",
-      "detail": "Report-only tests verify level-dependent full allowances, wallet reconciliation, isolated run restarts and explicit methodology documentation without changing gameplay, level goals or booster economy.",
-      "files": [
-        "tests/greedy-minimal-booster.test.js",
-        "tests/balance-risk-report.test.js",
-        "docs/diagnostics/CAMPAIGN_BALANCE_REVIEW_2026-10-26.md"
-      ]
-    },
-    {
-      "title": "Preserve precise optional diagnostic errors",
-      "detail": "Validated missing sparse-booster evidence before applying the new daily-wallet consistency check, retaining the existing diagnostic contract without weakening its requirements.",
+      "title": "Keep missing-data errors precise in the optional difficulty report",
+      "detail": "The full daily-wallet simulation and its 20 optional tests have been verified. The balance report now checks for missing sparse-booster evidence before checking daily-wallet consistency, restoring the expected diagnostic error without changing gameplay or booster behavior.",
       "files": [
         "tools/balance-risk-report.js"
       ]
