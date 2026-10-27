@@ -37,8 +37,36 @@ if sorted((w,h))!=[800,1280]:
     raise SystemExit(f'expected 1280x800 tablet, got {w}x{h}')
 print('Google-free tablet screenshot:',w,h)
 PY
-timeout --signal=TERM --kill-after=5s 20s adb logcat -d -s AndroidRuntime:E > validation/fireos-tablet-crashlog.txt
-if grep -Fq 'FATAL EXCEPTION' validation/fireos-tablet-crashlog.txt; then
-  echo '::error::Android runtime crash on tablet proxy' | tee -a "$LOG"; exit 1
+# AOSP API30 cold-boot ADB can hang while dumping the full main buffer.
+# Read only the bounded dedicated crash buffer, retry once if the transport
+# stalls, and keep failure evidence. Never treat a timeout as "no crashes".
+echo '6/6: Read bounded AndroidRuntime crash buffer (two bounded attempts)' | tee -a "$LOG"
+CRASH_LOG=validation/fireos-tablet-crashlog.txt
+: > "$CRASH_LOG"
+verified=0
+for attempt in 1 2; do
+  echo "logcat attempt $attempt/2" | tee -a "$LOG"
+  if timeout --signal=TERM --kill-after=5s 30s adb shell logcat -b crash -d -t 150 -s AndroidRuntime:E \
+      > "$CRASH_LOG" 2> "validation/fireos-tablet-logcat-${attempt}-stderr.txt"; then
+    verified=1
+    break
+  else
+    status=$?
+    echo "::warning::Fire tablet crash-buffer read failed (attempt $attempt, exit $status)" | tee -a "$LOG"
+    if (( attempt < 2 )); then
+      timeout --signal=TERM --kill-after=3s 8s adb get-state \
+        > "validation/fireos-tablet-logcat-transport.txt" 2>&1 || true
+      sleep 3
+    fi
+  fi
+done
+if (( verified != 1 )); then
+  echo '::error::Unable to verify Android crash buffer; Fire tablet smoke remains INCONCLUSIVE' | tee -a "$LOG"
+  exit 1
 fi
+if grep -Fq 'FATAL EXCEPTION' "$CRASH_LOG"; then
+  echo '::error::Android runtime crash on tablet proxy' | tee -a "$LOG"
+  exit 1
+fi
+echo 'Crash-buffer query completed without AndroidRuntime FATAL EXCEPTION.' | tee -a "$LOG"
 echo 'PASS: Google-free API30 tablet proxy installed, launched, stayed foreground, and captured screenshot without Android runtime crash.' | tee -a "$LOG"

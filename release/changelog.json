@@ -1,14 +1,26 @@
 {
   "schema": 1,
-  "headline": "Rupee Rush gets a fully illustrated Nutbuster home-screen banner",
+  "headline": "Android and Fire tablet release diagnostics refined",
   "changes": [
     {
-      "title": "Show the new illustrated Rupee Rush banner",
-      "detail": "Replaced the flat teaser illustration with the approved squirrel-and-gem artwork, preserving the Coming Soon announcement and displaying the entire banner without cropping its title or artwork.",
+      "title": "Correct the signed publisher diagnostic",
+      "detail": "Updated the optional emulator-contract assertions to check the existing functional-tests-only release dependency, without restoring an obsolete desktop publication gate.",
       "files": [
-        "web/game.js",
-        "web/style.css",
-        "web/art/banners/rupee-rush-coming-soon.png"
+        "tests/android-emulator-smoke-contract.test.js"
+      ]
+    },
+    {
+      "title": "Make tablet crash verification bounded and explicit",
+      "detail": "The Google-free Fire tablet emulator smoke check now reads a limited Android crash buffer, retries a stalled ADB read, and preserves evidence rather than interpreting a timeout as a passing crash test.",
+      "files": [
+        "scripts/fireos-tablet-smoke.sh"
+      ]
+    },
+    {
+      "title": "Replace outdated release-news descriptions",
+      "detail": "The release changelog now describes these actual verification changes instead of repeatedly announcing the previously published Rupee Rush teaser artwork. Gameplay mechanics and approved artwork are unchanged.",
+      "files": [
+        "release/changelog.json"
       ]
     }
   ]

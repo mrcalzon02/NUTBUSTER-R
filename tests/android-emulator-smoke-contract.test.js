@@ -17,10 +17,21 @@ for(const [name,pattern] of Object.entries({
   crash:/FATAL EXCEPTION/,
   diagnostics:/android26-smoke-steps\.txt/,
 })) assert.match(script,pattern,name+' gate must exist');
+const fire=fs.readFileSync(path.join(root,'scripts/fireos-tablet-smoke.sh'),'utf8');
+assert.match(fire,/timeout[^\n]*150s adb install/,'Fire proxy retains bounded APK installation');
+assert.match(fire,/timeout[^\n]*45s adb exec-out screencap -p/,'Fire proxy retains real PNG screenshot');
+assert.match(fire,/adb shell logcat -b crash -d -t 150 -s AndroidRuntime:E/,'Fire proxy uses bounded crash-buffer query, not full unbounded logcat');
+assert.match(fire,/for attempt in 1 2;/,'Fire proxy retries transient ADB logcat failures');
+assert.match(fire,/verified != 1/,'Fire proxy must not pass on an unread crash log');
+assert.match(fire,/FATAL EXCEPTION/,'Fire proxy must reject actual Android runtime crashes');
+assert.ok(fire.includes('fireos-tablet-logcat-${attempt}-stderr.txt'),'Fire proxy keeps transport diagnostic evidence');
+const syntax=require('node:child_process').spawnSync('bash',['-n',path.join(root,'scripts/fireos-tablet-smoke.sh')],{encoding:'utf8'});
+assert.equal(syntax.status,0,'Fire shell script must remain parseable: '+syntax.stderr);
 const diagnostics=fs.readFileSync(path.join(root,'tests/diagnostic-suites.txt'),'utf8');
 assert.match(diagnostics,/^android-emulator-smoke-contract\.test\.js$/m,'Emulator design check must run in the report-only diagnostic tier');
 assert.match(flow,/node tools\/test-tiers\.js diagnostic/,'Diagnostic test tier must execute in CI');
 const publisher=flow.slice(flow.indexOf('  publisher-release:'));
-assert.match(publisher,/needs: \[functional-tests, desktop\]/,'Functional tests, not emulator checks, gate the release');
+assert.match(publisher,/needs: \[functional-tests\]/,'Only functional tests gate the signed APK publisher');
+assert.doesNotMatch(publisher,/needs:.*(?:desktop|native)/,'Native preview failure must not block Android/Fire signed publishing');
 assert.doesNotMatch(publisher,/needs:.*(?:emulator-smoke|android-debug|diagnostics)/,'Emulator failure must not suppress signed publishing');
-console.log('PASS: bounded Android 26 emulator startup/install/launch/screenshot, explicit checks, preserved diagnostics');
+console.log('PASS: Android 26 and Fire tablet startup/install/screenshots, bounded crash checks, functional-only publisher dependency');
