@@ -18,7 +18,8 @@ public class MainActivity extends Activity {
     private NutUpdateService updater;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        updater = new NutUpdateService(this, this::showUpdateStatus);
+        updater = BuildConfig.UPDATE_CHANNEL_ENABLED
+            ? new NutUpdateService(this, this::showUpdateStatus) : null;
         game = new WebView(this);
         game.setWebViewClient(new WebViewClient());
         WebSettings s = game.getSettings();
@@ -29,7 +30,7 @@ public class MainActivity extends Activity {
         s.setJavaScriptCanOpenWindowsAutomatically(false);
         s.setSupportMultipleWindows(false);
         s.setBlockNetworkLoads(true); // The web game cannot make network requests.
-        game.addJavascriptInterface(new Object() {
+        if (updater != null) game.addJavascriptInterface(new Object() {
             @JavascriptInterface public void checkForUpdates() { updater.checkForUpdates(); }
             @JavascriptInterface public void checkForUpdatesAutomatically() { updater.checkForUpdatesAutomatically(); }
             @JavascriptInterface public void openReleases() {
