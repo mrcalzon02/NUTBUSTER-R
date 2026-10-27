@@ -10,6 +10,8 @@ import com.google.android.gms.games.snapshot.SnapshotMetadataChange;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Arrays;
 
 /** Explicit cloud backup and restore for the complete Nut Buster game-state JSON.
  * Never replaces local progress without the game's separate confirmation.
@@ -26,12 +28,17 @@ public final class PlayCloudBridge {
     }
 
     private void send(String action, boolean ok, String detail, String payload) {
+        send(action, ok, detail, payload, null);
+    }
+
+    private void send(String action, boolean ok, String detail, String payload, String version) {
         JSONObject message = new JSONObject();
         try {
             message.put("action", action);
             message.put("ok", ok);
             message.put("detail", detail);
             if (payload != null) message.put("payload", payload);
+            if (version != null) message.put("version", version);
         } catch (JSONException error) {
             throw new IllegalStateException("JSON bridge message failed", error);
         }
@@ -52,7 +59,34 @@ public final class PlayCloudBridge {
                 }));
     }
 
+    private static String fingerprint(byte[] data) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(data);
+            StringBuilder result = new StringBuilder(digest.length * 2);
+            for (byte b : digest) {
+                result.append(Character.forDigit((b >>> 4) & 15, 16));
+                result.append(Character.forDigit(b & 15, 16));
+            }
+            return result.toString();
+        } catch (java.security.NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException("SHA-256 unavailable", impossible);
+        }
+    }
+
     @JavascriptInterface public void backup(String json) {
+        backupChecked(json, null);
+    }
+
+    /** Replaces ONLY the cloud revision inspected by the player. */
+    @JavascriptInterface public void replace(String json, String inspectedVersion) {
+        if (inspectedVersion == null || !inspectedVersion.matches("[0-9a-f]{64}")) {
+            send("backup", false, "Inspect the current cloud save before replacing it.", null);
+            return;
+        }
+        backupChecked(json, inspectedVersion);
+    }
+
+    private void backupChecked(String json, String inspectedVersion) {
         if (json == null || json.isEmpty()) {
             send("backup", false, "No local save to back up.", null);
             return;
@@ -87,6 +121,25 @@ public final class PlayCloudBridge {
                         return;
                     }
                     try {
+                        byte[] existing = snap.getSnapshotContents().readFully();
+                        byte[] current = existing == null ? new byte[0] : existing;
+                        if (inspectedVersion != null &&
+                                !fingerprint(current).equals(inspectedVersion)) {
+                            client.discardAndClose(snap);
+                            send("backup", false, "Cloud save changed on another device. Inspect it again before replacing.", null);
+                            return;
+                        }
+                        if (current.length > 0 && !Arrays.equals(current, data) &&
+                                inspectedVersion == null) {
+                            client.discardAndClose(snap);
+                            send("backup", false, "Different cloud progress already exists. Check cloud save and choose whether to restore or explicitly replace it.", null);
+                            return;
+                        }
+                        if (Arrays.equals(current, data)) {
+                            client.discardAndClose(snap);
+                            send("backup", true, "Local and cloud saves already match.", null);
+                            return;
+                        }
                         snap.getSnapshotContents().writeBytes(data);
                     } catch (RuntimeException error) {
                         client.discardAndClose(snap);
@@ -123,7 +176,7 @@ public final class PlayCloudBridge {
                         if (bytes == null || bytes.length == 0 || bytes.length > MAX_BYTES) {
                             send("restore", false, "Cloud snapshot is empty or exceeds the save limit.", null);
                         } else {
-                            send("restore", true, "Cloud save loaded for confirmation.", new String(bytes, StandardCharsets.UTF_8));
+                            send("restore", true, "Cloud save loaded for confirmation.", new String(bytes, StandardCharsets.UTF_8), fingerprint(bytes));
                         }
                     } catch (Exception error) {
                         send("restore", false, "Cloud read failed: " + error.getMessage(), null);
