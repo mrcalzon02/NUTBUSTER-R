@@ -47,6 +47,16 @@ require('SnapshotsClient.RESOLUTION_POLICY_MANUAL' in java and
         "Cloud snapshot conflicts are never auto-resolved by last-modified timestamp",
         "Use RESOLUTION_POLICY_MANUAL and reject or explicitly reconcile divergent remote snapshots.")
 
+require(all(x in java for x in ('void replace(String json, String inspectedVersion)',
+        'fingerprint(current).equals(inspectedVersion)', 'Arrays.equals(current, data)',
+        'different progress', 'RESOLUTION_POLICY_MANUAL')),
+        "Cloud writes require previewed version and explicit conflict choice",
+        "Check remote snapshot fingerprint, reject divergent cloud saves without consent, and provide an explicit replace action.")
+require(all(x in game for x in ('pendingCloudVersion', 'cloud-replace',
+        'NutPlayCloud.replace(JSON.stringify(saved),pendingCloudVersion)')),
+        "Play restore preview can explicitly replace only inspected cloud revision",
+        "Expose an explicit replace choice after preview; retain device saves when cloud changes.")
+
 for label in failures: print("::error title=Nut Buster cloud-save contract::"+label)
 print("NUT BUSTER PLAY CLOUD CONTRACT: "+("FAIL" if failures else "PASS"))
 sys.exit(1 if failures else 0)
