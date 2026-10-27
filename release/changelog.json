@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "headline": "Correct sampled-seed fixture accounting in optional difficulty tests",
+  "headline": "Strengthen release-news length validation for AI planning updates",
   "changes": [
     {
-      "title": "Fix three-seed report fixtures to count sampled stages correctly",
-      "detail": "The expanded 300-attempt failure-cause audit ran successfully on actual engine states, but one optional synthetic assertion counted wins from twice as many selected levels. Corrected expected wins, daily exhaustions and hazard charges without weakening report validation or modifying gameplay.",
+      "title": "Test release-note field boundaries during optional validation",
+      "detail": "The three-ply planner and replay checks passed. A release description was longer than the repository's permitted 300 characters; this correction adds explicit tests at the 300/301-character boundary and rejects overlong titles without weakening the source-change audit.",
       "files": [
-        "tests/balance-risk-report.test.js"
+        "tests/release-news.test.js"
       ]
     }
   ]

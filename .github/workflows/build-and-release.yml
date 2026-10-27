@@ -89,7 +89,7 @@ jobs:
   # A failing suite makes this job red and uploads evidence without holding the APK.
   diagnostics:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
@@ -158,6 +158,18 @@ jobs:
             "$RUNNER_TEMP/nutbuster-difficulty-audit.json" \
             "$RUNNER_TEMP/nutbuster-greedy-playtest.json" \
             "$RUNNER_TEMP/nutbuster-balance-risk.json"
+      - name: Compare seeded objective-aware bots to bounded multi-turn real-engine planner
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Entirely optional. Real NutEngine swaps and forked random state,
+          # not altered level targets, free refills or invented boosters.
+          node tools/planning-integration.js > "$RUNNER_TEMP/nutbuster-planning-probe.json"
+          node tools/planning-report.js \
+            "$RUNNER_TEMP/nutbuster-planning-probe.json" \
+            "$RUNNER_TEMP/nutbuster-greedy-playtest.json" \
+            "$RUNNER_TEMP/nutbuster-planning-summary.json"
       - name: Preserve all optional diagnostic evidence, even on failure
         if: always()
         uses: actions/upload-artifact@v4
@@ -168,6 +180,8 @@ jobs:
             ${{ runner.temp }}/nutbuster-difficulty-audit.json
             ${{ runner.temp }}/nutbuster-greedy-playtest.json
             ${{ runner.temp }}/nutbuster-balance-risk.json
+            ${{ runner.temp }}/nutbuster-planning-probe.json
+            ${{ runner.temp }}/nutbuster-planning-summary.json
           retention-days: 30
           if-no-files-found: ignore
 

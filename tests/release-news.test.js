@@ -5,6 +5,11 @@ const doc=JSON.parse(fs.readFileSync(path.join(ROOT,'release/changelog.json'),'u
 const covered=moduleUnderTest.validate(doc);
 for(const changed of doc.changes)assert.ok(changed.files.some(file=>covered.has(file)));
 assert.throws(()=>moduleUnderTest.validate({...doc,changes:[]}),/real change entries/);
+const bounded={title:'Strict note text length validation',detail:'x'.repeat(300),files:['tools/planning-policy.js']};
+assert.doesNotThrow(()=>moduleUnderTest.validate({...doc,changes:[bounded]}),'300-character details remain legal');
+assert.throws(()=>moduleUnderTest.validate({...doc,changes:[{...bounded,detail:'x'.repeat(301)}]}),/needs a specific title and meaningful detail/,'301-character details must fail');
+assert.throws(()=>moduleUnderTest.validate({...doc,changes:[{...bounded,title:'x'.repeat(101)}]}),/needs a specific title and meaningful detail/,'Overlong titles must fail');
+
 assert.throws(()=>moduleUnderTest.validate({...doc,changes:[{title:'A mystery',detail:'Various fixes and improvements that are not specific.',files:['web/game.js']}]}),/placeholder/);
 assert.throws(()=>moduleUnderTest.validate({...doc,changes:[{title:'Fictional feature',detail:'We added a feature from a file that is not actually present in this repository.',files:['web/no-such-feature.js']}]}),/does not exist/);
 assert.throws(()=>moduleUnderTest.validate({...doc,changes:[{title:'Unsafe path',detail:'This item is an unsafe release file path that must not be included.',files:['../outside.js']}]}),/unsafe/);
