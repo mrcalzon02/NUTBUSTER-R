@@ -17,7 +17,7 @@ function assertPlayableCellsFilled(g,context){
   if(g.cfg.mask[i])assert.ok(Number.isInteger(g.cells[i].type)&&E.TYPES[g.cells[i].type],context+' blank playable cell '+i);
  }
 }
-function isGravityBarrier(c){return !c||c.ice>0||c.lock>0||c.chest>0||c.rock>0||c.frozen>0||c.hold>0||(c.aura==='nature-vines'&&c.auraTurns>0);}
+function isGravityBarrier(c){return !c||(c.type!==null&&(c.ice>0||c.lock>0||c.chest>0||c.rock>0||c.frozen>0||c.hold>0||(c.aura==='nature-vines'&&c.auraTurns>0)));}
 // Donut hole splits a column into two independent reservoirs. New nuts in
 // the lower island must never appear to descend through the missing tiles.
 {
