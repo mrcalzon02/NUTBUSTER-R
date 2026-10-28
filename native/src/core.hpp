@@ -1,5 +1,6 @@
 #pragma once
 #include "campaign.hpp"
+#include "hold.hpp"
 #include <array>
 #include <cstdint>
 #include <string>
@@ -11,6 +12,9 @@ public:
  explicit Board(int level=1,uint32_t seed=7919);
  void reset(int level,uint32_t seed);
  Turn swap(int a,int b);
+ // Preview-only simulation API: no inventory or shop is claimed.
+ bool applyHold(HoldKind kind,int index);
+ int holdUses(HoldKind kind)const{return kind==HoldKind::Butter?butterUses_:kind==HoldKind::Jam?jamUses_:0;}
  int width()const{return w_;}
  int height()const{return h_;}
  int level()const{return level_;}
@@ -32,6 +36,7 @@ private:
  std::vector<bool> mask_;
  std::array<int,19> colors_{};
  int crackedIce_=0,crackedLocks_=0,crackedChests_=0,cleanedJam_=0;
+ int butterUses_=0,jamUses_=0;
  int draw(int bound);
  std::vector<int> matched()const;
  bool adjacent(int a,int b)const;
