@@ -20,6 +20,13 @@ assert.equal(config.targets.windows.runtime,'cpp17-sdl3');
 assert.equal(config.targets.linux.runtime,'cpp17-sdl3');
 assert(config.features.some(f=>f.native==='preview-partial'));
 assert(config.features.some(f=>f.native==='not-ported'));
+const canceledCascadeReview=config.presentationChangeReviews.find(r=>r.id==='interrupted-cascade-sprite-opacity-recovery-2026-10-28');
+assert(canceledCascadeReview,'WebView-only canceled-cascade cleanup requires an explicit four-target review');
+assert.deepEqual(canceledCascadeReview.sourceChange,['web/game.js']);
+assert.equal(canceledCascadeReview.test,'tests/ui.test.js');
+for(const target of ['android','fire_os','windows','linux'])
+ assert.ok(canceledCascadeReview.targetImpact[target]?.length>70,'Missing meaningful '+target+' renderer impact assessment');
+assert.match(canceledCascadeReview.decision,/no match-three rule/i);
 r=cmd('require-full');
 assert.notEqual(r.status,0,'Native production must be blocked while missing features remain');
 assert.match(r.stderr,/Native production release BLOCKED/);
