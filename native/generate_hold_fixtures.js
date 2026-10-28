@@ -39,7 +39,7 @@ function encode(cells){
 console.log('# NUTBUSTER JS engine hold/gravity parity v1');
 for(const [name,kind,target,finished,clearSecond,prepare] of cases){
  const cells=base();prepare(cells);
- const g={cfg:{width:w,height:h,roster:[0,1,2,3],typeCount:4},
+ const g={cfg:{width:w,height:h,roster:[0,1,2,3],typeCount:4,objectives:[]},
    cells,rand:()=>0.01,won:finished,lost:false,boosterUsed:0,uses:{}};
  const initial=encode(g.cells);
  const result=E.applyHold(g,kind,target);
