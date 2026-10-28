@@ -84,6 +84,10 @@ jobs:
           node native/generate_campaign_levels.js
           test -s native/generated-assets/data/campaign.tsv
           test "$(grep -c '^L ' native/generated-assets/data/campaign.tsv)" -eq 1000
+      - name: Generate independent mobile JS held-nut gravity/score fixtures
+        run: |
+          node native/generate_hold_fixtures.js > native/generated-assets/hold-fixtures.txt
+          test "$(grep -c '^CASE|' native/generated-assets/hold-fixtures.txt)" -eq 15
       - name: Convert approved sprites to native BMP runtime format
         run: |
           python -m pip install --disable-pip-version-check Pillow
@@ -113,6 +117,8 @@ jobs:
           test -s native/package/data/overlay/sticky-butter.rgba
       - name: Test native game logic without any GUI or browser
         run: "native/package/${{ matrix.binary }} --self-test"
+      - name: Compare held-nut simulation against authoritative mobile JS
+        run: ctest --test-dir native/build --output-on-failure -C Release
       - name: Compare native mining geology against existing JavaScript game
         run: |
           node native/generate_mine_fixtures.js > native-mine-fixtures.txt
