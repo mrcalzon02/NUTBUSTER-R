@@ -6,7 +6,8 @@ const refs={wallet:{textContent:''},gems:{textContent:''},'play-wallet':{textCon
  score:{textContent:''},moves:{textContent:''},progress:{style:{}}};
 const board={getBoundingClientRect:()=>({top:0,left:0,width:450,height:450}),appendChild:()=>{},
  querySelector(s){const i=Number(s.match(/data-cell="(\d+)"/)?.[1]);const el=boardCells[i];return s.includes('nut-visual')?el?.visual:el||null;},
- querySelectorAll(s){return s==='.clearing'?boardCells.filter(x=>x?.classList.contains('clearing')):[];}};
+ querySelectorAll(s){const names=s.split(',').map(x=>x.trim().replace(/^\./,''));
+  return boardCells.filter(x=>x&&names.some(name=>x.classList.contains(name)));}};
 const screen={classList:classes(),addEventListener:(k,f)=>{if(k==='click')clickHandler=f;},
  get innerHTML(){return html;},set innerHTML(v){html=v;renders++;},
  querySelector(s){if(s==='.board')return app.getState().page==='game'?board:null;
@@ -53,12 +54,18 @@ async function run(){
  // plus an inline visibility hide left by a previous interrupted animation.
  const staleIndex=g.cells.findIndex((c,i)=>c&&!swap.includes(i)),stale=boardCells[staleIndex].visual;
  stale.style.visibility='hidden';
+ // A canceled nut-explode uses CSS animation-fill-mode:forwards and can keep
+ // an otherwise loaded replacement nut completely transparent.
+ boardCells[staleIndex].classList.add('nut-shaking');
+ boardCells[staleIndex].classList.add('nut-exploding');
  stale.image={complete:true,naturalWidth:0,style:{},getAttribute:()=> 'art/primary/nuts/'+E.TYPES[g.cells[staleIndex].type]+'.png'};
  stale.fallback={style:{visibility:'hidden'}};
  click({cell:String(swap[0])});assert.equal(renders,before);
  click({cell:String(swap[1])});await settle();assert.equal(g.moves,moves-1);assert.equal(renders,before);
  assert.equal(app.getSave().coins,startingCoins,'A move removing no nuts does not mint currency');
  assert.equal(stale.style.visibility,'','Interrupted animation hiding is cleared');
+ assert.equal(boardCells[staleIndex].classList.contains('nut-exploding'),false,'Canceled explosion must not hide a replacement nut via CSS opacity');
+ assert.equal(boardCells[staleIndex].classList.contains('nut-shaking'),false,'Interrupted shaking must not animate the next nut');
  assert.equal(stale.image.style.display,'none','Cached broken sprite is hidden even without onerror');
  assert.equal(stale.fallback.style.visibility,'visible','Broken image never leaves an empty playable tile');
  swap=findSwap(g,true);const score=g.score;click({cell:String(swap[0])});click({cell:String(swap[1])});
