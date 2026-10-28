@@ -1,7 +1,16 @@
 {
   "schema": 1,
-  "headline": "Make setup-aware AI planning selective instead of wasting moves",
+  "headline": "Remove the obsolete Rupee Rush advertisement from the Nut Buster home screen",
   "changes": [
+    {
+      "title": "Retire the Rupee Rush coming-soon banner",
+      "detail": "Remove the unapproved-name advert and its unused banner styling from the home screen without affecting the independent release-news ticker or home navigation. Replace the obsolete render requirement with a regression test that prevents the retired advert returning.",
+      "files": [
+        "web/game.js",
+        "web/style.css",
+        "tests/rupee-rush-banner.test.js"
+      ]
+    },
     {
       "title": "Require setup moves to repay their daily-move opportunity cost",
       "detail": "The first exact-engine benchmark exercised 37 setup moves but revealed a Chapter 3 regression. The diagnostic planner now penalizes nonmatching actions, conditionally explores them, and compares them with a same-horizon match-only alternative before choosing.",
