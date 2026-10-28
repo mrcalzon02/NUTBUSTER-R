@@ -1,27 +1,18 @@
 {
   "schema": 1,
-  "headline": "Evaluate strategic setup moves without changing campaign difficulty",
+  "headline": "Make setup-aware AI planning selective instead of wasting moves",
   "changes": [
     {
-      "title": "Test deliberate nonmatching setup moves inside engine-backed lookahead",
-      "detail": "The diagnostic planner now considers up to two legal nonmatching swaps that may build better next-turn matches, then checks the consequences through actual engine simulation. Setup moves still consume daily moves and cannot fabricate points.",
+      "title": "Require setup moves to repay their daily-move opportunity cost",
+      "detail": "The first exact-engine benchmark exercised 37 setup moves but revealed a Chapter 3 regression. The diagnostic planner now penalizes nonmatching actions, conditionally explores them, and compares them with a same-horizon match-only alternative before choosing.",
       "files": [
         "tools/planning-policy.js"
       ]
     },
     {
-      "title": "Measure setup-aware planning against the original match-only planner",
-      "detail": "Identical late-stage seeds and search budgets now compare the objective bot, match-only three-turn search, setup-aware search, and a separate limited-Hammer variant. Reports count both setup candidates evaluated and setup moves actually selected.",
+      "title": "Correct planner report assertion and document the experimental regression",
+      "detail": "The report-only integration test now matches the actual report heading rather than an obsolete phrase. The diagnostic documentation records the measured regression, the candidate count, and the reasons for cautious setup selection.",
       "files": [
-        "tools/planning-integration.js",
-        "tools/planning-report.js"
-      ]
-    },
-    {
-      "title": "Verify candidate legality, deterministic branch isolation, and reproducible reporting",
-      "detail": "New diagnostic assertions confirm setup moves do not immediately score, undo speculative tile changes, retain the random stream, and remain within strict per-turn limits. Documentation explains the bounded-search limitations.",
-      "files": [
-        "tests/planning-policy.test.js",
         "tests/planning-integration.test.js",
         "docs/diagnostics/PLANNING_PLAYER_INTEGRATION_2026-10-27.md"
       ]

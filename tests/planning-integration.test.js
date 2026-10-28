@@ -43,7 +43,7 @@ assert.equal(report.overall.setupCandidatesExamined,0);
 assert.equal(report.overall.plannedHammerWins,1);
 assert.equal(report.overall.plannedSimulatedSwaps,probes.reduce((n,p)=>n+p.planned.simulatedSwaps,0));
 assert.equal(report.chapters.length,10);
-assert.match(markdown(report),/3-ply planner/);
+assert.match(markdown(report),/3-ply engine-fork/);
 assert.match(markdown(report),/match-only 3-ply/);
 assert.match(markdown(report),/Setup swaps selected/);
 assert.match(markdown(report),/report-only/);

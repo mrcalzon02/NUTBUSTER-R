@@ -162,12 +162,12 @@ function search(g,opts={}){
   throw Error('Planning budget exceeds explicitly bounded search');
  const cap=g.cfg.moves,root={game:g,wallet:g.moves,first:null,
   depth:0,hazards:0,simulations:0,setupMoves:0,firstSetup:false,value:score(g,g.moves,cap)};
- let frontier=[root],best=null,expanded=0,layers=0,setupCandidatesExamined=0;
+ let frontier=[root],best=null,matchOnlyAlternative=null,expanded=0,layers=0,setupCandidatesExamined=0;
  for(let d=0;d<depth;d++){
   const next=[];
   for(const node of frontier){
    if(node.game.won||node.game.lost||node.wallet<=0)continue;
-   const setups=allowSetups&&d<depth-1?rankedSetupMoves(node.game,Math.min(2,actions-1)):[];
+   const setups=allowSetups&&d<depth-1?rankedSetupMoves(node.game,Math.min(1,actions-1)):[];
    const immediate=rankedMoves(node.game,actions-setups.length);
    for(const move of [...immediate,...setups]){
     if(expanded>=maxNodes)break;
@@ -175,7 +175,11 @@ function search(g,opts={}){
     // A setup move cannot be rewarded as completed goal progress. Small
     // heuristic promise instead keeps it in the beam until a follow-up
     // engine simulation can verify whether it actually helped.
-    if(move.setup)child.value+=Math.min(95,move.score);
+    // A real setup consumes a move without clearing anything. Penalize its
+    // opportunity cost throughout the hypothetical branch, and accept only
+    // those that can repay it through subsequent actual engine outcomes.
+    child.value-=child.setupMoves*110;
+    if(move.setup)child.value+=Math.min(70,move.score);
     expanded++;
     if(move.setup)setupCandidatesExamined++;
     next.push(child);
@@ -185,6 +189,8 @@ function search(g,opts={}){
   if(!next.length)break;
   next.sort((a,b)=>b.value-a.value||a.first[0]-b.first[0]||a.first[1]-b.first[1]);
   const winning=next.find(n=>n.game.won);
+  const comparable=next.find(n=>n.setupMoves===0);
+  matchOnlyAlternative=comparable||null;
   layers++;
   if(winning){best=winning;break;}
   frontier=next.slice(0,beamSize);
@@ -193,10 +199,18 @@ function search(g,opts={}){
   // next turn can prove whether its construction was worthwhile.
   if(allowSetups&&d===0&&depth>1&&beamSize>1){
    const setup=next.find(n=>n.firstSetup);
-   if(setup&&!frontier.includes(setup))frontier[frontier.length-1]=setup;
+   if(setup&&!frontier.includes(setup)&&
+    setup.value>=frontier[frontier.length-1].value-125)
+    frontier[frontier.length-1]=setup;
   }
   best=frontier[0];
  }
+ // Never spend a real daily move on a speculative setup if a completely
+ // matched-only path in the SAME horizon performs nearly as well. A short
+ // rollout can reward lucky future RNG; require substantive evidence.
+ if(best?.firstSetup&&!best.game.won&&matchOnlyAlternative&&
+  best.value<matchOnlyAlternative.value+80)
+  best=matchOnlyAlternative;
  return {move:best?.first||null,expanded,layers,score:best?.value??null,
   setupSelected:!!best?.firstSetup,setupMovesInPath:best?.setupMoves??0,
   setupCandidatesExamined,
