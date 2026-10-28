@@ -209,6 +209,27 @@ bool selfTest(std::string& report){
   if(held.holdUses(HoldKind::Butter)||held.holdUses(HoldKind::Jam)||
      held.cell(candidate).hold)
    throw std::runtime_error("held nut reset invariant");
+  // A nonmatching legal swap must carry a hold with the nut, not leave it
+  // attached to the original coordinate. Search rather than hardcode a pair.
+  bool carried=false;
+  for(int a=0;a<held.size()&&!carried;++a) {
+   for(int b:{a+1,a+held.width()}) {
+    if(b>=held.size()||
+       std::abs(a/held.width()-b/held.width())+
+       std::abs(a%held.width()-b%held.width())!=1||
+       held.cell(a).type<0||held.cell(b).type<0||
+       held.cell(a).pinned()||held.cell(b).pinned())continue;
+    Board trial(1,7919);
+    if(!trial.applyHold(HoldKind::Butter,a))continue;
+    const Turn moved=trial.swap(a,b);
+    if(moved.valid&&moved.cleared==0) {
+     if(trial.cell(a).hold!=0||trial.cell(b).hold!=1)
+      throw std::runtime_error("held nut failed to travel with swap payload");
+     carried=true;
+    }
+   }
+  }
+  if(!carried)throw std::runtime_error("No nonmatching held-nut swap fixture");
   report="PASS 1000 source-authored native stages, moves, gravity and held-nut simulation invariants";
   return true;
  }catch(const std::exception& e){report=std::string("FAIL native campaign: ")+e.what();return false;}
