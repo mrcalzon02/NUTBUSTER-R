@@ -43,6 +43,19 @@ public final class MainActivity extends Activity {
                 });
             }
         }, "NUTBUSTER_UPDATE_BRIDGE");
+        // Fixed, allowlisted destination. The offline WebView must not navigate to GitHub.
+        game.addJavascriptInterface(new Object() {
+            @JavascriptInterface public void openJewelBrookReleases() {
+                runOnUiThread(() -> {
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("https://github.com/mrcalzon02/Jewel_Brook/releases")));
+                    } catch (ActivityNotFoundException unavailable) {
+                        showUpdateStatus("No browser available to open Jewel Brook releases.");
+                    }
+                });
+            }
+        }, "NUTBUSTER_PROMO_BRIDGE");
         game.addJavascriptInterface(new Object() {
             @JavascriptInterface public void shareInvite() {
                 runOnUiThread(() -> {

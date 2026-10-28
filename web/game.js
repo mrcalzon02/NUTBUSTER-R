@@ -140,8 +140,9 @@ function homeNews(){
   '<div class="release-news-viewport" aria-label="'+newsEscape(news.headline)+'"><div class="release-news-ticker"><span class="release-news-stream">'+copy+'</span><span class="release-news-stream" aria-hidden="true">'+copy+'</span></div></div>'+
   '<details class="release-news-details"><summary>READ WHAT CHANGED</summary><ul>'+items.map(item=>'<li><b>'+newsEscape(item.title)+'</b>: '+newsEscape(item.detail)+'</li>').join('')+'</ul></details></section>';
 }
+function jewelBrookPromo(){return '<a class="jewel-brook-banner" href="https://github.com/mrcalzon02/Jewel_Brook/releases" target="_blank" rel="noopener noreferrer" aria-label="Jewel Brook: Heroes of Embryon GitHub releases"><img src="art/banners/jewel-brook-banner-wide.webp" width="939" height="203" alt="Jewel Brook: Heroes of Embryon — view GitHub releases" loading="eager" decoding="async"></a>';}
 function home(){return `${homeTitleCard()}
- ${homeNews()}
+ ${jewelBrookPromo()}${homeNews()}
  <p class="daily-move-indicator">DAILY MOVES ${movesLeft()} / ${saved.dailyMoves.base}</p><div class="space"></div><div class="actions"><button class="btn green" data-action="play" data-level="${Math.min(1000,saved.unlocked)}">${homeMenuIcon('play')}PLAY NOW</button><button class="btn secondary" data-nav="campaign">${homeMenuIcon('campaign')}LEVEL MAP</button><button class="btn secondary" data-nav="homestead">${homeMenuIcon('homestead')}NUTVALE HOMESTEAD</button><button class="btn secondary" data-nav="companions">${homeMenuIcon('companions')}WOODLAND COMPANIONS</button><button class="btn secondary" data-nav="mines">${homeMenuIcon('mines','ui-icon mine-home-icon')} NUTVALE MINES</button><button class="btn secondary" data-nav="wharf">${homeMenuIcon('wharf','ui-icon wharf-menu-icon')}NUTVALE WHARF</button><button class="btn secondary" data-nav="codex">${homeMenuIcon('codex')}NUT INDEX</button><button class="btn secondary" data-action="invite">${homeMenuIcon('invite')}INVITE FRIENDS</button><button class="btn secondary" data-nav="shop">${homeMenuIcon('shop')}SHOP</button><button class="btn secondary" data-nav="settings">${homeMenuIcon('settings')}SETTINGS</button><button class="btn ghost" data-action="sound">${homeMenuIcon(state.sound?'voice-on':'voice-off')}${state.sound?'Voice On':'Voice Off'}</button><button class="btn ghost" data-action="music">${homeMenuIcon(state.music?'music-on':'music-off')}${state.music?'Music On':'Music Off'}</button><button class="btn ghost" data-action="effects">${homeMenuIcon('effects')}${state.effects?'Effects On':'Effects Off'}</button></div>
  <h2 class="section">Your entirely unnecessary privileges</h2><div class="tiles-row"><div class="panel mini-card">${homeMenuIcon('life','home-privilege-icon')}<b>${saved.hearts}/5 Lives</b>${freeClaimButton("hearts","refill","REDEEM FREE REFILL")}${freeClaimButton("moves","bonus-moves","REDEEM +5 MOVES")}</div><div class="panel mini-card">${homeMenuIcon('vip','home-privilege-icon')}<b>${saved.vip?'VIP ACTIVE · LIFETIME':'VIP STATUS'}</b><small>+5 daily moves · 4 daily boosters · +250 nuts</small><button class="btn ghost" data-action="vip">${saved.vip?'VIEW VIP BENEFITS':'VIP BENEFITS · $2.99'}</button></div><div class="panel mini-card">${homeMenuIcon('daily','home-privilege-icon')}<b>Daily Loot</b><button class="btn ghost" data-action="daily" ${saved.dailyLootDay===lootDay()?"disabled":""}>${saved.dailyLootDay===lootDay()?"CLAIMED TODAY":"CLAIM BONUS"}</button><button class="btn secondary" data-action="ad-daily" ${saved.fakeAdDailyDay===Ads?.dayKey()?"disabled":""}>${saved.fakeAdDailyDay===Ads?.dayKey()?"📺 AD BONUS CLAIMED":"📺 WATCH · 750 NUTS + HAMMER"}</button></div></div>
  <div class="panel center"><b>FEATURED NUT EMPORIUM OFFERS</b><p class="muted">Optional bundles, modest sticker prices, and no artificial countdowns.</p><button class="btn secondary" data-nav="shop">EXPLORE OFFERS</button></div>`;}
@@ -1303,7 +1304,12 @@ function action(a,button){
   render();window.NutFX?.emit(a==='chest'?'chest-open':'coin-shower');return;
  }
 }
-screen.addEventListener('click',e=>{window.NutAudio?.unlock();window.NutSFX?.unlock();if(Date.now()<swipeGuard)return;
+screen.addEventListener('click',e=>{
+ const jewelBrookLink=e.target.closest?.('a.jewel-brook-banner');
+ if(jewelBrookLink&&window.NUTBUSTER_PROMO_BRIDGE?.openJewelBrookReleases){
+  e.preventDefault();window.NUTBUSTER_PROMO_BRIDGE.openJewelBrookReleases();return;
+ }
+ window.NutAudio?.unlock();window.NutSFX?.unlock();if(Date.now()<swipeGuard)return;
  const target=e.target.closest('button');if(!target||state.animating)return;
  if(state.nutdexOpen&&target.dataset.action!=='nutdex-close'&&target.dataset.action!=='codex-tab')return;
  window.NutAudio?.grunt?.();

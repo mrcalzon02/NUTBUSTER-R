@@ -365,6 +365,23 @@
         "linux": "Independent native SDL3 Menu scene has no Rupee Rush image or promotion to remove; native gameplay parity remains preview-partial."
       },
       "decision": "Presentation-only retirement; no native gameplay code change or feature-coverage upgrade is justified. Keep native preview parity gates and known gaps unchanged."
+    },
+    {
+      "id": "jewel-brook-approved-crosspromo-2026-10-28",
+      "sourceChange": [
+        "web/game.js",
+        "web/style.css",
+        "android/app/src/main/java/io/github/mrcalzon02/nutbuster/MainActivity.java",
+        "web/art/banners/jewel-brook-banner-wide.webp"
+      ],
+      "test": "tests/jewel-brook-banner.test.js",
+      "targetImpact": {
+        "android": "Approved Jewel Brook wide campaign banner renders from locally packaged WebP and opens the verified Jewel_Brook GitHub releases index in an external browser through a fixed allowlisted Java bridge.",
+        "fire_os": "Identical signed Android APK uses the same locally packaged banner and fixed Java external-browser intent; physical Fire OS device testing remains pending.",
+        "windows": "Independent native SDL3 preview does not yet have cross-promotion banner UI or external URL action; its existing feature gaps and preview-only status remain unchanged.",
+        "linux": "Independent native SDL3 preview does not yet have cross-promotion banner UI or external URL action; its existing feature gaps and preview-only status remain unchanged."
+      },
+      "decision": "Cross-promotional presentation change on the shared mobile home screen only; explicitly account for the unimplemented native preview banner rather than silently claiming four-target feature parity."
     }
   ]
 }

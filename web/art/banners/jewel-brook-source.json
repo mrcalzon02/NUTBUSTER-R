@@ -1,0 +1,15 @@
+{
+  "schema": "nutbuster.cross-promotion/v1",
+  "publicTitle": "Jewel Brook: Heroes of Embryon",
+  "sourceRepository": "mrcalzon02/Jewel_Brook",
+  "sourceCommit": "678b8f399ccf4998caea5ceea3e21c48686b4104",
+  "sourcePath": "web/art/embryon/branding/jewelbrook/banner-wide.webp",
+  "sourceGitBlobSha": "5ab359eca40ea9309f3c47091a072cc168bb4165",
+  "sourceSha256": "5455284b55d0114a4a522e8b747b7f8b195e31d831a7ddb8d68fe4fd62b907b9",
+  "destinationPath": "web/art/banners/jewel-brook-banner-wide.webp",
+  "width": 939,
+  "height": 203,
+  "bytes": 115192,
+  "releaseUrl": "https://github.com/mrcalzon02/Jewel_Brook/releases",
+  "releaseLinkPolicy": "Use /releases, not /releases/latest: Jewel Brook currently publishes prereleases."
+}
