@@ -4,11 +4,12 @@
   "changes": [
     {
       "title": "Retire the Rupee Rush coming-soon banner",
-      "detail": "Remove the unapproved-name advert and its unused banner styling from the home screen without affecting the independent release-news ticker or home navigation. Replace the obsolete render requirement with a regression test that prevents the retired advert returning.",
+      "detail": "Remove the obsolete coming-soon advert and its styling, retain release news and home navigation, add a regression guard, and record an explicit Android/Fire OS versus native Windows/Linux parity review. Desktop has no corresponding advert and existing native gameplay gaps remain unchanged.",
       "files": [
         "web/game.js",
         "web/style.css",
-        "tests/rupee-rush-banner.test.js"
+        "tests/rupee-rush-banner.test.js",
+        "config/platform-parity.json"
       ]
     },
     {

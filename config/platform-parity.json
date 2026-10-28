@@ -349,5 +349,22 @@
       "native": "not-ported",
       "gap": "Native economy item illustrations and fully matching catalog presentation are incomplete."
     }
+  ],
+  "presentationChangeReviews": [
+    {
+      "id": "retire-rupee-rush-home-promotion-2026-10-27",
+      "sourceChange": [
+        "web/game.js",
+        "web/style.css"
+      ],
+      "test": "tests/rupee-rush-banner.test.js",
+      "targetImpact": {
+        "android": "Removed obsolete coming-soon promotional image from shared mobile home menu; unrelated release ticker and actions stay intact.",
+        "fire_os": "Uses the exact same mobile home menu and signed APK as Android, so the retired promotion is removed identically.",
+        "windows": "Independent native SDL3 Menu scene has no Rupee Rush image or promotion to remove; native gameplay parity remains preview-partial.",
+        "linux": "Independent native SDL3 Menu scene has no Rupee Rush image or promotion to remove; native gameplay parity remains preview-partial."
+      },
+      "decision": "Presentation-only retirement; no native gameplay code change or feature-coverage upgrade is justified. Keep native preview parity gates and known gaps unchanged."
+    }
   ]
 }

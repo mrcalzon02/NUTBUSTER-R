@@ -14,6 +14,13 @@ assert.doesNotMatch(css,/\.rr-banner\b/,'Retired banner styles must not reserve 
 assert.ok(home.includes('homeNews()'),'Retain the independent release-news ticker');
 assert.ok(home.includes('homeTitleCard()'),'Retain Nut Buster title and navigation');
 assert.match(home,/data-nav="wharf"/,'Retain established navigation');
+const native=fs.readFileSync(path.join(root,'native/src/main.cpp'),'utf8');
+assert.doesNotMatch(native,/Rupee Rush|rupee-rush-coming-soon|rr-banner/i,'Native SDL3 menu must not display the retired advert');
+const parity=JSON.parse(fs.readFileSync(path.join(root,'config/platform-parity.json'),'utf8'));
+const review=parity.presentationChangeReviews?.find(entry=>entry.id==='retire-rupee-rush-home-promotion-2026-10-27');
+assert.ok(review,'Explicit four-platform presentation parity review is required');
+assert.deepEqual(Object.keys(review.targetImpact).sort(),['android','fire_os','linux','windows']);
+assert.match(review.decision,/no native gameplay code change/i);
 const art=path.join(root,'web/art/banners/rupee-rush-coming-soon.png');
 assert.ok(fs.existsSync(art),'Preserve original illustration for separate approved rebrand');
 console.log('PASS: home removes retired Rupee Rush advertisement, preserves news/navigation/art');
