@@ -105,10 +105,14 @@
       "mobileTests": [
         "tests/engine.test.js"
       ],
-      "nativeSources": [],
+      "nativeSources": [
+        "native/src/core.cpp",
+        "native/src/hold.hpp",
+        "native/src/hold_parity_test.cpp"
+      ],
       "mobile": "functionally-tested",
-      "native": "not-ported",
-      "gap": "Implement source booster rules, approved icons, inventory and verified native interactions."
+      "native": "preview-partial",
+      "gap": "Butter/Jam held-nut simulation and JS parity fixtures implemented; no native booster inventory, user interaction, approved icon, shop, other boosters or special-combo parity yet."
     },
     {
       "id": "elemental-challenges",
