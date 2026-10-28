@@ -18,6 +18,10 @@ function validResult(r,cap,label,max){
   r.simulatedSwaps<=r.decisions*MAX_NODES_PER_DECISION&&
   r.maxSimulatedSwapsPerDecision<=MAX_NODES_PER_DECISION&&
   Number.isInteger(r.predictedWins)&&r.predictedWins>=0&&r.predictedWins<=r.decisions&&
+  Number.isInteger(r.setupChoices)&&r.setupChoices>=0&&r.setupChoices<=r.decisions&&
+  Number.isInteger(r.setupCandidatesExamined)&&r.setupCandidatesExamined>=0&&
+  r.setupChoices<=r.setupCandidatesExamined&&
+  r.setupCandidatesExamined<=r.simulatedSwaps&&
   r.failure&&r.failure.reason===(r.won?'won':r.remainingMoves===0?'daily-moves-exhausted':'engine-ended-with-wallet-remaining')&&
   r.failure.hazardPenaltyMoves===r.debitedMoves-r.failure.swaps&&
   r.failure.expiredFuses===r.hazardExpirations&&
@@ -27,6 +31,7 @@ function validResult(r,cap,label,max){
 }
 function review(raw,base){
  check(raw&&raw.schema===1&&raw.kind==='ENGINE_FORK_THREE_PLY_PLANNING_NO_BALANCE_CHANGES'&&
+  raw.strategyComparison==='MATCH_ONLY_VS_SETUP_AWARE'&&
   raw.dailyAllowanceModel==='FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET'&&
   raw.seedsPerStage===SEEDS&&raw.attempts===LEVELS.length*SEEDS&&
   JSON.stringify(raw.stages)===JSON.stringify(LEVELS)&&
@@ -44,7 +49,11 @@ function review(raw,base){
    Number.isInteger(x.dailyAllotment)&&x.dailyAllotment>=12&&x.dailyAllotment<=36,
    'sample stage or original seed differs at index '+i);
   validResult(x.objective,x.dailyAllotment,level+'/'+trial+' objective',0);
-  validResult(x.planned,x.dailyAllotment,level+'/'+trial+' planned',0);
+  validResult(x.matchOnly,x.dailyAllotment,level+'/'+trial+' match-only',0);
+  validResult(x.planned,x.dailyAllotment,level+'/'+trial+' setup-aware',0);
+  check(x.matchOnly.setupChoices===0&&x.matchOnly.setupCandidatesExamined===0&&
+   x.objective.setupChoices===0&&x.objective.setupCandidatesExamined===0,
+   'control policies illegally considered or selected setup moves at '+level+'/'+trial);
   check(x.objective.decisions===0&&x.objective.simulatedSwaps===0,
    'baseline used search without authorization');
   if(trial===0){
@@ -65,14 +74,20 @@ function review(raw,base){
    q+(o.target>0?Math.min(1,o.value/o.target):1),0)/p[k].failure.objectives.length,0)/losses.length).toFixed(1):null;
  };
  const aggregate=a=>({
-  attempts:a.length,objectiveWins:count(a,'objective'),plannedWins:count(a,'planned'),
+  attempts:a.length,objectiveWins:count(a,'objective'),
+  matchOnlyWins:count(a,'matchOnly'),plannedWins:count(a,'planned'),
   exactOnePlyWins:count(a.filter(x=>x.trial===0),'exactOnePly'),
   plannedHammerWins:count(a.filter(x=>x.trial===0),'plannedHammer'),
   hammerUsed:a.filter(x=>x.trial===0).reduce((s,x)=>s+x.plannedHammer.hammerUsed,0),
   plannedSimulatedSwaps:a.reduce((s,x)=>s+x.planned.simulatedSwaps,0),
+  matchOnlySimulatedSwaps:a.reduce((s,x)=>s+x.matchOnly.simulatedSwaps,0),
+  setupChoices:a.reduce((s,x)=>s+x.planned.setupChoices,0),
+  setupCandidatesExamined:a.reduce((s,x)=>s+x.planned.setupCandidatesExamined,0),
   plannedHazards:a.reduce((s,x)=>s+x.planned.failure.hazardPenaltyMoves,0),
+  matchOnlyHazards:a.reduce((s,x)=>s+x.matchOnly.failure.hazardPenaltyMoves,0),
   objectiveHazards:a.reduce((s,x)=>s+x.objective.failure.hazardPenaltyMoves,0),
   objectiveLossProgressPct:progress(a,'objective'),
+  matchOnlyLossProgressPct:progress(a,'matchOnly'),
   plannedLossProgressPct:progress(a,'planned'),
   plannedFallbacks:a.reduce((s,x)=>s+x.planned.policyFallbacks,0)
  });
@@ -88,16 +103,20 @@ function markdown(r){
  t+='**Matched samples:** '+r.fixedLevels.join(', ')+'; '+r.seedsPerStage+' seeds per level. Exact live engine with cascade RNG, fuse debit, objective scoring, and fresh daily wallets.\n\n';
  const x=r.overall;
  t+='**Results:** objective-aware '+x.objectiveWins+'/'+x.attempts+
-  ' wins; 3-ply planner '+x.plannedWins+'/'+x.attempts+
+  ' wins; match-only 3-ply '+x.matchOnlyWins+'/'+x.attempts+
+  '; setup-aware 3-ply '+x.plannedWins+'/'+x.attempts+
   '; exact one-ply '+x.exactOnePlyWins+'/'+r.fixedLevels.length+
   '; planner with one emergency Hammer '+x.plannedHammerWins+'/'+r.fixedLevels.length+
   ' ('+x.hammerUsed+' actual Hammers). '+x.plannedSimulatedSwaps+
-  ' real-engine hypothetical swaps, strict per-decision search cap '+r.budget.maxNodes+'.\n\n';
- t+='| Chapter | Tested stages | One-ply objective wins | Three-ply wins | Goal progress on losses: objective vs planner | Fuse penalty moves: objective vs planner |\n|---|---|---:|---:|---|---|\n';
+  ' setup-aware real-engine hypothetical swaps, strict per-decision search cap '+r.budget.maxNodes+
+  '. Setup actions actually selected '+x.setupChoices+' times, from '+x.setupCandidatesExamined+
+  ' hypothetical nonmatching candidate simulations.\n\n';
+ t+='| Chapter | Tested stages | Objective wins | Match-only planner wins | Setup-aware planner wins | Goal completion on losses: match-only vs setup-aware | Setup swaps selected |\n|---|---|---:|---:|---:|---|---:|\n';
  for(const c of r.chapters){if(!c.attempts)continue;
   t+='| '+c.chapter+' | '+c.levels.join(', ')+' | '+c.objectiveWins+'/'+c.attempts+
-   ' | '+c.plannedWins+'/'+c.attempts+' | '+c.objectiveLossProgressPct+'% vs '+
-   c.plannedLossProgressPct+'% | '+c.objectiveHazards+' vs '+c.plannedHazards+' |\n';
+   ' | '+c.matchOnlyWins+'/'+c.attempts+' | '+c.plannedWins+'/'+c.attempts+
+   ' | '+c.matchOnlyLossProgressPct+'% vs '+c.plannedLossProgressPct+
+   '% | '+c.setupChoices+' |\n';
  }
  t+='\nPlanner outcomes can be worse as well as better; a three-turn bounded search does **not** demonstrate level solvability or authorize balance reductions.\n';
  return t;

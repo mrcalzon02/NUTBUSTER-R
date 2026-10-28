@@ -7,12 +7,15 @@ const {search}=require('./planning-policy.js');
 const LEVELS=Object.freeze([210,300,400,500,600,700,720,800,860,900,980,1000]);
 const SEEDS=2,MAX_NODES_PER_DECISION=40;
 function runOne(level,trial,policy,hammer=false){
- let decisions=0,expanded=0,maxExpanded=0,searchWinHints=0;
+ let decisions=0,expanded=0,maxExpanded=0,searchWinHints=0,setupChoices=0,setupCandidatesExamined=0;
  const wrapped=policy==='objective'?chooseStrategic:g=>{
   const r=search(g,policy==='one-ply'?{depth:1,beam:1,actions:4,maxNodes:4}:
-   {depth:3,beam:3,actions:4,maxNodes:MAX_NODES_PER_DECISION});
+   {depth:3,beam:3,actions:4,maxNodes:MAX_NODES_PER_DECISION,
+    allowSetups:policy==='three-ply'});
   decisions++;expanded+=r.expanded;maxExpanded=Math.max(maxExpanded,r.expanded);
   searchWinHints+=Number(r.wonInSearch);
+  setupChoices+=Number(r.setupSelected);
+  setupCandidatesExamined+=r.setupCandidatesExamined;
   return r.move;
  };
  const result=play(level,trial,hammer,wrapped);
@@ -21,15 +24,17 @@ function runOne(level,trial,policy,hammer=false){
   debitedMoves:result.debitedMoves,earnedRefunds:result.earnedRefunds,
   hazardExpirations:result.hazards,policyFallbacks:result.policyFallbacks,
   decisions,simulatedSwaps:expanded,maxSimulatedSwapsPerDecision:maxExpanded,
-  predictedWins:searchWinHints,failure:result.failure};
+  predictedWins:searchWinHints,setupChoices,setupCandidatesExamined,
+  failure:result.failure};
 }
 function run(){
  const probes=[];
  for(const level of LEVELS)for(let trial=0;trial<SEEDS;trial++){
   const objective=runOne(level,trial,'objective');
+  const matchOnly=runOne(level,trial,'match-only');
   const planned=runOne(level,trial,'three-ply');
   const probe={level,trial,seed:level*16321+trial*7093+11,
-   dailyAllotment:objective.dailyAllotment,objective,planned};
+   dailyAllotment:objective.dailyAllotment,objective,matchOnly,planned};
   if(trial===0){
    probe.exactOnePly=runOne(level,trial,'one-ply');
    probe.plannedHammer=runOne(level,trial,'three-ply',true);
@@ -37,7 +42,8 @@ function run(){
   probes.push(probe);
  }
  return {schema:1,kind:'ENGINE_FORK_THREE_PLY_PLANNING_NO_BALANCE_CHANGES',
-  description:'Original authored boards; exact seeded NutEngine cascades and hazard/wallet costs; bounded beam depth 3, width 3, top 4 actions, maximum 40 simulated swaps per decision. Outcome is not proof of solvability or human completion rates.',
+  description:'Matched exact-engine three-ply strategies with and without legal nonmatching setup swaps, original objective-aware bot and a one-Hammer control. No altered authored goals, moves or booster inventory. Neither success nor failure predicts human skill.',
+  strategyComparison:'MATCH_ONLY_VS_SETUP_AWARE',
   stages:[...LEVELS],seedsPerStage:SEEDS,attempts:probes.length,
   budget:{depth:3,beam:3,actions:4,maxNodes:MAX_NODES_PER_DECISION},
   dailyAllowanceModel:'FRESH_LEVEL_SPECIFIC_24_HOUR_WALLET',

@@ -27,3 +27,13 @@ The policy has three strict properties:
 GitHub Actions runs `tests/planning-policy.test.js` and `tests/planning-integration.test.js` as **report-only** suites. The full seeded planner benchmark is a separate report-only step. It writes `nutbuster-planning-probe.json` (the complete per-attempt evidence) and `nutbuster-planning-summary.json` (validated summary) into the diagnostics artifact, plus a comparison in the workflow Summary.
 
 All signed Android/Fire publication remains gated solely on required functional tests, not exploratory planning. Native Windows/Linux parity is unaffected. Do not alter gameplay difficulty solely to make these bots win. If the planner cannot solve a stage, inspect failure-causes first and test more seeds or deeper explicitly bounded planning before proposing adjustments.
+
+## Setup-aware planning versus match-only control (follow-up)
+
+The planner can now consider a **legal deliberately nonmatching swap**, rather than exclusively swaps which clear tiles immediately. This is still an engine move: it consumes one daily move, can advance hazards, and does not receive fake points or boosters. The change is *only* to diagnostic policy in `tools/planning-policy.js`, never to live `web/engine.js` or game stage data.
+
+Candidate screening keeps up to two setup swaps alongside immediate matches, chooses potentially useful tile alignments, and probes the best few for next-swap match possibilities. Every speculative tile exchange is reversed before evaluation finishes, without consuming the game's random stream. A reserved root beam slot gives one setup candidate a chance to be tested against subsequent actual NutEngine swaps, rather than discarding it solely for having zero immediate progress. The final selection still compares real objective progress and daily move costs; no nonmatch is treated as a free action.
+
+The paired benchmark now has **five distinct policies**: objective-aware one-turn, exact-engine one-ply, three-ply match-only, three-ply setup-aware, and setup-aware with at most one hypothetical emergency Hammer (trial 0 only). Both three-ply policies use identical fixed stages, seeds, allowances, and search budgets. Evidence counts setup candidates actually simulated and real setup moves selected, in addition to wins, goal completion and fuse penalties. This prevents attributing an ordinary planner improvement to setup moves that were never executed.
+
+The diagnostic suite checks that an offered setup is adjacent, makes no immediate score-producing match, survives a genuine engine swap, preserves the source board and RNG, and replays deterministically. No outcome can prove an arbitrary level impossible; these fixed two-seed samples remain exploratory.

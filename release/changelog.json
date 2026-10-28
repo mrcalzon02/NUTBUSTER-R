@@ -1,12 +1,29 @@
 {
   "schema": 1,
-  "headline": "Strengthen release-news length validation for AI planning updates",
+  "headline": "Evaluate strategic setup moves without changing campaign difficulty",
   "changes": [
     {
-      "title": "Test release-note field boundaries during optional validation",
-      "detail": "The three-ply planner and replay checks passed. A release description was longer than the repository's permitted 300 characters; this correction adds explicit tests at the 300/301-character boundary and rejects overlong titles without weakening the source-change audit.",
+      "title": "Test deliberate nonmatching setup moves inside engine-backed lookahead",
+      "detail": "The diagnostic planner now considers up to two legal nonmatching swaps that may build better next-turn matches, then checks the consequences through actual engine simulation. Setup moves still consume daily moves and cannot fabricate points.",
       "files": [
-        "tests/release-news.test.js"
+        "tools/planning-policy.js"
+      ]
+    },
+    {
+      "title": "Measure setup-aware planning against the original match-only planner",
+      "detail": "Identical late-stage seeds and search budgets now compare the objective bot, match-only three-turn search, setup-aware search, and a separate limited-Hammer variant. Reports count both setup candidates evaluated and setup moves actually selected.",
+      "files": [
+        "tools/planning-integration.js",
+        "tools/planning-report.js"
+      ]
+    },
+    {
+      "title": "Verify candidate legality, deterministic branch isolation, and reproducible reporting",
+      "detail": "New diagnostic assertions confirm setup moves do not immediately score, undo speculative tile changes, retain the random stream, and remain within strict per-turn limits. Documentation explains the bounded-search limitations.",
+      "files": [
+        "tests/planning-policy.test.js",
+        "tests/planning-integration.test.js",
+        "docs/diagnostics/PLANNING_PLAYER_INTEGRATION_2026-10-27.md"
       ]
     }
   ]

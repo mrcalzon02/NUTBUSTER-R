@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const E=require('../web/engine.js');
 const D=require('../web/daily-moves.js');
 const {play,chooseStrategic}=require('../tools/greedy-playtest.js');
-const {forward,reverse,adoptRandom,fork,rankedMoves,advance,search}=require('../tools/planning-policy.js');
+const {forward,reverse,adoptRandom,fork,rankedMoves,rankedSetupMoves,followupPotential,advance,search}=require('../tools/planning-policy.js');
 for(const state of [1,2,0x12345678,0xffffffff,0x9e3779b9,0x80000001])
  assert.equal(reverse(forward(state)),state>>>0,'Reversible xorshift state for '+state);
 for(const level of [1,37,210,720,980]){
@@ -61,6 +61,38 @@ for(const n of [37,210]){
  assert.equal(first.debitedMoves-first.earnedRefunds,first.spentMoves);
  assert.equal(first.dailyAllotment,E.makeLevel(n).moves);
 }
+// A setup swap is a LEGAL engine move which intentionally makes no immediate
+// match. Test next-turn potential and ensure the candidate screening never
+// changes nut identities, the board, or future cascade randomness.
+let setupChecks=0;
+for(const level of [37,210,400]){
+ for(const seed of [level*16321+11,level*16321+7104]){
+  const g=E.create(level,seed),snapshot=JSON.stringify(E.snapshot(g));
+  adoptRandom(g);
+  const priorRandom=g.rand.getState();
+  const first=followupPotential(g);
+  const setups=rankedSetupMoves(g,2);
+  assert.equal(JSON.stringify(E.snapshot(g)),snapshot,'Setup ranking cannot leave board swaps behind');
+  assert.equal(g.rand.getState(),priorRandom,'Potential scanning cannot consume real RNG');
+  assert.ok(first.best>=0&&setups.length<=2);
+  for(const option of setups){
+   assert.ok(option.setup&&option.followupMatchSize>=3);
+   const trial=fork(g);
+   const move=E.swap(trial,option.a,option.b);
+   assert.equal(move.valid,true,'Setup must be a valid real engine move');
+   assert.equal(move.loops,0,'Setup cannot secretly be an immediate scoring swap');
+   assert.equal(move.removed,0,'Setup must not be counted as a scoring cascade');
+   assert.deepEqual(option.setup,true);
+   setupChecks++;
+  }
+  const a=search(g,{depth:3,beam:3,actions:4,maxNodes:40,allowSetups:true});
+  const b=search(g,{depth:3,beam:3,actions:4,maxNodes:40,allowSetups:true});
+  assert.deepEqual(a,b,'Seeded search including setup branches must replay');
+  assert.ok(a.expanded<=40&&a.setupCandidatesExamined<=a.expanded);
+  assert.equal(JSON.stringify(E.snapshot(g)),snapshot,'Searching setup branches must preserve live board');
+ }
+}
+assert.ok(setupChecks>=1,'The chosen deterministic boards must exercise genuine nonmatching setup candidates');
 assert.throws(()=>search(E.create(1,123),{depth:50}),/budget exceeds/);
 assert.ok(chooseStrategic(E.create(37,42)),'Original strategy remains present');
 console.log('PASS: deterministic forked RNG, branch isolation, exact engine cascades/wallet and replayable bounded planning');

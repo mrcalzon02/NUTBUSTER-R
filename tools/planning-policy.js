@@ -42,6 +42,79 @@ function rankedMoves(g,limit){
  all.sort((u,v)=>v.score-u.score||u.a-v.a||u.b-v.b);
  return all.slice(0,limit);
 }
+// Nonmatching set-up swaps consume a real daily move, but may construct a
+// better follow-up match. Rank them separately so greedy match scoring never
+// pretends they immediately earn points or bypass an actual engine swap.
+const MOVABLE=['type','special','hold','elemental'];
+function swapMovables(a,b){for(const k of MOVABLE){const v=a[k];a[k]=b[k];b[k]=v;}}
+function nearbyPairs(g){
+ const w=g.cfg.width;
+ let pairs=0;
+ for(let i=0;i<g.cells.length;i++){
+  const a=g.cells[i];
+  if(!a||a.type===null)continue;
+  for(const j of [i+1,i+w]){
+   if(!E.adjacent(g,i,j))continue;
+   if(g.cells[j].type===a.type)pairs++;
+  }
+ }
+ return pairs;
+}
+function followupPotential(g){
+ let best=0,bestFour=0;
+ const w=g.cfg.width;
+ for(let a=0;a<g.cells.length;a++)for(const b of [a+1,a+w]){
+  if(!E.adjacent(g,a,b))continue;
+  const x=g.cells[a],y=g.cells[b];
+  // Two-special swaps are immediately legal, not a setup candidate,
+  // but they may be an especially useful next turn.
+  if(x.special||y.special){best=Math.max(best,4);continue;}
+  const left=x.type,right=y.type;
+  x.type=right;y.type=left;
+  const f=E.matches(g);
+  x.type=left;y.type=right; // restore original types
+  if(f.hit.size){
+   best=Math.max(best,f.hit.size);
+   if(f.groups.some(group=>group.length>=4))bestFour=1;
+  }
+ }
+ return {best,bestFour};
+}
+function rankedSetupMoves(g,limit=2){
+ if(limit<=0)return [];
+ const basePairs=nearbyPairs(g),candidate=[],w=g.cfg.width;
+ // Phase 1: cheap structural scoring over each legal swap, with no RNG or
+ // game-state mutations after each candidate.
+ for(let a=0;a<g.cells.length;a++)for(const b of [a+1,a+w]){
+  if(!E.adjacent(g,a,b))continue;
+  const x=g.cells[a],y=g.cells[b];
+  if(x.special||y.special||x.type===y.type)continue;
+  swapMovables(x,y);
+  try{
+   if(E.matches(g).hit.size)continue; // An immediate match is NOT a setup.
+   const potential=nearbyPairs(g)-basePairs;
+   if(potential>0)candidate.push({a,b,potential});
+  }finally{swapMovables(x,y);}
+ }
+ candidate.sort((u,v)=>v.potential-u.potential||u.a-v.a||u.b-v.b);
+ const ranked=[];
+ // Phase 2: exact next-swap match potential on only a tiny shortlist.
+ // This does not claim that the match will survive fuse/hazard resolution;
+ // the beam's actual NutEngine.swap call tests that.
+ for(const move of candidate.slice(0,Math.max(6,limit*4))){
+  const x=g.cells[move.a],y=g.cells[move.b];
+  swapMovables(x,y);
+  try{
+   const next=followupPotential(g);
+   if(next.best>=3)ranked.push({...move,
+    score:next.best*8+next.bestFour*32+move.potential*3,
+    followupMatchSize:next.best,followupCreatesSpecial:!!next.bestFour,
+    setup:true});
+  }finally{swapMovables(x,y);}
+ }
+ ranked.sort((a,b)=>b.score-a.score||a.a-b.a||a.b-b.b);
+ return ranked.slice(0,limit);
+}
 function score(g,wallet,cap){
  const goals=E.objectiveState(g);
  if(g.won)return 1000000+wallet*2;
@@ -71,6 +144,8 @@ function advance(node,action,cap){
  if(!game.won&&!wallet)game.lost=true;
  if(wallet<0)throw Error('Planner wallet went negative');
  return {game,wallet,first:node.first||[action.a,action.b],
+  firstSetup:node.first?node.firstSetup:!!action.setup,
+  setupMoves:(node.setupMoves||0)+Number(!!action.setup),
   depth:node.depth+1,hazards:node.hazards+(turn.hazards?.expired?.length||0),
   simulations:node.simulations+1,
   value:score(game,wallet,cap)};
@@ -78,23 +153,31 @@ function advance(node,action,cap){
 function search(g,opts={}){
  adoptRandom(g);
  const depth=opts.depth??DEFAULT.depth,beamSize=opts.beam??DEFAULT.beam,
-  actions=opts.actions??DEFAULT.actions,maxNodes=opts.maxNodes??DEFAULT.maxNodes;
+  actions=opts.actions??DEFAULT.actions,maxNodes=opts.maxNodes??DEFAULT.maxNodes,
+  allowSetups=opts.allowSetups??false;
  if(!Number.isInteger(depth)||depth<1||depth>4||
   !Number.isInteger(beamSize)||beamSize<1||beamSize>8||
   !Number.isInteger(actions)||actions<1||actions>12||
-  !Number.isInteger(maxNodes)||maxNodes<1||maxNodes>256)
+  !Number.isInteger(maxNodes)||maxNodes<1||maxNodes>256||typeof allowSetups!=='boolean')
   throw Error('Planning budget exceeds explicitly bounded search');
  const cap=g.cfg.moves,root={game:g,wallet:g.moves,first:null,
-  depth:0,hazards:0,simulations:0,value:score(g,g.moves,cap)};
- let frontier=[root],best=null,expanded=0,layers=0;
+  depth:0,hazards:0,simulations:0,setupMoves:0,firstSetup:false,value:score(g,g.moves,cap)};
+ let frontier=[root],best=null,expanded=0,layers=0,setupCandidatesExamined=0;
  for(let d=0;d<depth;d++){
   const next=[];
   for(const node of frontier){
    if(node.game.won||node.game.lost||node.wallet<=0)continue;
-   for(const move of rankedMoves(node.game,actions)){
+   const setups=allowSetups&&d<depth-1?rankedSetupMoves(node.game,Math.min(2,actions-1)):[];
+   const immediate=rankedMoves(node.game,actions-setups.length);
+   for(const move of [...immediate,...setups]){
     if(expanded>=maxNodes)break;
     const child=advance(node,move,cap);
+    // A setup move cannot be rewarded as completed goal progress. Small
+    // heuristic promise instead keeps it in the beam until a follow-up
+    // engine simulation can verify whether it actually helped.
+    if(move.setup)child.value+=Math.min(95,move.score);
     expanded++;
+    if(move.setup)setupCandidatesExamined++;
     next.push(child);
    }
    if(expanded>=maxNodes)break;
@@ -105,10 +188,19 @@ function search(g,opts={}){
   layers++;
   if(winning){best=winning;break;}
   frontier=next.slice(0,beamSize);
+  // Reserve one beam slot for a genuine nonmatching setup at the root.
+  // Otherwise a cheap immediate match eliminates every setup before the
+  // next turn can prove whether its construction was worthwhile.
+  if(allowSetups&&d===0&&depth>1&&beamSize>1){
+   const setup=next.find(n=>n.firstSetup);
+   if(setup&&!frontier.includes(setup))frontier[frontier.length-1]=setup;
+  }
   best=frontier[0];
  }
  return {move:best?.first||null,expanded,layers,score:best?.value??null,
+  setupSelected:!!best?.firstSetup,setupMovesInPath:best?.setupMoves??0,
+  setupCandidatesExamined,
   wonInSearch:!!best?.game.won};
 }
-function choosePlanning(g){return search(g).move;}
-module.exports={forward,reverse,fromState,adoptRandom,fork,rankedMoves,score,advance,search,choosePlanning};
+function choosePlanning(g){return search(g,{allowSetups:true}).move;}
+module.exports={forward,reverse,fromState,adoptRandom,fork,rankedMoves,rankedSetupMoves,followupPotential,nearbyPairs,score,advance,search,choosePlanning};
