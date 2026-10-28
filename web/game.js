@@ -365,6 +365,12 @@ function reconcileBoardNuts(){
    if(fallback)fallback.style.visibility='visible';
   }
  }
+ // A canceled cascade can leave the tile's CSS animation on its replacement
+ // nut. `nut-explode` uses fill-mode: forwards and otherwise holds opacity at 0
+ // even after the sprite is loaded and inline visibility is restored.
+ board.querySelectorAll('.nut-shaking, .nut-exploding').forEach(el=>{
+  el.classList.remove('nut-shaking');el.classList.remove('nut-exploding');
+ });
  board.querySelectorAll('.clearing').forEach(el=>el.classList.remove('clearing'));
  board.querySelectorAll('.falling-nut, .transport-nut').forEach(el=>el.remove());
 }
