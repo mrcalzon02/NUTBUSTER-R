@@ -19,6 +19,12 @@ FetchContent_MakeAvailable(SDL3)
 
 add_library(nutbuster-core src/core.cpp src/mine.cpp src/campaign.cpp)
 target_include_directories(nutbuster-core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+# Build-time parity executable only; never install into native preview packages.
+add_executable(nutbuster-hold-parity-test src/hold_parity_test.cpp)
+enable_testing()
+add_test(NAME nutbuster-held-nut-js-parity
+  COMMAND nutbuster-hold-parity-test
+  "${CMAKE_CURRENT_SOURCE_DIR}/generated-assets/hold-fixtures.txt")
 add_executable(nutbuster-native src/main.cpp)
 target_link_libraries(nutbuster-native PRIVATE nutbuster-core SDL3::SDL3)
 if(WIN32)
@@ -28,8 +34,10 @@ else()
 endif()
 if(MSVC)
   target_compile_options(nutbuster-core PRIVATE /W4)
+  target_compile_options(nutbuster-hold-parity-test PRIVATE /W4 /WX)
 else()
   target_compile_options(nutbuster-core PRIVATE -Wall -Wextra -Wpedantic)
+  target_compile_options(nutbuster-hold-parity-test PRIVATE -Wall -Wextra -Werror -Wpedantic)
 endif()
 install(TARGETS nutbuster-native RUNTIME DESTINATION .)
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/generated-assets/data" DESTINATION .)
