@@ -21,6 +21,14 @@ void Board::reset(int level,uint32_t seed){
  mask_.clear();mask_.reserve(cells_.size());
  for(const auto& c:cells_)mask_.push_back(c.exists());
  colors_.fill(0);crackedIce_=0;crackedLocks_=0;crackedChests_=0;cleanedJam_=0;
+ butterUses_=0;jamUses_=0;
+}
+bool Board::applyHold(HoldKind kind,int index){
+ if(!applyHoldToCells(cells_,mask_,index,kind,moves_<=0||completed()))
+  return false;
+ if(kind==HoldKind::Butter)++butterUses_;
+ else if(kind==HoldKind::Jam)++jamUses_;
+ return true;
 }
 bool Board::adjacent(int a,int b)const{
  if(a<0||b<0||a>=size()||b>=size()||a==b)return false;
@@ -58,41 +66,11 @@ void Board::damage(int i,int& removed){
  if(c.lock>0){--c.lock;++crackedLocks_;return;}
  if(c.chest>0){--c.chest;++crackedChests_;return;}
  if(c.fuse>0){c.fuse=0;return;}
- ++colors_[size_t(c.type)];c.type=-2;++removed; // -1=void, -2=cleared position
+ ++colors_[size_t(c.type)];c.type=-2;c.hold=0;++removed; // -1=void, -2=cleared position
 }
 void Board::gravity(){
- const auto& roster=stage().roster;
- // Retain map holes and pinned blocker layers. Movable type identities fall
- // through contiguous column spans bounded by fixed blockers.
- for(int x=0;x<w_;++x){
-  int y=h_-1;
-  while(y>=0){
-   while(y>=0&&!mask_[size_t(y*w_+x)])--y;
-   if(y<0)break;
-   int bottom=y;
-   while(y>=0&&mask_[size_t(y*w_+x)])--y;
-   const int top=y+1;
-   int end=bottom;
-   auto compact=[&](int first,int last){
-    if(first>last)return;
-    std::vector<int> survivors;
-    for(int q=last;q>=first;--q){
-     const int t=cells_[size_t(q*w_+x)].type;
-     if(t>=0)survivors.push_back(t);
-    }
-    int offset=0;
-    for(int q=last;q>=first;--q,++offset){
-     auto& cell=cells_[size_t(q*w_+x)];
-     cell.type=offset<int(survivors.size())?survivors[size_t(offset)]:roster[size_t(draw(int(roster.size())))];
-    }
-   };
-   for(int at=bottom;at>=top-1;--at){
-    if(at==top-1||cells_[size_t(at*w_+x)].pinned()){
-     compact(at+1,end);end=at-1;
-    }
-   }
-  }
- }
+ gravityWithHolds(cells_,mask_,w_,h_,stage().roster,
+                  [this](int bound){return draw(bound);});
 }
 int Board::settle(){
  int total=0;
@@ -107,10 +85,12 @@ int Board::settle(){
     if(mask_[size_t(j)]&&cells_[size_t(j)].pinned())hit.insert(j);
    }
   }
+  // Count only matched held nuts before damage clears their payload.
+  const int heldBonus=heldMatchBonus(cells_,matchedCells,loop);
   int removed=0;
   for(int i:hit)damage(i,removed);
   total+=removed;
-  score_+=int(hit.size())*60*std::min(loop,6);
+  score_+=int(hit.size())*60*std::min(loop,6)+heldBonus;
   gravity();
  }
  return total;
@@ -152,6 +132,7 @@ bool Board::completed()const{
 Turn Board::swap(int a,int b){
  if(moves_<=0||completed()||!adjacent(a,b))return {};
  std::swap(cells_[size_t(a)].type,cells_[size_t(b)].type);
+ std::swap(cells_[size_t(a)].hold,cells_[size_t(b)].hold);
  --moves_;++turns_;
  const int removed=settle();
  // Source game bombs and sticky butter advance each turn. More elaborate
@@ -191,7 +172,7 @@ bool selfTest(std::string& report){
     throw std::runtime_error("stage layout/moves/score parity level "+std::to_string(level));
    for(int i=0;i<b.size();++i){
     auto a=b.cell(i),source=cfg.cells[size_t(i)];
-    if(a.type!=source.type||a.ice!=source.ice||a.lock!=source.lock||
+    if(a.type!=source.type||a.hold!=0||a.ice!=source.ice||a.lock!=source.lock||
        a.chest!=source.chest||a.jam!=source.jam||a.fuse!=source.fuse)
      throw std::runtime_error("seeded cell drift at level "+std::to_string(level));
    }
@@ -211,7 +192,24 @@ bool selfTest(std::string& report){
     throw std::runtime_error("native turn/matching invariant level "+std::to_string(level));
    ++legal;
   }
-  report="PASS 1000 source-authored native stages, seeded cell types/layers, objectives, valid move and gravity";
+  Board held(1,7919);
+  int candidate=-1;
+  for(int i=0;i<held.size();++i)
+   if(held.cell(i).type>=0&&!held.cell(i).pinned()){candidate=i;break;}
+  if(candidate<0||!held.applyHold(HoldKind::Butter,candidate)||
+     held.cell(candidate).hold!=1||held.holdUses(HoldKind::Butter)!=1||
+     held.applyHold(HoldKind::Butter,candidate)||
+     held.holdUses(HoldKind::Butter)!=1||
+     !held.applyHold(HoldKind::Jam,candidate)||
+     held.cell(candidate).hold!=2||held.holdUses(HoldKind::Jam)!=1||
+     held.applyHold(HoldKind::Jam,candidate)||
+     held.applyHold(HoldKind::Butter,-1))
+   throw std::runtime_error("held nut upgrade/invalid consumption invariant");
+  held.reset(1,7919);
+  if(held.holdUses(HoldKind::Butter)||held.holdUses(HoldKind::Jam)||
+     held.cell(candidate).hold)
+   throw std::runtime_error("held nut reset invariant");
+  report="PASS 1000 source-authored native stages, moves, gravity and held-nut simulation invariants";
   return true;
  }catch(const std::exception& e){report=std::string("FAIL native campaign: ")+e.what();return false;}
 }
