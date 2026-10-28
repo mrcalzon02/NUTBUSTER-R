@@ -10,7 +10,7 @@ struct Goal {
  int target=0,color=-1;
 };
 struct StageCell {
- int type=-1,ice=0,lock=0,chest=0,jam=0,fuse=0;
+ int type=-1,ice=0,lock=0,chest=0,jam=0,fuse=0,hold=0;
  bool exists()const{return type>=0;}
  bool pinned()const{return ice>0||lock>0||chest>0;}
 };
