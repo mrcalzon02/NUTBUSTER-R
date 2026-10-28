@@ -44,6 +44,33 @@ The native preview deliberately does **not** claim complete port parity: preview
 
 `native/generate_mine_fixtures.js` reads the existing JS mining engine to generate independent numeric geology fixtures for every map tier; CI compares these directly to the C++ implementation. `--self-test` now also exercises equipment purchasing, surveys, stored ore, refinery/manufacturing, Writs, blasts, daily reset and native mine save/reload. A failed functional native test blocks **preview ZIP creation**, not unrelated Android signed releases.
 
+## Peanut Butter / Jam held-nut simulation parity (2026-10-27)
+
+The C++17 match engine now carries the mobile source's **Peanut Butter
+(1 gravity resolution)** and **Jam (2 gravity resolutions)** counters on
+the moving **nut payload**, never the board coordinate. An occupied held
+nut splits its current gravity segment, including around irregular/void
+columns; only an actual cleared vacancy consumes one remaining drop.
+Matched held nuts score **180 instead of 60** before the existing cascade
+multiplier (3x), and successful swaps carry the hold with the nut. Invalid,
+finished, pinned, void and already-held booster targets do not consume a
+simulation use; Jam can upgrade an existing one-drop Butter hold. The
+existing stage layout, overlay damage and preview save format remain intact.
+
+`native/generate_hold_fixtures.js` executes the authoritative mobile
+`web/engine.js` during CI to produce **15 state-by-state fixtures**.
+`nutbuster-hold-parity-test` compares the C++ result after each gravity
+step, including a second independent drop, blocked and void segments,
+simultaneous holds, refill, invalid targeting and triple-match bonus.
+CTest is registered on **both Windows and Linux** in the native preview
+workflow. These are functional source parity checks, **not** device or
+graphics certification.
+
+**Still missing:** A user-facing native booster selector, earned stock,
+shop and approved Butter/Jam button art, save migration, other boosters
+and special-combination parity. Do not describe the new simulation API
+as a purchasable or usable booster in the desktop preview UI.
+
 ## Native functional UI capture
 In addition to the default board and untouched mine, the Linux SDL3 CI job now calls the real mine-screen mouse handler to excavate a seeded non-barren rock. It asserts the strike count decreased and the rock became cleared, then captures `native-mine-dug.png`. It also captures `native-mine-equipment.png` and `native-mine-refinery.png`. Screenshots are evidence of native rendering/input, not evidence of complete feature parity, and the approved ore sprites remain the actual textures.
 
