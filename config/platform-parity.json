@@ -382,6 +382,20 @@
         "linux": "Independent native SDL3 preview does not yet have cross-promotion banner UI or external URL action; its existing feature gaps and preview-only status remain unchanged."
       },
       "decision": "Cross-promotional presentation change on the shared mobile home screen only; explicitly account for the unimplemented native preview banner rather than silently claiming four-target feature parity."
+    },
+    {
+      "id": "interrupted-cascade-sprite-opacity-recovery-2026-10-28",
+      "sourceChange": [
+        "web/game.js"
+      ],
+      "test": "tests/ui.test.js",
+      "targetImpact": {
+        "android": "Android WebView board can retain nut-exploding CSS animation-fill-mode:forwards (opacity zero) after a canceled cascade; completed-resolution reconciliation now clears stale shake/explosion classes without rebuilding tiles or altering nut payloads.",
+        "fire_os": "Same signed Android WebView APK and DOM/CSS as Android; identical stale-animation cleanup. Physical Fire OS acceptance is not claimed.",
+        "windows": "Native C++17/SDL3 renderer does not use the WebView DOM, CSS animation classes, or .nut-visual; no corresponding C++ change is applicable. Existing native gameplay parity remains preview-partial.",
+        "linux": "Native C++17/SDL3 renderer likewise does not use DOM/CSS animation classes; no corresponding C++ change is applicable. Existing native gameplay parity remains preview-partial."
+      },
+      "decision": "Presentation-only cleanup of canceled mobile CSS animation state; functional UI regression verifies stale opacity class removal. No match-three rule, save format, native SDL3 render path, signing identity or native feature status changes. Actual Android device reproduction and approval remain outstanding under issue #1."
     }
   ]
 }
