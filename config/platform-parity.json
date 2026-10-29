@@ -108,11 +108,12 @@
       "nativeSources": [
         "native/src/core.cpp",
         "native/src/hold.hpp",
-        "native/src/hold_parity_test.cpp"
+        "native/src/hold_parity_test.cpp",
+        "native/src/main.cpp"
       ],
       "mobile": "functionally-tested",
       "native": "preview-partial",
-      "gap": "Butter/Jam held-nut simulation and JS parity fixtures implemented; no native booster inventory, user interaction, approved icon, shop, other boosters or special-combo parity yet."
+      "gap": "SDL3 Butter/Jam selection, finite stock debit, V3 native inventory persistence, V1/V2 zero-stock migration and headless UI regressions implemented. No native gem shop/acquisition (15/30 gems), dedicated approved button art, accessibility labels, in-progress board save, other boosters or special-combo parity; normal preview starts with zero hold stock."
     },
     {
       "id": "elemental-challenges",
