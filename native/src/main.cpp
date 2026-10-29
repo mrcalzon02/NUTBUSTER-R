@@ -444,6 +444,77 @@ struct Game {
     }
   }
 };
+// Test the production click path and save codec without granting runtime stock.
+bool holdUiSelfTest(std::string& report){
+  try{
+    Game game;
+    game.startLevel();
+    if(game.stock.butter||game.stock.jam)throw std::runtime_error("invented starting stock");
+    game.click(190,725);
+    if(game.holdMode!=Game::HoldMode::Swap)throw std::runtime_error("empty stock selectable");
+    int target=-1;
+    for(int i=0;i<game.board.size();++i)
+      if(game.board.cell(i).type>=0&&!game.board.cell(i).pinned()){
+        target=i;break;
+      }
+    if(target<0)throw std::runtime_error("no valid test nut");
+    const int tile=std::min(74,490/game.board.height());
+    const int ox=(WIDTH-tile*game.board.width())/2,oy=215;
+    const float cx=float(ox+(target%game.board.width())*tile+tile/2);
+    const float cy=float(oy+(target/game.board.width())*tile+tile/2);
+    game.stock.butter=1;game.stock.jam=2; // test fixture, not a production grant
+    game.click(190,725);
+    if(game.holdMode!=Game::HoldMode::Butter)throw std::runtime_error("butter selector");
+    game.click(cx,cy);
+    if(game.stock.butter!=0||game.board.cell(target).hold!=1||
+       game.board.holdUses(nut::HoldKind::Butter)!=1||
+       game.holdMode!=Game::HoldMode::Swap)throw std::runtime_error("butter debit");
+    game.click(190,725);
+    if(game.holdMode!=Game::HoldMode::Swap)throw std::runtime_error("empty stock reused");
+    game.click(460,725);
+    game.click(-1,-1);
+    if(game.stock.jam!=2||game.holdMode!=Game::HoldMode::Jam)
+      throw std::runtime_error("invalid click debited stock");
+    game.click(cx,cy); // permitted Jam upgrade of an existing Butter hold
+    if(game.stock.jam!=1||game.board.cell(target).hold!=2||
+       game.board.holdUses(nut::HoldKind::Jam)!=1)
+      throw std::runtime_error("Jam upgrade/debit");
+    game.click(460,725);game.click(cx,cy);
+    if(game.stock.jam!=1||game.board.cell(target).hold!=2||
+       game.board.holdUses(nut::HoldKind::Jam)!=1)
+      throw std::runtime_error("already-held nut double spent");
+    if(game.stock.use(game.board,nut::HoldKind::Butter,-1)||game.stock.butter!=0)
+      throw std::runtime_error("invalid target spent stock");
+    game.stock.butter=4;game.stock.jam=7;game.unlocked=23;
+    std::stringstream saved;
+    if(!game.saveTo(saved))throw std::runtime_error("V3 save");
+    Game restored;
+    if(!restored.loadFrom(saved)||restored.stock.butter!=4||
+       restored.stock.jam!=7||restored.unlocked!=23)
+      throw std::runtime_error("V3 stock roundtrip");
+    std::stringstream legacy;
+    legacy<<"NUTBUSTER_NATIVE_PREVIEW_V2 17\n";
+    if(!game.mine.save(legacy))throw std::runtime_error("V2 fixture");
+    Game migrated;
+    if(!migrated.loadFrom(legacy)||migrated.unlocked!=17||
+       migrated.stock.butter||migrated.stock.jam)
+      throw std::runtime_error("V2 migration invented stock");
+    std::stringstream oldest("NUTBUSTER_NATIVE_PREVIEW_V1 9\n");
+    Game v1;
+    if(!v1.loadFrom(oldest)||v1.unlocked!=9||v1.stock.butter||v1.stock.jam)
+      throw std::runtime_error("V1 migration");
+    std::stringstream corrupt;
+    corrupt<<"NUTBUSTER_NATIVE_PREVIEW_V3 30\n";
+    game.mine.save(corrupt);
+    corrupt<<"HOLD_STOCK_V1 -1 9999999\n";
+    Game rejected;
+    if(rejected.loadFrom(corrupt)||rejected.unlocked!=1||
+       rejected.stock.butter||rejected.stock.jam)
+      throw std::runtime_error("corrupt stock accepted/partial load");
+    report="PASS native Butter/Jam click, finite debit, no-double-spend, V1/V2 migration and V3 stock persistence";
+    return true;
+  }catch(const std::exception& e){report=std::string("FAIL native hold UI: ")+e.what();return false;}
+}
 }
 int main(int argc,char** argv){
   std::string screenshot,fixtureFile;int previewStage=0;bool self=false,previewMine=false,previewBoard=false,previewCampaign=false,smokeDig=false,previewEquip=false,previewRefinery=false;
@@ -472,9 +543,11 @@ int main(int argc,char** argv){
     return 4;
   }
   if(self){
-    std::string boardReport,mineReport;
+    std::string boardReport,mineReport,holdReport;
     bool boardOk=nut::selfTest(boardReport),mineOk=nut::mineSelfTest(mineReport);
-    std::cout<<boardReport<<"\n"<<mineReport<<"\n";return boardOk&&mineOk?0:1;
+    bool holdOk=holdUiSelfTest(holdReport);
+    std::cout<<boardReport<<"\n"<<mineReport<<"\n"<<holdReport<<"\n";
+    return boardOk&&mineOk&&holdOk?0:1;
   }
   if(!fixtureFile.empty()){
     std::ifstream fixtures(fixtureFile);
