@@ -113,7 +113,7 @@
       ],
       "mobile": "functionally-tested",
       "native": "preview-partial",
-      "gap": "SDL3 Butter/Jam selection, finite stock debit, V3 native inventory persistence, V1/V2 zero-stock migration and headless UI regressions implemented. No native gem shop/acquisition (15/30 gems), dedicated approved button art, accessibility labels, in-progress board save, other boosters or special-combo parity; normal preview starts with zero hold stock."
+      "gap": "Native SDL3 confirmed 15/30-gem Butter/Jam hold shop, mobile-parity 25-gem starting wallet and +10 gem board-win reward, finite stock purchase/use, V4 wallet/inventory persistence, V1/V2/V3 migration, approved Peanut/hourglass sprites and headless purchase UI regression source implemented; exact-commit Windows/Linux CI and packaged visual acceptance pending. Full native Shop, accessibility labels, in-progress board save, mobile save import, other boosters and special-combo parity remain incomplete."
     },
     {
       "id": "elemental-challenges",
