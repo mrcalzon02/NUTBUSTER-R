@@ -80,15 +80,32 @@ Butter-to-Jam upgrade, V3 stock roundtrip, corrupt-save rejection and V1/V2
 migration. The existing JS-vs-C++ held-nut simulation fixtures still cover
 one/two gravity resolutions and the ×3 held-match bonus.
 
-**Still missing:** No native gem wallet, 15-gem Butter / 30-gem Jam purchase
-confirmation or legitimate desktop acquisition path exists yet, so ordinary
-players begin with **zero** hold stock and cannot obtain it in this preview.
-The test fixture seeds inventory only in a headless regression, not in the
-shipping game. Native in-progress board/hold state is not persisted between
-launches (only inventory, highest unlocked stage and mine are saved).
-Approved dedicated button art, accessibility labels, other boosters,
-special-combination parity and the native shop are also outstanding.
-This remains **preview-partial**, not a completed purchasable feature.
+**Native confirmed gem hold shop (2026-10-29, verification pending):**
+The SDL3 board's HOLD SHOP button opens a native in-window shop (no browser)
+with the mobile-authored 15-gem Butter / 30-gem Jam prices, owned quantities,
+explicit selection → confirmation, cancellation and insufficient-funds refusal.
+A purchase debits exactly once and adds one usable hold to the existing
+finite inventory. The approved Peanut and Jam hourglass art are used, not
+invented replacement sprites. The separate native gem wallet begins at
+the mobile game's **25 gems**; a completed board awards **10 gems** as on
+mobile. Mine gems are distinct minerals, not shop money. No free Butter/Jam
+stock is granted.
+
+Save format `NUTBUSTER_NATIVE_PREVIEW_V4` appends `GEM_WALLET_V1` after
+the V3 `HOLD_STOCK_V1` trailer. V1/V2/V3 previews migrate with zero
+hold stock unless V3 already contains stock, and with the original mobile
+25-gem starting wallet; later V4 saves persist exact remaining gems and
+inventory. Invalid V4 wallet data fails before assigning loaded state.
+The actual click/confirm/cancel, insufficient-gem, purchase/use/reload,
+V1/V2/V3 migration and corrupt wallet paths are exercised in
+`--self-test`. Windows/Linux exact-commit CTest/packaged UI acceptance
+must be checked separately; source/test presence is **not** CI success.
+
+**Still missing:** Native in-progress board/hold state is not persisted
+between launches (only inventory, wallet, highest unlocked stage and mine).
+Full native Shop/boosters, accessibility labels, special-combination parity,
+other boosters, mobile save import and device UX acceptance remain outstanding.
+This remains **preview-partial**, not a full feature-parity release.
 
 ## Native functional UI capture
 In addition to the default board and untouched mine, the Linux SDL3 CI job now calls the real mine-screen mouse handler to excavate a seeded non-barren rock. It asserts the strike count decreased and the rock became cleared, then captures `native-mine-dug.png`. It also captures `native-mine-equipment.png` and `native-mine-refinery.png`. Screenshots are evidence of native rendering/input, not evidence of complete feature parity, and the approved ore sprites remain the actual textures.
