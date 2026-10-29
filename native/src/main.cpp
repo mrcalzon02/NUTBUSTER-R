@@ -562,24 +562,32 @@ bool holdUiSelfTest(std::string& report){
       throw std::runtime_error("already-held nut double spent");
     if(game.stock.use(game.board,nut::HoldKind::Butter,-1)||game.stock.butter!=0)
       throw std::runtime_error("invalid target spent stock");
-    game.stock.butter=4;game.stock.jam=7;game.unlocked=23;
+    game.stock.butter=4;game.stock.jam=7;game.wallet.gems=43;game.unlocked=23;
     std::stringstream saved;
-    if(!game.saveTo(saved))throw std::runtime_error("V3 save");
+    if(!game.saveTo(saved))throw std::runtime_error("V4 save");
     Game restored;
     if(!restored.loadFrom(saved)||restored.stock.butter!=4||
-       restored.stock.jam!=7||restored.unlocked!=23)
-      throw std::runtime_error("V3 stock roundtrip");
+       restored.stock.jam!=7||restored.unlocked!=23||restored.wallet.gems!=43)
+      throw std::runtime_error("V4 stock and gem wallet roundtrip");
     std::stringstream legacy;
     legacy<<"NUTBUSTER_NATIVE_PREVIEW_V2 17\n";
     if(!game.mine.save(legacy))throw std::runtime_error("V2 fixture");
     Game migrated;
     if(!migrated.loadFrom(legacy)||migrated.unlocked!=17||
-       migrated.stock.butter||migrated.stock.jam)
-      throw std::runtime_error("V2 migration invented stock");
+       migrated.stock.butter||migrated.stock.jam||migrated.wallet.gems!=25)
+      throw std::runtime_error("V2 migration currency/stock");
     std::stringstream oldest("NUTBUSTER_NATIVE_PREVIEW_V1 9\n");
     Game v1;
-    if(!v1.loadFrom(oldest)||v1.unlocked!=9||v1.stock.butter||v1.stock.jam)
-      throw std::runtime_error("V1 migration");
+    if(!v1.loadFrom(oldest)||v1.unlocked!=9||v1.stock.butter||v1.stock.jam||
+       v1.wallet.gems!=25)throw std::runtime_error("V1 migration");
+    std::stringstream v3;
+    v3<<"NUTBUSTER_NATIVE_PREVIEW_V3 21\n";
+    if(!game.mine.save(v3)||!game.stock.write(v3))
+      throw std::runtime_error("V3 fixture");
+    Game legacy3;
+    if(!legacy3.loadFrom(v3)||legacy3.unlocked!=21||
+       legacy3.stock.butter!=4||legacy3.stock.jam!=7||legacy3.wallet.gems!=25)
+      throw std::runtime_error("V3 migration");
     std::stringstream corrupt;
     corrupt<<"NUTBUSTER_NATIVE_PREVIEW_V3 30\n";
     game.mine.save(corrupt);
@@ -588,9 +596,71 @@ bool holdUiSelfTest(std::string& report){
     if(rejected.loadFrom(corrupt)||rejected.unlocked!=1||
        rejected.stock.butter||rejected.stock.jam)
       throw std::runtime_error("corrupt stock accepted/partial load");
-    report="PASS native Butter/Jam click, finite debit, no-double-spend, V1/V2 migration and V3 stock persistence";
+    report="PASS native Butter/Jam click, finite debit, V1-V3 migration and V4 wallet/stock persistence";
     return true;
   }catch(const std::exception& e){report=std::string("FAIL native hold UI: ")+e.what();return false;}
+}
+// Test the actual production shop click/confirm/cancel and purchase->board->save path.
+bool shopUiSelfTest(std::string& report){
+  try{
+    Game g;g.startLevel();
+    if(g.wallet.gems!=25||g.stock.butter||g.stock.jam)
+      throw std::runtime_error("initial mobile-parity currency/zero stock");
+    g.click(800,130);
+    if(g.scene!=Game::Scene::Shop)throw std::runtime_error("shop entry");
+    g.click(210,290);
+    if(g.pendingPurchase!=1||g.wallet.gems!=25||g.stock.butter)
+      throw std::runtime_error("selection charged without confirmation");
+    g.click(350,580);
+    if(g.pendingPurchase||g.wallet.gems!=25||g.stock.butter)
+      throw std::runtime_error("cancel charged");
+    g.click(210,290);g.click(350,505);
+    if(g.wallet.gems!=10||g.stock.butter!=1||g.pendingPurchase)
+      throw std::runtime_error("Butter confirmed debit");
+    g.click(550,290);g.click(350,505);
+    if(g.wallet.gems!=10||g.stock.jam||g.pendingPurchase)
+      throw std::runtime_error("insufficient Jam purchase charged");
+    g.wallet.win();g.wallet.win(); // 10 gems for each completed board on mobile
+    g.click(550,290);g.click(350,505);
+    if(g.wallet.gems!=0||g.stock.jam!=1||g.pendingPurchase)
+      throw std::runtime_error("Jam confirmed debit");
+    g.click(35,35);
+    if(g.scene!=Game::Scene::Board)throw std::runtime_error("shop return");
+    int target=-1;
+    for(int i=0;i<g.board.size();++i)
+      if(g.board.cell(i).type>=0&&!g.board.cell(i).pinned()){target=i;break;}
+    if(target<0)throw std::runtime_error("no valid nut");
+    const int tile=std::min(74,490/g.board.height());
+    const int ox=(WIDTH-tile*g.board.width())/2,oy=215;
+    g.click(190,725);
+    if(g.holdMode!=Game::HoldMode::Butter)throw std::runtime_error("purchased hold not selectable");
+    g.click(float(ox+(target%g.board.width())*tile+tile/2),
+            float(oy+(target/g.board.width())*tile+tile/2));
+    if(g.stock.butter||g.board.cell(target).hold!=1||g.wallet.gems)
+      throw std::runtime_error("purchased hold not usable");
+    std::stringstream save;
+    if(!g.saveTo(save))throw std::runtime_error("purchased save failed");
+    Game loaded;
+    if(!loaded.loadFrom(save)||loaded.wallet.gems!=0||
+       loaded.stock.butter!=0||loaded.stock.jam!=1)
+      throw std::runtime_error("purchased inventory not restored");
+    std::stringstream bad;
+    bad<<"NUTBUSTER_NATIVE_PREVIEW_V4 30\n";
+    if(!g.mine.save(bad)||!g.stock.write(bad))
+      throw std::runtime_error("bad wallet fixture");
+    bad<<"GEM_WALLET_V1 -1\n";
+    Game rejected;
+    if(rejected.loadFrom(bad)||rejected.unlocked!=1||
+       rejected.wallet.gems!=25||rejected.stock.butter||rejected.stock.jam)
+      throw std::runtime_error("corrupt wallet accepted or partially loaded");
+    g.wallet.gems=GemWallet::max;g.wallet.win();
+    if(g.wallet.gems!=GemWallet::max)
+      throw std::runtime_error("gem win overflow");
+    report="PASS native shop click/confirm/cancel, 15/30 gem debit, insufficiency, use and V4 persistence";
+    return true;
+  }catch(const std::exception& e){
+    report=std::string("FAIL native hold shop: ")+e.what();return false;
+  }
 }
 }
 int main(int argc,char** argv){
@@ -620,11 +690,11 @@ int main(int argc,char** argv){
     return 4;
   }
   if(self){
-    std::string boardReport,mineReport,holdReport;
+    std::string boardReport,mineReport,holdReport,shopReport;
     bool boardOk=nut::selfTest(boardReport),mineOk=nut::mineSelfTest(mineReport);
-    bool holdOk=holdUiSelfTest(holdReport);
-    std::cout<<boardReport<<"\n"<<mineReport<<"\n"<<holdReport<<"\n";
-    return boardOk&&mineOk&&holdOk?0:1;
+    bool holdOk=holdUiSelfTest(holdReport),shopOk=shopUiSelfTest(shopReport);
+    std::cout<<boardReport<<"\n"<<mineReport<<"\n"<<holdReport<<"\n"<<shopReport<<"\n";
+    return boardOk&&mineOk&&holdOk&&shopOk?0:1;
   }
   if(!fixtureFile.empty()){
     std::ifstream fixtures(fixtureFile);
