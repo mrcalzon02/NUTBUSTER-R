@@ -66,10 +66,29 @@ CTest is registered on **both Windows and Linux** in the native preview
 workflow. These are functional source parity checks, **not** device or
 graphics certification.
 
-**Still missing:** A user-facing native booster selector, earned stock,
-shop and approved Butter/Jam button art, save migration, other boosters
-and special-combination parity. Do not describe the new simulation API
-as a purchasable or usable booster in the desktop preview UI.
+**Native desktop hold controls and inventory (2026-10-28):** The SDL3 board now
+has separate Peanut Butter and Jam selection buttons with stock counts. A
+selected booster applies to the next valid clicked nut and decrements exactly
+one owned use only when `Board::applyHold` succeeds; invalid, void, pinned,
+finished and already-fully-held targets cannot debit stock. The on-nut number
+shows remaining gravity-drop holds. Swaps are suppressed while targeting.
+Native preview progress now writes `NUTBUSTER_NATIVE_PREVIEW_V3` with a guarded
+`HOLD_STOCK_V1` trailer after the existing `MINE_V2` payload; V1/V2 previews
+remain readable and migrate with **zero** hold stock, never free grants. The
+existing `--self-test` covers the actual click path, failed/repeated use,
+Butter-to-Jam upgrade, V3 stock roundtrip, corrupt-save rejection and V1/V2
+migration. The existing JS-vs-C++ held-nut simulation fixtures still cover
+one/two gravity resolutions and the ×3 held-match bonus.
+
+**Still missing:** No native gem wallet, 15-gem Butter / 30-gem Jam purchase
+confirmation or legitimate desktop acquisition path exists yet, so ordinary
+players begin with **zero** hold stock and cannot obtain it in this preview.
+The test fixture seeds inventory only in a headless regression, not in the
+shipping game. Native in-progress board/hold state is not persisted between
+launches (only inventory, highest unlocked stage and mine are saved).
+Approved dedicated button art, accessibility labels, other boosters,
+special-combination parity and the native shop are also outstanding.
+This remains **preview-partial**, not a completed purchasable feature.
 
 ## Native functional UI capture
 In addition to the default board and untouched mine, the Linux SDL3 CI job now calls the real mine-screen mouse handler to excavate a seeded non-barren rock. It asserts the strike count decreased and the rock became cleared, then captures `native-mine-dug.png`. It also captures `native-mine-equipment.png` and `native-mine-refinery.png`. Screenshots are evidence of native rendering/input, not evidence of complete feature parity, and the approved ore sprites remain the actual textures.
