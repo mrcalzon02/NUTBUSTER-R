@@ -40,6 +40,9 @@ def main() -> None:
     for nut in NUTS:
         transform(ROOT/"web"/"art"/"primary"/"nuts"/(nut+".png"),
                   OUT/"nuts"/(nut+".bmp"))
+    # Mobile HOLD_ITEMS.jam_hold art: use the approved hourglass, not a placeholder.
+    transform(ROOT/"web"/"art"/"additions"/"economy"/"hourglass.png",
+              OUT/"hold"/"jam.bmp")
     for row in range(1,5):
         for col in range(1,7):
             key=f"r{row}c{col}"
@@ -73,6 +76,6 @@ def main() -> None:
     for name in overlays:
         rgba(ROOT/"web"/"art"/"primary"/"overlays"/(name+".png"),
              OUT/"overlay"/(name+".rgba"))
-    print(f"Native SDL3 sprites: {len(NUTS)+24+80} existing BMP assets and {len(blockers)+len(overlays)} faithful-alpha blocker/overlay assets.")
+    print(f"Native SDL3 sprites: {len(NUTS)+24+80} existing BMP assets plus 1 approved hold-shop BMP and {len(blockers)+len(overlays)} faithful-alpha blocker/overlay assets.")
 if __name__=="__main__":
     main()
