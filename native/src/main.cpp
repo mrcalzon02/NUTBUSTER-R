@@ -8,6 +8,8 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -44,6 +46,32 @@ uint32_t h32(uint32_t x){x^=x>>16;x*=0x7feb352dU;x^=x>>15;x*=0x846ca68bU;return 
 int roll(uint32_t seed,int x,int y,uint32_t salt){
   return int(h32(seed ^ (uint32_t(x+1)*15485863U) ^ (uint32_t(y+1)*32452843U) ^salt)%100);
 }
+// No native gem shop exists yet. Starting stock is zero, never fabricated.
+struct HoldStock {
+  int butter=0,jam=0;
+  int count(nut::HoldKind kind)const{
+    return kind==nut::HoldKind::Butter?butter:kind==nut::HoldKind::Jam?jam:0;
+  }
+  bool use(nut::Board& board,nut::HoldKind kind,int target){
+    int* quantity=kind==nut::HoldKind::Butter?&butter:
+                  kind==nut::HoldKind::Jam?&jam:nullptr;
+    if(!quantity||*quantity<=0||!board.applyHold(kind,target))return false;
+    --*quantity;return true;
+  }
+  bool read(std::istream& input){
+    std::string tag;long long b=-1,j=-1;
+    if(!(input>>tag>>b>>j)||tag!="HOLD_STOCK_V1"||
+       b<0||j<0||b>999999||j>999999)return false;
+    input>>std::ws;
+    if(input.peek()!=std::char_traits<char>::eof())return false;
+    butter=int(b);jam=int(j);return true;
+  }
+  bool write(std::ostream& output)const{
+    if(butter<0||jam<0||butter>999999||jam>999999)return false;
+    output<<"HOLD_STOCK_V1 "<<butter<<" "<<jam<<"\n";
+    return bool(output);
+  }
+};
 struct Game {
   nut::Board board{1,7919};
   enum class Scene{Menu,Campaign,Board,Mine,Won,Lost};
@@ -51,31 +79,47 @@ struct Game {
   std::map<std::string,SDL_Texture*> images;
   int unlocked=1,selectedLevel=1,selected=-1,down=-1;
   nut::Mine mine{};
+  HoldStock stock{};
+  enum class HoldMode{Swap,Butter,Jam};
+  HoldMode holdMode=HoldMode::Swap;
   enum class MineTab {Dig,Equipment,Workshop};
   enum class MineMode {Dig,Scan,Blast,Lens,Collect};
   MineTab mineTab=MineTab::Dig;
   MineMode mineMode=MineMode::Dig;
   fs::path savePath;
   bool smoke=false,quitRequested=false;
-  void load() {
-    std::ifstream file(savePath);
+  bool loadFrom(std::istream& file){
     std::string signature;int level=1;
-    if(!(file>>signature>>level))return;
-    if(signature=="NUTBUSTER_NATIVE_PREVIEW_V1"){unlocked=std::clamp(level,1,1000);return;}
-    if(signature=="NUTBUSTER_NATIVE_PREVIEW_V2"){
-      nut::Mine loaded;
-      if(loaded.load(file)){mine=loaded;unlocked=std::clamp(level,1,1000);}
+    if(!(file>>signature>>level))return false;
+    if(signature=="NUTBUSTER_NATIVE_PREVIEW_V1"){
+      unlocked=std::clamp(level,1,1000);stock=HoldStock{};return true;
     }
+    if(signature!="NUTBUSTER_NATIVE_PREVIEW_V2"&&
+       signature!="NUTBUSTER_NATIVE_PREVIEW_V3")return false;
+    nut::Mine loaded;
+    if(!loaded.load(file))return false;
+    HoldStock loadedStock;
+    if(signature=="NUTBUSTER_NATIVE_PREVIEW_V3"&&!loadedStock.read(file))return false;
+    mine=loaded;stock=loadedStock;unlocked=std::clamp(level,1,1000);
+    return true;
   }
-  void save() {
-    if(smoke)return;
+  bool saveTo(std::ostream& file)const{
+    file<<"NUTBUSTER_NATIVE_PREVIEW_V3 "<<unlocked<<"\n";
+    return bool(file)&&mine.save(file)&&stock.write(file);
+  }
+  void load(){
+    if(savePath.empty())return;
+    std::ifstream file(savePath);
+    if(file&&!loadFrom(file))std::cerr<<"Invalid native preview progress file\n";
+  }
+  void save(){
+    if(smoke||savePath.empty())return;
     std::ofstream file(savePath,std::ios::trunc);
-    file<<"NUTBUSTER_NATIVE_PREVIEW_V2 "<<unlocked<<"\n";
-    mine.save(file);
+    if(!file||!saveTo(file))std::cerr<<"Cannot persist native preview progress\n";
   }
   void startLevel() {
     board.reset(selectedLevel,uint32_t(selectedLevel)*7919U);
-    selected=-1;scene=Scene::Board;
+    selected=-1;holdMode=HoldMode::Swap;scene=Scene::Board;
   }
   void makeMine(){
     const std::time_t now=std::time(nullptr);
@@ -222,12 +266,31 @@ struct Game {
       return;
     }
     if(scene==Scene::Board){
-      int i=cellAt(x,y);if(i<0)return;
+      if(within(x,y,180,713,260,44)){
+        holdMode=(stock.butter>0&&holdMode!=HoldMode::Butter)?
+          HoldMode::Butter:HoldMode::Swap;
+        selected=-1;return;
+      }
+      if(within(x,y,452,713,260,44)){
+        holdMode=(stock.jam>0&&holdMode!=HoldMode::Jam)?
+          HoldMode::Jam:HoldMode::Swap;
+        selected=-1;return;
+      }
+      const int i=cellAt(x,y);if(i<0)return;
+      if(holdMode!=HoldMode::Swap){
+        const nut::HoldKind kind=holdMode==HoldMode::Butter?
+          nut::HoldKind::Butter:nut::HoldKind::Jam;
+        if(stock.use(board,kind,i)){
+          save();holdMode=HoldMode::Swap;selected=-1;
+        }
+        return;
+      }
       if(selected>=0&&selected!=i)perform(selected,i);
       else selected=i;
     }
   }
   void perform(int a,int b){
+    if(holdMode!=HoldMode::Swap)return;
     nut::Turn result=board.swap(a,b);
     selected=-1;
     if(!result.valid){selected=b;return;}
@@ -310,8 +373,16 @@ struct Game {
         if(c.ice>1||c.lock>1||c.chest>1)
           label(r,float(x+3),float(y+tile-18),
              "x"+std::to_string(std::max({c.ice,c.lock,c.chest})),1);
+        if(c.hold>0){
+          fill(r,x+tile-26,y+3,22,20,{51,31,85,255});
+          label(r,float(x+tile-21),float(y+5),std::to_string(c.hold),1);
+        }
       }
-      label(r,204,715,"Drag adjacent nuts or click two tiles.",2);
+      button(r,180,713,260,44,"BUTTER "+std::to_string(stock.butter));
+      button(r,452,713,260,44,"JAM "+std::to_string(stock.jam));
+      label(r,730,724,holdMode==HoldMode::Butter?"TAP NUT: 1 DROP":
+          holdMode==HoldMode::Jam?"TAP NUT: 2 DROPS":
+          stock.butter+stock.jam==0?"NO STOCK / SHOP PENDING":"DRAG TO SWAP",1);
     } else if(scene==Scene::Mine){
       button(r,175,111,180,42,"EXCAVATE");
       button(r,365,111,180,42,"EQUIPMENT");
@@ -460,7 +531,7 @@ int main(int argc,char** argv){
       if(event.type==SDL_EVENT_QUIT)running=false;
       if(event.type==SDL_EVENT_KEY_DOWN&&event.key.key==SDLK_ESCAPE)game.scene=Game::Scene::Menu;
       if(event.type==SDL_EVENT_MOUSE_BUTTON_DOWN&&event.button.button==SDL_BUTTON_LEFT){
-        game.down=(game.scene==Game::Scene::Board)?game.cellAt(event.button.x,event.button.y):-1;
+        game.down=(game.scene==Game::Scene::Board&&game.holdMode==Game::HoldMode::Swap)?game.cellAt(event.button.x,event.button.y):-1;
       }
       if(event.type==SDL_EVENT_MOUSE_BUTTON_UP&&event.button.button==SDL_BUTTON_LEFT){
         const int up=(game.scene==Game::Scene::Board)?game.cellAt(event.button.x,event.button.y):-1;
