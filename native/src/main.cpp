@@ -58,12 +58,11 @@ struct HoldStock {
     if(!quantity||*quantity<=0||!board.applyHold(kind,target))return false;
     --*quantity;return true;
   }
-  bool read(std::istream& input){
+  bool read(std::istream& input,bool eof=true){
     std::string tag;long long b=-1,j=-1;
     if(!(input>>tag>>b>>j)||tag!="HOLD_STOCK_V1"||
        b<0||j<0||b>999999||j>999999)return false;
-    input>>std::ws;
-    if(input.peek()!=std::char_traits<char>::eof())return false;
+    if(eof){input>>std::ws;if(input.peek()!=std::char_traits<char>::eof())return false;}
     butter=int(b);jam=int(j);return true;
   }
   bool write(std::ostream& output)const{
@@ -72,14 +71,39 @@ struct HoldStock {
     return bool(output);
   }
 };
+struct GemWallet {
+  static constexpr int max=999999999;
+  int gems=25; // mobile source starts with 25, not free booster stock
+  void win(){gems=std::min(max,gems+10);} // mobile awards 10 per win
+  bool buy(HoldStock& stock,nut::HoldKind kind){
+    const int cost=kind==nut::HoldKind::Butter?15:kind==nut::HoldKind::Jam?30:0;
+    int* count=kind==nut::HoldKind::Butter?&stock.butter:
+               kind==nut::HoldKind::Jam?&stock.jam:nullptr;
+    if(!count||!cost||gems<cost||*count>=999999)return false;
+    gems-=cost;++*count;return true;
+  }
+  bool read(std::istream& in){
+    std::string tag;long long value=-1;
+    if(!(in>>tag>>value)||tag!="GEM_WALLET_V1"||value<0||value>max)return false;
+    in>>std::ws;if(in.peek()!=std::char_traits<char>::eof())return false;
+    gems=int(value);return true;
+  }
+  bool write(std::ostream& out)const{
+    if(gems<0||gems>max)return false;
+    out<<"GEM_WALLET_V1 "<<gems<<"\n";return bool(out);
+  }
+};
 struct Game {
   nut::Board board{1,7919};
-  enum class Scene{Menu,Campaign,Board,Mine,Won,Lost};
+  enum class Scene{Menu,Campaign,Board,Shop,Mine,Won,Lost};
   Scene scene=Scene::Menu;
   std::map<std::string,SDL_Texture*> images;
   int unlocked=1,selectedLevel=1,selected=-1,down=-1;
   nut::Mine mine{};
   HoldStock stock{};
+  GemWallet wallet{};
+  int pendingPurchase=0; // confirmation required: 1 Butter, 2 Jam
+  std::string shopNotice;
   enum class HoldMode{Swap,Butter,Jam};
   HoldMode holdMode=HoldMode::Swap;
   enum class MineTab {Dig,Equipment,Workshop};
@@ -92,20 +116,25 @@ struct Game {
     std::string signature;int level=1;
     if(!(file>>signature>>level))return false;
     if(signature=="NUTBUSTER_NATIVE_PREVIEW_V1"){
-      unlocked=std::clamp(level,1,1000);stock=HoldStock{};return true;
+      unlocked=std::clamp(level,1,1000);stock=HoldStock{};wallet=GemWallet{};return true;
     }
     if(signature!="NUTBUSTER_NATIVE_PREVIEW_V2"&&
-       signature!="NUTBUSTER_NATIVE_PREVIEW_V3")return false;
+       signature!="NUTBUSTER_NATIVE_PREVIEW_V3"&&
+       signature!="NUTBUSTER_NATIVE_PREVIEW_V4")return false;
     nut::Mine loaded;
     if(!loaded.load(file))return false;
     HoldStock loadedStock;
-    if(signature=="NUTBUSTER_NATIVE_PREVIEW_V3"&&!loadedStock.read(file))return false;
-    mine=loaded;stock=loadedStock;unlocked=std::clamp(level,1,1000);
-    return true;
+    const bool v4=signature=="NUTBUSTER_NATIVE_PREVIEW_V4";
+    if((v4||signature=="NUTBUSTER_NATIVE_PREVIEW_V3")&&
+       !loadedStock.read(file,!v4))return false;
+    GemWallet loadedWallet; // V1-V3 migrate once with mobile's 25 starting gems
+    if(v4&&!loadedWallet.read(file))return false;
+    mine=loaded;stock=loadedStock;wallet=loadedWallet;
+    unlocked=std::clamp(level,1,1000);return true;
   }
   bool saveTo(std::ostream& file)const{
-    file<<"NUTBUSTER_NATIVE_PREVIEW_V3 "<<unlocked<<"\n";
-    return bool(file)&&mine.save(file)&&stock.write(file);
+    file<<"NUTBUSTER_NATIVE_PREVIEW_V4 "<<unlocked<<"\n";
+    return bool(file)&&mine.save(file)&&stock.write(file)&&wallet.write(file);
   }
   void load(){
     if(savePath.empty())return;
@@ -140,6 +169,7 @@ struct Game {
       std::string key=std::string("nuts/")+nut;
       if(!texture(r,root,key))return false;
     }
+    if(!texture(r,root,"hold/jam"))return false;
     for(int row=1;row<=4;++row)for(int col=1;col<=6;++col){
       std::string key="mine/r"+std::to_string(row)+"c"+std::to_string(col);
       if(!texture(r,root,key))return false;
@@ -201,6 +231,28 @@ struct Game {
       if(within(x,y,324,238,376,66)){selectedLevel=std::clamp(selectedLevel,1,unlocked);scene=Scene::Campaign;}
       else if(within(x,y,324,332,376,66)&&unlocked>500)makeMine();
       else if(within(x,y,324,426,376,66))quitRequested=true;
+      return;
+    }
+    if(scene==Scene::Shop){
+      if(within(x,y,24,20,145,46)){
+        pendingPurchase=0;shopNotice.clear();scene=Scene::Board;return;
+      }
+      if(within(x,y,190,270,300,85)){
+        pendingPurchase=1;shopNotice="BUTTER: 15 GEMS";return;
+      }
+      if(within(x,y,534,270,300,85)){
+        pendingPurchase=2;shopNotice="JAM: 30 GEMS";return;
+      }
+      if(within(x,y,320,480,384,62)){
+        if(!pendingPurchase)return;
+        const auto kind=pendingPurchase==1?nut::HoldKind::Butter:nut::HoldKind::Jam;
+        const bool ok=wallet.buy(stock,kind);
+        shopNotice=ok?"ONE HOLD PURCHASED":"INSUFFICIENT GEMS OR STOCK FULL";
+        pendingPurchase=0;if(ok)save();return;
+      }
+      if(within(x,y,320,558,384,58)){
+        pendingPurchase=0;shopNotice="PURCHASE CANCELLED";return;
+      }
       return;
     }
     if(scene==Scene::Won||scene==Scene::Lost){
@@ -266,6 +318,10 @@ struct Game {
       return;
     }
     if(scene==Scene::Board){
+      if(within(x,y,775,114,185,46)){
+        pendingPurchase=0;shopNotice.clear();holdMode=HoldMode::Swap;
+        selected=-1;scene=Scene::Shop;return;
+      }
       if(within(x,y,180,713,260,44)){
         holdMode=(stock.butter>0&&holdMode!=HoldMode::Butter)?
           HoldMode::Butter:HoldMode::Swap;
@@ -294,7 +350,7 @@ struct Game {
     nut::Turn result=board.swap(a,b);
     selected=-1;
     if(!result.valid){selected=b;return;}
-    if(result.won){unlocked=std::max(unlocked,std::min(1000,selectedLevel+1));save();scene=Scene::Won;}
+    if(result.won){wallet.win();unlocked=std::max(unlocked,std::min(1000,selectedLevel+1));save();scene=Scene::Won;}
     else if(result.lost)scene=Scene::Lost;
   }
   void render(SDL_Renderer* r){
@@ -344,7 +400,28 @@ struct Game {
       return;
     }
     button(r,24,20,145,46,"BACK");
+    if(scene==Scene::Shop){
+      label(r,280,125,"GRAVITY HOLD SHOP",3);
+      label(r,325,185,"GEMS "+std::to_string(wallet.gems),3);
+      button(r,190,270,300,85,"BUTTER 15 GEMS");
+      button(r,534,270,300,85,"JAM 30 GEMS");
+      sprite(r,"nuts/peanut",202,278,53,53);
+      sprite(r,"hold/jam",545,278,53,53);
+      label(r,195,375,"BUTTER 1 DROP / OWN "+std::to_string(stock.butter),2);
+      label(r,538,375,"JAM 2 DROPS / OWN "+std::to_string(stock.jam),2);
+      label(r,245,420,"HELD NUT MATCHES SCORE X3",2);
+      if(pendingPurchase){
+        label(r,258,453,"CONFIRM "+std::string(pendingPurchase==1?"BUTTER - 15":"JAM - 30")+" GEMS",2);
+        button(r,320,480,384,62,"CONFIRM PURCHASE");
+      }
+      button(r,320,558,384,58,"CANCEL");
+      if(!shopNotice.empty())label(r,245,640,shopNotice,2);
+      label(r,185,690,"LOCAL GEMS ONLY / NO REAL-MONEY CHECKOUT",2);
+      return;
+    }
     if(scene==Scene::Board){
+      button(r,775,114,185,46,"HOLD SHOP");
+      label(r,780,172,"GEMS "+std::to_string(wallet.gems),2);
       label(r,190,108,"LEVEL "+std::to_string(board.level())+"  MOVES "+
                     std::to_string(board.moves()),2);
       std::string title=board.stage().title;
@@ -382,7 +459,7 @@ struct Game {
       button(r,452,713,260,44,"JAM "+std::to_string(stock.jam));
       label(r,730,724,holdMode==HoldMode::Butter?"TAP NUT: 1 DROP":
           holdMode==HoldMode::Jam?"TAP NUT: 2 DROPS":
-          stock.butter+stock.jam==0?"NO STOCK / SHOP PENDING":"DRAG TO SWAP",1);
+          stock.butter+stock.jam==0?"BUY IN HOLD SHOP":"DRAG TO SWAP",1);
     } else if(scene==Scene::Mine){
       button(r,175,111,180,42,"EXCAVATE");
       button(r,365,111,180,42,"EQUIPMENT");
