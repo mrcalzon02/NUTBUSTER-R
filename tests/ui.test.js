@@ -58,7 +58,8 @@ async function run(){
  // an otherwise loaded replacement nut completely transparent.
  boardCells[staleIndex].classList.add('nut-shaking');
  boardCells[staleIndex].classList.add('nut-exploding');
- stale.image={complete:true,naturalWidth:0,style:{},classList:classes(['loaded']),getAttribute:()=> 'art/primary/nuts/'+E.TYPES[g.cells[staleIndex].type]+'.png'};
+ stale.image={complete:true,naturalWidth:0,style:{},classList:classes(),getAttribute:()=> 'art/primary/nuts/'+E.TYPES[g.cells[staleIndex].type]+'.png'};
+ stale.image.classList.add('loaded');
  stale.fallback={style:{visibility:'hidden'}};
  click({cell:String(swap[0])});assert.equal(renders,before);
  click({cell:String(swap[1])});await settle();assert.equal(g.moves,moves-1);assert.equal(renders,before);
