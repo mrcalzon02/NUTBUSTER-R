@@ -16,6 +16,40 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  approved-diva-recordings-commit:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify, unpack and commit the 93 approved female voice recordings
+        run: |
+          set -euo pipefail
+          python3 tools/install_diva_from_chunks.py
+          git add -- web/audio/announcers/diva
+          if git diff --cached --quiet; then
+            echo "93 original Diva recordings already committed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "audio: commit 93 owner-recorded Nutvale Diva lines"
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:main; then
+              echo "Owner-recorded Diva MP3s committed and pushed to main"
+              exit 0
+            fi
+            git fetch origin main
+            git rebase origin/main
+            sleep "$((attempt * 4))"
+          done
+          echo "::error::Unable to push the 93 recorded clips; not claiming upload"
+          exit 1
+
   approved-ore-sprite-commit:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -26,6 +60,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Install the owner-recorded Diva MP3s from verified Drive transport shards
+        run: python3 tools/install_diva_from_chunks.py
       - name: Slice approved Drive source and commit actual 24 PNG files
         shell: bash
         run: |
@@ -57,6 +93,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Install the owner-recorded Diva MP3s from verified Drive transport shards
+        run: python3 tools/install_diva_from_chunks.py
       - name: Slice exact approved Nutvale ore art for this build
         run: |
           python3 -m pip install --quiet --disable-pip-version-check Pillow numpy scipy
@@ -94,6 +132,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Install the owner-recorded Diva MP3s from verified Drive transport shards
+        run: python3 tools/install_diva_from_chunks.py
       - name: Slice exact approved Nutvale ore art for this build
         run: |
           python3 -m pip install --quiet --disable-pip-version-check Pillow numpy scipy
@@ -190,6 +230,8 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+      - name: Install the owner-recorded Diva MP3s from verified Drive transport shards
+        run: python3 tools/install_diva_from_chunks.py
       - name: Slice exact approved Nutvale ore art for this build
         run: |
           python3 -m pip install --quiet --disable-pip-version-check Pillow numpy scipy
@@ -224,6 +266,7 @@ jobs:
           unzip -Z -1 "$APK" | grep -Fx assets/index.html
           unzip -Z -1 "$APK" | grep -Fx assets/game.js
           unzip -Z -1 "$APK" | grep -Fx assets/audio/grunt-1.mp3
+          unzip -Z -1 "$APK" | grep -Fx assets/audio/announcers/diva/win.mp3
           unzip -Z -1 "$APK" | grep -Fx assets/art/primary/nuts/peanut.png
           unzip -Z -1 "$APK" | grep -Fx assets/art/maps/campaign-overview.webp
           unzip -Z -1 "$APK" | grep -Fx assets/art/maps/chapter-5-moonlit-golden-palace.webp
@@ -256,6 +299,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Install the owner-recorded Diva MP3s from verified Drive transport shards
+        run: python3 tools/install_diva_from_chunks.py
       - name: Slice exact approved Nutvale ore art for this build
         run: |
           python3 -m pip install --quiet --disable-pip-version-check Pillow numpy scipy
@@ -306,6 +351,8 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+      - name: Install the owner-recorded Diva MP3s from verified Drive transport shards
+        run: python3 tools/install_diva_from_chunks.py
       - uses: actions/download-artifact@v4
         with:
           name: Nutbuster-Android-debug-${{ github.run_id }}
@@ -369,6 +416,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Install the owner-recorded Diva MP3s from verified Drive transport shards
+        run: python3 tools/install_diva_from_chunks.py
       - name: Slice exact approved Nutvale ore art for this build
         run: |
           python3 -m pip install --quiet --disable-pip-version-check Pillow numpy scipy
@@ -434,6 +483,7 @@ jobs:
           "$SDK/aapt" dump badging "$APK" | tee "$RUNNER_TEMP/badging.txt"
           grep -F "package: name='io.github.mrcalzon02.nutbuster' versionCode='$CODE'" "$RUNNER_TEMP/badging.txt"
           unzip -Z -1 "$APK" | grep -Fx assets/audio/they-just-keep-coming.mp3
+          unzip -Z -1 "$APK" | grep -Fx assets/audio/announcers/diva/win.mp3
           unzip -Z -1 "$APK" | grep -Fx assets/art/maps/chapter-1-nutwood-meadows.webp
           mkdir -p release/publish
           cp "$APK" release/publish/NUTBUSTER-Android-phone-test.apk

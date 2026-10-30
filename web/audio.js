@@ -73,7 +73,7 @@ function stopAnnouncer(){
  unduck();
 }
 function setAnnouncerVoice(id){
- if(id!=='original'&&id!=='auditor')return false;
+ if(id!=='original'&&id!=='auditor'&&id!=='diva')return false;
  if(id!==announcerVoice){stopAnnouncer();announcerVoice=id;}
  return true;
 }
@@ -84,7 +84,9 @@ function voice(key){
  // Pre-recorded MP3 for both characters; no Android or browser speech engine.
  const file=auditor
   ? (Object.prototype.hasOwnProperty.call(root.NutAnnouncers?.auditor||{},key)?'announcers/auditor/'+key+'.mp3':null)
-  : catalog[key];
+  : announcerVoice==='diva'
+    ? (Object.prototype.hasOwnProperty.call(root.NutAnnouncers?.diva||{},key)?'announcers/diva/'+key+'.mp3':null)
+    : catalog[key];
  if(!speaker||!file)return false;
   // Always play wins and rewards. Ordinary mid-game voices have a brief spacing guard.
   const now=Date.now(),high=['win','close','package','premium','satisfaction','nutbuster','deal','look-out','nutsplosion','heck-package','nutsselence','nut-destruction','nutravaganza','busted'].includes(key);
