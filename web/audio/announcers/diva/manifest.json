@@ -1,0 +1,661 @@
+{
+  "schema": "nutbuster-diva-audio-v1",
+  "source_name": "nutbuster onego.mp3",
+  "source_sha256": "e196a975e24caa115ceae1251138688598f030dd18c2669b842cff6bb83c5931",
+  "source_duration_seconds": 355.019,
+  "format": "MP3 44100Hz 1ch 128kbps",
+  "mapping": "recorded script order, per user authorization, slight improvisation possible",
+  "clips": {
+    "big-one": {
+      "sha256": "4feac25cb4859bbe499d9ca8b8f26b2d11e626e7d799c9b3d97cfd00e8c13ae2",
+      "duration_sec": 4.911,
+      "source_take": 1,
+      "start_sec": 0,
+      "end_sec": 4.866
+    },
+    "magnificent": {
+      "sha256": "a63cd88d2a50ced3a71962f118feb0f780b2f7510b204e2f4a60ccc14da24eb7",
+      "duration_sec": 3.03,
+      "source_take": 2,
+      "start_sec": 6.574,
+      "end_sec": 9.554
+    },
+    "cascade": {
+      "sha256": "19dbf7a52832feb9d6d015a37d4dce6343c66ef42826f0dc6a3bfcd3b2dd7350",
+      "duration_sec": 4.336,
+      "source_take": 3,
+      "start_sec": 10.374,
+      "end_sec": 14.682
+    },
+    "win": {
+      "sha256": "7baa2157aa45933d946c20436cff6bcb2aa42e64d6165817c437bfb1c3f52c64",
+      "duration_sec": 4.415,
+      "source_take": 4,
+      "start_sec": 16.689,
+      "end_sec": 21.068
+    },
+    "close": {
+      "sha256": "ac5abc153c3b1044600fbb2f7ccdb9c9bdceb9398a806b83217f8db0999487c4",
+      "duration_sec": 2.873,
+      "source_take": 5,
+      "start_sec": 23.233,
+      "end_sec": 26.065
+    },
+    "nutbuster": {
+      "sha256": "3b3244c8b43befdb39c8eafa413f66c936dce714b09d5c174e49e91ee194cd59",
+      "duration_sec": 3.5,
+      "source_take": 6,
+      "start_sec": 28.059,
+      "end_sec": 31.519
+    },
+    "nutbuster-soft": {
+      "sha256": "6cec92c473e39852eb5378751316c650ee1221110a35af3612c948455c22a9c9",
+      "duration_sec": 2.456,
+      "source_take": 7,
+      "start_sec": 32.505,
+      "end_sec": 34.932
+    },
+    "package": {
+      "sha256": "10b37a71c179907d51a11b367ab6d59c6d65e0304c140bf2c1a0213eda7e4c5b",
+      "duration_sec": 2.978,
+      "source_take": 8,
+      "start_sec": 35.677,
+      "end_sec": 38.62
+    },
+    "premium": {
+      "sha256": "d0f9c9c2f039e74b3170fe081d443770db32aa66ae54a10bb2b3fb164b73825c",
+      "duration_sec": 4.023,
+      "source_take": 9,
+      "start_sec": 39.564,
+      "end_sec": 43.56
+    },
+    "satisfaction": {
+      "sha256": "c122257572edc1b85ff60cb7825a4bbacec9f8be6171bb8bb74197ec5251535e",
+      "duration_sec": 4.441,
+      "source_take": 10,
+      "start_sec": 44.384,
+      "end_sec": 48.783
+    },
+    "oh-my": {
+      "sha256": "3e382b3991b733d485119c29b69f21369577f28b095f5a674301498ea7d87d56",
+      "duration_sec": 3.37,
+      "source_take": 11,
+      "start_sec": 49.752,
+      "end_sec": 53.07
+    },
+    "deal": {
+      "sha256": "19e1407409ee5345510fa02fc70fafd2370f4c048a0e6c00b40c3154b11ac94a",
+      "duration_sec": 6.296,
+      "source_take": 12,
+      "start_sec": 54.381,
+      "end_sec": 60.624
+    },
+    "look-out": {
+      "sha256": "c514ccecf43fb5b67d7a41343eb42b1a140e9015955f1de12d704bdeb6971a4c",
+      "duration_sec": 2.9,
+      "source_take": 13,
+      "start_sec": 61.762,
+      "end_sec": 64.62
+    },
+    "nutsplosion": {
+      "sha256": "5b8305893414e63b3cf81660ebca1d6ccf42b4f45c023e9085b8c9df1b4c500f",
+      "duration_sec": 3.553,
+      "source_take": 14,
+      "start_sec": 65.31,
+      "end_sec": 68.825
+    },
+    "heck-package": {
+      "sha256": "c1bacca62081e1e7a2eb927a7306d00564a4d4ad402d996a9f031c569edaafaa",
+      "duration_sec": 3.762,
+      "source_take": 15,
+      "start_sec": 69.473,
+      "end_sec": 73.19
+    },
+    "nutsselence": {
+      "sha256": "fc89f21f83ea399f13783a0343e28aebeb4ac2efc10d468d08d02570a850b4bd",
+      "duration_sec": 3.553,
+      "source_take": 16,
+      "start_sec": 74.005,
+      "end_sec": 77.515
+    },
+    "nut-destruction": {
+      "sha256": "524c697d3c2374555d57067473b81eb8e7ccc6237b0ca241eced4dc15ad636e2",
+      "duration_sec": 3.291,
+      "source_take": 17,
+      "start_sec": 78.41,
+      "end_sec": 81.652
+    },
+    "nutravaganza": {
+      "sha256": "444dba3e03967896a3572cc18254339e3c925a55e4dd4c2c8455a42724b5e591",
+      "duration_sec": 4.571,
+      "source_take": 18,
+      "start_sec": 81.974,
+      "end_sec": 86.506
+    },
+    "busted": {
+      "sha256": "5dc60be858e214882ed1f557d2e21a1ca80cae4afc6c7d2f6d71039b830f1f9b",
+      "duration_sec": 3.814,
+      "source_take": 19,
+      "start_sec": 86.735,
+      "end_sec": 90.51
+    },
+    "start-first": {
+      "sha256": "54e430ac07f75e8e823b06a08bc5a2e7f7f8994f05254b09e07d720f78e7ef4e",
+      "duration_sec": 3.762,
+      "source_take": 20,
+      "start_sec": 92.505,
+      "end_sec": 96.224
+    },
+    "start-repeat": {
+      "sha256": "92186f4e27288750e63e5f9b733b7917881cdefeda44184c7d694682109382c4",
+      "duration_sec": 3.03,
+      "source_take": 21,
+      "start_sec": 97.855,
+      "end_sec": 100.843
+    },
+    "new-nut": {
+      "sha256": "409509116a72139056cd0706fecfede18b40e0499c8a98ffe9a07c217167b83a",
+      "duration_sec": 2.194,
+      "source_take": 22,
+      "start_sec": 101.364,
+      "end_sec": 103.52
+    },
+    "first-match": {
+      "sha256": "ac8d11f2396f37191dd6bdc604a07c0208be7bf752c04b2152f97f391be8a0a2",
+      "duration_sec": 2.769,
+      "source_take": 23,
+      "start_sec": 104.144,
+      "end_sec": 106.87
+    },
+    "match-four": {
+      "sha256": "569d295ef4416e2bee822452d30dfb4af6f396c307f83e1430a8bc68dc65c8b0",
+      "duration_sec": 2.508,
+      "source_take": 24,
+      "start_sec": 107.32,
+      "end_sec": 109.782
+    },
+    "match-five": {
+      "sha256": "6b118b102ce71c1c3ec5531b47f17fc780be19bb0a85f186c50182eb6cb6b04e",
+      "duration_sec": 3.291,
+      "source_take": 25,
+      "start_sec": 110.08,
+      "end_sec": 113.34
+    },
+    "special-pair": {
+      "sha256": "da05a12c585a7609de8c8fea8ecdb201a9796e086383a8a12baa23dab01d2961",
+      "duration_sec": 2.717,
+      "source_take": 26,
+      "start_sec": 113.394,
+      "end_sec": 116.072
+    },
+    "invalid-swap": {
+      "sha256": "90fab6c4ced0d342b95aaac90954112c5d15727ab3ddab9db6dbd8cfc5eab25d",
+      "duration_sec": 7.288,
+      "source_take": 27,
+      "start_sec": 116.545,
+      "end_sec": 123.783
+    },
+    "deadlock-shuffle": {
+      "sha256": "ddb772c8da026acb1282a61b00bd3b43d72028b4783d0a43dbbcc842d37f943a",
+      "duration_sec": 2.299,
+      "source_take": 28,
+      "start_sec": 124.173,
+      "end_sec": 126.443
+    },
+    "low-moves-three": {
+      "sha256": "e0946cc20c806b6ceeb61a669c8bb9de4b7c4a0910b5e145bcf2d2397bc2a16c",
+      "duration_sec": 3.213,
+      "source_take": 29,
+      "start_sec": 127.145,
+      "end_sec": 130.331
+    },
+    "last-move": {
+      "sha256": "efe4370a5bf4eaeaa1976131091ca18f7bd3c01c55483de61aa69a37fe2b876e",
+      "duration_sec": 4.101,
+      "source_take": 30,
+      "start_sec": 131.188,
+      "end_sec": 135.246
+    },
+    "close-win": {
+      "sha256": "f30fb1374689af235a482e6f2c279d0c44b9aa4ca2e3916760fe88e22082b2f3",
+      "duration_sec": 2.9,
+      "source_take": 31,
+      "start_sec": 136.045,
+      "end_sec": 138.897
+    },
+    "loss-normal": {
+      "sha256": "8b0057949c961026a253985006634626ed145d85795231cb4cc8d5d6fa2ee535",
+      "duration_sec": 5.433,
+      "source_take": 32,
+      "start_sec": 139.236,
+      "end_sec": 144.627
+    },
+    "three-stars": {
+      "sha256": "5323d533cc381bb9f1705b04c5f6bd86b8631b9fdf7dffffe303f7e8083d2cc0",
+      "duration_sec": 3.135,
+      "source_take": 33,
+      "start_sec": 145.532,
+      "end_sec": 148.623
+    },
+    "chapter-open": {
+      "sha256": "6991b4a38ba743e662af64994ae3a28045e0d4f84a9e5b78dde378531f8d5b81",
+      "duration_sec": 3.5,
+      "source_take": 34,
+      "start_sec": 148.569,
+      "end_sec": 152.039
+    },
+    "chapter-finale": {
+      "sha256": "d5bbb3fd69506a8c744d6d8575802eb8a0639299a1e77490ea745cedc5aef614",
+      "duration_sec": 2.926,
+      "source_take": 35,
+      "start_sec": 152.36,
+      "end_sec": 155.243
+    },
+    "level-500": {
+      "sha256": "f7a0ea9b06f6cec9d35ffacdd209e38ab4d53aad50c52dc76e84ae2e7b4eab78",
+      "duration_sec": 2.168,
+      "source_take": 36,
+      "start_sec": 155.823,
+      "end_sec": 157.948
+    },
+    "ice-hit": {
+      "sha256": "3de2218c40a592f5e769729d1c4fa19d33f783e8a0695b3c6f07161a1df0a8c6",
+      "duration_sec": 5.407,
+      "source_take": 37,
+      "start_sec": 158.176,
+      "end_sec": 163.555
+    },
+    "ice-broken": {
+      "sha256": "9240de36bc4fd7a75927be84f61938d130ad6ff33caa7ad45a9dba1ec2d22362",
+      "duration_sec": 3.344,
+      "source_take": 38,
+      "start_sec": 164.215,
+      "end_sec": 167.515
+    },
+    "lock-open": {
+      "sha256": "c193b4a868b4f64cfe345ad2c38f1af4d8e62665cace206b1df81f980e7ea0eb",
+      "duration_sec": 3.239,
+      "source_take": 39,
+      "start_sec": 167.498,
+      "end_sec": 170.69
+    },
+    "chest-open": {
+      "sha256": "302847588997c3d38107ed99461719309f836bb25ecfd67349078ff0692c5fab",
+      "duration_sec": 3.37,
+      "source_take": 40,
+      "start_sec": 171.439,
+      "end_sec": 174.773
+    },
+    "jam-spread": {
+      "sha256": "e8549ab792c4d51e75bcb28d3e9af98a8926bee155f215cececb5ad4e0fda275",
+      "duration_sec": 3.187,
+      "source_take": 41,
+      "start_sec": 175.458,
+      "end_sec": 178.598
+    },
+    "jam-cleared": {
+      "sha256": "696e29c1728f8580ccc20b1abc4aa3e70b038e128968816f09f7e6d36a29e7ee",
+      "duration_sec": 1.437,
+      "source_take": 42,
+      "start_sec": 178.919,
+      "end_sec": 180.321
+    },
+    "fuse-warning": {
+      "sha256": "21cfa4c7c4a94767517f2b25d6a2171de069ba6097426c3857ab13e5daaa601b",
+      "duration_sec": 1.332,
+      "source_take": 43,
+      "start_sec": 180.262,
+      "end_sec": 181.561
+    },
+    "fuse-defused": {
+      "sha256": "00bafd2d10603d41e8ad2a013608975381b71b44a63a048603d5bc1cdcfa9d05",
+      "duration_sec": 3.265,
+      "source_take": 44,
+      "start_sec": 181.894,
+      "end_sec": 185.117
+    },
+    "conveyor-shift": {
+      "sha256": "c24400a92d9bd46c7ab10ca75584f95bc224750c26d5365cc73f1ded04d646f4",
+      "duration_sec": 2.482,
+      "source_take": 45,
+      "start_sec": 185.398,
+      "end_sec": 187.83
+    },
+    "portal-swap": {
+      "sha256": "df33db11a9e986be43880af084a15500b5f12422f911b32974916aa304c360af",
+      "duration_sec": 3.422,
+      "source_take": 46,
+      "start_sec": 187.829,
+      "end_sec": 191.199
+    },
+    "wind-gust": {
+      "sha256": "83761b90802472d2986502b6f75863e78be222c773920c4a04b55592edbf19b4",
+      "duration_sec": 3.683,
+      "source_take": 47,
+      "start_sec": 191.734,
+      "end_sec": 195.391
+    },
+    "elemental-trigger": {
+      "sha256": "138d2526c1a0197757598b1f09c599cc8d67e3259f2f3d016d1aad645b13f554",
+      "duration_sec": 2.664,
+      "source_take": 48,
+      "start_sec": 195.886,
+      "end_sec": 198.506
+    },
+    "elemental-chain": {
+      "sha256": "155b9f2375c869f0760973a706197182c5da87377ab23b784c79ae3616e62371",
+      "duration_sec": 2.821,
+      "source_take": 49,
+      "start_sec": 198.939,
+      "end_sec": 201.725
+    },
+    "elemental-trial-win": {
+      "sha256": "573ace6c80a6513ce358f23c683c6b42d1db19dd11c907982f3886e73ad92af8",
+      "duration_sec": 3.396,
+      "source_take": 50,
+      "start_sec": 201.756,
+      "end_sec": 205.12
+    },
+    "elemental-trial-loss": {
+      "sha256": "12a66808167e33951eb5331a7defdc9a3bfce802e18243f510c8414bd5155199",
+      "duration_sec": 2.456,
+      "source_take": 51,
+      "start_sec": 205.956,
+      "end_sec": 208.37
+    },
+    "elemental-relic": {
+      "sha256": "e2f7ab6f62aaa328a2f40bad1031efec3eaadafe9e35c047db01a5d516a1aa09",
+      "duration_sec": 2.011,
+      "source_take": 52,
+      "start_sec": 208.904,
+      "end_sec": 210.877
+    },
+    "daily-moves-low": {
+      "sha256": "9909e20ef158e8186c40902e367b2d0b81e45a41db83710ef1d3ca450fa31f7b",
+      "duration_sec": 1.802,
+      "source_take": 53,
+      "start_sec": 211.295,
+      "end_sec": 213.068
+    },
+    "daily-moves-empty": {
+      "sha256": "3566595ed8fcc5bb9f7082bedcdba0ce5772f6fc2b8800a53718c5e6fc6a2d11",
+      "duration_sec": 1.123,
+      "source_take": 54,
+      "start_sec": 213.482,
+      "end_sec": 214.571
+    },
+    "nutdex-first": {
+      "sha256": "3d45cc60e6df7c58f571d6509a3bf9185fd02b8934447d373eab252b6eb71bc8",
+      "duration_sec": 3.109,
+      "source_take": 55,
+      "start_sec": 214.578,
+      "end_sec": 217.648
+    },
+    "new-house": {
+      "sha256": "12ea2273b8aae602a382ecbf10b7a30749ae344bcfd8b5d8865e8b3c09fdf52d",
+      "duration_sec": 3.527,
+      "source_take": 56,
+      "start_sec": 219.575,
+      "end_sec": 223.054
+    },
+    "renovation-complete": {
+      "sha256": "c762dab494126e1a2bda9390e8854f5f5d23e7684993a5289fe056e9cd79b858",
+      "duration_sec": 7.419,
+      "source_take": 57,
+      "start_sec": 223.039,
+      "end_sec": 230.427
+    },
+    "new-zone": {
+      "sha256": "14082d3a7c4d08bc68be696b9248073fdc1cde9db240e4d7febee495a9d92754",
+      "duration_sec": 5.642,
+      "source_take": 58,
+      "start_sec": 230.977,
+      "end_sec": 236.575
+    },
+    "decor-placed": {
+      "sha256": "82ce1c10e441e0b104a6e5478efe84ccce95bfa5ed098ced543ba7bd9374166d",
+      "duration_sec": 3.291,
+      "source_take": 59,
+      "start_sec": 237.528,
+      "end_sec": 240.781
+    },
+    "outfit-equipped": {
+      "sha256": "ebd058ced2744fe62175ad693f0fc3cc27097eb41d8e021e3668683f612a48fb",
+      "duration_sec": 4.336,
+      "source_take": 60,
+      "start_sec": 240.836,
+      "end_sec": 245.145
+    },
+    "companion-equipped": {
+      "sha256": "0810d71061fcf0101e13628fcb1aa1bb03884ebe5a4f67aaf98eab3695e7860a",
+      "duration_sec": 3.03,
+      "source_take": 61,
+      "start_sec": 245.083,
+      "end_sec": 248.063
+    },
+    "collection-complete": {
+      "sha256": "76316ea62c8e76f525e7fa1f9fc2605d55c8a2f8f2c6babeaaa7cf2535bc9e53",
+      "duration_sec": 0.967,
+      "source_take": 62,
+      "start_sec": 248.015,
+      "end_sec": 248.933
+    },
+    "purchase-zero": {
+      "sha256": "98f572d3985aca356549d2437c121236202e8dee79259d9fb9cf9082d871abe7",
+      "duration_sec": 4.65,
+      "source_take": 63,
+      "start_sec": 249.419,
+      "end_sec": 254.041
+    },
+    "prestige-award": {
+      "sha256": "96092041859ed3caff95d420dfea6e9d8da5637c73aa9df85965e2f0c7ead956",
+      "duration_sec": 4.023,
+      "source_take": 64,
+      "start_sec": 254.043,
+      "end_sec": 258.034
+    },
+    "wharf-welcome": {
+      "sha256": "c2d55b004b2cd27d627b1e59b45061a38e32f59eb4cbb3913e3ad75ce302b808",
+      "duration_sec": 0.967,
+      "source_take": 65,
+      "start_sec": 258.79,
+      "end_sec": 259.728
+    },
+    "bait-daily": {
+      "sha256": "b8b7b4b29db2a044fc542341083582149ac4ce10d7f87ed48bd58e04df7f98ce",
+      "duration_sec": 1.75,
+      "source_take": 66,
+      "start_sec": 259.986,
+      "end_sec": 261.71
+    },
+    "bait-empty": {
+      "sha256": "2587470d82fe0a2e279be32f65dd5f8b70e8a80ff8f69ff59aa68f481db2cf18",
+      "duration_sec": 3.291,
+      "source_take": 67,
+      "start_sec": 262.723,
+      "end_sec": 265.973
+    },
+    "bait-purchased": {
+      "sha256": "064bb9eb70425ded7967dd39ec2e804f35923578240fa05930d93b223fd9742c",
+      "duration_sec": 0.914,
+      "source_take": 68,
+      "start_sec": 266.146,
+      "end_sec": 267.009
+    },
+    "bait-crafted": {
+      "sha256": "8b0a792cccb0305ab3aae50f2e74ab5ec6ca0d84c990adab16742da89eb5b03f",
+      "duration_sec": 2.011,
+      "source_take": 69,
+      "start_sec": 267.258,
+      "end_sec": 269.218
+    },
+    "booster-traded": {
+      "sha256": "dacebe9bee469e16ee945054a2dcfdbf2d044d4ac30d8423372f052186482afa",
+      "duration_sec": 3.37,
+      "source_take": 70,
+      "start_sec": 269.412,
+      "end_sec": 272.746
+    },
+    "cast-line": {
+      "sha256": "b21cefa9a93ad79e1e573cb9add922f1a07632dd8f0d89e1a674dac8ff7a6027",
+      "duration_sec": 4.258,
+      "source_take": 71,
+      "start_sec": 272.766,
+      "end_sec": 276.996
+    },
+    "fish-hooked": {
+      "sha256": "97fc1e35e0f10dfc07dfef6e99ac0cbc4ad4b1d2c41b023f2948bd7bf4e79414",
+      "duration_sec": 3.082,
+      "source_take": 72,
+      "start_sec": 276.963,
+      "end_sec": 280.001
+    },
+    "tension-high": {
+      "sha256": "f3fe76ce624193b3d8880c5bd8762e67b237413d475baade77f352d1b48ec440",
+      "duration_sec": 2.534,
+      "source_take": 73,
+      "start_sec": 280.211,
+      "end_sec": 282.717
+    },
+    "fish-struggling": {
+      "sha256": "166ac1706a4bd31fff3e03b86dee59afa380ec1982d0f41aea3ce1a478ed5aa1",
+      "duration_sec": 2.168,
+      "source_take": 74,
+      "start_sec": 282.683,
+      "end_sec": 284.821
+    },
+    "line-snapped": {
+      "sha256": "421c67ee54744cbdb74c9ce4b0cd8192464a4c336652021216bd5a2e3c59c2a9",
+      "duration_sec": 2.22,
+      "source_take": 75,
+      "start_sec": 284.985,
+      "end_sec": 287.164
+    },
+    "fish-escaped": {
+      "sha256": "f9df9c3e3120b9b1a4fa39cbb0ff8148cd4e08590949b8f24510d74009702c85",
+      "duration_sec": 2.638,
+      "source_take": 76,
+      "start_sec": 288.299,
+      "end_sec": 290.903
+    },
+    "fish-common": {
+      "sha256": "d2b7c32beef0d30a08d1f34d12715779e231c95be407a8e9581cd42e072ebc57",
+      "duration_sec": 2.116,
+      "source_take": 77,
+      "start_sec": 291.289,
+      "end_sec": 293.366
+    },
+    "fish-uncommon": {
+      "sha256": "52fcb2d23468141a92fa329251f284aee8be6a3d1fa18b4343a31b88cf3577ce",
+      "duration_sec": 2.664,
+      "source_take": 78,
+      "start_sec": 293.756,
+      "end_sec": 296.385
+    },
+    "fish-rare": {
+      "sha256": "7db76f7f2cf077fdec353466d7839379abfd87282a04f2a415e55d3dd3a31965",
+      "duration_sec": 2.691,
+      "source_take": 79,
+      "start_sec": 296.552,
+      "end_sec": 299.209
+    },
+    "fish-epic": {
+      "sha256": "8de3808913f17a8681c823b5783e112f5c526fd30a47372c749a61c2da93603e",
+      "duration_sec": 2.612,
+      "source_take": 80,
+      "start_sec": 299.769,
+      "end_sec": 302.34
+    },
+    "fish-legendary": {
+      "sha256": "bbedfb271c7c03c39e8b15c8ec3e5fd80a44aba9b7f4e4425c69254475d18186",
+      "duration_sec": 6.609,
+      "source_take": 81,
+      "start_sec": 302.36,
+      "end_sec": 308.921
+    },
+    "fish-kept": {
+      "sha256": "25371559cb228bb04f14ab32aeee6fbebaff7d9ba2a5329310d6f7082751c4b3",
+      "duration_sec": 3.448,
+      "source_take": 82,
+      "start_sec": 309.534,
+      "end_sec": 312.95
+    },
+    "fish-sold": {
+      "sha256": "39fff8b02c927adb60c1d5cfe410bc4217b850c9912c63d2c06a7837f13c0951",
+      "duration_sec": 3.161,
+      "source_take": 83,
+      "start_sec": 313.04,
+      "end_sec": 316.153
+    },
+    "fish-released": {
+      "sha256": "13a111a52834a26a44ce36783783a5551f3b375b5cfb18ed5fef2b9107290c2e",
+      "duration_sec": 4.571,
+      "source_take": 84,
+      "start_sec": 316.438,
+      "end_sec": 320.972
+    },
+    "aquarium-full": {
+      "sha256": "894a6926bce152a16870698cfacb02d3339f16c4e23ff78e25f52db59c88bbbf",
+      "duration_sec": 4.284,
+      "source_take": 85,
+      "start_sec": 321.267,
+      "end_sec": 325.506
+    },
+    "aquarium-expanded": {
+      "sha256": "d7e2a60d9fc162a573b6a54668421cf7827aafca81751a1b2058352c14da03b5",
+      "duration_sec": 3.892,
+      "source_take": 86,
+      "start_sec": 326.754,
+      "end_sec": 330.619
+    },
+    "aquarium-first-fish": {
+      "sha256": "c997075224fb2b880e217b986994fec7e892fbbea668625467a9816e90c6831d",
+      "duration_sec": 3.527,
+      "source_take": 87,
+      "start_sec": 330.614,
+      "end_sec": 334.094
+    },
+    "aquarium-decor": {
+      "sha256": "ac6acec02a3f026d89d0280ae1ae54629fc3ac7ed7c09f97e6563e8e45bf0a75",
+      "duration_sec": 3.762,
+      "source_take": 88,
+      "start_sec": 334.239,
+      "end_sec": 337.966
+    },
+    "rod-new": {
+      "sha256": "937c481e7a3caed19568573c7ca124f12b930b0cd2531f744563bc2ee53ee686",
+      "duration_sec": 2.691,
+      "source_take": 89,
+      "start_sec": 338.339,
+      "end_sec": 341.0
+    },
+    "rod-worn": {
+      "sha256": "30925a837616579f5abc00074d1d388a61a1e91edf1c01cb1b58a38b7d09a626",
+      "duration_sec": 2.952,
+      "source_take": 90,
+      "start_sec": 341.565,
+      "end_sec": 344.474
+    },
+    "rod-broken": {
+      "sha256": "506e5ce1fa4a33ab5e22db6d0ee9fbe35586b5bab5cb171c47886b1809edb65a",
+      "duration_sec": 2.586,
+      "source_take": 91,
+      "start_sec": 344.586,
+      "end_sec": 347.123
+    },
+    "rod-repaired": {
+      "sha256": "d03e7379c50d0b4444d241cb415190971a58d8f5a53332f77a54610126fabeb3",
+      "duration_sec": 2.168,
+      "source_take": 92,
+      "start_sec": 347.158,
+      "end_sec": 349.285
+    },
+    "fish-collection-milestone": {
+      "sha256": "ec21dc8ebc8bd9d0c795cd740b63e6818f4c1dbd195c5b2e0bf82358476ef14d",
+      "duration_sec": 5.146,
+      "source_take": 93,
+      "start_sec": 349.911,
+      "end_sec": 355.019
+    }
+  }
+}
