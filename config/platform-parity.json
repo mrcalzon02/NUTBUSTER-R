@@ -245,7 +245,7 @@
       "nativeSources": [],
       "mobile": "functionally-tested",
       "native": "not-ported",
-      "gap": "No native audio engine wired to gameplay yet."
+      "gap": "2026-10-30 review: The 93 owner-recorded Nutvale Diva MP3s, original voice, Auditor, captions, and three-way announcer selector ship in the shared Android/Fire OS WebView source. Native SDL3 Windows/Linux previews still have no audio engine or voice selector; do not claim desktop announcer parity."
     },
     {
       "id": "updater-and-distribution",
