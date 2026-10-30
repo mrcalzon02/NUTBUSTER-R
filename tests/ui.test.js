@@ -58,7 +58,7 @@ async function run(){
  // an otherwise loaded replacement nut completely transparent.
  boardCells[staleIndex].classList.add('nut-shaking');
  boardCells[staleIndex].classList.add('nut-exploding');
- stale.image={complete:true,naturalWidth:0,style:{},getAttribute:()=> 'art/primary/nuts/'+E.TYPES[g.cells[staleIndex].type]+'.png'};
+ stale.image={complete:true,naturalWidth:0,style:{},classList:classes(['loaded']),getAttribute:()=> 'art/primary/nuts/'+E.TYPES[g.cells[staleIndex].type]+'.png'};
  stale.fallback={style:{visibility:'hidden'}};
  click({cell:String(swap[0])});assert.equal(renders,before);
  click({cell:String(swap[1])});await settle();assert.equal(g.moves,moves-1);assert.equal(renders,before);
@@ -68,6 +68,7 @@ async function run(){
  assert.equal(boardCells[staleIndex].classList.contains('nut-shaking'),false,'Interrupted shaking must not animate the next nut');
  assert.equal(stale.image.style.display,'none','Cached broken sprite is hidden even without onerror');
  assert.equal(stale.fallback.style.visibility,'visible','Broken image never leaves an empty playable tile');
+ assert.equal(stale.image.classList.contains('loaded'),false,'Broken cached image must not retain the loaded class that hides its fallback');
  swap=findSwap(g,true);const score=g.score;click({cell:String(swap[0])});click({cell:String(swap[1])});
  await settle();assert.ok(g.score>score);assert.equal(renders,before);
  const removed=g.history.at(-1).removed;assert.ok(removed>0,'Matching move destroys nuts');
@@ -76,6 +77,27 @@ async function run(){
  assert.ok(falling.every(x=>x.innerHTML.includes('class="piece"')&&!x.innerHTML.includes('visibility: hidden')),
   'Falling sprites are rendered from nut data, not a previously hidden source element');
  assert.equal(app.getSave().coins,startingCoins,'Matches award score, not spendable Golden Nuts');
+ // Level 12 contains a central column interrupted by a genuine interior hole.
+ // Recover an image that loaded after WebView's earlier onerror hid it inline.
+ app.start(12);attach();g=state().game;
+ assert.ok(g.cfg.mask.some((active,i)=>!active&&i>=g.cfg.width&&i<g.cfg.mask.length-g.cfg.width),'Level 12 must exercise an interior interrupted column');
+ assert.ok(g.cells.every((c,i)=>Boolean(c)===Boolean(g.cfg.mask[i])),'Only true void cells may be absent from the irregular board');
+ g.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
+ swap=findSwap(g,false);
+ const survivorIndex=g.cells.findIndex((c,i)=>c&&!swap.includes(i)),survivor=boardCells[survivorIndex].visual;
+ survivor.style.visibility='hidden';
+ survivor.image={complete:true,naturalWidth:96,style:{display:'none'},classList:classes(),getAttribute:()=> 'art/primary/nuts/'+E.TYPES[g.cells[survivorIndex].type]+'.png'};
+ survivor.fallback={style:{visibility:'visible'}};
+ const irregularRenders=renders;
+ click({cell:String(swap[0])});click({cell:String(swap[1])});await settle();
+ assert.equal(renders,irregularRenders,'Irregular-board repair must not rebuild the entire board');
+ assert.equal(survivor.style.visibility,'','Canceled animation must not hide a playable nut');
+ assert.equal(survivor.image.style.display,'','Recovered image must clear stale inline display:none');
+ assert.equal(survivor.image.classList.contains('loaded'),true,'Recovered image must regain loaded class');
+ assert.equal(survivor.fallback.style.visibility,'','Loaded image must reset stale fallback state');
+ assert.ok(boardCells.every((tile,i)=>g.cfg.mask[i]?tile&&tile.visual.style.visibility!=='hidden':tile===null),
+  'All occupied irregular cells remain visible and all true voids remain void');
+
  assert.equal(refs.wallet.textContent,startingCoins.toLocaleString(),'Main wallet stays unchanged during ordinary matching');
  assert.equal(refs['play-wallet'].textContent,startingCoins.toLocaleString(),'In-level wallet stays unchanged during ordinary matching');
  assert.equal(JSON.parse(saveStore['nutbuster.v1']).coins,startingCoins,'Match score does not create saved currency');
