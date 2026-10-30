@@ -32,6 +32,60 @@ function isGravityBarrier(c){return !c||(c.type!==null&&(c.ice>0||c.lock>0||c.ch
  assert.ok(island.every(f=>f.from===-1&&f.startRow===7),'Fresh nuts originate at their own segment top, not across the hole');
  assert.ok(cells.every(c=>!c||c.type!==null),'No blank playable cell after interrupted-column refill');
 }
+// Reproduce the two-gravity-pass magma defect on a seeded donut board.
+// A post-refill magma strike must animate as a second cascade, not append
+// duplicate fall destinations to the first pass (which paints ghost/blank nuts).
+function magmaTraceBoard(){
+ const g=E.create(628,23);
+ assert.ok(g.cfg.mask.some(yes=>!yes),'Fixture must retain real donut voids');
+ for(const c of g.cells)if(c){
+  for(const key of ['ice','lock','chest','rock','frozen','hold','ward','jam','fuse'])c[key]=0;
+  c.aura=null;c.auraTurns=0;
+ }
+ return g;
+}
+function assertMagmaCascadeTrace(g,result,context){
+ assert.equal(result.valid,true,context);
+ assert.ok(g.elementalActivations.includes('magma'),context+' must activate magma');
+ const cascades=result.stages.filter(stage=>stage.kind==='cascade');
+ assert.ok(cascades.length>=2,context+' needs separate pre-magma and post-magma gravity stages');
+ for(const [wave,stage] of cascades.entries()){
+  const destinations=new Set();
+  for(const fall of stage.falls){
+   assert.ok(!destinations.has(fall.to),context+' duplicate fall destination '+wave+':'+fall.to);
+   destinations.add(fall.to);
+   assert.equal(stage.cells[fall.to].type,fall.type,context+' final fall payload '+wave+':'+fall.to);
+   if(fall.from>=0){
+    assert.equal(stage.afterClear[fall.from].type,fall.type,context+' source payload '+wave+':'+fall.from);
+    assert.equal(fall.from%g.cfg.width,fall.to%g.cfg.width,context+' same-column fall');
+    for(let y=Math.floor(fall.from/g.cfg.width)+1;y<=Math.floor(fall.to/g.cfg.width);y++)
+     assert.ok(!isGravityBarrier(stage.afterClear[y*g.cfg.width+fall.to%g.cfg.width]),context+' no fall across hole or pin');
+   }else{
+    let top=Math.floor(fall.to/g.cfg.width);
+    while(top>0&&!isGravityBarrier(stage.afterClear[(top-1)*g.cfg.width+fall.to%g.cfg.width]))top--;
+    if(top>0)assert.ok(fall.startRow>=top,context+' refill starts in local vertical island');
+   }
+  }
+ }
+ assertPlayableCellsFilled(g,context);
+}
+{
+ const g=magmaTraceBoard(),at=3*g.cfg.width;
+ g.cells[at].elemental='magma';
+ assertMagmaCascadeTrace(g,E.booster(g,'hammer',at),'seeded donut magma booster');
+}
+{
+ const g=magmaTraceBoard(),pair=findSwap(g,true);
+ assert.ok(pair,'Seeded donut must have a scoring swap');
+ const [a,b]=pair,left=g.cells[a].type,right=g.cells[b].type;
+ g.cells[a].type=right;g.cells[b].type=left;
+ const hit=[...E.matches(g).hit];
+ g.cells[a].type=left;g.cells[b].type=right;
+ const magmaIndex=hit.find(i=>i!==a&&i!==b);
+ assert.ok(Number.isInteger(magmaIndex),'Seeded match needs an unaffected magma source');
+ g.cells[magmaIndex].elemental='magma';
+ assertMagmaCascadeTrace(g,E.swap(g,a,b),'seeded donut magma match');
+}
 const expected=[[1,4,5],[10,4,5],[11,5,6],[30,5,6],[31,6,7],[70,6,7],[71,7,8],[140,7,8],[141,8,9],[500,8,9],[1000,8,9]];
 for(const [level,w,h] of expected){const c=E.makeLevel(level);assert.equal(c.width,w);assert.equal(c.height,h);assert.equal(c.mask.length,w*h);}
 let matching=0,nonMatching=0,cascades=0,falls=0;

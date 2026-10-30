@@ -491,8 +491,17 @@ function collapse(g,first){let loops=0,removed=0,cracked=0;const stages=[];let f
   }
   g.score+=(ids.length*60+bonus+heldMatches*120)*Math.min(loops,6)+crystalBonus;
   const afterClear=snapshot(g).cells,falls=[];gravity(g,falls);
-  const magma=runMagma(g,summary);if(magma.length){gravity(g,falls);removed+=magma.length;}
-  stages.push({kind:'cascade',before,afterClear,clear:[...new Set([...ids,...powered,...magma])],falls,cells:snapshot(g).cells});
+  const afterFirstGravity=snapshot(g).cells;
+  // A magma strike happens AFTER this refill. Keep each fall list attached
+  // to its own intermediate board, never two sprites for one destination.
+  stages.push({kind:'cascade',before,afterClear,clear:[...new Set([...ids,...powered])],falls,cells:afterFirstGravity});
+  const magma=runMagma(g,summary);
+  if(magma.length){
+   const afterMagma=snapshot(g).cells,magmaFalls=[];
+   gravity(g,magmaFalls);removed+=magma.length;
+   stages.push({kind:'cascade',before:afterFirstGravity,afterClear:afterMagma,
+    clear:[...new Set(magma)],falls:magmaFalls,cells:snapshot(g).cells});
+  }
   found=matches(g);
  }
  g.combos=loops;g.won=complete(g);g.lost=g.moves<=0&&!g.won;
@@ -689,12 +698,16 @@ function booster(g,type,index){
  g.boosterUsed++;g.uses[type]=(g.uses[type]||0)+1;
  g.score+=targets.length*35;
  const afterClear=snapshot(g).cells,falls=[];gravity(g,falls);
- const magma=runMagma(g,summary);if(magma.length)gravity(g,falls);
+ const afterFirstGravity=snapshot(g).cells;
+ const magma=runMagma(g,summary),afterMagma=snapshot(g).cells,magmaFalls=[];
+ if(magma.length)gravity(g,magmaFalls);
  const afterGravity=snapshot(g).cells,r=collapse(g);
  g.won=complete(g);g.lost=g.moves<=0&&!g.won;
- const stage={kind:'cascade',before,afterClear,clear:[...new Set([...targets,...powered,...magma])],falls,cells:afterGravity};
+ const stage={kind:'cascade',before,afterClear,clear:[...new Set([...targets,...powered])],falls,cells:afterFirstGravity};
+ const magmaStages=magma.length?[{kind:'cascade',before:afterFirstGravity,afterClear:afterMagma,
+  clear:[...new Set(magma)],falls:magmaFalls,cells:afterGravity}]:[];
  return {...r,valid:true,type,removed:r.removed+summary.removed,cracked:r.cracked+summary.cracked,
-  won:g.won,lost:g.lost,stages:[stage,...r.stages],objectives:objectiveState(g)};
+  won:g.won,lost:g.lost,stages:[stage,...magmaStages,...r.stages],objectives:objectiveState(g)};
 }
 function snapshot(g){return {level:g.level,seed:g.seed,moves:g.moves,score:g.score,won:g.won,lost:g.lost,boosterUsed:g.boosterUsed,turns:g.turns,progress:{...g.progress,colors:[...g.progress.colors]},uses:{...g.uses},objectives:objectiveState(g),cells:g.cells.map(c=>c?{type:c.type,ice:c.ice,lock:c.lock,chest:c.chest,jam:c.jam,fuse:c.fuse,special:c.special,hold:c.hold||0,elemental:c.elemental||null,frozen:c.frozen||0,poison:c.poison||0,ward:c.ward||0,rock:c.rock||0,aura:c.aura||null,auraTurns:c.auraTurns||0}:null)};}
 const api={TYPES,ORIGINAL,NEW,RETIRED_NUTS,NEW_INTRODUCTIONS,TILE_OVERLAY_UNLOCKS,overlayPlan,ELEMENTAL_ABILITIES:POWERS.ABILITIES,rosterForLevel,difficultyAt,BOOSTERS,BOOSTER_META,HOLD_DROPS,makeLevel,create,matches,adjacent,hasMove,gravity,shuffle,repairMove,objectiveState,expandSpecials,specialComboHits,advanceBoardFeatures,advanceHazards,swap,booster,applyHold,snapshot,rng};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.NutEngine=api;
