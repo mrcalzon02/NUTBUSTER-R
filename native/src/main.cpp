@@ -46,7 +46,7 @@ uint32_t h32(uint32_t x){x^=x>>16;x*=0x7feb352dU;x^=x>>15;x*=0x846ca68bU;return 
 int roll(uint32_t seed,int x,int y,uint32_t salt){
   return int(h32(seed ^ (uint32_t(x+1)*15485863U) ^ (uint32_t(y+1)*32452843U) ^salt)%100);
 }
-// No native gem shop exists yet. Starting stock is zero, never fabricated.
+// Native gem purchases require confirmation; starting hold stock is zero.
 struct HoldStock {
   int butter=0,jam=0;
   int count(nut::HoldKind kind)const{
@@ -664,10 +664,11 @@ bool shopUiSelfTest(std::string& report){
 }
 }
 int main(int argc,char** argv){
-  std::string screenshot,fixtureFile;int previewStage=0;bool self=false,previewMine=false,previewBoard=false,previewCampaign=false,smokeDig=false,previewEquip=false,previewRefinery=false;
+  std::string screenshot,fixtureFile;int previewStage=0;bool self=false,previewMine=false,previewBoard=false,previewCampaign=false,smokeDig=false,smokeShop=false,previewEquip=false,previewRefinery=false;
   for(int i=1;i<argc;++i){
     std::string arg=argv[i];
     if(arg=="--self-test")self=true;
+    else if(arg=="--smoke-hold-shop")smokeShop=true;
     else if(arg=="--verify-mine-fixtures"&&i+1<argc)fixtureFile=argv[++i];
     else if(arg=="--preview-mine")previewMine=true;
     else if(arg=="--smoke-mine-dig"){previewMine=true;smokeDig=true;}
@@ -722,6 +723,49 @@ int main(int argc,char** argv){
   else if(previewBoard)game.startLevel();
   if(previewEquip)game.mineTab=Game::MineTab::Equipment;
   if(previewRefinery)game.mineTab=Game::MineTab::Workshop;
+  // Exercise real production shop click targets, save/reload, and a held nut
+  // before capturing the approved-art SDL3 shop frame. Never grant stock in
+  // the shipping path; this deterministic smoke fixture runs only on request.
+  if(smokeShop){
+    game.startLevel();
+    game.click(800,130); // Board -> shop
+    game.click(210,290); // Butter selection (no charge yet)
+    if(game.scene!=Game::Scene::Shop||game.pendingPurchase!=1||
+       game.wallet.gems!=25||game.stock.butter)
+      {std::cerr<<"Native hold shop selection smoke failed\n";return 3;}
+    game.click(350,505); // Confirm 15-gem purchase
+    game.click(350,505); // Repeat must not purchase a second item
+    if(game.pendingPurchase||game.wallet.gems!=10||game.stock.butter!=1)
+      {std::cerr<<"Native hold shop confirmation smoke failed\n";return 3;}
+    std::stringstream saved;
+    Game restored;
+    if(!game.saveTo(saved)||!restored.loadFrom(saved)||
+       restored.wallet.gems!=10||restored.stock.butter!=1)
+      {std::cerr<<"Native hold shop purchase reload smoke failed\n";return 3;}
+    restored.startLevel();
+    int target=-1;
+    for(int i=0;i<restored.board.size();++i)
+      if(restored.board.cell(i).type>=0&&!restored.board.cell(i).pinned())
+        {target=i;break;}
+    if(target<0){std::cerr<<"No usable held nut in smoke board\n";return 3;}
+    const int tile=std::min(74,490/restored.board.height());
+    const int ox=(WIDTH-tile*restored.board.width())/2,oy=215;
+    restored.click(190,725); // Select owned Butter
+    restored.click(float(ox+(target%restored.board.width())*tile+tile/2),
+                   float(oy+(target/restored.board.width())*tile+tile/2));
+    if(restored.stock.butter||restored.board.cell(target).hold!=1||
+       restored.board.holdUses(nut::HoldKind::Butter)!=1||
+       restored.wallet.gems!=10)
+      {std::cerr<<"Native hold shop purchased-item use smoke failed\n";return 3;}
+    std::stringstream consumed;
+    Game afterUse;
+    if(!restored.saveTo(consumed)||!afterUse.loadFrom(consumed)||
+       afterUse.stock.butter||afterUse.wallet.gems!=10)
+      {std::cerr<<"Native hold shop consumed-stock reload smoke failed\n";return 3;}
+    std::cout<<"PASS native SDL3 shop selection, single confirmed purchase, "
+                "V4 reload, purchased held-nut use and consumed-stock reload\n";
+    // Leave the original Game in its real Shop scene for SDL3 screenshot.
+  }
   if(smokeDig){
     bool sampled=false;
     const int tile=std::min(72,440/game.mine.size());
