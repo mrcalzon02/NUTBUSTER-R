@@ -27,6 +27,20 @@ native/package/NUTBUSTER-Linux-x64 --self-test
 ```
 On Windows use `native/package/NUTBUSTER-Windows-x64.exe`. Keep the packaged `data/` directory beside the executable.
 
+## Native Butter/Jam compiled acceptance checkpoint
+
+The native preview workflow runs the packaged executable's `--self-test`
+on both Windows and Linux, including shop confirmation/cancellation, insufficient
+funds, held-nut consumption and V1–V4 save compatibility. On Linux it additionally
+runs `--smoke-hold-shop --smoke-render native-hold-shop.bmp` under Xvfb:
+this uses the actual SDL3 game, clicks the shop, confirms a 15-gem Butter
+purchase, rejects a repeated confirmation, reloads the V4 save, applies the
+purchased hold to a real nut, saves/reloads the consumed stock, and captures
+the approved-art shop screen. The resulting PNG is retained in the native
+preview workflow artifact. This is a CI acceptance *requirement*, not a
+claim of successful Windows/Linux execution until the exact-commit jobs pass.
+It does not certify physical desktop interaction or full native game parity.
+
 ## Development order
 1. Match JS source rules/objective cases and authored stage data with deterministic parity checks.
 2. Native blockers, boosters, elemental features, full native sprite/audio pipeline.
