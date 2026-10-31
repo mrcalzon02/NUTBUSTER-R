@@ -21,6 +21,12 @@ if grep -E "^uses-feature: name='android.hardware." <<<"$BADGING"; then
   echo '::error::Fire tablet APK unexpectedly requires Android hardware features'
   exit 1
 fi
+# Read the packaged manifest permissions, not just the source manifest.
+PERMISSIONS="$("$SDK/aapt" dump permissions "$FIRE")"
+if grep -Eq 'android[.]permission[.](REQUEST_INSTALL_PACKAGES|INTERNET)' <<<"$PERMISSIONS"; then
+  echo '::error::Fire OS APK must not request native package installation or network access'
+  exit 1
+fi
 ZIP_ENTRIES="$(unzip -Z -1 "$FIRE")"
 for path in assets/index.html assets/game.js assets/nutvale-mines.js assets/mine-ore-atlas.js; do
   grep -Fx "$path" <<<"$ZIP_ENTRIES" >/dev/null || {
@@ -42,6 +48,7 @@ mkdir -p release/publish
   echo "minSdk=$MIN_SDK targetSdk=$TARGET_SDK"
   echo "package=io.github.mrcalzon02.nutbuster"
   echo "sha256=$(sha256sum "$FIRE" | cut -d' ' -f1)"
+  echo 'No package-install or native network permission; external browser handles manual release downloads.'
   echo 'No runtime Google Play Services dependency found in Android wrapper.'
   echo 'Validation: APK metadata/assets/signature only; real Fire OS tablet install/gameplay unverified.'
   echo 'Amazon Appstore submission is not asserted or performed.'

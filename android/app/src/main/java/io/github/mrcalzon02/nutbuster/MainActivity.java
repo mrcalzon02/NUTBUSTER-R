@@ -13,13 +13,11 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import org.json.JSONObject;
 
-/** Offline-first native game. Update checks use network; downloads and installation are opt-in. */
+/** Offline-first game. User-initiated GitHub release links open in Android's browser. */
 public final class MainActivity extends Activity {
     private WebView game;
-    private NutUpdateService updater;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        updater = new NutUpdateService(this, this::showUpdateStatus);
         game = new WebView(this);
         // The JavaScript bridges are trusted only by packaged game content.
         // External release pages open in Android's browser, never in this WebView.
@@ -44,8 +42,6 @@ public final class MainActivity extends Activity {
         s.setSupportMultipleWindows(false);
         s.setBlockNetworkLoads(true); // The web game cannot make network requests.
         game.addJavascriptInterface(new Object() {
-            @JavascriptInterface public void checkForUpdates() { updater.checkForUpdates(); }
-            @JavascriptInterface public void checkForUpdatesAutomatically() { updater.checkForUpdatesAutomatically(); }
             @JavascriptInterface public void openReleases() {
                 runOnUiThread(() -> {
                     try {
@@ -114,7 +110,6 @@ public final class MainActivity extends Activity {
         if (game != null) game.evaluateJavascript("window.NutbusterApp && window.NutbusterApp.nav('campaign')", null);
     }
     @Override protected void onDestroy() {
-        if (updater != null) updater.close();
         if (game != null) { game.destroy(); game = null; }
         super.onDestroy();
     }

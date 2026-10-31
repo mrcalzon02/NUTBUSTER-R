@@ -1,17 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Gameplay and saves are offline. Native update checks may use network; downloads and installs require explicit consent. -->
-    <!-- Android 11+ package visibility: discover installed OFFLINE TTS engines. -->
+    <!-- Offline-first game. GitHub Releases are opened in the user's external browser.
+         The game does not download APKs, self-install, or require network permissions. -->
+    <!-- Android 11+ package visibility for installed offline TTS engines. -->
     <queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <application android:label="NUTBUSTER" android:icon="@drawable/nutbuster_icon"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="false" android:allowBackup="false" android:supportsRtl="true">
-        <provider android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.updates" android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/update_paths" />
-        </provider>
         <activity android:name=".MainActivity" android:exported="true" android:screenOrientation="unspecified">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -917,7 +917,7 @@ function settings(){
  <p class="muted">Independent volume controls for speech, music, reactions and gameplay effects.</p>
  ${[['voice','Announcer'],['music','Music'],['reactions','Match reactions'],['sfx','Game effects']].map(([id,label])=>`<label>${label}<input type="range" data-volume="${id}" min="0" max="100" value="${Math.round(lev[id]*100)}"><output>${Math.round(lev[id]*100)}%</output></label>`).join('')}
  <div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div>
- <div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Update checks run at startup and on level entry. Downloads and installation require your approval.</p><button class="btn secondary" data-action="check-updates">CHECK FOR UPDATES</button><button class="btn ghost" data-action="open-releases">VIEW RELEASES</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>${recovery}`;
+ <div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Updates are downloaded from GitHub in your browser and installed manually; no background checks or in-app installer.</p><button class="btn secondary" data-action="check-updates">GET LATEST APK · GITHUB</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>${recovery}`;
 }
 function render(){syncDaily();if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');document.getElementById('app')?.classList?.toggle('fake-ad-active',state.page==='fake-ad');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
  screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');screen.classList?.toggle('codex-active',state.page==='codex');screen.classList?.toggle('mines-active',state.page==='mines');screen.classList?.toggle('companions-active',state.page==='companions');
@@ -940,7 +940,6 @@ function start(n){state.epoch++;state.animating=false;
  saved.hearts--;persist();const level=trial?requested:Math.min(1000,Math.max(1,requested));
  closeNutdex();state.game=E.create(level,Math.floor(Math.random()*0xffffffff));state.game.moves=movesLeft();state.page='game';state.selected=-1;state.tool=null;state.holdTool=null;state.outcome=null;state.levelReward='';
  playSFX('ui');state.announcer=window.NutAudio?.caption?.('nutbuster-soft',state.game.cfg.newNut?'NEW NUT: '+state.game.cfg.newNut.replace('-',' ').toUpperCase()+'!':'PREPARE TO BUST SOME NUTS!')||'PREPARE TO BUST SOME NUTS!';render();window.NutAudio?.voice('nutbuster-soft');
- window.NutbusterUpdates?.autoCheck?.('level');
 }
 function concludeMove(result){
  if(result.hazards?.expired?.length)notice('TIMED ACORN DETONATED · 2 MOVES LOST PER ACORN');
@@ -1198,7 +1197,6 @@ function action(a,button){
   state.holdOffer=null;showStoreDebit('gems',before,P.HOLD_ITEMS[id].gems,P.HOLD_ITEMS[id].label.toUpperCase()+' PURCHASED · ×'+result.stock);return;
  }
  if(a==='check-updates'){window.NutbusterUpdates?.check();return;}
-  if(a==='open-releases'){window.NutbusterUpdates?.openReleases();return;}
  if(a==='invite'){
   const share=window.NutbusterInvite?.share;
   if(!share){notice('Invitation sharing is unavailable in this build.');return;}

@@ -1,43 +1,34 @@
 {
   "schema": 1,
-  "headline": "Show approved Jewel Brook campaign artwork with an external GitHub releases link",
+  "headline": "Remove native APK self-installer; use browser-only manual GitHub updates",
   "changes": [
     {
-      "title": "Add linked Jewel Brook campaign banner to Nut Buster home",
-      "detail": "Restore the home promotional slot using the exact approved Jewel Brook wide WebP from its renamed repository. Tap to view Jewel Brook GitHub releases; Android and Fire OS hand the fixed link to an external browser, including prereleases.",
+      "title": "Remove in-app APK installer and network permissions",
+      "detail": "The Android and Fire OS app no longer downloads or installs APKs, requests package installation permission or internet permission, or schedules update checks. Unused installer service, FileProvider and library code were removed.",
       "files": [
-        "web/game.js",
-        "web/style.css",
+        "android/app/src/main/AndroidManifest.xml",
         "android/app/src/main/java/io/github/mrcalzon02/nutbuster/MainActivity.java",
-        "web/art/banners/jewel-brook-banner-wide.webp",
-        "web/art/banners/jewel-brook-source.json",
-        "tests/jewel-brook-banner.test.js",
-        "config/platform-parity.json"
+        "android/app/build.gradle",
+        "web/update.js",
+        "tests/update-contract.test.js"
       ]
     },
     {
-      "title": "Retire the Rupee Rush coming-soon banner",
-      "detail": "Remove the obsolete coming-soon advert and its styling, retain release news and home navigation, add a regression guard, and record an explicit Android/Fire OS versus native Windows/Linux parity review. Desktop has no corresponding advert and existing native gameplay gaps remain unchanged.",
+      "title": "Open GitHub Releases when players request the latest version",
+      "detail": "The Game Updates button opens GitHub Releases in the external browser for manual APK download and standard Android installation. The release list includes prereleases; the application does not handle the downloaded APK.",
       "files": [
         "web/game.js",
-        "web/style.css",
-        "tests/rupee-rush-banner.test.js",
-        "config/platform-parity.json"
+        "web/update.js",
+        "tests/update-and-invite.test.js"
       ]
     },
     {
-      "title": "Require setup moves to repay their daily-move opportunity cost",
-      "detail": "The first exact-engine benchmark exercised 37 setup moves but revealed a Chapter 3 regression. The diagnostic planner now penalizes nonmatching actions, conditionally explores them, and compares them with a same-horizon match-only alternative before choosing.",
+      "title": "Keep the existing signed Android and Fire OS upgrade identity",
+      "detail": "Keep the pinned publisher certificate, versionCode and remote release SHA-256 readback while retiring the obsolete update manifest. The built APK is checked for forbidden installer and native network permissions.",
       "files": [
-        "tools/planning-policy.js"
-      ]
-    },
-    {
-      "title": "Correct planner report assertion and document the experimental regression",
-      "detail": "The report-only integration test now matches the actual report heading rather than an obsolete phrase. The diagnostic documentation records the measured regression, the candidate count, and the reasons for cautious setup selection.",
-      "files": [
-        "tests/planning-integration.test.js",
-        "docs/diagnostics/PLANNING_PLAYER_INTEGRATION_2026-10-27.md"
+        ".github/workflows/build-and-release.yml",
+        "scripts/verify_fireos_apk.sh",
+        "config/nutbuster-publisher.sha256"
       ]
     }
   ]

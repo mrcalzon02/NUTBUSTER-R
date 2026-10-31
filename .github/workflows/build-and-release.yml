@@ -116,7 +116,6 @@ jobs:
             if ! node "$suite"; then failures+=("$suite"); fi
             echo "::endgroup::"
           done < "$RUNNER_TEMP/nutbuster-functional-suites.txt"
-          if ! python3 tests/test_update_manifest.py; then failures+=("tests/test_update_manifest.py"); fi
           if (( ${#failures[@]} > 0 )); then
             printf '::error::RELEASE BLOCKED by %s functional failures: %s\\n' "${#failures[@]}" "${failures[*]}"
             exit 1
@@ -481,6 +480,14 @@ jobs:
           test "$SIGNER" = "$PINNED"
           test "$SIGNER" = "${{ steps.signing.outputs.sha }}"
           "$SDK/aapt" dump badging "$APK" | tee "$RUNNER_TEMP/badging.txt"
+          # The independently signed GitHub APK is a game, never a package installer.
+          # Confirm the *built* APK has no self-install or in-app network permissions.
+          "$SDK/aapt" dump permissions "$APK" > "$RUNNER_TEMP/apk-permissions.txt"
+          if grep -Eq 'android[.]permission[.](REQUEST_INSTALL_PACKAGES|INTERNET)' "$RUNNER_TEMP/apk-permissions.txt"; then
+            echo '::error::APK unexpectedly contains an installer or native network permission'
+            cat "$RUNNER_TEMP/apk-permissions.txt"
+            exit 1
+          fi
           grep -F "package: name='io.github.mrcalzon02.nutbuster' versionCode='$CODE'" "$RUNNER_TEMP/badging.txt"
           unzip -Z -1 "$APK" | grep -Fx assets/audio/they-just-keep-coming.mp3
           unzip -Z -1 "$APK" | grep -Fx assets/audio/announcers/diva/win.mp3
@@ -503,11 +510,10 @@ jobs:
           # Never create a second application, signer, updater or set of game assets.
           cp release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-FireOS-tablet.apk
           bash scripts/verify_fireos_apk.sh release/publish/NUTBUSTER-FireOS-tablet.apk release/publish/NUTBUSTER-Android-phone-test.apk
-          python3 scripts/generate_update_manifest.py "$TAG" '${{ steps.signed.outputs.code }}' '${{ steps.signing.outputs.sha }}'
           (cd release/publish && sha256sum NUTBUSTER-* > SHA256SUMS.txt)
           node tools/release-news.js --notes '${{ steps.signed.outputs.code }}' '${{ steps.signing.outputs.sha }}' > "$RUNNER_TEMP/nutbuster-release-notes.md"
           gh release create "$TAG" --draft --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "NUTBUSTER Phone Test $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" --notes-file "$RUNNER_TEMP/nutbuster-release-notes.md"
-          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-FireOS-tablet.apk release/publish/FIREOS-COMPATIBILITY.txt release/publish/NUTBUSTER-update.json release/publish/NUTBUSTER-news.json release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
+          gh release upload "$TAG" release/publish/NUTBUSTER-Android-phone-test.apk release/publish/NUTBUSTER-FireOS-tablet.apk release/publish/FIREOS-COMPATIBILITY.txt release/publish/NUTBUSTER-news.json release/publish/SHA256SUMS.txt release/publish/BUILD-EVIDENCE.txt --repo "$GITHUB_REPOSITORY"
           # GitHub computes SHA-256 for release assets. Refuse to publish until its digest matches our local artifact.
           # Draft tags may not exist yet. Resolve the draft ID through gh, which
           # can find unpublished releases, then read its assets by release ID.
