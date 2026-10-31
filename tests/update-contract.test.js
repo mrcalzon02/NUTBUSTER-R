@@ -17,6 +17,14 @@ assert.match(gradle,/signerHash != pinnedSigner/);
 assert.match(gradle,/haveSigning && signerHash == pinnedSigner/);
 assert.match(manifest,/android\.permission\.INTERNET/);
 assert.match(main,/s\.setBlockNetworkLoads\(true\)/);
+
+const playManifest=fs.readFileSync(path.join(root,'android/app/src/play/AndroidManifest.xml'),'utf8');
+assert.ok(playManifest.includes('android.permission.REQUEST_INSTALL_PACKAGES'));
+assert.ok(playManifest.includes('tools:node="remove"'),'Play build removes sideload installer permission');
+assert.ok(gradle.includes("buildConfigField 'boolean', 'UPDATE_CHANNEL_ENABLED', 'false'"),'Play build disables GitHub APK updater');
+assert.ok(main.includes('shouldOverrideUrlLoading(WebView view, WebResourceRequest request)'),'bridged WebView handles navigation');
+assert.ok(main.includes('target.startsWith("file:///android_asset/")'),'only packaged assets navigate inside bridged WebView');
+assert.ok(main.includes('setAllowUniversalAccessFromFileURLs(false)'));
 assert.match(updates,/digest\.matches\("sha256:\[0-9a-f\]\{64\}"\)/);
 assert.match(updates,/private static String archiveFingerprint\(/,'Android 9/10 archive signer fallback');
 assert.match(updates,/pm\.getPackageArchiveInfo\(archivePath, PackageManager\.GET_SIGNATURES\)/,'legacy archive certificate extraction');

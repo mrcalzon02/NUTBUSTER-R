@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import org.json.JSONObject;
@@ -20,11 +21,24 @@ public final class MainActivity extends Activity {
         super.onCreate(state);
         updater = new NutUpdateService(this, this::showUpdateStatus);
         game = new WebView(this);
-        game.setWebViewClient(new WebViewClient());
+        // The JavaScript bridges are trusted only by packaged game content.
+        // External release pages open in Android's browser, never in this WebView.
+        game.setWebViewClient(new WebViewClient() {
+            @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                return handleNavigation(request.getUrl(), request.isForMainFrame());
+            }
+            @SuppressWarnings("deprecation")
+            @Override public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return handleNavigation(Uri.parse(url), true);
+            }
+        });
         WebSettings s = game.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
-        s.setAllowFileAccess(true); // Only the packaged game is loaded.
+        s.setAllowFileAccess(true); // Required for packaged file:///android_asset/ content.
+        s.setAllowFileAccessFromFileURLs(false);
+        s.setAllowUniversalAccessFromFileURLs(false);
+        s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         s.setAllowContentAccess(false);
         s.setJavaScriptCanOpenWindowsAutomatically(false);
         s.setSupportMultipleWindows(false);
@@ -73,6 +87,22 @@ public final class MainActivity extends Activity {
         setContentView(game);
         game.loadUrl("file:///android_asset/index.html");
     }
+    private boolean handleNavigation(Uri url, boolean mainFrame) {
+        if (!mainFrame) return false;
+        String target = url.toString();
+        if (target.startsWith("file:///android_asset/")) return false;
+        if ("https".equalsIgnoreCase(url.getScheme())
+                && "github.com".equalsIgnoreCase(url.getHost())) {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, url));
+            } catch (ActivityNotFoundException unavailable) {
+                showUpdateStatus("No browser available to open the external link.");
+            }
+        }
+        // All other main-frame navigation is blocked in the bridged WebView.
+        return true;
+    }
+
     private void showUpdateStatus(String message) {
         runOnUiThread(() -> {
             if (game != null) game.evaluateJavascript(
