@@ -102,7 +102,7 @@ async function run(){
  // cell blank, even if an earlier error left display:none and loaded behind.
  // The fallback is temporary: the approved sprite replaces it on load.
  const css=require('node:fs').readFileSync('web/style.css','utf8');
- assert.match(css,/\\.nut-visual \\.fallback\\{visibility:visible\\}/,
+ assert.ok(css.includes('.nut-visual .fallback{visibility:visible}'),
   'Pending playable sprites must have a visible fallback before image callbacks');
  swap=findSwap(g,false);
  const pendingIndex=g.cells.findIndex((c,i)=>c&&!swap.includes(i)),pending=boardCells[pendingIndex].visual;
