@@ -370,6 +370,13 @@ function reconcileBoardNuts(){
    image.style.display='none';
    const fallback=vis.querySelector?.('.fallback');
    if(fallback)fallback.style.visibility='visible';
+  }else if(image&&!image.complete){
+   // WebView may still be decoding or retrying an approved sprite. A stale
+   // loaded class or display:none must not hide both image and fallback.
+   image.classList.remove('loaded');
+   image.style.display='';
+   const fallback=vis.querySelector?.('.fallback');
+   if(fallback)fallback.style.visibility='visible';
   }
  }
  // A canceled cascade can leave the tile's CSS animation on its replacement

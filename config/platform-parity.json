@@ -397,6 +397,21 @@
         "linux": "Native C++17/SDL3 renderer likewise does not use DOM/CSS animation classes; no corresponding C++ change is applicable. Existing native gameplay parity remains preview-partial."
       },
       "decision": "Presentation-only cleanup of canceled mobile CSS animation state; functional UI regression verifies stale opacity class removal. No match-three rule, save format, native SDL3 render path, signing identity or native feature status changes. Actual Android device reproduction and approval remain outstanding under issue #1."
+    },
+    {
+      "id": "pending-webview-nut-image-recovery-2026-10-31",
+      "sourceChange": [
+        "web/game.js",
+        "web/style.css"
+      ],
+      "test": "tests/ui.test.js",
+      "targetImpact": {
+        "android": "The shared WebView board now displays the existing fallback while an approved nut PNG is pending; completed-move reconciliation removes stale loaded/display:none state without rebuilding fixed cells.",
+        "fire_os": "Identical Android WebView APK uses the same pending-image fallback and reconciliation on Fire OS; physical Fire hardware visual acceptance remains unverified.",
+        "windows": "Native C++17 SDL3 draws nuts directly and does not use CSS, image onload callbacks, or WebView fallback markup. No equivalent native code change is applicable; native remains preview-partial.",
+        "linux": "Native C++17 SDL3 likewise has no WebView pending-image state or DOM sprite fallback. Its independent direct renderer is unchanged and remains preview-partial."
+      },
+      "decision": "Mobile-only asynchronous image-state repair; no match-three rules, assets, gravity, save format, or native renderer change. UI test covers interrupted irregular-board image decoding; physical Android and Fire OS screenshot acceptance remains outstanding."
     }
   ]
 }

@@ -138,6 +138,8 @@
 .art-image{visibility:hidden}
 .art-image.loaded{visibility:visible}
 .icon-fallback,.nut-visual .fallback{visibility:hidden}
+/* Keep a playable nut visible while its approved WebView image is still pending. */
+.nut-visual .fallback{visibility:visible}
 
 
 /* Compact scrollable tactical belt. All ten tools retain genuine 44px+ controls. */
