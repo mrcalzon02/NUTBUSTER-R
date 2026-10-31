@@ -98,6 +98,27 @@ async function run(){
  assert.equal(survivor.fallback.style.visibility,'','Loaded image must reset stale fallback state');
  assert.ok(boardCells.every((tile,i)=>g.cfg.mask[i]?tile&&tile.visual.style.visibility!=='hidden':tile===null),
   'All occupied irregular cells remain visible and all true voids remain void');
+ // An image whose WebView request is still pending must not leave a playable
+ // cell blank, even if an earlier error left display:none and loaded behind.
+ // The fallback is temporary: the approved sprite replaces it on load.
+ const css=require('node:fs').readFileSync('web/style.css','utf8');
+ assert.match(css,/\\.nut-visual \\.fallback\\{visibility:visible\\}/,
+  'Pending playable sprites must have a visible fallback before image callbacks');
+ swap=findSwap(g,false);
+ const pendingIndex=g.cells.findIndex((c,i)=>c&&!swap.includes(i)),pending=boardCells[pendingIndex].visual;
+ pending.style.visibility='hidden';
+ pending.image={complete:false,naturalWidth:0,style:{display:'none'},classList:classes(),
+  getAttribute:()=> 'art/primary/nuts/'+E.TYPES[g.cells[pendingIndex].type]+'.png'};
+ pending.image.classList.add('loaded');
+ pending.fallback={style:{visibility:'hidden'}};
+ const pendingRenders=renders;
+ click({cell:String(swap[0])});click({cell:String(swap[1])});await settle();
+ assert.equal(renders,pendingRenders,'Pending image repair must not rerender the board');
+ assert.equal(pending.style.visibility,'','Pending sprite must not retain animation hiding');
+ assert.equal(pending.image.style.display,'','Retry pending approved image rather than retaining display:none');
+ assert.equal(pending.image.classList.contains('loaded'),false,'Pending image must not suppress fallback');
+ assert.equal(pending.fallback.style.visibility,'visible','Pending image must expose fallback until decoded');
+
 
  assert.equal(refs.wallet.textContent,startingCoins.toLocaleString(),'Main wallet stays unchanged during ordinary matching');
  assert.equal(refs['play-wallet'].textContent,startingCoins.toLocaleString(),'In-level wallet stays unchanged during ordinary matching');
