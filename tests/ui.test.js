@@ -119,6 +119,29 @@ async function run(){
  assert.equal(pending.image.classList.contains('loaded'),false,'Pending image must not suppress fallback');
  assert.equal(pending.fallback.style.visibility,'visible','Pending image must expose fallback until decoded');
 
+ // A stale WebView sprite can retain its img but lose the adjacent fallback
+ // after an interrupted cascade. A broken image with no fallback is a blank
+ // playable cell even when the authoritative engine still holds a nut.
+ swap=findSwap(g,false);
+ const missingIndex=g.cells.findIndex((c,i)=>c&&!swap.includes(i)),missingCell=g.cells[missingIndex];
+ const missingTile=boardCells[missingIndex],missing=missingTile.visual;
+ missingTile.dataset.nutKey=[missingCell.type,missingCell.special||'',missingCell.elemental||'',missingCell.hold||0,
+  Number(!!(missingCell.ice||missingCell.lock||missingCell.chest))].join(':');
+ missing.outerHTML='<span class="nut-visual"><img class="piece"></span>';
+ missing.image={complete:true,naturalWidth:0,style:{display:'none'},classList:classes(),
+  getAttribute:()=> 'art/primary/nuts/'+E.TYPES[missingCell.type]+'.png'};
+ missing.fallback=null;
+ missing.style.visibility='hidden';
+ const missingRenders=renders;
+ click({cell:String(swap[0])});click({cell:String(swap[1])});await settle();
+ assert.equal(renders,missingRenders,'Missing fallback repair must not rebuild the irregular board');
+ assert.equal(missing.style.visibility,'','Missing-fallback recovery clears interrupted animation hiding');
+ assert.ok(missing.outerHTML.includes('class="fallback"'),
+  'Broken image with missing fallback must rebuild a complete playable nut visual');
+ assert.ok(g.cfg.mask[missingIndex]&&g.cells[missingIndex].type!==null,
+  'Missing sprite markup is not a real void or an empty engine cell');
+
+
 
  assert.equal(refs.wallet.textContent,startingCoins.toLocaleString(),'Main wallet stays unchanged during ordinary matching');
  assert.equal(refs['play-wallet'].textContent,startingCoins.toLocaleString(),'In-level wallet stays unchanged during ordinary matching');
