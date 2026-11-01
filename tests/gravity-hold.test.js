@@ -105,13 +105,15 @@ for(let i=0;i<repaired.cells.length;i++){
 repaired.cfg.jam=0;repaired.cfg.bombs=0;
 assert.equal(E.matches(repaired).hit.size,0);
 assert.equal(E.hasMove(repaired),false,'fixture must begin genuinely deadlocked');
-assert.equal(E.applyHold(repaired,'butter_hold',0).valid,true);
+assert.equal(E.applyHold(repaired,'butter_hold',1).valid,true);
 const originalPayload=new Map(repaired.cells.map(c=>[c.elemental,{type:c.type,hold:c.hold}]));
 const repairedTurn=E.swap(repaired,0,1);
 assert.equal(repairedTurn.valid,true);assert.equal(repairedTurn.loops,0);
 assert.ok(repairedTurn.stages.some(s=>s.kind==='repair'),'non-matching swap must invoke deadlock repair');
 assert.equal(repaired.cells[0].type,3,'fixture must use a real accepted repair exchange');
 assert.equal(repaired.cells[5].type,1,'repair should exchange the original 0 and 5 payloads');
+assert.equal(repaired.cells[5].elemental,'payload-1','repaired held nut must carry its elemental identity');
+assert.equal(repaired.cells[5].hold,1,'repaired held nut must retain its paid Butter duration');
 assert.equal(E.hasMove(repaired),true,'deadlock must be repaired');
 for(const c of repaired.cells){
  const original=originalPayload.get(c.elemental);
