@@ -515,7 +515,14 @@ function repairMove(g){
  for(let a=0;a<ids.length;a++)for(let b=a+1;b<ids.length;b++){
   const left=g.cells[ids[a]],right=g.cells[ids[b]];if(left.type===right.type)continue;
   const t=left.type;left.type=right.type;right.type=t;
-  if(matches(g).hit.size===0&&hasMove(g)){const h=left.hold;left.hold=right.hold;right.hold=h;const s=left.special;left.special=right.special;right.special=s;return true;}
+  if(matches(g).hit.size===0&&hasMove(g)){
+   // A repair exchanges the entire nut payload. Leaving elemental behind
+   // detaches an active held nut from its authored elemental identity.
+   for(const key of ['hold','special','elemental']){
+    const value=left[key];left[key]=right[key];right[key]=value;
+   }
+   return true;
+  }
   right.type=left.type;left.type=t;
  }
  return shuffle(g);

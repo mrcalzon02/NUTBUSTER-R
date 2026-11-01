@@ -80,6 +80,45 @@ assert.ok(voidAt>=0);
 const initial=JSON.stringify(E.snapshot(invalidHold));
 assert.equal(E.applyHold(invalidHold,'jam_hold',voidAt).valid,false);
 assert.equal(JSON.stringify(E.snapshot(invalidHold)),initial,'invalid target cannot alter state');
+// The one-drop Butter hold expires on a real refill, not on a no-drop turn.
+const butter=E.create(1,119),butterAt=butter.cells.findIndex(c=>c&&c.type!==null&&!c.ice&&!c.lock);
+assert.equal(E.applyHold(butter,'butter_hold',butterAt).valid,true);
+E.gravity(butter,[]);
+assert.equal(butter.cells[butterAt].hold,1,'a no-drop gravity call cannot consume Butter');
+const butterVacancy=butter.cells.findIndex((c,i)=>i!==butterAt&&c&&c.type!==null);
+butter.cells[butterVacancy].type=null;
+E.gravity(butter,[]);
+assert.equal(butter.cells[butterAt].hold,0,'Butter expires after exactly one real drop');
+assert.ok(butter.cells.every(c=>!c||c.type!==null),'Butter expiry cannot leave a blank playable cell');
+// A no-match deadlock repair must carry elemental identity with the nut,
+// including its paid hold. Before this fix repairMove exchanged type/hold/
+// special but stranded elemental on the original board coordinate.
+const repaired=E.create(1,9327);
+assert.equal(repaired.cfg.width,4);assert.equal(repaired.cfg.height,5);
+const deadlockTypes=[2,1,2,3,1,3,0,0,2,2,1,3,3,3,0,0,3,1,2,1];
+assert.ok(repaired.cells.every(Boolean),'fixture requires a complete 4x5 opening board');
+for(let i=0;i<repaired.cells.length;i++){
+ const c=repaired.cells[i];c.type=deadlockTypes[i];c.special=null;c.hold=0;
+ c.elemental='payload-'+i;c.ice=0;c.lock=0;c.chest=0;c.jam=0;c.fuse=0;
+ c.rock=0;c.frozen=0;c.ward=0;c.poison=0;c.aura=null;c.auraTurns=0;
+}
+repaired.cfg.jam=0;repaired.cfg.bombs=0;
+assert.equal(E.matches(repaired).hit.size,0);
+assert.equal(E.hasMove(repaired),false,'fixture must begin genuinely deadlocked');
+assert.equal(E.applyHold(repaired,'butter_hold',0).valid,true);
+const originalPayload=new Map(repaired.cells.map(c=>[c.elemental,{type:c.type,hold:c.hold}]));
+const repairedTurn=E.swap(repaired,0,1);
+assert.equal(repairedTurn.valid,true);assert.equal(repairedTurn.loops,0);
+assert.ok(repairedTurn.stages.some(s=>s.kind==='repair'),'non-matching swap must invoke deadlock repair');
+assert.equal(repaired.cells[0].type,3,'fixture must use a real accepted repair exchange');
+assert.equal(repaired.cells[5].type,1,'repair should exchange the original 0 and 5 payloads');
+assert.equal(E.hasMove(repaired),true,'deadlock must be repaired');
+for(const c of repaired.cells){
+ const original=originalPayload.get(c.elemental);
+ assert.ok(original,'no elemental identity can disappear during repair');
+ assert.equal(c.type,original.type,'elemental identity must follow its nut type');
+ assert.equal(c.hold,original.hold,'paid hold must follow the same elemental nut');
+}
 // 1,000 seeded held-nut matches across all 500 stages. Every result must
 // preserve irregular masks and leave no playable cell unfilled.
 let heldGames=0,cascadeStages=0;
