@@ -355,7 +355,9 @@ function reconcileBoardNuts(){
   const image=vis.querySelector?.('.piece');
   const expected=c.type===null?null:'art/primary/nuts/'+E.TYPES[c.type]+'.png';
   if(!expected&&image)vis.outerHTML=nutVisual(c);
-  else if(expected&&(!image||image.getAttribute('src')!==expected))vis.outerHTML=nutVisual(c);
+  // A failed WebView image without its fallback is a genuinely blank playable tile.
+  // Rebuild only that nut visual, preserving the fixed irregular-board grid.
+  else if(expected&&(!image||!vis.querySelector?.('.fallback')||image.getAttribute('src')!==expected))vis.outerHTML=nutVisual(c);
   else if(image?.complete&&image.naturalWidth>0){
    // Android WebView can reuse a recovered image after its earlier onerror
    // hid it inline. A loaded class alone cannot undo display:none.
