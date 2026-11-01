@@ -74,7 +74,7 @@
       ],
       "mobile": "functionally-tested",
       "native": "preview-partial",
-      "gap": "Later-stage blockers, specials, transport, combo effects and per-turn differential replay remain incomplete."
+      "gap": "Later-stage blockers, specials, transport, combo effects and per-turn differential replay remain incomplete. 2026-10-31 review: mobile deadlock repair now moves elemental identity with type/hold/special, tested on a no-match held-nut repair; native SDL3 preview does not yet implement mobile elemental payloads or the same deadlock repair, so no C++ gameplay equivalence or status upgrade is claimed."
     },
     {
       "id": "blockers-and-overlays",
@@ -113,7 +113,7 @@
       ],
       "mobile": "functionally-tested",
       "native": "preview-partial",
-      "gap": "Native SDL3 confirmed 15/30-gem Butter/Jam hold shop, mobile-parity 25-gem starting wallet and +10 gem board-win reward, finite stock purchase/use, V4 wallet/inventory persistence, V1/V2/V3 migration, approved Peanut/hourglass sprites and headless purchase UI regression source implemented; exact-commit Windows/Linux CI and packaged visual acceptance pending. Full native Shop, accessibility labels, in-progress board save, mobile save import, other boosters and special-combo parity remain incomplete."
+      "gap": "Native SDL3 confirmed 15/30-gem Butter/Jam hold shop, mobile-parity 25-gem starting wallet and +10 gem board-win reward, finite stock purchase/use, V4 wallet/inventory persistence, V1/V2/V3 migration, approved Peanut/hourglass sprites and headless purchase UI regression source implemented; exact-commit Windows/Linux CI and packaged visual acceptance pending. Full native Shop, accessibility labels, in-progress board save, mobile save import, other boosters and special-combo parity remain incomplete. 2026-10-31 review: mobile Butter one-drop expiry and held elemental identity through deadlock repair now have focused tests; native C++ held-nut gravity/scoring fixtures do not cover the unported elemental/repair path. Native remains preview-partial."
     },
     {
       "id": "elemental-challenges",
