@@ -1,34 +1,21 @@
 {
   "schema": 1,
-  "headline": "Remove native APK self-installer; use browser-only manual GitHub updates",
+  "headline": "Keep illustrated boosters consistent between the game and Nut Emporium",
   "changes": [
     {
-      "title": "Remove in-app APK installer and network permissions",
-      "detail": "The Android and Fire OS app no longer downloads or installs APKs, requests package installation permission or internet permission, or schedules update checks. Unused installer service, FileProvider and library code were removed.",
-      "files": [
-        "android/app/src/main/AndroidManifest.xml",
-        "android/app/src/main/java/io/github/mrcalzon02/nutbuster/MainActivity.java",
-        "android/app/build.gradle",
-        "web/update.js",
-        "tests/update-contract.test.js"
-      ]
-    },
-    {
-      "title": "Open GitHub Releases when players request the latest version",
-      "detail": "The Game Updates button opens GitHub Releases in the external browser for manual APK download and standard Android installation. The release list includes prereleases; the application does not handle the downloaded APK.",
+      "title": "Use the same approved booster art in gameplay and the shop",
+      "detail": "The Nut Emporium now uses the existing in-game PNG picture renderer for all 16 boosters, including the advanced variants' visible badges. The compact tactical controls, stock counts, purchase rules and saved inventory are unchanged.",
       "files": [
         "web/game.js",
-        "web/update.js",
-        "tests/update-and-invite.test.js"
+        "web/style.css"
       ]
     },
     {
-      "title": "Keep the existing signed Android and Fire OS upgrade identity",
-      "detail": "Keep the pinned publisher certificate, versionCode and remote release SHA-256 readback while retiring the obsolete update manifest. The built APK is checked for forbidden installer and native network permissions.",
+      "title": "Guard booster artwork against missing images and UI drift",
+      "detail": "A report-only regression checks all 16 committed PNGs, the ten compact booster controls, two hold tools, six advanced tools, matching shop artwork and Android/Fire OS asset packaging. Native desktop parity is still unfinished.",
       "files": [
-        ".github/workflows/build-and-release.yml",
-        "scripts/verify_fireos_apk.sh",
-        "config/nutbuster-publisher.sha256"
+        "tests/booster-art-parity.test.js",
+        "tests/diagnostic-suites.txt"
       ]
     }
   ]

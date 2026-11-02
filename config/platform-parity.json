@@ -412,6 +412,21 @@
         "linux": "Native C++17 SDL3 likewise has no WebView pending-image state or DOM sprite fallback. Its independent direct renderer is unchanged and remains preview-partial."
       },
       "decision": "Mobile-only asynchronous image-state repair; no match-three rules, assets, gravity, save format, or native renderer change. UI test covers interrupted irregular-board image decoding; physical Android and Fire OS screenshot acceptance remains outstanding."
+    },
+    {
+      "id": "shared-booster-art-game-shop-2026-11-01",
+      "sourceChange": [
+        "web/game.js",
+        "web/style.css"
+      ],
+      "test": "tests/booster-art-parity.test.js",
+      "targetImpact": {
+        "android": "The existing Android WebView game and Nut Emporium now call the same authored PNG renderer; advanced booster variant badges appear in both locations without changing purchases, inventory, hitboxes or board rules.",
+        "fire_os": "Fire OS uses the byte-identical Android APK and the same locally packaged WebView PNG files; shop and game show the same images and badges. Physical Fire OS device rendering remains unverified.",
+        "windows": "Native C++17/SDL3 preview does not use WebView HTML or CSS, so sharing a DOM picture renderer has no corresponding C++ change. Native booster shop and illustration parity remain incomplete.",
+        "linux": "Native C++17/SDL3 preview likewise renders directly and does not use WebView DOM or CSS. This mobile presentation repair does not certify or change native gameplay or shop parity."
+      },
+      "decision": "Presentation-only reuse of the already-shipped, owner-generated booster sprite renderer in the WebView shop; new diagnostic tests inspect all 16 PNGs and actual game/shop markup. No booster behavior, payment, save format, native SDL3 code, release gate or native feature status changed. Device screenshots remain pending."
     }
   ]
 }
