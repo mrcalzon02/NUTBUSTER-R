@@ -427,6 +427,20 @@
         "linux": "Native C++17/SDL3 preview likewise renders directly and does not use WebView DOM or CSS. This mobile presentation repair does not certify or change native gameplay or shop parity."
       },
       "decision": "Presentation-only reuse of the already-shipped, owner-generated booster sprite renderer in the WebView shop; new diagnostic tests inspect all 16 PNGs and actual game/shop markup. No booster behavior, payment, save format, native SDL3 code, release gate or native feature status changed. Device screenshots remain pending."
+    },
+    {
+      "id": "webview-transport-animation-recovery-2026-11-02",
+      "sourceChange": [
+        "web/game.js"
+      ],
+      "test": "tests/ui.test.js",
+      "targetImpact": {
+        "android": "WebView conveyor, portal and wind animation .finished promises may remain unresolved after interruption, hiding playable source nuts and retaining transport overlays. A 600-ms bound now cancels owned animations, removes overlays and repaints authoritative settled nut visuals on the existing fixed grid. Seeded level-628 disconnected-island UI regression covers the stalled transport path; real device acceptance remains outstanding.",
+        "fire_os": "The byte-identical Android/Fire OS WebView APK uses the same transport watchdog and DOM reconciliation; physical Fire OS tablet acceptance is not claimed.",
+        "windows": "Native C++17/SDL3 preview does not use Web Animations promises, DOM nut visuals or WebView transport overlays. This mobile animation-lifecycle repair has no direct native code equivalent; independent native late-stage transport gameplay remains preview-partial.",
+        "linux": "Native C++17/SDL3 preview likewise draws sprites directly and does not use WebView animation promises or CSS visibility. No native gameplay or renderer parity upgrade is claimed."
+      },
+      "decision": "Explicit four-target impact review of a mobile-only asynchronous transport-animation lifecycle repair. It changes neither nut identity/physics, vertical gravity segments, match rules, saved progress, native SDL3 code nor signing. Existing native preview-only status and all production parity gates remain unchanged. Android/Fire installed-device screenshot acceptance is still required for issue #1."
     }
   ]
 }
