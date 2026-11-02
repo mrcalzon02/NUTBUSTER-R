@@ -513,7 +513,7 @@ async function cascadeAnimation(stage,epoch,wave=1){
  if(state.page!=='game'||epoch!==state.epoch)return;
  // New specials can be formed during the clear; paint them before cloning falling tiles.
  paintCells(stage.afterClear);
- const tasks=[],hidden=[],overlays=[];
+ const tasks=[],hidden=[],overlays=[],animations=[];
  const rect=board.getBoundingClientRect();
  for(const fall of stage.falls){
   const target=board.querySelector(`[data-cell="${fall.to}"]`);if(!target)continue;
@@ -529,6 +529,7 @@ async function cascadeAnimation(stage,epoch,wave=1){
   const duration=Math.min(760,360+Math.abs(startY)*.38);
   if(fly.animate&&!reducedMotion()){
    const animation=fly.animate([{transform:`translateY(${startY}px)`},{transform:'translateY(0)'}],{duration,easing:'cubic-bezier(.2,.65,.2,1)',fill:'forwards'});
+   animations.push(animation);
    tasks.push(animation.finished.catch(()=>{}));
   }
   hidden.push(fall.to);
@@ -536,10 +537,18 @@ async function cascadeAnimation(stage,epoch,wave=1){
  // The fixed grid is never rebuilt. Only moved nuts are hidden beneath their animated sprites.
  paintCells(stage.cells);exploding.forEach(tile=>tile.classList.remove('nut-exploding'));
  hidden.forEach(i=>{const v=board.querySelector(`[data-cell="${i}"] .nut-visual`);if(v)v.style.visibility='hidden';});
- if(!reducedMotion())await (tasks.length?Promise.all(tasks):sleep(120));
- overlays.forEach(el=>el.remove());
- if(epoch!==state.epoch)return;
- hidden.forEach(i=>{const v=board.querySelector(`[data-cell="${i}"] .nut-visual`);if(v)v.style.visibility='';});
+ // Android WebView may suspend a Web Animations finished promise indefinitely
+ // after backgrounding/interruption. Bound the wait beyond our longest 760ms
+ // fall, then release overlays and restore the fixed-grid nut visuals.
+ try{
+  if(!reduced)await (tasks.length?Promise.race([Promise.all(tasks),sleep(900)]):sleep(120));
+ }finally{
+  animations.forEach(animation=>{try{animation.cancel();}catch(_){/* Detached WebView animation. */}});
+  overlays.forEach(el=>el.remove());
+  if(epoch===state.epoch&&state.page==='game')hidden.forEach(i=>{
+   const v=board.querySelector(`[data-cell="${i}"] .nut-visual`);if(v)v.style.visibility='';
+  });
+ }
 }
 async function applyMove(result){
  if(!result.valid){notice('Choose two neighboring nuts.');return;}
