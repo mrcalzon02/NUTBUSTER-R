@@ -549,7 +549,8 @@
 .currency-offer-body small{font-size:10px;line-height:1.25;color:#d9c2c6}
 .currency-offer>button{grid-column:1 / -1;min-width:0;width:100%;min-height:44px;font-size:clamp(10px,2.8vw,12px);line-height:1.15;padding:5px 3px;white-space:normal;align-self:end}
 .currency-store button:disabled,.booster-shop-prices button:disabled{opacity:.48;cursor:not-allowed}
-.nut-booster-offer .booster-shop-icon{display:block;object-fit:contain;width:40px;height:40px;margin:1px auto 3px}
+.nut-booster-offer .booster-picture{display:grid;place-items:center;width:40px;height:40px;margin:1px auto 3px}
+.nut-booster-offer .booster-icon{display:block;width:40px;height:40px;object-fit:contain}
 .nut-booster-offer .booster-shop-prices{display:grid;gap:4px;margin-top:6px}
 .nut-booster-offer .booster-shop-prices button{min-height:28px;padding:4px;font-size:10px;white-space:normal}
 @media(max-width:350px){.currency-store{padding:6px}.currency-offer-grid{gap:6px}.currency-offer{grid-template-columns:30px minmax(0,1fr);padding:6px;gap:4px}.currency-offer>img{width:30px;height:30px}}

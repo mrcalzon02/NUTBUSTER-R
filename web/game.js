@@ -658,7 +658,7 @@ function nutToBoosterShop(){
   const nutPrice=P.BOOSTER_PRICES[id],gemPrice=P.GEM_BOOSTER_PRICES[id],earned=P.unlocked(saved,id),stock=P.count(saved,id);
   const nutAvailable=earned&&stock<999999&&saved.coins>=nutPrice;
   const gemAvailable=earned&&stock<=999999-P.GEM_BOOSTER_QUANTITY&&saved.gems>=gemPrice;
-  return '<div class="nut-booster-offer"><img class="booster-shop-icon" src="'+P.BOOSTER_ART[id]+'" alt="" loading="lazy"><b>'+E.BOOSTER_META[id].label+(P.BOOSTER_BADGES[id]?' '+P.BOOSTER_BADGES[id]:'')+'</b><small>×'+stock+' owned · '+(earned?'1 with Nuts or '+P.GEM_BOOSTER_QUANTITY+' with Gems':'LV '+P.LEVEL_BY_TOOL[id]+' to unlock')+'</small><div class="booster-shop-prices">'+
+  return '<div class="nut-booster-offer">'+boosterIcon(id)+'<b>'+E.BOOSTER_META[id].label+(P.BOOSTER_BADGES[id]?' '+P.BOOSTER_BADGES[id]:'')+'</b><small>×'+stock+' owned · '+(earned?'1 with Nuts or '+P.GEM_BOOSTER_QUANTITY+' with Gems':'LV '+P.LEVEL_BY_TOOL[id]+' to unlock')+'</small><div class="booster-shop-prices">'+
    '<button class="btn secondary" data-action="booster-buy" data-booster="'+id+'" title="Pay '+nutPrice+' Golden Nuts for 1 '+E.BOOSTER_META[id].label+'" '+(nutAvailable?'':'disabled')+'>1 · '+nutPrice.toLocaleString()+' NUTS</button>'+
    '<button class="btn green" data-action="booster-gems-buy" data-booster="'+id+'" title="Pay '+gemPrice+' Gems for '+P.GEM_BOOSTER_QUANTITY+' '+E.BOOSTER_META[id].label+' boosters" '+(gemAvailable?'':'disabled')+'>'+P.GEM_BOOSTER_QUANTITY+' · '+gemPrice+' GEMS</button></div></div>';
  }).join('');
