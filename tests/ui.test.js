@@ -6,7 +6,8 @@ const refs={wallet:{textContent:''},gems:{textContent:''},'play-wallet':{textCon
  score:{textContent:''},moves:{textContent:''},progress:{style:{}}};
 const board={getBoundingClientRect:()=>({top:0,left:0,width:450,height:450}),appendChild:()=>{},
  querySelector(s){const i=Number(s.match(/data-cell="(\d+)"/)?.[1]);const el=boardCells[i];return s.includes('nut-visual')?el?.visual:el||null;},
- querySelectorAll(s){const names=s.split(',').map(x=>x.trim().replace(/^\./,''));
+ querySelectorAll(s){if(s==='.nut-visual')return boardCells.filter(Boolean).map(x=>x.visual);
+  const names=s.split(',').map(x=>x.trim().replace(/^\./,''));
   return boardCells.filter(x=>x&&names.some(name=>x.classList.contains(name)));}};
 const screen={classList:classes(),addEventListener:(k,f)=>{if(k==='click')clickHandler=f;},
  get innerHTML(){return html;},set innerHTML(v){html=v;renders++;},
@@ -19,10 +20,12 @@ const screen={classList:classes(),addEventListener:(k,f)=>{if(k==='click')clickH
 };
 const currencyLinks=Array.from({length:2},()=>({dataset:{nav:'shop'},addEventListener(type,fn){if(type==='click')this.tap=fn;}}));
 const transientSprites=[];
-let stallFallAnimations=false;
+let stallFallAnimations=false,stallTransportAnimations=false;
 const document={getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:selector=>selector==='[data-nav]'?currencyLinks:[],createElement:()=>{
  const el={style:{},innerHTML:'',removed:false,remove(){this.removed=true;}};
- if(stallFallAnimations)el.animate=()=>({finished:new Promise(()=>{}),cancel(){el.animationCancelled=true;}});
+ el.animate=()=>({finished:(stallFallAnimations&&el.className==='falling-nut')||
+  (stallTransportAnimations&&el.className==='transport-nut')?new Promise(()=>{}):Promise.resolve(),
+  cancel(){el.animationCancelled=true;}});
  transientSprites.push(el);return el;
 }};
 const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutBenefits:require('../web/benefits.js'),NutPurchases:require('../web/purchase-disclosures.js'),NutProgress:P,NutHomestead:H,NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:M,addEventListener:()=>{},matchMedia:()=>({matches:true})};
@@ -164,6 +167,36 @@ async function run(){
  assert.equal(renders,stalledRenders,'Fall timeout must not rebuild the fixed board');
  assert.ok(boardCells.every((tile,i)=>g.cfg.mask[i]?tile&&tile.visual.style.visibility!=='hidden':tile===null),
   'All playable nuts are visible after a stalled cascade animation');
+
+
+ // Level 628, seed 23: an irregular donut with disconnected vertical islands
+ // and real first-turn conveyor transfers. Suspended WebView transport
+ // promises must not hide source nuts or retain transient overlays indefinitely.
+ app.start(628);state().game=E.create(628,23);attach();g=state().game;
+ assert.ok(g.cfg.mask.some(active=>!active),'Transport fixture must retain real donut holes');
+ const splitColumn=Array.from({length:g.cfg.width},(_,x)=>{
+  let seen=false,gap=false;
+  for(let y=0;y<g.cfg.height;y++){const active=g.cfg.mask[y*g.cfg.width+x];
+   if(active&&gap)return true;if(!active&&seen)gap=true;if(active)seen=true;}
+  return false;
+ }).some(Boolean);
+ assert.ok(splitColumn,'Donut fixture must contain a vertically disconnected playable island');
+ g.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
+ swap=findSwap(g,false);
+ const transportRenders=renders,transportFrom=transientSprites.length;
+ window.matchMedia=()=>({matches:false});stallTransportAnimations=true;
+ click({cell:String(swap[0])});click({cell:String(swap[1])});await settle();await settle();
+ stallTransportAnimations=false;window.matchMedia=()=>({matches:true});
+ const transported=transientSprites.slice(transportFrom).filter(x=>x.className==='transport-nut');
+ assert.ok(transported.length>0,'Seeded donut must exercise actual animated transport');
+ assert.ok(transported.every(x=>x.removed&&x.animationCancelled),
+  'Suspended transport promises must cancel and remove their temporary sprites');
+ assert.equal(state().animating,false,'Suspended transport must not lock the next turn');
+ assert.equal(renders,transportRenders,'Transport recovery must retain the fixed irregular board DOM');
+ assert.ok(g.cells.every((c,i)=>Boolean(c)===Boolean(g.cfg.mask[i])&&(!c||c.type!==null)),
+  'All playable donut and disconnected-island cells must contain a nut after transport');
+ assert.ok(boardCells.every((tile,i)=>g.cfg.mask[i]?tile&&tile.visual.style.visibility!=='hidden':tile===null),
+  'Transport interruption must restore every playable nut visual');
 
  assert.equal(refs.wallet.textContent,startingCoins.toLocaleString(),'Main wallet stays unchanged during ordinary matching');
  assert.equal(refs['play-wallet'].textContent,startingCoins.toLocaleString(),'In-level wallet stays unchanged during ordinary matching');

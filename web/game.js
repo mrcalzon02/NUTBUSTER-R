@@ -430,33 +430,45 @@ async function transportAnimation(stage,epoch){
  const board=screen.querySelector('.board');
  if(!board||reducedMotion()){paintCells(stage.cells);return;}
  paintCells(stage.before);
- const origin=board.getBoundingClientRect(),sprites=[],pending=[];
- for(const transfer of stage.transfers){
-  const from=board.querySelector(`[data-cell="${transfer.from}"]`);
-  const to=board.querySelector(`[data-cell="${transfer.to}"]`);
-  if(!from||!to)continue;
-  const a=from.getBoundingClientRect(),b=to.getBoundingClientRect(),fly=document.createElement('span');
-  fly.className='transport-nut';fly.style.left=(a.left-origin.left)+'px';fly.style.top=(a.top-origin.top)+'px';
-  fly.style.width=a.width+'px';fly.style.height=a.height+'px';
-  fly.innerHTML=nutVisual({type:transfer.type,special:transfer.special,elemental:transfer.elemental});
-  board.appendChild(fly);sprites.push(fly);
-  const dx=b.left-a.left,dy=b.top-a.top;
-  const frames=stage.mode==='portal'?
-   [{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(.45)',offset:.48},
-    {opacity:0,transform:`translate(${dx}px,${dy}px) scale(.45)`,offset:.52},
-    {opacity:1,transform:`translate(${dx}px,${dy}px) scale(1)`}] :
-   [{transform:'translate(0,0)'},{transform:`translate(${dx}px,${dy}px)`}];
-  if(fly.animate)pending.push(fly.animate(frames,{duration:stage.mode==='portal'?450:380,easing:'ease-in-out',fill:'forwards'}).finished.catch(()=>{}));
+ const origin=board.getBoundingClientRect(),sprites=[],animations=[],pending=[];
+ try{
+  for(const transfer of stage.transfers){
+   const from=board.querySelector(`[data-cell="${transfer.from}"]`);
+   const to=board.querySelector(`[data-cell="${transfer.to}"]`);
+   if(!from||!to)continue;
+   const a=from.getBoundingClientRect(),b=to.getBoundingClientRect(),fly=document.createElement('span');
+   fly.className='transport-nut';fly.style.left=(a.left-origin.left)+'px';fly.style.top=(a.top-origin.top)+'px';
+   fly.style.width=a.width+'px';fly.style.height=a.height+'px';
+   fly.innerHTML=nutVisual({type:transfer.type,special:transfer.special,elemental:transfer.elemental});
+   board.appendChild(fly);sprites.push(fly);
+   const dx=b.left-a.left,dy=b.top-a.top;
+   const frames=stage.mode==='portal'?
+    [{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(.45)',offset:.48},
+     {opacity:0,transform:`translate(${dx}px,${dy}px) scale(.45)`,offset:.52},
+     {opacity:1,transform:`translate(${dx}px,${dy}px) scale(1)`}] :
+    [{transform:'translate(0,0)'},{transform:`translate(${dx}px,${dy}px)`}];
+   if(fly.animate){
+    const animation=fly.animate(frames,{duration:stage.mode==='portal'?450:380,easing:'ease-in-out',fill:'forwards'});
+    animations.push(animation);pending.push(animation.finished.catch(()=>{}));
+   }
+  }
+  for(const t of stage.transfers){
+   const vis=board.querySelector(`[data-cell="${t.from}"] .nut-visual`);
+   if(vis)vis.style.visibility='hidden';
+  }
+  // Suspended Android WebView animations can leave .finished pending forever.
+  // The longest authored transport is 450 ms; settle by 600 ms even if
+  // the browser never resolves a transport animation promise.
+  if(pending.length)await Promise.race([Promise.all(pending),sleep(600)]);
+  else await sleep(240);
+ }finally{
+  animations.forEach(animation=>{try{animation.cancel();}catch(_){/* Detached WebView animation. */}});
+  sprites.forEach(el=>el.remove());
+  if(epoch===state.epoch&&state.page==='game'){
+   paintCells(stage.cells);
+   board.querySelectorAll('.nut-visual').forEach(el=>{el.style.visibility='';});
+  }
  }
- for(const t of stage.transfers){
-  const vis=board.querySelector(`[data-cell="${t.from}"] .nut-visual`);
-  if(vis)vis.style.visibility='hidden';
- }
- if(pending.length)await Promise.all(pending);else await sleep(240);
- sprites.forEach(el=>el.remove());
- if(epoch!==state.epoch||state.page!=='game')return;
- paintCells(stage.cells);
- board.querySelectorAll('.nut-visual').forEach(el=>{el.style.visibility='';});
 }
 async function cascadeAnimation(stage,epoch,wave=1){
  if(state.page!=='game'||epoch!==state.epoch)return;
