@@ -19,7 +19,12 @@ const screen={classList:classes(),addEventListener:(k,f)=>{if(k==='click')clickH
 };
 const currencyLinks=Array.from({length:2},()=>({dataset:{nav:'shop'},addEventListener(type,fn){if(type==='click')this.tap=fn;}}));
 const transientSprites=[];
-const document={getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:selector=>selector==='[data-nav]'?currencyLinks:[],createElement:()=>{const el={style:{},innerHTML:'',remove(){}};transientSprites.push(el);return el;}};
+let stallFallAnimations=false;
+const document={getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:selector=>selector==='[data-nav]'?currencyLinks:[],createElement:()=>{
+ const el={style:{},innerHTML:'',removed:false,remove(){this.removed=true;}};
+ if(stallFallAnimations)el.animate=()=>({finished:new Promise(()=>{}),cancel(){el.animationCancelled=true;}});
+ transientSprites.push(el);return el;
+}};
 const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutBenefits:require('../web/benefits.js'),NutPurchases:require('../web/purchase-disclosures.js'),NutProgress:P,NutHomestead:H,NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:M,addEventListener:()=>{},matchMedia:()=>({matches:true})};
 const saveStore={};const localStorage={getItem:k=>saveStore[k]??null,setItem:(k,v)=>{saveStore[k]=v;}};
 require('node:vm').runInNewContext(js,{window,document,localStorage,setTimeout:fn=>{if(typeof fn==='function')Promise.resolve().then(fn);return 0;},clearTimeout:()=>{},requestAnimationFrame:f=>f(),console});
@@ -142,6 +147,23 @@ async function run(){
   'Missing sprite markup is not a real void or an empty engine cell');
 
 
+ // A suspended Android WebView can leave Web Animations .finished unresolved.
+ // The fixed grid must recover its sprites after the bounded fall watchdog,
+ // without a destructive board rerender or a permanently locked input state.
+ app.start(1);attach();g=state().game;
+ g.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
+ const stalledSwap=findSwap(g,true),stalledFrom=transientSprites.length,stalledRenders=renders;
+ window.matchMedia=()=>({matches:false});stallFallAnimations=true;
+ click({cell:String(stalledSwap[0])});click({cell:String(stalledSwap[1])});await settle();
+ stallFallAnimations=false;window.matchMedia=()=>({matches:true});
+ const stalledFalls=transientSprites.slice(stalledFrom).filter(x=>x.className==='falling-nut');
+ assert.ok(stalledFalls.length>0,'Scoring cascade must attempt animated fall sprites');
+ assert.ok(stalledFalls.every(x=>x.removed&&x.animationCancelled),
+  'Timed-out WebView fall animations must be canceled and their overlays removed');
+ assert.equal(state().animating,false,'Suspended fall animation cannot lock game input');
+ assert.equal(renders,stalledRenders,'Fall timeout must not rebuild the fixed board');
+ assert.ok(boardCells.every((tile,i)=>g.cfg.mask[i]?tile&&tile.visual.style.visibility!=='hidden':tile===null),
+  'All playable nuts are visible after a stalled cascade animation');
 
  assert.equal(refs.wallet.textContent,startingCoins.toLocaleString(),'Main wallet stays unchanged during ordinary matching');
  assert.equal(refs['play-wallet'].textContent,startingCoins.toLocaleString(),'In-level wallet stays unchanged during ordinary matching');
