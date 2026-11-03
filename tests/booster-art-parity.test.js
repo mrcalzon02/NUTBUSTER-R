@@ -5,6 +5,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
+const crypto=require('node:crypto');
 const E=require('../web/engine.js');
 const P=require('../web/progression.js');
 const root=path.resolve(__dirname,'..');
@@ -12,6 +13,22 @@ const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const gameSource=read('web/game.js');
 const css=read('web/style.css');
 const ids=E.BOOSTERS;
+// Audit the four genuine primary power-up crops by exact intended identity.
+// Other mapped boosters may reuse owner-authored effects; do not invent a
+// direct power-up crop where none has been approved.
+const primaryIdentity=Object.freeze({
+ hammer:'art/primary/powerups/hammer.png',
+ row:'art/primary/powerups/row-clear.png',
+ blast:'art/primary/powerups/nut-burst.png',
+ color:'art/primary/powerups/rainbow.png'
+});
+for(const [id,sprite] of Object.entries(primaryIdentity))
+ assert.equal(P.BOOSTER_ART[id],sprite,'Original primary power-up identity changed: '+id);
+// Supplementary effects/economy sprites are tracked in an authored atlas
+// manifest. A filename or valid PNG header alone does not prove the correct
+// atlas crop was shipped. Verify the actual installed bytes against provenance.
+const additionManifest=JSON.parse(read('web/art/additions/manifest.json'));
+const additionByPath=new Map(Object.values(additionManifest.sprites).map(entry=>[entry.path,entry]));
 assert.equal(ids.length,16,'All ten tactical and six advanced boosters must be represented');
 assert.deepEqual(Object.keys(P.BOOSTER_ART).sort(),[...ids].sort(),'Art mapping must cover every actual booster ID, without orphans');
 assert.doesNotMatch(gameSource,/BOOSTER_ICON_PATHS|data:image\/svg\+xml/,'Generic in-code vector icons must not return');
@@ -24,6 +41,13 @@ for(const id of ids){
  assert.ok(png.length>=24,'Empty or truncated sprite: '+id);
  assert.equal(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a','Not a PNG: '+id);
  assert.ok(png.readUInt32BE(16)>0&&png.readUInt32BE(20)>0,'Invalid PNG dimensions: '+id);
+ if(sprite.startsWith('art/additions/')){
+  const record=additionByPath.get(sprite);
+  assert.ok(record&&record.source&&Array.isArray(record.source_rect)&&record.sha256,
+   'Missing source atlas crop provenance for '+id+': '+sprite);
+  assert.equal(crypto.createHash('sha256').update(png).digest('hex'),record.sha256,
+   'Packaged sprite no longer matches approved atlas crop for '+id+': '+sprite);
+ }
 }
 const android=read('android/app/build.gradle');
 assert.match(android,/assets\.srcDirs\s*=\s*\['\.\.\/\.\.\/web'\]/,'APK must package the exact web/ asset tree');
