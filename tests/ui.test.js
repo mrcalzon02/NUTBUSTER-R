@@ -205,6 +205,9 @@ async function run(){
  // promises unresolved, preventing all subsequent cascades and input forever.
  // Exercise the real game event path on an irregular level with two stalled
  // visual animations; recovery must retain every fixed-grid tile and sprite.
+ // Offset only this extra fixture start's heart debit; later gameplay tests
+ // must retain the same resource budget as before this regression was added.
+ app.getSave().hearts++;
  app.start(12);attach();g=state().game;
  g.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
  swap=findSwap(g,false);

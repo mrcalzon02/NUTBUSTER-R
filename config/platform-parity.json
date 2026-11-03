@@ -441,6 +441,20 @@
         "linux": "Native C++17/SDL3 preview likewise draws sprites directly and does not use WebView animation promises or CSS visibility. No native gameplay or renderer parity upgrade is claimed."
       },
       "decision": "Explicit four-target impact review of a mobile-only asynchronous transport-animation lifecycle repair. It changes neither nut identity/physics, vertical gravity segments, match rules, saved progress, native SDL3 code nor signing. Existing native preview-only status and all production parity gates remain unchanged. Android/Fire installed-device screenshot acceptance is still required for issue #1."
+    },
+    {
+      "id": "webview-swap-animation-timeout-2026-11-03",
+      "sourceChange": [
+        "web/game.js"
+      ],
+      "test": "tests/ui.test.js",
+      "targetImpact": {
+        "android": "A suspended Android WebView can leave both initial swap Web Animations .finished promises pending indefinitely, locking input before the cascade. A 350-ms watchdog now settles the wait, cancels owned animations, and lets the existing fixed-grid nut reconciliation restore every playable sprite without a board rerender. The irregular-level mocked-DOM test covers this stalled-swap path; installed Android visual acceptance is still outstanding.",
+        "fire_os": "The shared byte-identical Android/Fire OS WebView APK uses the same swap animation watchdog, cancellation and fixed-grid nut reconciliation. Physical Fire OS tablet sprite visibility and touch-input acceptance remain unverified.",
+        "windows": "The independent native C++17 SDL3 preview draws sprites directly without WebView, CSS visibility or Web Animations .finished promises. This mobile-only async swap lifecycle fix has no corresponding native code path; existing native gameplay remains preview-partial and is not certified by mobile tests.",
+        "linux": "The native C++17 SDL3 Linux preview likewise has no WebView animation promise or DOM nut visual to unlock. Its independent rendering and outstanding gameplay parity gaps are unchanged; native production remains blocked pending separate feature verification."
+      },
+      "decision": "Four-target review for a mobile WebView-only animation-lifecycle deadlock repair, not a change to matching, scoring, gravity, saved state, assets or native C++ logic. UI regression verifies bounded cancellation and every playable nut's sprite/fallback markup after recovery; the independent native preview remains partial, and actual Android/Fire installed-device proof is still required before closing #1."
     }
   ]
 }
