@@ -422,9 +422,16 @@ async function swapAnimation(pair,epoch){
  const opts={duration:225,easing:'cubic-bezier(.2,.75,.25,1)',fill:'forwards'};
  const first=va.animate([{transform:'translate(0,0)'},{transform:`translate(${dx}px,${dy}px)`}],opts);
  const second=vb.animate([{transform:'translate(0,0)'},{transform:`translate(${-dx}px,${-dy}px)`}],opts);
- await Promise.allSettled([first.finished,second.finished]);
- if(epoch===state.epoch){va.style.visibility='hidden';vb.style.visibility='hidden';}
- first.cancel();second.cancel();
+ // A suspended Android WebView may never settle either swap .finished promise.
+ // Bound the swap before the cascade and always release its animations.
+ try{
+  await Promise.race([Promise.allSettled([first.finished,second.finished]),sleep(350)]);
+  if(epoch===state.epoch){va.style.visibility='hidden';vb.style.visibility='hidden';}
+ }finally{
+  for(const animation of [first,second]){
+   try{animation.cancel();}catch(_){/* Detached WebView animation. */}
+  }
+ }
 }
 async function transportAnimation(stage,epoch){
  const board=screen.querySelector('.board');

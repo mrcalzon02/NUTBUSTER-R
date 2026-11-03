@@ -20,7 +20,8 @@ const screen={classList:classes(),addEventListener:(k,f)=>{if(k==='click')clickH
 };
 const currencyLinks=Array.from({length:2},()=>({dataset:{nav:'shop'},addEventListener(type,fn){if(type==='click')this.tap=fn;}}));
 const transientSprites=[];
-let stallFallAnimations=false,stallTransportAnimations=false;
+let stallFallAnimations=false,stallTransportAnimations=false,stallSwapAnimations=false;
+const swapAnimations=[];
 const document={getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:selector=>selector==='[data-nav]'?currencyLinks:[],createElement:()=>{
  const el={style:{},innerHTML:'',removed:false,remove(){this.removed=true;}};
  el.animate=()=>({finished:(stallFallAnimations&&el.className==='falling-nut')||
@@ -36,6 +37,8 @@ const click=data=>clickHandler({target:{dataset:data,closest:()=>({dataset:data}
 function attach(){const g=state().game;boardCells=g.cells.map((c,i)=>!c?null:{
  dataset:{nutKey:c.type+':'+(c.special||''),blockKey:c.ice+':'+c.lock+':'+c.chest},classList:classes(),style:{},
  visual:{outerHTML:'<span class="nut-visual"></span>',style:{},image:null,fallback:null,
+  animate(){const a={finished:stallSwapAnimations?new Promise(()=>{}):Promise.resolve(),cancel(){this.canceled=true;}};
+   swapAnimations.push(a);return a;},
   querySelector(s){return s==='.piece'?this.image:s==='.fallback'?this.fallback:null;}},querySelector(s){return s==='.nut-visual'?this.visual:null;},
  querySelectorAll:()=>[],insertAdjacentHTML:()=>{},setAttribute:()=>{},
  getBoundingClientRect:()=>({left:(i%g.cfg.width)*51,top:Math.floor(i/g.cfg.width)*51,width:50,height:50})});}
@@ -197,6 +200,28 @@ async function run(){
   'All playable donut and disconnected-island cells must contain a nut after transport');
  assert.ok(boardCells.every((tile,i)=>g.cfg.mask[i]?tile&&tile.visual.style.visibility!=='hidden':tile===null),
   'Transport interruption must restore every playable nut visual');
+
+ // A WebView suspended during the initial swap can leave both .finished
+ // promises unresolved, preventing all subsequent cascades and input forever.
+ // Exercise the real game event path on an irregular level with two stalled
+ // visual animations; recovery must retain every fixed-grid tile and sprite.
+ app.start(12);attach();g=state().game;
+ g.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
+ swap=findSwap(g,false);
+ const swapRenders=renders,swapFrom=swapAnimations.length;
+ window.matchMedia=()=>({matches:false});stallSwapAnimations=true;
+ click({cell:String(swap[0])});click({cell:String(swap[1])});await settle();
+ stallSwapAnimations=false;window.matchMedia=()=>({matches:true});
+ const stalledSwaps=swapAnimations.slice(swapFrom);
+ assert.equal(stalledSwaps.length,2,'The swap must exercise two real mocked Web Animations');
+ assert.ok(stalledSwaps.every(a=>a.canceled),'Stalled swap animations must be canceled after the watchdog');
+ assert.equal(state().animating,false,'A stalled swap must not permanently lock player input');
+ assert.equal(renders,swapRenders,'Swap recovery must not rebuild the fixed irregular board');
+ assert.ok(boardCells.every((tile,i)=>!g.cfg.mask[i]?tile===null:
+  tile?.visual?.style.visibility!=='hidden'&&
+  tile.visual.outerHTML.includes('src="art/primary/nuts/'+E.TYPES[g.cells[i].type]+'.png"')&&
+  tile.visual.outerHTML.includes('class="fallback"')),
+  'After swap recovery every playable cell must have its current nut sprite and fallback markup');
 
  assert.equal(refs.wallet.textContent,startingCoins.toLocaleString(),'Main wallet stays unchanged during ordinary matching');
  assert.equal(refs['play-wallet'].textContent,startingCoins.toLocaleString(),'In-level wallet stays unchanged during ordinary matching');
