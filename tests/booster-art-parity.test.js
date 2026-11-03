@@ -29,6 +29,11 @@ for(const [id,sprite] of Object.entries(primaryIdentity))
 // atlas crop was shipped. Verify the actual installed bytes against provenance.
 const additionManifest=JSON.parse(read('web/art/additions/manifest.json'));
 const additionByPath=new Map(Object.values(additionManifest.sprites).map(entry=>[entry.path,entry]));
+// Premium/UI sprites repaired from exact original atlases have their own
+// newer, owner-approved immutable hashes. The older additions manifest
+// describes superseded 256px crops and must not override those 384px repairs.
+const liveRecovery=JSON.parse(read('assets/recovery/original-non-nut/live-replacements.json'));
+assert.equal(liveRecovery.status,'committed-static-live-replacements');
 assert.equal(ids.length,16,'All ten tactical and six advanced boosters must be represented');
 assert.deepEqual(Object.keys(P.BOOSTER_ART).sort(),[...ids].sort(),'Art mapping must cover every actual booster ID, without orphans');
 assert.doesNotMatch(gameSource,/BOOSTER_ICON_PATHS|data:image\/svg\+xml/,'Generic in-code vector icons must not return');
@@ -42,11 +47,17 @@ for(const id of ids){
  assert.equal(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a','Not a PNG: '+id);
  assert.ok(png.readUInt32BE(16)>0&&png.readUInt32BE(20)>0,'Invalid PNG dimensions: '+id);
  if(sprite.startsWith('art/additions/')){
-  const record=additionByPath.get(sprite);
-  assert.ok(record&&record.source&&Array.isArray(record.source_rect)&&record.sha256,
-   'Missing source atlas crop provenance for '+id+': '+sprite);
-  assert.equal(crypto.createHash('sha256').update(png).digest('hex'),record.sha256,
-   'Packaged sprite no longer matches approved atlas crop for '+id+': '+sprite);
+  const restored=liveRecovery.mapping['web/'+sprite];
+  if(restored){
+   const blob=crypto.createHash('sha1').update(Buffer.from('blob '+png.length+'\\0')).update(png).digest('hex');
+   assert.equal(blob,restored,'Packaged sprite differs from approved live recovery for '+id+': '+sprite);
+  }else{
+   const record=additionByPath.get(sprite);
+   assert.ok(record&&record.source&&Array.isArray(record.source_rect)&&record.sha256,
+    'Missing source atlas crop provenance for '+id+': '+sprite);
+   assert.equal(crypto.createHash('sha256').update(png).digest('hex'),record.sha256,
+    'Packaged sprite no longer matches approved atlas crop for '+id+': '+sprite);
+  }
  }
 }
 const android=read('android/app/build.gradle');
