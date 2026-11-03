@@ -49,7 +49,7 @@ for(const id of ids){
  if(sprite.startsWith('art/additions/')){
   const restored=liveRecovery.mapping['web/'+sprite];
   if(restored){
-   const blob=crypto.createHash('sha1').update(Buffer.from('blob '+png.length+'\\0')).update(png).digest('hex');
+   const blob=crypto.createHash('sha1').update(Buffer.from('blob '+png.length+'\0')).update(png).digest('hex');
    assert.equal(blob,restored,'Packaged sprite differs from approved live recovery for '+id+': '+sprite);
   }else{
    const record=additionByPath.get(sprite);
