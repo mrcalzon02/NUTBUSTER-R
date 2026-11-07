@@ -82,10 +82,10 @@ struct GemWallet {
     if(!count||!cost||gems<cost||*count>=999999)return false;
     gems-=cost;++*count;return true;
   }
-  bool read(std::istream& in){
+  bool read(std::istream& in,bool eof=true){
     std::string tag;long long value=-1;
     if(!(in>>tag>>value)||tag!="GEM_WALLET_V1"||value<0||value>max)return false;
-    in>>std::ws;if(in.peek()!=std::char_traits<char>::eof())return false;
+    if(eof){in>>std::ws;if(in.peek()!=std::char_traits<char>::eof())return false;}
     gems=int(value);return true;
   }
   bool write(std::ostream& out)const{
@@ -102,6 +102,7 @@ struct Game {
   nut::Mine mine{};
   HoldStock stock{};
   GemWallet wallet{};
+  bool levelEditorUnlocked=false; // Earned by stage-1000 victory, not by reachability.
   int pendingPurchase=0; // confirmation required: 1 Butter, 2 Jam
   std::string shopNotice;
   enum class HoldMode{Swap,Butter,Jam};
@@ -116,25 +117,41 @@ struct Game {
     std::string signature;int level=1;
     if(!(file>>signature>>level))return false;
     if(signature=="NUTBUSTER_NATIVE_PREVIEW_V1"){
-      unlocked=std::clamp(level,1,1000);stock=HoldStock{};wallet=GemWallet{};return true;
+      unlocked=std::clamp(level,1,1000);stock=HoldStock{};wallet=GemWallet{};
+      levelEditorUnlocked=false;return true;
     }
     if(signature!="NUTBUSTER_NATIVE_PREVIEW_V2"&&
        signature!="NUTBUSTER_NATIVE_PREVIEW_V3"&&
-       signature!="NUTBUSTER_NATIVE_PREVIEW_V4")return false;
+       signature!="NUTBUSTER_NATIVE_PREVIEW_V4"&&
+       signature!="NUTBUSTER_NATIVE_PREVIEW_V5")return false;
     nut::Mine loaded;
     if(!loaded.load(file))return false;
     HoldStock loadedStock;
-    const bool v4=signature=="NUTBUSTER_NATIVE_PREVIEW_V4";
-    if((v4||signature=="NUTBUSTER_NATIVE_PREVIEW_V3")&&
-       !loadedStock.read(file,!v4))return false;
-    GemWallet loadedWallet; // V1-V3 migrate once with mobile's 25 starting gems
-    if(v4&&!loadedWallet.read(file))return false;
-    mine=loaded;stock=loadedStock;wallet=loadedWallet;
+    const bool v5=signature=="NUTBUSTER_NATIVE_PREVIEW_V5";
+    const bool withWallet=v5||signature=="NUTBUSTER_NATIVE_PREVIEW_V4";
+    if((withWallet||signature=="NUTBUSTER_NATIVE_PREVIEW_V3")&&
+       !loadedStock.read(file,!withWallet))return false;
+    GemWallet loadedWallet; // V1-V3 migrate with mobile's 25 starting gems
+    if(withWallet&&!loadedWallet.read(file,!v5))return false;
+    bool loadedEditor=false;
+    if(v5){
+      std::string tag;int earned=-1;
+      if(!(file>>tag>>earned)||tag!="LEVEL_EDITOR_V1"||(earned!=0&&earned!=1))
+        return false;
+      file>>std::ws;
+      if(file.peek()!=std::char_traits<char>::eof())return false;
+      loadedEditor=earned==1;
+    }
+    // V1-V4 native saves lack explicit level-completion history. A reached
+    // stage 1000 is not evidence of a win, so never migrate a false entitlement.
+    mine=loaded;stock=loadedStock;wallet=loadedWallet;levelEditorUnlocked=loadedEditor;
     unlocked=std::clamp(level,1,1000);return true;
   }
   bool saveTo(std::ostream& file)const{
-    file<<"NUTBUSTER_NATIVE_PREVIEW_V4 "<<unlocked<<"\n";
-    return bool(file)&&mine.save(file)&&stock.write(file)&&wallet.write(file);
+    file<<"NUTBUSTER_NATIVE_PREVIEW_V5 "<<unlocked<<"\n";
+    if(!file||!mine.save(file)||!stock.write(file)||!wallet.write(file))return false;
+    file<<"LEVEL_EDITOR_V1 "<<(levelEditorUnlocked?1:0)<<"\n";
+    return bool(file);
   }
   void load(){
     if(savePath.empty())return;
@@ -145,6 +162,12 @@ struct Game {
     if(smoke||savePath.empty())return;
     std::ofstream file(savePath,std::ios::trunc);
     if(!file||!saveTo(file))std::cerr<<"Cannot persist native preview progress\n";
+  }
+  void onCampaignWin(){
+    wallet.win();
+    unlocked=std::max(unlocked,std::min(1000,selectedLevel+1));
+    if(selectedLevel==1000)levelEditorUnlocked=true;
+    save();scene=Scene::Won;
   }
   void startLevel() {
     board.reset(selectedLevel,uint32_t(selectedLevel)*7919U);
@@ -350,7 +373,7 @@ struct Game {
     nut::Turn result=board.swap(a,b);
     selected=-1;
     if(!result.valid){selected=b;return;}
-    if(result.won){wallet.win();unlocked=std::max(unlocked,std::min(1000,selectedLevel+1));save();scene=Scene::Won;}
+    if(result.won)onCampaignWin();
     else if(result.lost)scene=Scene::Lost;
   }
   void render(SDL_Renderer* r){
@@ -564,11 +587,12 @@ bool holdUiSelfTest(std::string& report){
       throw std::runtime_error("invalid target spent stock");
     game.stock.butter=4;game.stock.jam=7;game.wallet.gems=43;game.unlocked=23;
     std::stringstream saved;
-    if(!game.saveTo(saved))throw std::runtime_error("V4 save");
+    if(!game.saveTo(saved))throw std::runtime_error("V5 save");
     Game restored;
     if(!restored.loadFrom(saved)||restored.stock.butter!=4||
-       restored.stock.jam!=7||restored.unlocked!=23||restored.wallet.gems!=43)
-      throw std::runtime_error("V4 stock and gem wallet roundtrip");
+       restored.stock.jam!=7||restored.unlocked!=23||restored.wallet.gems!=43||
+       restored.levelEditorUnlocked)
+      throw std::runtime_error("V5 stock, wallet and locked editor roundtrip");
     std::stringstream legacy;
     legacy<<"NUTBUSTER_NATIVE_PREVIEW_V2 17\n";
     if(!game.mine.save(legacy))throw std::runtime_error("V2 fixture");
@@ -596,7 +620,7 @@ bool holdUiSelfTest(std::string& report){
     if(rejected.loadFrom(corrupt)||rejected.unlocked!=1||
        rejected.stock.butter||rejected.stock.jam)
       throw std::runtime_error("corrupt stock accepted/partial load");
-    report="PASS native Butter/Jam click, finite debit, V1-V3 migration and V4 wallet/stock persistence";
+    report="PASS native Butter/Jam click, finite debit, V1-V3 migration and V5 wallet/stock persistence";
     return true;
   }catch(const std::exception& e){report=std::string("FAIL native hold UI: ")+e.what();return false;}
 }
@@ -656,10 +680,60 @@ bool shopUiSelfTest(std::string& report){
     g.wallet.gems=GemWallet::max;g.wallet.win();
     if(g.wallet.gems!=GemWallet::max)
       throw std::runtime_error("gem win overflow");
-    report="PASS native shop click/confirm/cancel, 15/30 gem debit, insufficiency, use and V4 persistence";
+    report="PASS native shop click/confirm/cancel, 15/30 gem debit, insufficiency, use and V5 persistence";
     return true;
   }catch(const std::exception& e){
     report=std::string("FAIL native hold shop: ")+e.what();return false;
+  }
+}
+// Production win-handler/save-codec regression; no editor UI is claimed.
+bool editorProgressionSelfTest(std::string& report){
+  try{
+    Game reached;
+    reached.unlocked=999;reached.selectedLevel=999;
+    reached.onCampaignWin();
+    if(reached.unlocked!=1000||reached.levelEditorUnlocked)
+      throw std::runtime_error("reaching the finale without winning granted editor");
+    std::stringstream reachedSave;
+    if(!reached.saveTo(reachedSave))throw std::runtime_error("reached-only save");
+    Game reachedReload;
+    if(!reachedReload.loadFrom(reachedSave)||reachedReload.levelEditorUnlocked)
+      throw std::runtime_error("reached-only reload granted editor");
+    reached.selectedLevel=1000;reached.onCampaignWin();
+    if(!reached.levelEditorUnlocked||reached.unlocked!=1000)
+      throw std::runtime_error("finale win did not award editor");
+    std::stringstream wonSave;
+    if(!reached.saveTo(wonSave))throw std::runtime_error("earned save");
+    Game earnedReload;
+    if(!earnedReload.loadFrom(wonSave)||!earnedReload.levelEditorUnlocked||
+       earnedReload.unlocked!=1000)
+      throw std::runtime_error("earned editor missing on reload");
+    earnedReload.selectedLevel=7;earnedReload.onCampaignWin();
+    if(!earnedReload.levelEditorUnlocked)
+      throw std::runtime_error("replaying earlier level revoked editor");
+    std::stringstream legacyV4;
+    legacyV4<<"NUTBUSTER_NATIVE_PREVIEW_V4 1000\n";
+    if(!reached.mine.save(legacyV4)||!reached.stock.write(legacyV4)||
+       !reached.wallet.write(legacyV4))
+      throw std::runtime_error("legacy V4 fixture");
+    Game legacy;
+    legacy.levelEditorUnlocked=true;
+    if(!legacy.loadFrom(legacyV4)||legacy.unlocked!=1000||legacy.levelEditorUnlocked)
+      throw std::runtime_error("legacy V4 reached state invented a win");
+    std::string invalid=wonSave.str();
+    const auto token=invalid.find("LEVEL_EDITOR_V1 1");
+    if(token==std::string::npos)throw std::runtime_error("missing entitlement trailer");
+    invalid.replace(token,std::string("LEVEL_EDITOR_V1 1").size(),"LEVEL_EDITOR_V1 2");
+    std::stringstream damaged(invalid);
+    Game preserved;
+    preserved.unlocked=23;preserved.levelEditorUnlocked=true;
+    if(preserved.loadFrom(damaged)||preserved.unlocked!=23||
+       !preserved.levelEditorUnlocked)
+      throw std::runtime_error("corrupt V5 entitlement accepted or partially loaded");
+    report="PASS native finale-only editor entitlement, replay persistence, V4 ambiguity and V5 guarded save";
+    return true;
+  }catch(const std::exception& e){
+    report=std::string("FAIL native editor progression: ")+e.what();return false;
   }
 }
 }
@@ -691,11 +765,12 @@ int main(int argc,char** argv){
     return 4;
   }
   if(self){
-    std::string boardReport,mineReport,holdReport,shopReport;
+    std::string boardReport,mineReport,holdReport,shopReport,editorReport;
     bool boardOk=nut::selfTest(boardReport),mineOk=nut::mineSelfTest(mineReport);
     bool holdOk=holdUiSelfTest(holdReport),shopOk=shopUiSelfTest(shopReport);
-    std::cout<<boardReport<<"\n"<<mineReport<<"\n"<<holdReport<<"\n"<<shopReport<<"\n";
-    return boardOk&&mineOk&&holdOk&&shopOk?0:1;
+    bool editorOk=editorProgressionSelfTest(editorReport);
+    std::cout<<boardReport<<"\n"<<mineReport<<"\n"<<holdReport<<"\n"<<shopReport<<"\n"<<editorReport<<"\n";
+    return boardOk&&mineOk&&holdOk&&shopOk&&editorOk?0:1;
   }
   if(!fixtureFile.empty()){
     std::ifstream fixtures(fixtureFile);
