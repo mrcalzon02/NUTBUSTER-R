@@ -41,6 +41,9 @@ const BOOSTER_ART=Object.freeze({
  frostbreaker:'art/additions/effects/ice-shatter.png'
 });
 const BOOSTER_BADGES=Object.freeze({'triple-row':'×3','triple-column':'×3',spectrum:'×2'});
+// Current final authored campaign stage. If new chapters ship, update this
+// threshold without revoking previously earned saved editor entitlements.
+const LEVEL_EDITOR_FINAL_STAGE=1000;
 const CHALLENGE_STEPS=Object.freeze([1,2,3,4,5,7,10,12,15,18,21,25]);
 const BUNDLES=Object.freeze({
  shop0:{hammer:3,extra:2,row:1},
@@ -76,6 +79,9 @@ function available(save){return LADDER.filter(spec=>unlocked(save,spec.id)).map(
 function nextUnlock(save){return LADDER.find(spec=>!unlocked(save,spec.id))||null;}
 function migrate(save){
  if(!save.stars||typeof save.stars!=='object')save.stars={};
+ // Reconcile pre-feature wins, but never infer a win from a merely unlocked stage.
+ // Once earned, this entitlement survives resets and later campaign expansions.
+ save.levelEditorUnlocked=save.levelEditorUnlocked===true||nonnegative(save.stars[LEVEL_EDITOR_FINAL_STAGE])>0;
  // The old alpha stored completion as unlocked = last completed + 1.
  // On first migration only, honor that existing progression without inventing new wins.
  if(!save.boosterInventory||typeof save.boosterInventory!=='object'||Array.isArray(save.boosterInventory)){
@@ -200,9 +206,11 @@ function kindForLevel(level){
  const local=(level-1)%100+1;
  return local===100?'finale':local%20===0?'challenge':local%15===0?'treasure':local%12===0?'booster':local%10===0?'hard':'standard';
 }
+function hasLevelEditor(save){return save?.levelEditorUnlocked===true;}
 function firstClear(save,level){
  if(!Number.isInteger(level)||level<1||level>1000)return {valid:false,reason:'level'};
  if(!hasCleared(save,level))return {valid:false,reason:'not-cleared'};
+ if(level===LEVEL_EDITOR_FINAL_STAGE)save.levelEditorUnlocked=true;
  const result={valid:true,unlock:[],pack:null,contents:{},first:false};
  if(!save.claimedLevelRewards[level]){
   result.first=true;
@@ -240,7 +248,7 @@ function claimChallenge(save,index){
  grant(save,reward.contents);
  return {valid:true,contents:reward.contents};
 }
-const api={LADDER,CHALLENGE_STEPS,BUNDLES,LEVEL_BY_TOOL,HOLD_ITEMS,BOOSTER_ART,BOOSTER_BADGES,BOOSTER_PRICES,SHOP_EXCHANGES,GEM_BOOSTER_QUANTITY,GEM_BOOSTER_PRICES,buyCurrencyOffer,buyGemBooster,buyBooster,migrate,unlocked,available,nextUnlock,count,spend,holdCount,buyHold,spendHold,actualPack,grant,packText,kindForLevel,firstClear,challengeProgress,challengeRewards,claimChallenge};
+const api={LADDER,CHALLENGE_STEPS,BUNDLES,LEVEL_BY_TOOL,HOLD_ITEMS,BOOSTER_ART,BOOSTER_BADGES,BOOSTER_PRICES,SHOP_EXCHANGES,GEM_BOOSTER_QUANTITY,GEM_BOOSTER_PRICES,buyCurrencyOffer,buyGemBooster,buyBooster,migrate,hasLevelEditor,unlocked,available,nextUnlock,count,spend,holdCount,buyHold,spendHold,actualPack,grant,packText,kindForLevel,firstClear,challengeProgress,challengeRewards,claimChallenge};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.NutProgress=api;
 })(typeof window!=='undefined'?window:globalThis);
