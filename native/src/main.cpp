@@ -95,7 +95,8 @@ struct GemWallet {
 };
 struct Game {
   nut::Board board{1,7919};
-  enum class Scene{Menu,Campaign,Board,Shop,Mine,Won,Lost};
+  nut::Board editorBoard{1,7919}; // Isolated real campaign engine board for editor.
+  enum class Scene{Menu,Campaign,Board,Editor,Shop,Mine,Won,Lost};
   Scene scene=Scene::Menu;
   std::map<std::string,SDL_Texture*> images;
   int unlocked=1,selectedLevel=1,selected=-1,down=-1;
@@ -103,6 +104,7 @@ struct Game {
   HoldStock stock{};
   GemWallet wallet{};
   bool levelEditorUnlocked=false; // Earned by stage-1000 victory, not by reachability.
+  int editorNut=0;
   int pendingPurchase=0; // confirmation required: 1 Butter, 2 Jam
   std::string shopNotice;
   enum class HoldMode{Swap,Butter,Jam};
@@ -172,6 +174,10 @@ struct Game {
   void startLevel() {
     board.reset(selectedLevel,uint32_t(selectedLevel)*7919U);
     selected=-1;holdMode=HoldMode::Swap;scene=Scene::Board;
+  }
+  bool openEditor(){
+    if(!levelEditorUnlocked)return false;
+    selected=-1;scene=Scene::Editor;return true;
   }
   void makeMine(){
     const std::time_t now=std::time(nullptr);
@@ -243,17 +249,19 @@ struct Game {
     SDL_FRect dst{x,y,w,h};
     SDL_RenderTexture(r,it->second,nullptr,&dst);
   }
-  int cellAt(float x,float y)const {
-    int tile=std::min(74,490/board.height());
-    int ox=(WIDTH-tile*board.width())/2,oy=215;
-    if(!within(x,y,float(ox),float(oy),float(tile*board.width()),float(tile*board.height())))return -1;
-    return int((y-oy)/tile)*board.width()+int((x-ox)/tile);
+  int cellAt(float x,float y,const nut::Board& canvas)const {
+    int tile=std::min(74,490/canvas.height());
+    int ox=(WIDTH-tile*canvas.width())/2,oy=215;
+    if(!within(x,y,float(ox),float(oy),float(tile*canvas.width()),float(tile*canvas.height())))return -1;
+    return int((y-oy)/tile)*canvas.width()+int((x-ox)/tile);
   }
+  int cellAt(float x,float y)const{return cellAt(x,y,board);}
   void click(float x,float y){
     if(scene==Scene::Menu){
       if(within(x,y,324,238,376,66)){selectedLevel=std::clamp(selectedLevel,1,unlocked);scene=Scene::Campaign;}
       else if(within(x,y,324,332,376,66)&&unlocked>500)makeMine();
-      else if(within(x,y,324,426,376,66))quitRequested=true;
+      else if(within(x,y,324,426,376,66))openEditor();
+      else if(within(x,y,324,520,376,66))quitRequested=true;
       return;
     }
     if(scene==Scene::Shop){
@@ -340,6 +348,17 @@ struct Game {
       if(before!=selectedLevel)selectedLevel=std::clamp(selectedLevel,1,unlocked);
       return;
     }
+    if(scene==Scene::Editor){
+      if(within(x,y,180,713,260,44)){
+        editorNut=(editorNut+18)%19;if(editorNut==12)editorNut=11;return;
+      }
+      if(within(x,y,452,713,260,44)){
+        editorNut=(editorNut+1)%19;if(editorNut==12)editorNut=13;return;
+      }
+      const int i=cellAt(x,y,editorBoard);
+      if(i>=0&&editorBoard.paintCell(i,editorNut))selected=i;
+      return;
+    }
     if(scene==Scene::Board){
       if(within(x,y,775,114,185,46)){
         pendingPurchase=0;shopNotice.clear();holdMode=HoldMode::Swap;
@@ -376,6 +395,31 @@ struct Game {
     if(result.won)onCampaignWin();
     else if(result.lost)scene=Scene::Lost;
   }
+  // Campaign play and editor paint the same native board with identical approved sprites and overlays.
+  void renderBoardCells(SDL_Renderer* r,const nut::Board& canvas){
+      const int tile=std::min(74,490/canvas.height());
+      const int ox=(WIDTH-tile*canvas.width())/2,oy=215;
+      for(int i=0;i<canvas.size();++i){
+        const auto& c=canvas.cell(i);
+        if(c.type<0)continue; // preserve actual authored board silhouette
+        const int x=ox+(i%canvas.width())*tile,y=oy+(i/canvas.width())*tile;
+        fill(r,x,y,tile-3,tile-3,i==selected?
+          SDL_Color{209,166,80,255}:SDL_Color{58,35,56,255});
+        sprite(r,std::string("nuts/")+NUTS.at(size_t(c.type)),x+5,y+5,tile-13,tile-13);
+        if(c.chest>0)sprite(r,"blocker/chest",x+3,y+3,tile-9,tile-9);
+        if(c.lock>0)sprite(r,"blocker/chain-1",x+3,y+3,tile-9,tile-9);
+        if(c.ice>0)sprite(r,c.ice>2?"blocker/ice-2":"blocker/ice-1",x+3,y+3,tile-9,tile-9);
+        if(c.jam>0)sprite(r,"overlay/sticky-butter",x+3,y+3,tile-9,tile-9);
+        if(c.fuse>0)sprite(r,"overlay/bomb",x+3,y+3,tile-9,tile-9);
+        if(c.ice>1||c.lock>1||c.chest>1)
+          label(r,float(x+3),float(y+tile-18),
+             "x"+std::to_string(std::max({c.ice,c.lock,c.chest})),1);
+        if(c.hold>0){
+          fill(r,x+tile-26,y+3,22,20,{51,31,85,255});
+          label(r,float(x+tile-21),float(y+5),std::to_string(c.hold),1);
+        }
+      }
+  }
   void render(SDL_Renderer* r){
     fill(r,0,0,WIDTH,HEIGHT,{29,14,33,255});
     fill(r,0,0,WIDTH,102,{83,36,61,255});
@@ -384,7 +428,8 @@ struct Game {
       label(r,292,155,"NATIVE WINDOWS / LINUX PREVIEW",2);
       button(r,324,238,376,66,"CAMPAIGN");
       button(r,324,332,376,66,unlocked>500?"NUTVALE MINES":"MINES UNLOCK AT 500");
-      button(r,324,426,376,66,"EXIT");
+      button(r,324,426,376,66,levelEditorUnlocked?"LEVEL EDITOR":"EDITOR: CLEAR LEVEL 1000");
+      button(r,324,520,376,66,"EXIT");
       label(r,160,590,"Native SDL3 rendering. No Chromium, Electron or WebView.",2);
       label(r,160,630,"Preview only: full design-book feature parity pending.",2);
       return;
@@ -456,33 +501,20 @@ struct Game {
         label(r,190,160+g*20,board.objectiveLabel(g)+" "+
           std::to_string(board.objectiveValue(g))+"/"+std::to_string(objective.target),2);
       }
-      const int tile=std::min(74,490/board.height());
-      const int ox=(WIDTH-tile*board.width())/2,oy=215;
-      for(int i=0;i<board.size();++i){
-        const auto& c=board.cell(i);
-        if(c.type<0)continue; // preserve actual authored board silhouette
-        const int x=ox+(i%board.width())*tile,y=oy+(i/board.width())*tile;
-        fill(r,x,y,tile-3,tile-3,i==selected?
-          SDL_Color{209,166,80,255}:SDL_Color{58,35,56,255});
-        sprite(r,std::string("nuts/")+NUTS.at(size_t(c.type)),x+5,y+5,tile-13,tile-13);
-        if(c.chest>0)sprite(r,"blocker/chest",x+3,y+3,tile-9,tile-9);
-        if(c.lock>0)sprite(r,"blocker/chain-1",x+3,y+3,tile-9,tile-9);
-        if(c.ice>0)sprite(r,c.ice>2?"blocker/ice-2":"blocker/ice-1",x+3,y+3,tile-9,tile-9);
-        if(c.jam>0)sprite(r,"overlay/sticky-butter",x+3,y+3,tile-9,tile-9);
-        if(c.fuse>0)sprite(r,"overlay/bomb",x+3,y+3,tile-9,tile-9);
-        if(c.ice>1||c.lock>1||c.chest>1)
-          label(r,float(x+3),float(y+tile-18),
-             "x"+std::to_string(std::max({c.ice,c.lock,c.chest})),1);
-        if(c.hold>0){
-          fill(r,x+tile-26,y+3,22,20,{51,31,85,255});
-          label(r,float(x+tile-21),float(y+5),std::to_string(c.hold),1);
-        }
-      }
+      renderBoardCells(r,board);
       button(r,180,713,260,44,"BUTTER "+std::to_string(stock.butter));
       button(r,452,713,260,44,"JAM "+std::to_string(stock.jam));
       label(r,730,724,holdMode==HoldMode::Butter?"TAP NUT: 1 DROP":
           holdMode==HoldMode::Jam?"TAP NUT: 2 DROPS":
           stock.butter+stock.jam==0?"BUY IN HOLD SHOP":"DRAG TO SWAP",1);
+    } else if(scene==Scene::Editor){
+      label(r,190,114,"LEVEL EDITOR - SESSION DRAFT",2);
+      label(r,190,147,"REAL ENGINE / NO LEVEL SAVE YET",2);
+      renderBoardCells(r,editorBoard);
+      button(r,180,713,260,44,"PREVIOUS NUT");
+      button(r,452,713,260,44,"NEXT NUT");
+      sprite(r,std::string("nuts/")+NUTS.at(size_t(editorNut)),730,704,44,44);
+      label(r,780,721,"NUT "+std::to_string(editorNut+1),1);
     } else if(scene==Scene::Mine){
       button(r,175,111,180,42,"EXCAVATE");
       button(r,365,111,180,42,"EQUIPMENT");
@@ -711,6 +743,31 @@ bool editorProgressionSelfTest(std::string& report){
     earnedReload.selectedLevel=7;earnedReload.onCampaignWin();
     if(!earnedReload.levelEditorUnlocked)
       throw std::runtime_error("replaying earlier level revoked editor");
+    Game denied;
+    denied.click(340,450);
+    if(denied.scene!=Game::Scene::Menu||denied.openEditor())
+      throw std::runtime_error("locked native editor entry");
+    earnedReload.scene=Game::Scene::Menu;
+    earnedReload.click(340,450);
+    if(earnedReload.scene!=Game::Scene::Editor)throw std::runtime_error("won editor cannot enter");
+    int idx=-1;
+    for(int i=0;i<earnedReload.editorBoard.size();++i)
+      if(earnedReload.editorBoard.cell(i).exists()){idx=i;break;}
+    if(idx<0)throw std::runtime_error("no editor board cells");
+    const int old=earnedReload.editorBoard.tile(idx),base=earnedReload.board.tile(idx);
+    earnedReload.editorNut=(old+1)%19;
+    if(earnedReload.editorNut==12)earnedReload.editorNut=13;
+    const int tile=std::min(74,490/earnedReload.editorBoard.height());
+    const int ox=(WIDTH-tile*earnedReload.editorBoard.width())/2;
+    earnedReload.click(float(ox+(idx%earnedReload.editorBoard.width())*tile+tile/2),
+                       float(215+(idx/earnedReload.editorBoard.width())*tile+tile/2));
+    if(earnedReload.editorBoard.tile(idx)!=earnedReload.editorNut||earnedReload.board.tile(idx)!=base)
+      throw std::runtime_error("real editor board paint or isolation");
+    earnedReload.click(40,40);
+    if(earnedReload.scene!=Game::Scene::Menu)throw std::runtime_error("editor return");
+    earnedReload.click(340,450);
+    if(earnedReload.scene!=Game::Scene::Editor||earnedReload.editorBoard.tile(idx)!=earnedReload.editorNut)
+      throw std::runtime_error("editor draft lost after returning");
     std::stringstream legacyV4;
     legacyV4<<"NUTBUSTER_NATIVE_PREVIEW_V4 1000\n";
     if(!reached.mine.save(legacyV4)||!reached.stock.write(legacyV4)||
@@ -730,7 +787,7 @@ bool editorProgressionSelfTest(std::string& report){
     if(preserved.loadFrom(damaged)||preserved.unlocked!=23||
        !preserved.levelEditorUnlocked)
       throw std::runtime_error("corrupt V5 entitlement accepted or partially loaded");
-    report="PASS native finale-only editor entitlement, replay persistence, V4 ambiguity and V5 guarded save";
+    report="PASS native finale/editor locked entry, real board paint, return, V4 ambiguity, V5 persistence";
     return true;
   }catch(const std::exception& e){
     report=std::string("FAIL native editor progression: ")+e.what();return false;

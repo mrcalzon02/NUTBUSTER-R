@@ -14,6 +14,8 @@ public:
  Turn swap(int a,int b);
  // Preview-only simulation API: no inventory or shop is claimed.
  bool applyHold(HoldKind kind,int index);
+ // Edit only an isolated live-engine draft; no swap, gravity or campaign score.
+ bool paintCell(int index,int type);
  int holdUses(HoldKind kind)const{return kind==HoldKind::Butter?butterUses_:kind==HoldKind::Jam?jamUses_:0;}
  int width()const{return w_;}
  int height()const{return h_;}

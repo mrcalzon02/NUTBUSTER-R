@@ -23,6 +23,10 @@ void Board::reset(int level,uint32_t seed){
  colors_.fill(0);crackedIce_=0;crackedLocks_=0;crackedChests_=0;cleanedJam_=0;
  butterUses_=0;jamUses_=0;
 }
+bool Board::paintCell(int index,int type){
+ if(index<0||index>=size()||type<0||type>=19||type==12||!mask_[size_t(index)])return false;
+ cells_[size_t(index)].type=type;return true;
+}
 bool Board::applyHold(HoldKind kind,int index){
  if(!applyHoldToCells(cells_,mask_,index,kind,moves_<=0||completed()))
   return false;

@@ -8,7 +8,7 @@ const Mines=window.NutvaleMines, MineUI=window.NutvaleMinesUI, Comp=window.NutCo
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);R.ensure(saved);H.ensure(saved);A.ensure(saved);if(Comp)Comp.ensure(saved);if(!['original','auditor','diva'].includes(saved.announcerVoice))saved.announcerVoice='original';D.ensure(saved,Date.now(),E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,crateReveal:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null};let toastHandle;
+let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,crateReveal:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null,editor:null,editorNut:0,editorBack:'home'};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});window.NutAudio.setAnnouncerVoice?.(saved.announcerVoice);}
 if(window.NutSFX){window.NutSFX.setEnabled(state.effects);window.NutSFX.setVolume(saved.levels.sfx);}
 function playSFX(name,opts){window.NutSFX?.play(name,opts);}
@@ -84,6 +84,11 @@ function notice(message){const n=document.getElementById('toast');n.textContent=
 function announce(txt,clip){state.announcer=clip?(window.NutAudio?.caption?.(clip,txt)||txt):txt;const el=document.getElementById('announcer');if(el)el.textContent=state.announcer;if(state.sound&&clip)window.NutAudio?.voice(clip);}
 const $=(selector)=>document.querySelector(selector);
 function nav(page){
+ if(page==='editor'){
+  if(!P.hasLevelEditor(saved)){notice('COMPLETE LEVEL 1000 TO UNLOCK THE LEVEL EDITOR');return;}
+  if(state.page!=='editor')state.editorBack=state.page;
+  if(!state.editor)state.editor=E.create(1,7919);
+ }
  // Header currency buttons and bottom tabs may target the page already on screen.
  // Replacing #screen.innerHTML for a no-op navigation reloads sprites and visibly flashes on Android.
  if(state.page===page)return;
@@ -143,7 +148,7 @@ function homeNews(){
 function jewelBrookPromo(){return '<a class="jewel-brook-banner" href="https://github.com/mrcalzon02/Jewel_Brook/releases" target="_blank" rel="noopener noreferrer" aria-label="Jewel Brook: Heroes of Embryon GitHub releases"><img src="art/banners/jewel-brook-banner-wide.webp" width="939" height="203" alt="Jewel Brook: Heroes of Embryon — view GitHub releases" loading="eager" decoding="async"></a>';}
 function home(){return `${homeTitleCard()}
  ${jewelBrookPromo()}${homeNews()}
- <p class="daily-move-indicator">DAILY MOVES ${movesLeft()} / ${saved.dailyMoves.base}</p><div class="space"></div><div class="actions"><button class="btn green" data-action="play" data-level="${Math.min(1000,saved.unlocked)}">${homeMenuIcon('play')}PLAY NOW</button><button class="btn secondary" data-nav="campaign">${homeMenuIcon('campaign')}LEVEL MAP</button><button class="btn secondary" data-nav="homestead">${homeMenuIcon('homestead')}NUTVALE HOMESTEAD</button><button class="btn secondary" data-nav="companions">${homeMenuIcon('companions')}WOODLAND COMPANIONS</button><button class="btn secondary" data-nav="mines">${homeMenuIcon('mines','ui-icon mine-home-icon')} NUTVALE MINES</button><button class="btn secondary" data-nav="wharf">${homeMenuIcon('wharf','ui-icon wharf-menu-icon')}NUTVALE WHARF</button><button class="btn secondary" data-nav="codex">${homeMenuIcon('codex')}NUT INDEX</button><button class="btn secondary" data-action="invite">${homeMenuIcon('invite')}INVITE FRIENDS</button><button class="btn secondary" data-nav="shop">${homeMenuIcon('shop')}SHOP</button><button class="btn secondary" data-nav="settings">${homeMenuIcon('settings')}SETTINGS</button><button class="btn ghost" data-action="sound">${homeMenuIcon(state.sound?'voice-on':'voice-off')}${state.sound?'Voice On':'Voice Off'}</button><button class="btn ghost" data-action="music">${homeMenuIcon(state.music?'music-on':'music-off')}${state.music?'Music On':'Music Off'}</button><button class="btn ghost" data-action="effects">${homeMenuIcon('effects')}${state.effects?'Effects On':'Effects Off'}</button></div>
+ <p class="daily-move-indicator">DAILY MOVES ${movesLeft()} / ${saved.dailyMoves.base}</p><div class="space"></div><div class="actions"><button class="btn green" data-action="play" data-level="${Math.min(1000,saved.unlocked)}">${homeMenuIcon('play')}PLAY NOW</button><button class="btn secondary" data-nav="campaign">${homeMenuIcon('campaign')}LEVEL MAP</button><button class="btn secondary" data-nav="editor" ${P.hasLevelEditor(saved)?'':'disabled'}>${homeMenuIcon('campaign')}${P.hasLevelEditor(saved)?'LEVEL EDITOR':'LEVEL EDITOR · CLEAR 1000 TO UNLOCK'}</button><button class="btn secondary" data-nav="homestead">${homeMenuIcon('homestead')}NUTVALE HOMESTEAD</button><button class="btn secondary" data-nav="companions">${homeMenuIcon('companions')}WOODLAND COMPANIONS</button><button class="btn secondary" data-nav="mines">${homeMenuIcon('mines','ui-icon mine-home-icon')} NUTVALE MINES</button><button class="btn secondary" data-nav="wharf">${homeMenuIcon('wharf','ui-icon wharf-menu-icon')}NUTVALE WHARF</button><button class="btn secondary" data-nav="codex">${homeMenuIcon('codex')}NUT INDEX</button><button class="btn secondary" data-action="invite">${homeMenuIcon('invite')}INVITE FRIENDS</button><button class="btn secondary" data-nav="shop">${homeMenuIcon('shop')}SHOP</button><button class="btn secondary" data-nav="settings">${homeMenuIcon('settings')}SETTINGS</button><button class="btn ghost" data-action="sound">${homeMenuIcon(state.sound?'voice-on':'voice-off')}${state.sound?'Voice On':'Voice Off'}</button><button class="btn ghost" data-action="music">${homeMenuIcon(state.music?'music-on':'music-off')}${state.music?'Music On':'Music Off'}</button><button class="btn ghost" data-action="effects">${homeMenuIcon('effects')}${state.effects?'Effects On':'Effects Off'}</button></div>
  <h2 class="section">Your entirely unnecessary privileges</h2><div class="tiles-row"><div class="panel mini-card">${homeMenuIcon('life','home-privilege-icon')}<b>${saved.hearts}/5 Lives</b>${freeClaimButton("hearts","refill","REDEEM FREE REFILL")}${freeClaimButton("moves","bonus-moves","REDEEM +5 MOVES")}</div><div class="panel mini-card">${homeMenuIcon('vip','home-privilege-icon')}<b>${saved.vip?'VIP ACTIVE · LIFETIME':'VIP STATUS'}</b><small>+5 daily moves · 4 daily boosters · +250 nuts</small><button class="btn ghost" data-action="vip">${saved.vip?'VIEW VIP BENEFITS':'VIP BENEFITS · $2.99'}</button></div><div class="panel mini-card">${homeMenuIcon('daily','home-privilege-icon')}<b>Daily Loot</b><button class="btn ghost" data-action="daily" ${saved.dailyLootDay===lootDay()?"disabled":""}>${saved.dailyLootDay===lootDay()?"CLAIMED TODAY":"CLAIM BONUS"}</button><button class="btn secondary" data-action="ad-daily" ${saved.fakeAdDailyDay===Ads?.dayKey()?"disabled":""}>${saved.fakeAdDailyDay===Ads?.dayKey()?"📺 AD BONUS CLAIMED":"📺 WATCH · 750 NUTS + HAMMER"}</button></div></div>
  <div class="panel center"><b>FEATURED NUT EMPORIUM OFFERS</b><p class="muted">Optional bundles, modest sticker prices, and no artificial countdowns.</p><button class="btn secondary" data-nav="shop">EXPLORE OFFERS</button></div>`;}
 function promoSection(featured=false){
@@ -264,8 +269,8 @@ function featureVisual(features,i){
 }
 function nutKey(c){return c.type+':'+(c.special||'')+':'+(c.elemental||'')+':'+(c.hold||0)+':'+Number(!!(c.ice||c.lock||c.chest));}
 function blockKey(c){return c.ice+':'+c.lock+':'+c.chest+':'+(c.rock||0)+':'+(c.frozen||0)+':'+(c.jam||0)+':'+(c.fuse||0)+':'+(c.poison||0)+':'+(c.ward||0)+':'+(c.aura||'')+':'+(c.auraTurns||0);}
-function cellMarkup(c,i,w){if(!c)return '<div class="cell void" aria-hidden="true"></div>';
- return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${cellLabel(c,i,w)}" title="${cellLabel(c,i,w)}">${featureVisual(state.game.cfg.features,i)}${nutVisual(c)}${blockerVisual(c)}</button>`;
+function cellMarkup(c,i,w,cfg=state.game?.cfg){if(!c)return '<div class="cell void" aria-hidden="true"></div>';
+ return `<button class="cell" data-cell="${i}" data-nut-key="${nutKey(c)}" data-block-key="${blockKey(c)}" aria-label="${cellLabel(c,i,w)}" title="${cellLabel(c,i,w)}">${featureVisual(cfg.features,i)}${nutVisual(c)}${blockerVisual(c)}</button>`;
 }
 function objectiveDisplay(g){
  const status=E.objectiveState(g);
@@ -327,6 +332,25 @@ function game(){
   <div class="boosters" role="group" aria-label="Tactical boosters">${toolButtons()}</div>${advancedBoosterMenu()}
   <button class="nutdex-tab" data-action="nutdex-open" aria-haspopup="dialog" aria-label="NUTDEX special mechanics">NUTDEX ◀</button>
  </section>`;
+}
+// Share the production engine and board artwork; this draft stays in memory, not campaign save.
+function editor(){
+ const g=state.editor;if(!P.hasLevelEditor(saved)||!g)return banner('LEVEL EDITOR LOCKED','Complete the finale first.');
+ const w=g.cfg.width,h=g.cfg.height,boardHeightPercent=(100*h/w).toFixed(3),maxBoardHeight=Math.round(545*h/w);
+ const palette=E.TYPES.map((name,id)=>({name,id})).filter(x=>!E.RETIRED_NUTS.includes(x.name)).map(({name,id})=>
+ '<button type="button" class="btn '+(state.editorNut===id?'green':'secondary')+'" data-action="editor-select" data-type="'+id+'" aria-label="Paint '+name+'" aria-pressed="'+(state.editorNut===id)+'"><img class="ui-icon" src="art/primary/nuts/'+name+'.png" alt="" draggable="false">'+name.replace(/-/g,' ')+'</button>').join('');
+ return `<section class="play-layout" style="--board-w:${w};--board-h:${h};--board-vw:${boardHeightPercent}vw;--board-max-h:${maxBoardHeight}px">
+ <div class="play-hud"><button class="play-back" data-action="editor-back" aria-label="Return from Level Editor">‹</button><div class="play-title"><b>LEVEL EDITOR</b><span>UNSAVED DRAFT · REAL BOARD</span></div></div>
+ <p class="panel">Paint a nut on the original board. Draft remains this session. Saving, resizing, objectives and Play Level are not available yet.</p>
+ <div class="board-wrap"><div class="board" style="--cols:${w};--rows:${h}" role="group" aria-label="Editable Nutbuster board">${g.cells.map((c,i)=>cellMarkup(c,i,w,g.cfg)).join('')}</div></div>
+ <div class="boosters" role="group" aria-label="Paint nut palette">${palette}</div>
+ <button class="btn secondary" data-action="editor-back">RETURN TO GAME</button></section>`;
+}
+function editorCell(i){
+ if(state.page!=='editor'||!P.hasLevelEditor(saved)||!state.editor)return;
+ const c=state.editor.cells[i],t=state.editorNut;
+ if(!c||!Number.isInteger(t)||t<0||t>=E.TYPES.length||E.RETIRED_NUTS.includes(E.TYPES[t]))return;
+ c.type=t;render();
 }
 function paintCells(cells){
  if(state.page!=='game')return;
@@ -956,9 +980,9 @@ function settings(){
  <div class="actions"><button class="btn secondary" data-action="sound">${state.sound?'Mute voice':'Unmute voice'}</button><button class="btn secondary" data-action="music">${state.music?'Mute music':'Unmute music'}</button><button class="btn secondary" data-action="effects">${state.effects?'Mute effects':'Unmute effects'}</button></div>
  <div class="panel" style="margin-top:12px"><b>GAME UPDATES</b><p class="muted" data-update-status>Updates are downloaded from GitHub in your browser and installed manually; no background checks or in-app installer.</p><button class="btn secondary" data-action="check-updates">GET LATEST APK · GITHUB</button><button class="btn ghost" data-action="invite">↗ INVITE FRIENDS</button><button class="btn secondary" data-nav="codex">NUT INDEX · RULES</button></div></div>${recovery}`;
 }
-function render(){syncDaily();if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game');document.getElementById('app')?.classList?.toggle('fake-ad-active',state.page==='fake-ad');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
- screen.classList?.toggle('game-active',state.page==='game');screen.classList?.toggle('homestead-active',state.page==='homestead');screen.classList?.toggle('codex-active',state.page==='codex');screen.classList?.toggle('mines-active',state.page==='mines');screen.classList?.toggle('companions-active',state.page==='companions');
- screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='shop'?shop():state.page==='companions'?(CompUI?CompUI.render(saved,state.companionNotice):'<p>Companions unavailable.</p>'):state.page==='homestead'?homestead():state.page==='mines'?(MineUI?MineUI.render(saved,state):'<p>Mining interface unavailable</p>'):state.page==='wharf'?window.NutFishingUI.hub(saved):state.page==='fishing'?window.NutFishingUI.wharf(saved,state,E,P):state.page==='bait-shop'?window.NutFishingUI.baitShop(saved,state,E,P):state.page==='aquarium'?window.NutFishingUI.aquarium(saved,state):state.page==='fish-records'?window.NutFishingUI.trophyHall(saved):state.page==='codex'?codex():state.page==='settings'?settings():state.page==='vip-benefits'?vipBenefits():state.page==='checkout'?checkout():state.page==='fake-ad'?fakeAdScreen():state.page==='outcome'?outcome():rewards();
+function render(){syncDaily();if(window.NutFishing){const oldDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==oldDay)persist();}counters();document.getElementById('app')?.classList?.toggle('playing',state.page==='game'||state.page==='editor');document.getElementById('app')?.classList?.toggle('fake-ad-active',state.page==='fake-ad');screen.classList?.toggle('campaign-map-active',state.page==='campaign');
+ screen.classList?.toggle('game-active',state.page==='game'||state.page==='editor');screen.classList?.toggle('homestead-active',state.page==='homestead');screen.classList?.toggle('codex-active',state.page==='codex');screen.classList?.toggle('mines-active',state.page==='mines');screen.classList?.toggle('companions-active',state.page==='companions');
+ screen.innerHTML=state.page==='home'?home():state.page==='campaign'?campaign():state.page==='game'?game():state.page==='editor'?editor():state.page==='shop'?shop():state.page==='companions'?(CompUI?CompUI.render(saved,state.companionNotice):'<p>Companions unavailable.</p>'):state.page==='homestead'?homestead():state.page==='mines'?(MineUI?MineUI.render(saved,state):'<p>Mining interface unavailable</p>'):state.page==='wharf'?window.NutFishingUI.hub(saved):state.page==='fishing'?window.NutFishingUI.wharf(saved,state,E,P):state.page==='bait-shop'?window.NutFishingUI.baitShop(saved,state,E,P):state.page==='aquarium'?window.NutFishingUI.aquarium(saved,state):state.page==='fish-records'?window.NutFishingUI.trophyHall(saved):state.page==='codex'?codex():state.page==='settings'?settings():state.page==='vip-benefits'?vipBenefits():state.page==='checkout'?checkout():state.page==='fake-ad'?fakeAdScreen():state.page==='outcome'?outcome():rewards();
  if(state.purchasePending)screen.innerHTML+=purchaseDialog();
  document.body?.classList?.toggle?.('purchase-modal-open',!!state.purchasePending);
  updateFreeTimers();
@@ -1055,6 +1079,12 @@ function cell(i){if(!state.game||state.game.won||state.game.lost||state.animatin
  if(state.selected<0){selectCell(i);return;}if(state.selected===i){selectCell(-1);return;}doSwap(state.selected,i);
 }
 function action(a,button){
+ if(a==='editor-back'&&state.page==='editor'){nav(state.editorBack&&state.editorBack!=='editor'?state.editorBack:'home');return;}
+ if(a==='editor-select'&&state.page==='editor'&&P.hasLevelEditor(saved)){
+  const t=Number(button?.dataset?.type);
+  if(Number.isInteger(t)&&t>=0&&t<E.TYPES.length&&!E.RETIRED_NUTS.includes(E.TYPES[t])){state.editorNut=t;render();}
+  return;
+ }
   if(a==='settings-advanced'&&state.page==='settings'){state.resetStep=1;render();return;}
   if(a==='settings-data'&&state.page==='settings'&&state.resetStep===1){state.resetStep=2;render();return;}
   if(a==='settings-reset-back'&&state.page==='settings'&&state.resetStep>0){state.resetStep--;render();return;}
@@ -1361,7 +1391,7 @@ screen.addEventListener('click',e=>{
  const target=e.target.closest('button');if(!target||state.animating)return;
  if(state.nutdexOpen&&target.dataset.action!=='nutdex-close'&&target.dataset.action!=='codex-tab')return;
  window.NutAudio?.grunt?.();
- if(target.dataset.cell!==undefined){cell(Number(target.dataset.cell));return;}
+ if(target.dataset.cell!==undefined){if(state.page==='editor')editorCell(Number(target.dataset.cell));else if(state.page==='game')cell(Number(target.dataset.cell));return;}
  playSFX('ui');
  if(target.dataset.holdTool){
    const id=target.dataset.holdTool;if(!state.game||state.page!=='game')return;
@@ -1437,6 +1467,6 @@ window.addEventListener('keydown',e=>{
   return;
  }
  if(e.key==='Escape'&&state.page==='fake-ad'){const back=state.adReturn||'rewards';cancelFakeAd();state.page=back;render();}
- else if(e.key==='Escape'&&state.page==='game'&&state.nutdexOpen)closeNutdex();else if(e.key==='Escape'&&state.page==='game')nav('campaign');else if(e.key==='Escape'&&state.page==='checkout')action('checkout-back',{});else if(e.key==='Escape'&&state.page==='codex')action('codex-back',{});});
+ else if(e.key==='Escape'&&state.page==='editor')action('editor-back',{});else if(e.key==='Escape'&&state.page==='game'&&state.nutdexOpen)closeNutdex();else if(e.key==='Escape'&&state.page==='game')nav('campaign');else if(e.key==='Escape'&&state.page==='checkout')action('checkout-back',{});else if(e.key==='Escape'&&state.page==='codex')action('codex-back',{});});
 window.NutbusterApp={start,nav,getState:()=>state,getSave:()=>saved};render();
 })();
