@@ -40,7 +40,49 @@ assert.equal(app.app.getSave().hearts,hearts);
 assert.equal(JSON.stringify(app.app.getSave()),save);
 app.click({action:'editor-back'});assert.equal(app.app.getState().page,'home');
 app.click({nav:'editor'});assert.equal(app.app.getState().editor.cells[i].type,next);
+const draftKey='nutbuster.custom-level.draft.v1';
+assert.equal(store[draftKey],undefined,'painting must not silently overwrite a saved draft');
+const campaignBytes=store['nutbuster.v1'];
+app.click({action:'editor-save'});
+assert.ok(store[draftKey],'explicit save must write an independent local draft');
+const valid=JSON.parse(store[draftKey]);
+assert.equal(valid.version,1);
+assert.equal(valid.width,g.cfg.width);assert.equal(valid.height,g.cfg.height);
+assert.equal(valid.tiles[i],next);
+assert.equal(store['nutbuster.v1'],campaignBytes,'campaign bytes must be untouched');
+const draftOnDisk=store[draftKey];
+app.click({action:'editor-select',type:String(before)});
+app.click({cell:String(i)});
+assert.equal(app.app.getState().editor.cells[i].type,before);
+app.click({action:'editor-load'});
+assert.equal(app.app.getState().editor.cells[i].type,next,'load should restore real painted cells');
 const restart=boot(store);assert.equal(P.hasLevelEditor(restart.app.getSave()),true);
 restart.app.nav('editor');assert.equal(restart.app.getState().page,'editor');
-assert.equal(restart.app.getState().editor.cells[i].type,before);
-console.log('PASS Level Editor: locked, reached, won/migrated, real paint, return, isolation and restart');
+assert.equal(restart.app.getState().editor.cells[i].type,next,'saved draft must reopen after a process restart');
+assert.equal(restart.app.getSave().unlocked,1000);
+assert.equal(restart.app.getSave().stars[1000],1);
+assert.equal(restart.app.getSave().hearts,hearts);
+const wrong=[
+ {...valid,version:2},
+ {...valid,width:9},
+ {...valid,tiles:valid.tiles.slice(1)},
+ {...valid,tiles:valid.tiles.map((t,j)=>j===i?12:t)},
+ {...valid,tiles:valid.tiles.map((t,j)=>j===i?100:t)}
+];
+for(const payload of wrong){
+ store[draftKey]=JSON.stringify(payload);
+ restart.click({action:'editor-load'});
+ assert.equal(restart.app.getState().editor.cells[i].type,next,'invalid draft cannot destroy current work');
+ const badBoot=boot(store);badBoot.app.nav('editor');
+ assert.equal(badBoot.app.getState().editor.cells[i].type,before,'invalid draft must be isolated after restart');
+}
+store[draftKey]='{truncated';
+restart.click({action:'editor-load'});
+assert.equal(restart.app.getState().editor.cells[i].type,next);
+store[draftKey]=draftOnDisk;
+const lockedWithDraft=boot({...store,'nutbuster.v1':JSON.stringify({unlocked:1,stars:{}})});
+lockedWithDraft.app.nav('editor');
+assert.equal(lockedWithDraft.app.getState().page,'home');
+assert.equal(lockedWithDraft.app.getState().editor,null);
+assert.equal(store[draftKey],draftOnDisk,'corruption probes must not alter the saved draft');
+console.log('PASS Level Editor: entitlement, real paint, V1 save/reload/restart, corruption isolation, campaign separation');

@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <utility>
 
 namespace fs=std::filesystem;
 namespace {
@@ -105,6 +106,8 @@ struct Game {
   GemWallet wallet{};
   bool levelEditorUnlocked=false; // Earned by stage-1000 victory, not by reachability.
   int editorNut=0;
+  bool editorDraftLoaded=false;
+  std::string editorDraftStatus="NOT SAVED";
   int pendingPurchase=0; // confirmation required: 1 Butter, 2 Jam
   std::string shopNotice;
   enum class HoldMode{Swap,Butter,Jam};
@@ -165,6 +168,56 @@ struct Game {
     std::ofstream file(savePath,std::ios::trunc);
     if(!file||!saveTo(file))std::cerr<<"Cannot persist native preview progress\n";
   }
+  // A separate, versioned local draft never enters campaign progress V5.
+  fs::path draftPath()const{return fs::path(savePath.string()+".custom-draft-v1");}
+  bool saveEditorDraftTo(std::ostream& out)const{
+    if(!levelEditorUnlocked)return false;
+    const auto& b=editorBoard;
+    out<<"NUTBUSTER_EDITOR_DRAFT_V1 "<<b.width()<<" "<<b.height()<<" "<<b.size()<<"\n";
+    for(int i=0;i<b.size();++i){
+      const int type=b.cell(i).exists()?b.tile(i):-1;
+      if(b.cell(i).exists()&&(type<0||type>=19||type==12))return false;
+      out<<type<<(i+1==b.size()?'\n':' ');
+    }
+    return bool(out);
+  }
+  bool loadEditorDraftFrom(std::istream& in){
+    if(!levelEditorUnlocked)return false;
+    std::string format;int width=0,height=0,count=0;
+    if(!(in>>format>>width>>height>>count)||format!="NUTBUSTER_EDITOR_DRAFT_V1")
+      return false;
+    nut::Board candidate(1,7919); // exact authorized engine layout and void mask
+    if(width!=candidate.width()||height!=candidate.height()||count!=candidate.size())
+      return false;
+    for(int i=0;i<count;++i){
+      int type=-2;
+      if(!(in>>type))return false;
+      if(!candidate.cell(i).exists()){if(type!=-1)return false;}
+      else if(!candidate.paintCell(i,type))return false; // rejects retired nut 12
+    }
+    in>>std::ws;
+    if(in.peek()!=std::char_traits<char>::eof())return false;
+    editorBoard=std::move(candidate); // all-or-nothing; never touch campaign board
+    return true;
+  }
+  bool loadEditorDraft(){
+    if(!levelEditorUnlocked||savePath.empty())return false;
+    std::ifstream in(draftPath());
+    if(!in)return false;
+    if(!loadEditorDraftFrom(in)){editorDraftStatus="INVALID SAVED DRAFT";return false;}
+    editorDraftStatus="SAVED V1 DRAFT LOADED";
+    return true;
+  }
+  bool saveEditorDraft(){
+    if(!levelEditorUnlocked||smoke||savePath.empty())return false;
+    // A dedicated file prevents corruption or overwrite of campaign progress.
+    std::ofstream out(draftPath(),std::ios::trunc);
+    if(!out||!saveEditorDraftTo(out))return false;
+    out.flush();
+    if(!out)return false;
+    editorDraftStatus="SAVED V1 DRAFT";
+    return true;
+  }
   void onCampaignWin(){
     wallet.win();
     unlocked=std::max(unlocked,std::min(1000,selectedLevel+1));
@@ -177,6 +230,7 @@ struct Game {
   }
   bool openEditor(){
     if(!levelEditorUnlocked)return false;
+    if(!editorDraftLoaded){editorDraftLoaded=true;loadEditorDraft();}
     selected=-1;scene=Scene::Editor;return true;
   }
   void makeMine(){
@@ -349,6 +403,14 @@ struct Game {
       return;
     }
     if(scene==Scene::Editor){
+      if(within(x,y,180,646,260,44)){
+        if(!saveEditorDraft())editorDraftStatus="DRAFT SAVE FAILED";
+        return;
+      }
+      if(within(x,y,452,646,260,44)){
+        if(!loadEditorDraft())editorDraftStatus="NO VALID SAVED DRAFT";
+        return;
+      }
       if(within(x,y,180,713,260,44)){
         editorNut=(editorNut+18)%19;if(editorNut==12)editorNut=11;return;
       }
@@ -356,7 +418,7 @@ struct Game {
         editorNut=(editorNut+1)%19;if(editorNut==12)editorNut=13;return;
       }
       const int i=cellAt(x,y,editorBoard);
-      if(i>=0&&editorBoard.paintCell(i,editorNut))selected=i;
+      if(i>=0&&editorBoard.paintCell(i,editorNut)){selected=i;editorDraftStatus="UNSAVED EDITS";}
       return;
     }
     if(scene==Scene::Board){
@@ -508,9 +570,11 @@ struct Game {
           holdMode==HoldMode::Jam?"TAP NUT: 2 DROPS":
           stock.butter+stock.jam==0?"BUY IN HOLD SHOP":"DRAG TO SWAP",1);
     } else if(scene==Scene::Editor){
-      label(r,190,114,"LEVEL EDITOR - SESSION DRAFT",2);
-      label(r,190,147,"REAL ENGINE / NO LEVEL SAVE YET",2);
+      label(r,190,114,"LEVEL EDITOR - LOCAL DRAFT V1",2);
+      label(r,190,147,editorDraftStatus+" / REAL ENGINE",2);
       renderBoardCells(r,editorBoard);
+      button(r,180,646,260,44,"SAVE DRAFT");
+      button(r,452,646,260,44,"RELOAD DRAFT");
       button(r,180,713,260,44,"PREVIOUS NUT");
       button(r,452,713,260,44,"NEXT NUT");
       sprite(r,std::string("nuts/")+NUTS.at(size_t(editorNut)),730,704,44,44);
@@ -768,6 +832,52 @@ bool editorProgressionSelfTest(std::string& report){
     earnedReload.click(340,450);
     if(earnedReload.scene!=Game::Scene::Editor||earnedReload.editorBoard.tile(idx)!=earnedReload.editorNut)
       throw std::runtime_error("editor draft lost after returning");
+    std::stringstream draft;
+    if(!earnedReload.saveEditorDraftTo(draft))
+      throw std::runtime_error("won user cannot serialize editor draft");
+    Game newlyStarted;
+    newlyStarted.levelEditorUnlocked=true;
+    if(!newlyStarted.loadEditorDraftFrom(draft)||
+       newlyStarted.editorBoard.tile(idx)!=earnedReload.editorNut||
+       newlyStarted.board.tile(idx)!=base)
+      throw std::runtime_error("editor draft stream restart or campaign isolation");
+    std::stringstream damagedDraft;
+    damagedDraft<<"NUTBUSTER_EDITOR_DRAFT_V1 "
+      <<earnedReload.editorBoard.width()<<" "<<earnedReload.editorBoard.height()
+      <<" "<<earnedReload.editorBoard.size()<<"\n";
+    for(int k=0;k<earnedReload.editorBoard.size();++k)
+      damagedDraft<<(k==idx?12:earnedReload.editorBoard.tile(k))<<" ";
+    if(newlyStarted.loadEditorDraftFrom(damagedDraft)||
+       newlyStarted.editorBoard.tile(idx)!=earnedReload.editorNut)
+      throw std::runtime_error("retired nut draft was accepted or destroyed valid draft");
+    std::stringstream wrongSize("NUTBUSTER_EDITOR_DRAFT_V1 9 10 90\n");
+    std::stringstream truncated("NUTBUSTER_EDITOR_DRAFT_V1 4 5 20\n1 2\n");
+    if(newlyStarted.loadEditorDraftFrom(wrongSize)||newlyStarted.loadEditorDraftFrom(truncated)||
+       newlyStarted.editorBoard.tile(idx)!=earnedReload.editorNut)
+      throw std::runtime_error("invalid or incomplete draft replaced working editor");
+    Game lockedDraft;
+    std::stringstream stolen(draft.str()),refusedWrite;
+    if(lockedDraft.loadEditorDraftFrom(stolen)||lockedDraft.saveEditorDraftTo(refusedWrite))
+      throw std::runtime_error("locked profile gained access to custom draft");
+    Game diskAuthor;
+    diskAuthor.levelEditorUnlocked=true;
+    diskAuthor.savePath=fs::temp_directory_path()/
+      ("nutbuster-editor-test-"+std::to_string(std::time(nullptr))+".progress");
+    if(!diskAuthor.editorBoard.paintCell(idx,earnedReload.editorNut)||
+       !diskAuthor.saveEditorDraft())
+      throw std::runtime_error("author draft file save");
+    if(fs::exists(diskAuthor.savePath))
+      throw std::runtime_error("editor draft overwrote campaign progress file");
+    Game diskRestart;
+    diskRestart.levelEditorUnlocked=true;
+    diskRestart.savePath=diskAuthor.savePath;
+    if(!diskRestart.openEditor()||
+       diskRestart.editorBoard.tile(idx)!=earnedReload.editorNut||
+       diskRestart.board.tile(idx)!=base)
+      throw std::runtime_error("native disk save/restart/open did not restore draft");
+    std::error_code draftCleanupError;
+    fs::remove(diskAuthor.draftPath(),draftCleanupError);
+    if(draftCleanupError)throw std::runtime_error("could not clean native draft test file");
     std::stringstream legacyV4;
     legacyV4<<"NUTBUSTER_NATIVE_PREVIEW_V4 1000\n";
     if(!reached.mine.save(legacyV4)||!reached.stock.write(legacyV4)||
@@ -787,7 +897,7 @@ bool editorProgressionSelfTest(std::string& report){
     if(preserved.loadFrom(damaged)||preserved.unlocked!=23||
        !preserved.levelEditorUnlocked)
       throw std::runtime_error("corrupt V5 entitlement accepted or partially loaded");
-    report="PASS native finale/editor locked entry, real board paint, return, V4 ambiguity, V5 persistence";
+    report="PASS native editor entitlement, paint, V1 draft stream/disk restart, malformed isolation, V4 migration, V5 progression";
     return true;
   }catch(const std::exception& e){
     report=std::string("FAIL native editor progression: ")+e.what();return false;

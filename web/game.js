@@ -4,11 +4,11 @@ const icons=['🥜','🌰','🌰','🥜','🌰','🟢','🌟'];
 const D=window.NutDailyMoves, B=window.NutBenefits, T=window.NutElementalChallenges, R=window.NutElementalRewards;
 if(!D||!T||!R)throw new Error('Daily moves and elemental reward modules must load before gameplay');
 const Mines=window.NutvaleMines, MineUI=window.NutvaleMinesUI, Comp=window.NutCompanions, CompUI=window.NutCompanionsUI, Crates=window.NutCrates;
- const key='nutbuster.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,announcerVoice:'original',levels:{voice:.9,music:.28,reactions:.38,sfx:.48},effects:true,completed:0};
+ const key='nutbuster.v1',editorDraftKey='nutbuster.custom-level.draft.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,announcerVoice:'original',levels:{voice:.9,music:.28,reactions:.38,sfx:.48},effects:true,completed:0};
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);R.ensure(saved);H.ensure(saved);A.ensure(saved);if(Comp)Comp.ensure(saved);if(!['original','auditor','diva'].includes(saved.announcerVoice))saved.announcerVoice='original';D.ensure(saved,Date.now(),E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,crateReveal:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null,editor:null,editorNut:0,editorBack:'home'};let toastHandle;
+let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,crateReveal:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null,editor:null,editorNut:0,editorBack:'home',editorStatus:'NOT SAVED'};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});window.NutAudio.setAnnouncerVoice?.(saved.announcerVoice);}
 if(window.NutSFX){window.NutSFX.setEnabled(state.effects);window.NutSFX.setVolume(saved.levels.sfx);}
 function playSFX(name,opts){window.NutSFX?.play(name,opts);}
@@ -16,6 +16,44 @@ const Ads=window.NutFakeAds, Purchases=window.NutPurchases, Promos=window.NutPro
 const lootDay=()=>Ads?.dayKey?.()||(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
 const adNow=()=>typeof performance!=='undefined'&&typeof performance.now==='function'?performance.now():Date.now();
 function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch(_){}}
+// Local authored drafts use their own versioned key; never merge them into campaign progress.
+function decodeEditorDraft(raw){
+ if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.version!==1)return null;
+ const board=E.create(1,7919);
+ if(raw.width!==board.cfg.width||raw.height!==board.cfg.height||
+    !Array.isArray(raw.tiles)||raw.tiles.length!==board.cells.length)return null;
+ for(let i=0;i<board.cells.length;i++){
+  const cell=board.cells[i],type=raw.tiles[i];
+  if(!cell){if(type!==null)return null;continue;}
+  if(!Number.isInteger(type)||type<0||type>=E.TYPES.length||
+     E.RETIRED_NUTS.includes(E.TYPES[type]))return null;
+  cell.type=type;
+ }
+ return board;
+}
+function readEditorDraft(){
+ if(!P.hasLevelEditor(saved))return false;
+ try{
+  const encoded=localStorage.getItem(editorDraftKey);
+  if(encoded===null)return false;
+  const board=decodeEditorDraft(JSON.parse(encoded));
+  if(!board)return false;
+  state.editor=board;state.editorStatus='SAVED V1 DRAFT LOADED';
+  return true;
+ }catch(_){return false;}
+}
+function writeEditorDraft(){
+ if(!P.hasLevelEditor(saved)||!state.editor)return false;
+ const board=state.editor;
+ const draft={version:1,width:board.cfg.width,height:board.cfg.height,
+  tiles:board.cells.map(cell=>cell?cell.type:null)};
+ if(!decodeEditorDraft(draft))return false;
+ try{
+  const encoded=JSON.stringify(draft);
+  localStorage.setItem(editorDraftKey,encoded);
+  return localStorage.getItem(editorDraftKey)===encoded;
+ }catch(_){return false;}
+}
 function dailyCap(){return E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves;}
 function syncDaily(now=Date.now()){
  const before=saved.dailyMoves?.resetAt,credited=saved.dailyMoves?.vipGranted;
@@ -87,7 +125,7 @@ function nav(page){
  if(page==='editor'){
   if(!P.hasLevelEditor(saved)){notice('COMPLETE LEVEL 1000 TO UNLOCK THE LEVEL EDITOR');return;}
   if(state.page!=='editor')state.editorBack=state.page;
-  if(!state.editor)state.editor=E.create(1,7919);
+  if(!state.editor){if(!readEditorDraft())state.editor=E.create(1,7919);}
  }
  // Header currency buttons and bottom tabs may target the page already on screen.
  // Replacing #screen.innerHTML for a no-op navigation reloads sprites and visibly flashes on Android.
@@ -333,24 +371,24 @@ function game(){
   <button class="nutdex-tab" data-action="nutdex-open" aria-haspopup="dialog" aria-label="NUTDEX special mechanics">NUTDEX ◀</button>
  </section>`;
 }
-// Share the production engine and board artwork; this draft stays in memory, not campaign save.
+// Share production engine and art. The versioned local draft is separate from campaign progression.
 function editor(){
  const g=state.editor;if(!P.hasLevelEditor(saved)||!g)return banner('LEVEL EDITOR LOCKED','Complete the finale first.');
  const w=g.cfg.width,h=g.cfg.height,boardHeightPercent=(100*h/w).toFixed(3),maxBoardHeight=Math.round(545*h/w);
  const palette=E.TYPES.map((name,id)=>({name,id})).filter(x=>!E.RETIRED_NUTS.includes(x.name)).map(({name,id})=>
  '<button type="button" class="btn '+(state.editorNut===id?'green':'secondary')+'" data-action="editor-select" data-type="'+id+'" aria-label="Paint '+name+'" aria-pressed="'+(state.editorNut===id)+'"><img class="ui-icon" src="art/primary/nuts/'+name+'.png" alt="" draggable="false">'+name.replace(/-/g,' ')+'</button>').join('');
  return `<section class="play-layout" style="--board-w:${w};--board-h:${h};--board-vw:${boardHeightPercent}vw;--board-max-h:${maxBoardHeight}px">
- <div class="play-hud"><button class="play-back" data-action="editor-back" aria-label="Return from Level Editor">‹</button><div class="play-title"><b>LEVEL EDITOR</b><span>UNSAVED DRAFT · REAL BOARD</span></div></div>
- <p class="panel">Paint a nut on the original board. Draft remains this session. Saving, resizing, objectives and Play Level are not available yet.</p>
+ <div class="play-hud"><button class="play-back" data-action="editor-back" aria-label="Return from Level Editor">‹</button><div class="play-title"><b>LEVEL EDITOR</b><span>${state.editorStatus} · REAL BOARD</span></div></div>
+ <p class="panel">Paint real nuts and SAVE DRAFT to keep them across restarts. Resizing, objectives and Play Level are not available yet.</p>
  <div class="board-wrap"><div class="board" style="--cols:${w};--rows:${h}" role="group" aria-label="Editable Nutbuster board">${g.cells.map((c,i)=>cellMarkup(c,i,w,g.cfg)).join('')}</div></div>
  <div class="boosters" role="group" aria-label="Paint nut palette">${palette}</div>
- <button class="btn secondary" data-action="editor-back">RETURN TO GAME</button></section>`;
+ <div class="actions"><button class="btn green" data-action="editor-save">SAVE DRAFT</button><button class="btn secondary" data-action="editor-load">RELOAD SAVED DRAFT</button><button class="btn secondary" data-action="editor-back">RETURN TO GAME</button></div></section>`;
 }
 function editorCell(i){
  if(state.page!=='editor'||!P.hasLevelEditor(saved)||!state.editor)return;
  const c=state.editor.cells[i],t=state.editorNut;
  if(!c||!Number.isInteger(t)||t<0||t>=E.TYPES.length||E.RETIRED_NUTS.includes(E.TYPES[t]))return;
- c.type=t;render();
+ c.type=t;state.editorStatus='UNSAVED EDITS';render();
 }
 function paintCells(cells){
  if(state.page!=='game')return;
@@ -1079,6 +1117,17 @@ function cell(i){if(!state.game||state.game.won||state.game.lost||state.animatin
  if(state.selected<0){selectCell(i);return;}if(state.selected===i){selectCell(-1);return;}doSwap(state.selected,i);
 }
 function action(a,button){
+ if(a==='editor-save'&&state.page==='editor'){
+  const ok=writeEditorDraft();
+  if(ok)state.editorStatus='SAVED V1 DRAFT';
+  notice(ok?'CUSTOM DRAFT SAVED':'DRAFT SAVE FAILED · ORIGINAL KEPT');
+  render();return;
+ }
+ if(a==='editor-load'&&state.page==='editor'){
+  const ok=readEditorDraft();
+  notice(ok?'CUSTOM DRAFT LOADED':'NO VALID LOCAL DRAFT · CURRENT BOARD KEPT');
+  render();return;
+ }
  if(a==='editor-back'&&state.page==='editor'){nav(state.editorBack&&state.editorBack!=='editor'?state.editorBack:'home');return;}
  if(a==='editor-select'&&state.page==='editor'&&P.hasLevelEditor(saved)){
   const t=Number(button?.dataset?.type);
