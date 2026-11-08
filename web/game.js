@@ -8,7 +8,7 @@ const Mines=window.NutvaleMines, MineUI=window.NutvaleMinesUI, Comp=window.NutCo
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);R.ensure(saved);H.ensure(saved);A.ensure(saved);if(Comp)Comp.ensure(saved);if(!['original','auditor','diva'].includes(saved.announcerVoice))saved.announcerVoice='original';D.ensure(saved,Date.now(),E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,crateReveal:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null,editor:null,editorNut:0,editorBack:'home',editorStatus:'NOT SAVED'};let toastHandle;
+let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,crateReveal:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null,editor:null,editorNut:0,editorBack:'home',editorStatus:'NOT SAVED',editorPlay:false,editorPlayMessage:''};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});window.NutAudio.setAnnouncerVoice?.(saved.announcerVoice);}
 if(window.NutSFX){window.NutSFX.setEnabled(state.effects);window.NutSFX.setVolume(saved.levels.sfx);}
 function playSFX(name,opts){window.NutSFX?.play(name,opts);}
@@ -122,6 +122,7 @@ function notice(message){const n=document.getElementById('toast');n.textContent=
 function announce(txt,clip){state.announcer=clip?(window.NutAudio?.caption?.(clip,txt)||txt):txt;const el=document.getElementById('announcer');if(el)el.textContent=state.announcer;if(state.sound&&clip)window.NutAudio?.voice(clip);}
 const $=(selector)=>document.querySelector(selector);
 function nav(page){
+ if(state.editorPlay){if(page==='editor')returnEditorPlay();return;}
  if(page==='editor'){
   if(!P.hasLevelEditor(saved)){notice('COMPLETE LEVEL 1000 TO UNLOCK THE LEVEL EDITOR');return;}
   if(state.page!=='editor')state.editorBack=state.page;
@@ -345,6 +346,15 @@ function advancedBoosterMenu(){
 }
 function game(){
  const g=state.game;if(!g)return '<p>Choose a level from the campaign map.</p>';
+ if(state.editorPlay){
+  const w=g.cfg.width,h=g.cfg.height;
+  return `<section class="play-layout" style="--board-w:${w};--board-h:${h};--board-vw:${(100*h/w).toFixed(3)}vw;--board-max-h:${Math.round(545*h/w)}px">
+   <div class="play-hud"><button class="play-back" data-action="editor-return" aria-label="Return to Level Editor">‹</button><div class="play-title"><b>PLAY LEVEL</b><span>LOCAL DRAFT · NO CAMPAIGN REWARDS</span></div><div class="play-count"><span>SCORE</span><b data-stat="score">${g.score}</b></div><div class="play-count"><span>MOVES</span><b data-stat="moves">${g.moves}</b></div></div>
+   <div class="play-objective"><span class="objective-label">GOAL</span><b data-objective>${objectiveDisplay(g)}</b><div class="progress"><div data-progress style="width:${objectivePercent(g)}%"></div></div></div>
+   <div class="board-wrap"><div class="board" style="--cols:${w};--rows:${h}" role="group" aria-label="Custom draft playtest board">${g.cells.map((c,i)=>cellMarkup(c,i,w,g.cfg)).join('')}</div></div>
+   <div class="actions"><button class="btn secondary" data-action="editor-return">RETURN TO EDITOR · KEEP DRAFT</button></div>
+  </section>`;
+ }
  const ratio=objectivePercent(g);
  const boardHeightPercent=(100*g.cfg.height/g.cfg.width).toFixed(3);
  const maxBoardHeight=Math.round(545*g.cfg.height/g.cfg.width);
@@ -379,16 +389,37 @@ function editor(){
  '<button type="button" class="btn '+(state.editorNut===id?'green':'secondary')+'" data-action="editor-select" data-type="'+id+'" aria-label="Paint '+name+'" aria-pressed="'+(state.editorNut===id)+'"><img class="ui-icon" src="art/primary/nuts/'+name+'.png" alt="" draggable="false">'+name.replace(/-/g,' ')+'</button>').join('');
  return `<section class="play-layout" style="--board-w:${w};--board-h:${h};--board-vw:${boardHeightPercent}vw;--board-max-h:${maxBoardHeight}px">
  <div class="play-hud"><button class="play-back" data-action="editor-back" aria-label="Return from Level Editor">‹</button><div class="play-title"><b>LEVEL EDITOR</b><span>${state.editorStatus} · REAL BOARD</span></div></div>
- <p class="panel">Paint real nuts and SAVE DRAFT to keep them across restarts. Resizing, objectives and Play Level are not available yet.</p>
- <div class="board-wrap"><div class="board" style="--cols:${w};--rows:${h}" role="group" aria-label="Editable Nutbuster board">${g.cells.map((c,i)=>cellMarkup(c,i,w,g.cfg)).join('')}</div></div>
+ <p class="panel">Paint real nuts, SAVE DRAFT, or playtest in the actual match-three engine. Playtests spend no campaign resources. Resizing and custom objectives are not editable yet.</p>
+   ${state.editorPlayMessage?'<p class="panel" role="status">'+state.editorPlayMessage+'</p>':''}
+  <div class="board-wrap"><div class="board" style="--cols:${w};--rows:${h}" role="group" aria-label="Editable Nutbuster board">${g.cells.map((c,i)=>cellMarkup(c,i,w,g.cfg)).join('')}</div></div>
  <div class="boosters" role="group" aria-label="Paint nut palette">${palette}</div>
- <div class="actions"><button class="btn green" data-action="editor-save">SAVE DRAFT</button><button class="btn secondary" data-action="editor-load">RELOAD SAVED DRAFT</button><button class="btn secondary" data-action="editor-back">RETURN TO GAME</button></div></section>`;
+ <div class="actions"><button class="btn green" data-action="editor-save">SAVE DRAFT</button><button class="btn secondary" data-action="editor-load">RELOAD SAVED DRAFT</button><button class="btn green" data-action="editor-play">PLAY LEVEL</button><button class="btn secondary" data-action="editor-back">RETURN TO GAME</button></div></section>`;
+}
+// Playtest state is a disposable clone of a validated editor draft, not campaign progression.
+function startEditorPlay(){
+ if(state.page!=='editor'||!P.hasLevelEditor(saved)||!state.editor)return false;
+ const b=state.editor;
+ const draft={version:1,width:b.cfg.width,height:b.cfg.height,tiles:b.cells.map(c=>c?c.type:null)};
+ const trial=decodeEditorDraft(draft);
+ if(!trial||E.matches(trial).hit.size||!E.hasMove(trial)){
+  state.editorPlayMessage='DRAFT NOT PLAYABLE · REMOVE STARTING MATCHES AND PROVIDE A LEGAL MOVE';
+  notice('FIX DRAFT BEFORE PLAYTEST');render();return false;
+ }
+ state.editorPlay=true;state.editorPlayMessage='';state.game=trial;
+ state.epoch++;state.animating=false;state.page='game';state.selected=-1;state.tool=null;state.holdTool=null;state.outcome=null;
+ render();return true;
+}
+function returnEditorPlay(result=''){
+ if(!state.editorPlay)return;
+ state.editorPlay=false;state.editorPlayMessage=result;state.game=null;
+ state.epoch++;state.animating=false;state.page='editor';state.selected=-1;state.tool=null;state.holdTool=null;state.outcome=null;
+ render();
 }
 function editorCell(i){
  if(state.page!=='editor'||!P.hasLevelEditor(saved)||!state.editor)return;
  const c=state.editor.cells[i],t=state.editorNut;
  if(!c||!Number.isInteger(t)||t<0||t>=E.TYPES.length||E.RETIRED_NUTS.includes(E.TYPES[t]))return;
- c.type=t;state.editorStatus='UNSAVED EDITS';render();
+  c.type=t;state.editorStatus='UNSAVED EDITS';state.editorPlayMessage='';render();
 }
 function paintCells(cells){
  if(state.page!=='game')return;
@@ -1031,7 +1062,7 @@ function render(){syncDaily();if(window.NutFishing){const oldDay=saved.nutravaga
   if(typeof requestAnimationFrame==='function')requestAnimationFrame(center);else setTimeout(center,0);
  }
 }
-function start(n){state.epoch++;state.animating=false;
+function start(n){if(state.editorPlay)return;state.epoch++;state.animating=false;
  const requested=Math.trunc(Number(n)||1),trial=T.profile(requested);
  if(trial&&!T.available(saved,requested)){notice('CLEAR THE REQUIRED CAMPAIGN STAGE AND EARLIER TRIAL');return;}
  if(movesLeft()<1){notice('DAILY MOVES EXHAUSTED · REFILLS TOMORROW');return;}
@@ -1041,6 +1072,11 @@ function start(n){state.epoch++;state.animating=false;
  playSFX('ui');state.announcer=window.NutAudio?.caption?.('nutbuster-soft',state.game.cfg.newNut?'NEW NUT: '+state.game.cfg.newNut.replace('-',' ').toUpperCase()+'!':'PREPARE TO BUST SOME NUTS!')||'PREPARE TO BUST SOME NUTS!';render();window.NutAudio?.voice('nutbuster-soft');
 }
 function concludeMove(result){
+ if(state.editorPlay){
+  paintStats();
+  if(result.won||result.lost)returnEditorPlay(result.won?'PLAYTEST COMPLETE · DRAFT UNCHANGED':'PLAYTEST OUT OF MOVES · DRAFT UNCHANGED');
+  return;
+ }
  if(result.hazards?.expired?.length)notice('TIMED ACORN DETONATED · 2 MOVES LOST PER ACORN');
  if(result.won){const g=state.game,stars=g.moves>10?3:g.moves>3?2:1;
   if(T.profile(g.level)){
@@ -1088,6 +1124,11 @@ function concludeMove(result){
  if(result.won||result.lost){state.outcome=result.won?'win':'loss';state.page='outcome';render();}
 }
 function doSwap(a,b){if(state.animating||state.page!=='game')return;
+ if(state.editorPlay){
+  const result=E.swap(state.game,a,b);
+  if(!result.valid){notice('Choose two adjacent nuts.');selectCell(-1);return;}
+  void applyMove(result);return;
+ }
  if(movesLeft()<1){notice('DAILY MOVES EXHAUSTED · REFILLS TOMORROW');return;}
  state.game.moves=movesLeft();
  const priorRefunds=state.game.elementalRefunds||0;
@@ -1117,6 +1158,8 @@ function cell(i){if(!state.game||state.game.won||state.game.lost||state.animatin
  if(state.selected<0){selectCell(i);return;}if(state.selected===i){selectCell(-1);return;}doSwap(state.selected,i);
 }
 function action(a,button){
+ if(a==='editor-return'&&state.editorPlay){returnEditorPlay();return;}
+ if(a==='editor-play'&&state.page==='editor'){startEditorPlay();return;}
  if(a==='editor-save'&&state.page==='editor'){
   const ok=writeEditorDraft();
   if(ok)state.editorStatus='SAVED V1 DRAFT';
@@ -1437,7 +1480,7 @@ screen.addEventListener('click',e=>{
   e.preventDefault();window.NUTBUSTER_PROMO_BRIDGE.openJewelBrookReleases();return;
  }
  window.NutAudio?.unlock();window.NutSFX?.unlock();if(Date.now()<swipeGuard)return;
- const target=e.target.closest('button');if(!target||state.animating)return;
+ const target=e.target.closest('button');if(!target||(state.animating&&!(state.editorPlay&&target.dataset.action==='editor-return')))return;
  if(state.nutdexOpen&&target.dataset.action!=='nutdex-close'&&target.dataset.action!=='codex-tab')return;
  window.NutAudio?.grunt?.();
  if(target.dataset.cell!==undefined){if(state.page==='editor')editorCell(Number(target.dataset.cell));else if(state.page==='game')cell(Number(target.dataset.cell));return;}
@@ -1516,6 +1559,6 @@ window.addEventListener('keydown',e=>{
   return;
  }
  if(e.key==='Escape'&&state.page==='fake-ad'){const back=state.adReturn||'rewards';cancelFakeAd();state.page=back;render();}
- else if(e.key==='Escape'&&state.page==='editor')action('editor-back',{});else if(e.key==='Escape'&&state.page==='game'&&state.nutdexOpen)closeNutdex();else if(e.key==='Escape'&&state.page==='game')nav('campaign');else if(e.key==='Escape'&&state.page==='checkout')action('checkout-back',{});else if(e.key==='Escape'&&state.page==='codex')action('codex-back',{});});
+ else if(e.key==='Escape'&&state.page==='editor')action('editor-back',{});else if(e.key==='Escape'&&state.editorPlay)returnEditorPlay();else if(e.key==='Escape'&&state.page==='game'&&state.nutdexOpen)closeNutdex();else if(e.key==='Escape'&&state.page==='game')nav('campaign');else if(e.key==='Escape'&&state.page==='checkout')action('checkout-back',{});else if(e.key==='Escape'&&state.page==='codex')action('codex-back',{});});
 window.NutbusterApp={start,nav,getState:()=>state,getSave:()=>saved};render();
 })();

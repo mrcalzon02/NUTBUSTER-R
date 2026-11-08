@@ -97,7 +97,8 @@ struct GemWallet {
 struct Game {
   nut::Board board{1,7919};
   nut::Board editorBoard{1,7919}; // Isolated real campaign engine board for editor.
-  enum class Scene{Menu,Campaign,Board,Editor,Shop,Mine,Won,Lost};
+  nut::Board playtestBoard{1,7919}; // Disposable clone, never saved or rewarded.
+  enum class Scene{Menu,Campaign,Board,Editor,Playtest,Shop,Mine,Won,Lost};
   Scene scene=Scene::Menu;
   std::map<std::string,SDL_Texture*> images;
   int unlocked=1,selectedLevel=1,selected=-1,down=-1;
@@ -233,6 +234,25 @@ struct Game {
     if(!editorDraftLoaded){editorDraftLoaded=true;loadEditorDraft();}
     selected=-1;scene=Scene::Editor;return true;
   }
+  // Validate a real scoring move using the same native Board::swap implementation.
+  bool playableEditorDraft()const{
+    if(editorBoard.pendingMatches())return false;
+    for(int a=0;a<editorBoard.size();++a)for(int b:{a+1,a+editorBoard.width()}){
+      if(b>=editorBoard.size())continue;
+      nut::Board candidate=editorBoard;
+      const auto move=candidate.swap(a,b);
+      if(move.valid&&move.cleared>0)return true;
+    }
+    return false;
+  }
+  bool startEditorPlay(){
+    if(!levelEditorUnlocked||scene!=Scene::Editor)return false;
+    if(!playableEditorDraft()){
+      editorDraftStatus="DRAFT NOT PLAYABLE: FIX MATCHES/MOVES";return false;
+    }
+    playtestBoard=editorBoard;selected=-1;holdMode=HoldMode::Swap;
+    scene=Scene::Playtest;return true;
+  }
   void makeMine(){
     const std::time_t now=std::time(nullptr);
     std::tm today{};
@@ -347,7 +367,7 @@ struct Game {
       }
       return;
     }
-    if(within(x,y,24,20,145,46)) {scene=Scene::Menu;selected=-1;return;}
+    if(within(x,y,24,20,145,46)) {scene=scene==Scene::Playtest?Scene::Editor:Scene::Menu;selected=-1;return;}
     if(scene==Scene::Mine){
       if(within(x,y,175,111,180,42)){mineTab=MineTab::Dig;return;}
       if(within(x,y,365,111,180,42)){mineTab=MineTab::Equipment;return;}
@@ -403,6 +423,7 @@ struct Game {
       return;
     }
     if(scene==Scene::Editor){
+      if(within(x,y,720,646,240,44)){startEditorPlay();return;}
       if(within(x,y,180,646,260,44)){
         if(!saveEditorDraft())editorDraftStatus="DRAFT SAVE FAILED";
         return;
@@ -419,6 +440,13 @@ struct Game {
       }
       const int i=cellAt(x,y,editorBoard);
       if(i>=0&&editorBoard.paintCell(i,editorNut)){selected=i;editorDraftStatus="UNSAVED EDITS";}
+      return;
+    }
+    if(scene==Scene::Playtest){
+      if(within(x,y,775,114,185,46)){selected=-1;scene=Scene::Editor;return;}
+      const int i=cellAt(x,y,playtestBoard);if(i<0)return;
+      if(selected>=0&&selected!=i)perform(selected,i);
+      else selected=i;
       return;
     }
     if(scene==Scene::Board){
@@ -451,6 +479,15 @@ struct Game {
   }
   void perform(int a,int b){
     if(holdMode!=HoldMode::Swap)return;
+    if(scene==Scene::Playtest){
+      const nut::Turn result=playtestBoard.swap(a,b);
+      selected=-1;if(!result.valid){selected=b;return;}
+      if(result.won||result.lost){
+        editorDraftStatus=result.won?"PLAYTEST COMPLETE - DRAFT UNCHANGED":"PLAYTEST LOST - DRAFT UNCHANGED";
+        scene=Scene::Editor;
+      }
+      return;
+    }
     nut::Turn result=board.swap(a,b);
     selected=-1;
     if(!result.valid){selected=b;return;}
@@ -549,32 +586,38 @@ struct Game {
       label(r,185,690,"LOCAL GEMS ONLY / NO REAL-MONEY CHECKOUT",2);
       return;
     }
-    if(scene==Scene::Board){
-      button(r,775,114,185,46,"HOLD SHOP");
-      label(r,780,172,"GEMS "+std::to_string(wallet.gems),2);
-      label(r,190,108,"LEVEL "+std::to_string(board.level())+"  MOVES "+
-                    std::to_string(board.moves()),2);
-      std::string title=board.stage().title;
+    if(scene==Scene::Board||scene==Scene::Playtest){
+      const bool testing=scene==Scene::Playtest;
+      const nut::Board& active=testing?playtestBoard:board;
+      button(r,775,114,185,46,testing?"EXIT TEST":"HOLD SHOP");
+      if(!testing)label(r,780,172,"GEMS "+std::to_string(wallet.gems),2);
+      label(r,190,108,std::string(testing?"PLAY LEVEL":"LEVEL "+std::to_string(active.level()))+"  MOVES "+
+                    std::to_string(active.moves()),2);
+      std::string title=testing?"CUSTOM DRAFT - NO REWARDS":active.stage().title;
       if(title.size()>64)title=title.substr(0,64);
       label(r,190,132,title,2);
       for(int g=0;g<2;++g){
-        const auto& objective=board.stage().goals[size_t(g)];
+        const auto& objective=active.stage().goals[size_t(g)];
         if(objective.kind==nut::GoalKind::None)continue;
-        label(r,190,160+g*20,board.objectiveLabel(g)+" "+
-          std::to_string(board.objectiveValue(g))+"/"+std::to_string(objective.target),2);
+        label(r,190,160+g*20,active.objectiveLabel(g)+" "+
+          std::to_string(active.objectiveValue(g))+"/"+std::to_string(objective.target),2);
       }
-      renderBoardCells(r,board);
+      renderBoardCells(r,active);
+      if(testing){label(r,185,724,"MATCH NUTS - NO CAMPAIGN MOVES/REWARDS",2);}
+      else {
       button(r,180,713,260,44,"BUTTER "+std::to_string(stock.butter));
       button(r,452,713,260,44,"JAM "+std::to_string(stock.jam));
       label(r,730,724,holdMode==HoldMode::Butter?"TAP NUT: 1 DROP":
           holdMode==HoldMode::Jam?"TAP NUT: 2 DROPS":
           stock.butter+stock.jam==0?"BUY IN HOLD SHOP":"DRAG TO SWAP",1);
+      }
     } else if(scene==Scene::Editor){
       label(r,190,114,"LEVEL EDITOR - LOCAL DRAFT V1",2);
       label(r,190,147,editorDraftStatus+" / REAL ENGINE",2);
       renderBoardCells(r,editorBoard);
       button(r,180,646,260,44,"SAVE DRAFT");
       button(r,452,646,260,44,"RELOAD DRAFT");
+      button(r,720,646,240,44,"PLAY LEVEL");
       button(r,180,713,260,44,"PREVIOUS NUT");
       button(r,452,713,260,44,"NEXT NUT");
       sprite(r,std::string("nuts/")+NUTS.at(size_t(editorNut)),730,704,44,44);
@@ -855,6 +898,32 @@ bool editorProgressionSelfTest(std::string& report){
     if(newlyStarted.loadEditorDraftFrom(wrongSize)||newlyStarted.loadEditorDraftFrom(truncated)||
        newlyStarted.editorBoard.tile(idx)!=earnedReload.editorNut)
       throw std::runtime_error("invalid or incomplete draft replaced working editor");
+    // Exercise production Level Editor -> real Board::swap -> return without campaign effects.
+    Game practice;
+    practice.levelEditorUnlocked=true;
+    if(!practice.openEditor()||!practice.startEditorPlay()||practice.scene!=Game::Scene::Playtest)
+      throw std::runtime_error("valid native draft could not enter real playtest");
+    const int first=practice.editorBoard.tile(idx),campaignScore=practice.board.score();
+    const int initialMoves=practice.playtestBoard.moves(),initialGems=practice.wallet.gems;
+    int from=-1,to=-1;
+    for(int a=0;a<practice.playtestBoard.size()&&from<0;++a)
+      for(int b:{a+1,a+practice.playtestBoard.width()}){
+        if(b>=practice.playtestBoard.size())continue;
+        nut::Board probe=practice.playtestBoard;
+        const nut::Turn turn=probe.swap(a,b);
+        if(turn.valid&&turn.cleared>0){from=a;to=b;break;}
+      }
+    if(from<0)throw std::runtime_error("native playtest has no scoring move");
+    practice.perform(from,to);
+    if(practice.playtestBoard.moves()>=initialMoves||practice.editorBoard.tile(idx)!=first||
+       practice.board.score()!=campaignScore||practice.wallet.gems!=initialGems||
+       practice.unlocked!=1||practice.scene==Game::Scene::Won||practice.scene==Game::Scene::Lost)
+      throw std::runtime_error("playtest spent campaign resources or did not make real move");
+    practice.click(40,40);
+    if(practice.scene!=Game::Scene::Editor||practice.editorBoard.tile(idx)!=first)
+      throw std::runtime_error("native playtest quit lost editable draft");
+    Game lockedTest;
+    if(lockedTest.startEditorPlay())throw std::runtime_error("locked native playtest permitted");
     Game lockedDraft;
     std::stringstream stolen(draft.str()),refusedWrite;
     if(lockedDraft.loadEditorDraftFrom(stolen)||lockedDraft.saveEditorDraftTo(refusedWrite))
@@ -897,7 +966,7 @@ bool editorProgressionSelfTest(std::string& report){
     if(preserved.loadFrom(damaged)||preserved.unlocked!=23||
        !preserved.levelEditorUnlocked)
       throw std::runtime_error("corrupt V5 entitlement accepted or partially loaded");
-    report="PASS native editor entitlement, paint, V1 draft stream/disk restart, malformed isolation, V4 migration, V5 progression";
+    report="PASS native editor entitlement, real Play Level/quit isolation, paint, V1 draft stream/disk restart, malformed isolation, V4 migration, V5 progression";
     return true;
   }catch(const std::exception& e){
     report=std::string("FAIL native editor progression: ")+e.what();return false;
@@ -1035,12 +1104,17 @@ int main(int argc,char** argv){
     SDL_Event event;
     while(SDL_PollEvent(&event)){
       if(event.type==SDL_EVENT_QUIT)running=false;
-      if(event.type==SDL_EVENT_KEY_DOWN&&event.key.key==SDLK_ESCAPE)game.scene=Game::Scene::Menu;
+      if(event.type==SDL_EVENT_KEY_DOWN&&event.key.key==SDLK_ESCAPE){
+        game.scene=game.scene==Game::Scene::Playtest?Game::Scene::Editor:Game::Scene::Menu;
+        game.selected=-1;
+      }
       if(event.type==SDL_EVENT_MOUSE_BUTTON_DOWN&&event.button.button==SDL_BUTTON_LEFT){
-        game.down=(game.scene==Game::Scene::Board&&game.holdMode==Game::HoldMode::Swap)?game.cellAt(event.button.x,event.button.y):-1;
+        game.down=(game.scene==Game::Scene::Playtest)?game.cellAt(event.button.x,event.button.y,game.playtestBoard):
+          (game.scene==Game::Scene::Board&&game.holdMode==Game::HoldMode::Swap)?game.cellAt(event.button.x,event.button.y):-1;
       }
       if(event.type==SDL_EVENT_MOUSE_BUTTON_UP&&event.button.button==SDL_BUTTON_LEFT){
-        const int up=(game.scene==Game::Scene::Board)?game.cellAt(event.button.x,event.button.y):-1;
+        const int up=(game.scene==Game::Scene::Playtest)?game.cellAt(event.button.x,event.button.y,game.playtestBoard):
+          (game.scene==Game::Scene::Board)?game.cellAt(event.button.x,event.button.y):-1;
         if(game.down>=0&&up>=0&&game.down!=up)game.perform(game.down,up);
         else game.click(event.button.x,event.button.y);
         game.down=-1;

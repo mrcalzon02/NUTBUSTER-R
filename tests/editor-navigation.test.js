@@ -85,4 +85,49 @@ lockedWithDraft.app.nav('editor');
 assert.equal(lockedWithDraft.app.getState().page,'home');
 assert.equal(lockedWithDraft.app.getState().editor,null);
 assert.equal(store[draftKey],draftOnDisk,'corruption probes must not alter the saved draft');
-console.log('PASS Level Editor: entitlement, real paint, V1 save/reload/restart, corruption isolation, campaign separation');
+// Run a valid authored board through the real engine and return mid-cascade without side effects.
+const playStore={'nutbuster.v1':JSON.stringify({unlocked:1000,stars:{1000:1}})};
+const play=boot(playStore);play.click({nav:'editor'});
+const authored=play.app.getState().editor,startTiles=authored.cells.map(c=>c?.type??null);
+const savedBefore=JSON.stringify(play.app.getSave()),campaignBefore=playStore['nutbuster.v1'];
+play.click({action:'editor-play'});
+assert.equal(play.app.getState().page,'game');
+assert.equal(play.app.getState().editorPlay,true);
+assert.match(play.html(),/LOCAL DRAFT · NO CAMPAIGN REWARDS/);
+assert.match(play.html(),/Custom draft playtest board/);
+assert.doesNotMatch(play.html(),/data-nav="shop"/);
+const trial=play.app.getState().game;
+assert.notStrictEqual(trial,authored);
+const initialMoves=trial.moves;
+let pair=null;
+for(let a=0;a<trial.cells.length&&!pair;++a)for(const b of [a+1,a+trial.cfg.width]){
+ if(!E.adjacent(trial,a,b))continue;
+ const probe=E.create(1,7919);
+ probe.cells.forEach((cell,i)=>{if(cell)cell.type=trial.cells[i].type;});
+ const move=E.swap(probe,a,b);
+ if(move.valid&&move.removed>0){pair=[a,b];break;}
+}
+assert.ok(pair,'real engine must find a scoring move');
+play.click({cell:String(pair[0])});play.click({cell:String(pair[1])});
+assert.ok(play.app.getState().game.moves<initialMoves,'playtest uses real turn mechanics');
+assert.equal(JSON.stringify(play.app.getSave()),savedBefore);
+assert.equal(playStore['nutbuster.v1'],campaignBefore);
+play.click({action:'editor-return'}); // The exit button must work even mid-animation.
+assert.equal(play.app.getState().page,'editor');
+assert.deepEqual(play.app.getState().editor.cells.map(c=>c?.type??null),startTiles);
+assert.equal(playStore['nutbuster.v1'],campaignBefore);
+assert.equal(playStore['nutbuster.custom-level.draft.v1'],undefined);
+play.click({action:'editor-play'});assert.equal(play.app.getState().page,'game');
+play.click({action:'editor-return'});
+const invalid=play.app.getState().editor,w=invalid.cfg.width;
+let triple=-1;
+for(let i=0;i<invalid.cells.length-2;++i)
+ if(Math.floor(i/w)===Math.floor((i+2)/w)&&[i,i+1,i+2].every(j=>invalid.cells[j]&&!invalid.cells[j].ice&&!invalid.cells[j].lock&&!invalid.cells[j].chest))
+  {triple=i;break;}
+assert.ok(triple>=0);
+for(let j=triple;j<triple+3;++j)invalid.cells[j].type=0;
+play.click({action:'editor-play'});
+assert.equal(play.app.getState().page,'editor','prematched draft must be rejected');
+assert.match(play.html(),/DRAFT NOT PLAYABLE/);
+assert.equal(playStore['nutbuster.v1'],campaignBefore);
+console.log('PASS Level Editor: entitlement, real paint, V1 save/reload/restart, corruption isolation, campaign separation, reversible real-engine playtest');
