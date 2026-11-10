@@ -84,15 +84,17 @@ assert.equal(restart.app.getSave().unlocked,1000);
 assert.equal(restart.app.getSave().stars[1000],1);
 assert.equal(restart.app.getSave().hearts,hearts);
 const wrong=[
- {...valid,version:2},
- {...valid,width:9},
- {...valid,tiles:valid.tiles.slice(1)},
- {...valid,tiles:valid.tiles.map((t,j)=>j===i?12:t)},
- {...valid,tiles:valid.tiles.map((t,j)=>j===i?100:t)}
+ [{...valid,version:2},/UNSUPPORTED DRAFT FORMAT/],
+ [{...valid,width:9},/INVALID BOARD DIMENSIONS/],
+ [{...valid,tiles:valid.tiles.slice(1)},/INVALID TILE COUNT/],
+ [{...valid,tiles:valid.tiles.map(()=>null)},/VOID-ONLY BOARD/],
+ [{...valid,tiles:valid.tiles.map((t,j)=>j===i?12:t)},/INVALID NUT OR VOID MASK/],
+ [{...valid,tiles:valid.tiles.map((t,j)=>j===i?100:t)},/INVALID NUT OR VOID MASK/]
 ];
-for(const payload of wrong){
+for(const [payload,warning] of wrong){
  store[draftKey]=JSON.stringify(payload);
  restart.click({action:'editor-load'});
+ assert.match(restart.html(),warning,'user must see the specific rejected draft reason');
  assert.equal(restart.app.getState().editor.cells[i].type,next,'invalid draft cannot destroy current work');
  const badBoot=boot(store);badBoot.app.nav('editor');
  assert.equal(badBoot.app.getState().editor.cells[i].type,before,'invalid draft must be isolated after restart');
@@ -151,4 +153,8 @@ play.click({action:'editor-play'});
 assert.equal(play.app.getState().page,'editor','prematched draft must be rejected');
 assert.match(play.html(),/DRAFT NOT PLAYABLE/);
 assert.equal(playStore['nutbuster.v1'],campaignBefore);
-console.log('PASS Level Editor: entitlement, real paint, Undo/Redo and redo invalidation, V1 save/reload/restart, corruption isolation, campaign separation, reversible real-engine playtest');
+play.click({action:'editor-save'});
+assert.match(play.html(),/PLAYTEST NOT READY/,'invalid playable state may be saved as an editable draft, with a visible warning');
+assert.ok(playStore[draftKey],'an unplayable draft must remain editable after save');
+assert.equal(playStore['nutbuster.v1'],campaignBefore,'warning must not change official progress');
+console.log('PASS Level Editor: entitlement, real paint, Undo/Redo, invalid dimension/void warnings, safe V1 draft persistence, pre-match save warning, campaign isolation, reversible real-engine playtest');

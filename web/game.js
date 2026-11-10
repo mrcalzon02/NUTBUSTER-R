@@ -17,11 +17,20 @@ const lootDay=()=>Ads?.dayKey?.()||(()=>{const d=new Date();return d.getFullYear
 const adNow=()=>typeof performance!=='undefined'&&typeof performance.now==='function'?performance.now():Date.now();
 function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch(_){}}
 // Local authored drafts use their own versioned key; never merge them into campaign progress.
+// V1 inherits its score objective, moves and void mask from the real level-one engine;
+// do not interpret absent custom-objective fields as corruption of older V1 saves.
+function editorDraftIssue(raw,board=E.create(1,7919)){
+ if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.version!==1)return 'UNSUPPORTED DRAFT FORMAT';
+ if(raw.width!==board.cfg.width||raw.height!==board.cfg.height)return 'INVALID BOARD DIMENSIONS';
+ if(!Array.isArray(raw.tiles)||raw.tiles.length!==board.cells.length)return 'INVALID TILE COUNT';
+ if(raw.tiles.every(type=>type===null))return 'VOID-ONLY BOARD';
+ if(!Number.isFinite(board.cfg.goal)||board.cfg.goal<=0||
+    !Number.isFinite(board.cfg.moves)||board.cfg.moves<=0)return 'MISSING ENGINE OBJECTIVE';
+ return '';
+}
 function decodeEditorDraft(raw){
- if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.version!==1)return null;
  const board=E.create(1,7919);
- if(raw.width!==board.cfg.width||raw.height!==board.cfg.height||
-    !Array.isArray(raw.tiles)||raw.tiles.length!==board.cells.length)return null;
+ if(editorDraftIssue(raw,board))return null;
  for(let i=0;i<board.cells.length;i++){
   const cell=board.cells[i],type=raw.tiles[i];
   if(!cell){if(type!==null)return null;continue;}
@@ -35,13 +44,15 @@ function readEditorDraft(){
  if(!P.hasLevelEditor(saved))return false;
  try{
   const encoded=localStorage.getItem(editorDraftKey);
-  if(encoded===null)return false;
-  const board=decodeEditorDraft(JSON.parse(encoded));
-  if(!board)return false;
+  if(encoded===null){state.editorStatus='NO SAVED DRAFT';return false;}
+  const raw=JSON.parse(encoded),problem=editorDraftIssue(raw);
+  if(problem){state.editorStatus='DRAFT REJECTED · '+problem;return false;}
+  const board=decodeEditorDraft(raw);
+  if(!board){state.editorStatus='DRAFT REJECTED · INVALID NUT OR VOID MASK';return false;}
   state.editor=board;state.editorStatus='SAVED V1 DRAFT LOADED';
    state.editorUndo=[];state.editorRedo=[];
   return true;
- }catch(_){return false;}
+ }catch(_){state.editorStatus='DRAFT REJECTED · MALFORMED JSON';return false;}
 }
 function writeEditorDraft(){
  if(!P.hasLevelEditor(saved)||!state.editor)return false;
@@ -1181,8 +1192,9 @@ function action(a,button){
  if(a==='editor-redo'&&state.page==='editor'){stepEditorHistory(false);return;}
  if(a==='editor-save'&&state.page==='editor'){
   const ok=writeEditorDraft();
-  if(ok)state.editorStatus='SAVED V1 DRAFT';
-  notice(ok?'CUSTOM DRAFT SAVED':'DRAFT SAVE FAILED · ORIGINAL KEPT');
+  const ready=ok&&E.matches(state.editor).hit.size===0&&E.hasMove(state.editor);
+  if(ok)state.editorStatus=ready?'SAVED V1 DRAFT':'SAVED V1 DRAFT · PLAYTEST NOT READY';
+  notice(ok?(ready?'CUSTOM DRAFT SAVED':'DRAFT SAVED · FIX MATCHES/MOVES BEFORE PLAY'):'DRAFT SAVE FAILED · ORIGINAL KEPT');
   render();return;
  }
  if(a==='editor-load'&&state.page==='editor'){

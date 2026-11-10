@@ -186,20 +186,28 @@ struct Game {
   }
   bool loadEditorDraftFrom(std::istream& in){
     if(!levelEditorUnlocked)return false;
+    const auto reject=[this](const char* reason){editorDraftStatus=reason;return false;};
     std::string format;int width=0,height=0,count=0;
     if(!(in>>format>>width>>height>>count)||format!="NUTBUSTER_EDITOR_DRAFT_V1")
-      return false;
-    nut::Board candidate(1,7919); // exact authorized engine layout and void mask
+      return reject("DRAFT REJECTED: INVALID FORMAT");
+    nut::Board candidate(1,7919); // V1 inherits actual engine dimensions, void mask and objective
     if(width!=candidate.width()||height!=candidate.height()||count!=candidate.size())
-      return false;
-    for(int i=0;i<count;++i){
-      int type=-2;
-      if(!(in>>type))return false;
-      if(!candidate.cell(i).exists()){if(type!=-1)return false;}
-      else if(!candidate.paintCell(i,type))return false; // rejects retired nut 12
-    }
+      return reject("DRAFT REJECTED: INVALID BOARD DIMENSIONS");
+    if(candidate.goal()<=0||candidate.moves()<=0)
+      return reject("DRAFT REJECTED: MISSING ENGINE OBJECTIVE");
+    std::vector<int> types(size_t(count),-2);
+    for(int i=0;i<count;++i)if(!(in>>types[size_t(i)]))
+      return reject("DRAFT REJECTED: INCOMPLETE TILES");
     in>>std::ws;
-    if(in.peek()!=std::char_traits<char>::eof())return false;
+    if(in.peek()!=std::char_traits<char>::eof())
+      return reject("DRAFT REJECTED: TRAILING DATA");
+    if(std::all_of(types.begin(),types.end(),[](int type){return type==-1;}))
+      return reject("DRAFT REJECTED: VOID-ONLY BOARD");
+    for(int i=0;i<count;++i){
+      const int type=types[size_t(i)];
+      if(!candidate.cell(i).exists()){if(type!=-1)return reject("DRAFT REJECTED: VOID MASK");}
+      else if(!candidate.paintCell(i,type))return reject("DRAFT REJECTED: INVALID NUT");
+    }
     editorBoard=std::move(candidate); // all-or-nothing; never touch campaign board
     editorUndo.clear();editorRedo.clear(); // Loaded drafts start a fresh editing session.
     return true;
@@ -207,8 +215,8 @@ struct Game {
   bool loadEditorDraft(){
     if(!levelEditorUnlocked||savePath.empty())return false;
     std::ifstream in(draftPath());
-    if(!in)return false;
-    if(!loadEditorDraftFrom(in)){editorDraftStatus="INVALID SAVED DRAFT";return false;}
+    if(!in){editorDraftStatus="NO SAVED DRAFT";return false;}
+    if(!loadEditorDraftFrom(in))return false;
     editorDraftStatus="SAVED V1 DRAFT LOADED";
     return true;
   }
@@ -219,7 +227,8 @@ struct Game {
     if(!out||!saveEditorDraftTo(out))return false;
     out.flush();
     if(!out)return false;
-    editorDraftStatus="SAVED V1 DRAFT";
+    editorDraftStatus=playableEditorDraft()?"SAVED V1 DRAFT":
+      "SAVED V1 DRAFT - PLAYTEST NOT READY";
     return true;
   }
   void onCampaignWin(){
@@ -456,7 +465,7 @@ struct Game {
         return;
       }
       if(within(x,y,452,646,260,44)){
-        if(!loadEditorDraft())editorDraftStatus="NO VALID SAVED DRAFT";
+        loadEditorDraft(); // preserve precise format/dimension/void warning on failure
         return;
       }
       if(within(x,y,180,713,260,44)){
@@ -944,9 +953,20 @@ bool editorProgressionSelfTest(std::string& report){
       throw std::runtime_error("retired nut draft was accepted or destroyed valid draft");
     std::stringstream wrongSize("NUTBUSTER_EDITOR_DRAFT_V1 9 10 90\n");
     std::stringstream truncated("NUTBUSTER_EDITOR_DRAFT_V1 4 5 20\n1 2\n");
-    if(newlyStarted.loadEditorDraftFrom(wrongSize)||newlyStarted.loadEditorDraftFrom(truncated)||
+    if(newlyStarted.loadEditorDraftFrom(wrongSize)||
+       newlyStarted.editorDraftStatus!="DRAFT REJECTED: INVALID BOARD DIMENSIONS")
+      throw std::runtime_error("invalid board size did not produce a warning");
+    if(newlyStarted.loadEditorDraftFrom(truncated)||
+       newlyStarted.editorDraftStatus!="DRAFT REJECTED: INCOMPLETE TILES")
+      throw std::runtime_error("incomplete draft did not produce a warning");
+    std::stringstream voidOnly;
+    voidOnly<<"NUTBUSTER_EDITOR_DRAFT_V1 "<<newlyStarted.editorBoard.width()<<" "
+      <<newlyStarted.editorBoard.height()<<" "<<newlyStarted.editorBoard.size()<<"\n";
+    for(int k=0;k<newlyStarted.editorBoard.size();++k)voidOnly<<"-1 ";
+    if(newlyStarted.loadEditorDraftFrom(voidOnly)||
+       newlyStarted.editorDraftStatus!="DRAFT REJECTED: VOID-ONLY BOARD"||
        newlyStarted.editorBoard.tile(idx)!=earnedReload.editorNut)
-      throw std::runtime_error("invalid or incomplete draft replaced working editor");
+      throw std::runtime_error("void-only draft was accepted or damaged current editor");
     // Exercise production Level Editor -> real Board::swap -> return without campaign effects.
     Game practice;
     practice.levelEditorUnlocked=true;
