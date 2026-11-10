@@ -109,6 +109,8 @@ struct Game {
   int editorNut=0;
   bool editorDraftLoaded=false;
   std::string editorDraftStatus="NOT SAVED";
+  struct EditorStroke{int index,before,after;};
+  std::vector<EditorStroke> editorUndo,editorRedo; // Session-local; never mixed with campaign saves.
   int pendingPurchase=0; // confirmation required: 1 Butter, 2 Jam
   std::string shopNotice;
   enum class HoldMode{Swap,Butter,Jam};
@@ -199,6 +201,7 @@ struct Game {
     in>>std::ws;
     if(in.peek()!=std::char_traits<char>::eof())return false;
     editorBoard=std::move(candidate); // all-or-nothing; never touch campaign board
+    editorUndo.clear();editorRedo.clear(); // Loaded drafts start a fresh editing session.
     return true;
   }
   bool loadEditorDraft(){
@@ -233,6 +236,30 @@ struct Game {
     if(!levelEditorUnlocked)return false;
     if(!editorDraftLoaded){editorDraftLoaded=true;loadEditorDraft();}
     selected=-1;scene=Scene::Editor;return true;
+  }
+  bool paintEditorCell(int i,int type){
+    if(!levelEditorUnlocked||scene!=Scene::Editor||i<0||i>=editorBoard.size()||
+       !editorBoard.cell(i).exists())return false;
+    const int before=editorBoard.tile(i);
+    if(before==type||!editorBoard.paintCell(i,type))return false;
+    editorUndo.push_back({i,before,type});
+    if(editorUndo.size()>100)editorUndo.erase(editorUndo.begin());
+    editorRedo.clear();selected=i;editorDraftStatus="UNSAVED EDITS";
+    return true;
+  }
+  bool stepEditorHistory(bool undo){
+    if(!levelEditorUnlocked||scene!=Scene::Editor)return false;
+    auto& from=undo?editorUndo:editorRedo;
+    auto& to=undo?editorRedo:editorUndo;
+    if(from.empty())return false;
+    const EditorStroke stroke=from.back();
+    if(stroke.index<0||stroke.index>=editorBoard.size()||
+       !editorBoard.cell(stroke.index).exists()||
+       editorBoard.tile(stroke.index)!=(undo?stroke.after:stroke.before)||
+       !editorBoard.paintCell(stroke.index,undo?stroke.before:stroke.after))return false;
+    from.pop_back();to.push_back(stroke);
+    selected=stroke.index;editorDraftStatus="UNSAVED EDITS";
+    return true;
   }
   // Validate a real scoring move using the same native Board::swap implementation.
   bool playableEditorDraft()const{
@@ -438,8 +465,10 @@ struct Game {
       if(within(x,y,452,713,260,44)){
         editorNut=(editorNut+1)%19;if(editorNut==12)editorNut=13;return;
       }
+      if(within(x,y,720,713,110,44)){stepEditorHistory(true);return;}
+      if(within(x,y,840,713,120,44)){stepEditorHistory(false);return;}
       const int i=cellAt(x,y,editorBoard);
-      if(i>=0&&editorBoard.paintCell(i,editorNut)){selected=i;editorDraftStatus="UNSAVED EDITS";}
+      if(i>=0)paintEditorCell(i,editorNut);
       return;
     }
     if(scene==Scene::Playtest){
@@ -620,8 +649,11 @@ struct Game {
       button(r,720,646,240,44,"PLAY LEVEL");
       button(r,180,713,260,44,"PREVIOUS NUT");
       button(r,452,713,260,44,"NEXT NUT");
-      sprite(r,std::string("nuts/")+NUTS.at(size_t(editorNut)),730,704,44,44);
-      label(r,780,721,"NUT "+std::to_string(editorNut+1),1);
+      button(r,720,713,110,44,"UNDO");
+      button(r,840,713,120,44,"REDO");
+      sprite(r,std::string("nuts/")+NUTS.at(size_t(editorNut)),890,115,40,40);
+      label(r,834,167,"NUT "+std::to_string(editorNut+1),1);
+      label(r,720,184,"UNDO "+std::to_string(editorUndo.size())+" / REDO "+std::to_string(editorRedo.size()),1);
     } else if(scene==Scene::Mine){
       button(r,175,111,180,42,"EXCAVATE");
       button(r,365,111,180,42,"EQUIPMENT");
@@ -870,6 +902,23 @@ bool editorProgressionSelfTest(std::string& report){
                        float(215+(idx/earnedReload.editorBoard.width())*tile+tile/2));
     if(earnedReload.editorBoard.tile(idx)!=earnedReload.editorNut||earnedReload.board.tile(idx)!=base)
       throw std::runtime_error("real editor board paint or isolation");
+    earnedReload.click(775,733); // Native Undo button.
+    if(earnedReload.editorBoard.tile(idx)!=old||earnedReload.board.tile(idx)!=base||
+       earnedReload.editorRedo.size()!=1)
+      throw std::runtime_error("native editor Undo did not restore original tile");
+    earnedReload.click(900,733); // Native Redo button.
+    if(earnedReload.editorBoard.tile(idx)!=earnedReload.editorNut||
+       !earnedReload.editorRedo.empty())
+      throw std::runtime_error("native editor Redo did not reapply tile");
+    earnedReload.click(775,733);
+    earnedReload.click(float(ox+(idx%earnedReload.editorBoard.width())*tile+tile/2),
+                       float(215+(idx/earnedReload.editorBoard.width())*tile+tile/2));
+    if(earnedReload.editorBoard.tile(idx)!=earnedReload.editorNut||
+       !earnedReload.editorRedo.empty())
+      throw std::runtime_error("new paint must invalidate native editor Redo");
+    earnedReload.click(900,733);
+    if(earnedReload.editorBoard.tile(idx)!=earnedReload.editorNut)
+      throw std::runtime_error("invalidated native Redo changed current draft");
     earnedReload.click(40,40);
     if(earnedReload.scene!=Game::Scene::Menu)throw std::runtime_error("editor return");
     earnedReload.click(340,450);
@@ -966,7 +1015,7 @@ bool editorProgressionSelfTest(std::string& report){
     if(preserved.loadFrom(damaged)||preserved.unlocked!=23||
        !preserved.levelEditorUnlocked)
       throw std::runtime_error("corrupt V5 entitlement accepted or partially loaded");
-    report="PASS native editor entitlement, real Play Level/quit isolation, paint, V1 draft stream/disk restart, malformed isolation, V4 migration, V5 progression";
+    report="PASS native editor entitlement, paint Undo/Redo, redo invalidation, real Play Level/quit isolation, V1 draft stream/disk restart, malformed isolation, V4 migration, V5 progression";
     return true;
   }catch(const std::exception& e){
     report=std::string("FAIL native editor progression: ")+e.what();return false;

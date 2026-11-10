@@ -8,7 +8,7 @@ const Mines=window.NutvaleMines, MineUI=window.NutvaleMinesUI, Comp=window.NutCo
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);R.ensure(saved);H.ensure(saved);A.ensure(saved);if(Comp)Comp.ensure(saved);if(!['original','auditor','diva'].includes(saved.announcerVoice))saved.announcerVoice='original';D.ensure(saved,Date.now(),E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,crateReveal:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null,editor:null,editorNut:0,editorBack:'home',editorStatus:'NOT SAVED',editorPlay:false,editorPlayMessage:''};let toastHandle;
+let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,crateReveal:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null,editor:null,editorNut:0,editorBack:'home',editorStatus:'NOT SAVED',editorPlay:false,editorPlayMessage:'',editorUndo:[],editorRedo:[]};let toastHandle;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});window.NutAudio.setAnnouncerVoice?.(saved.announcerVoice);}
 if(window.NutSFX){window.NutSFX.setEnabled(state.effects);window.NutSFX.setVolume(saved.levels.sfx);}
 function playSFX(name,opts){window.NutSFX?.play(name,opts);}
@@ -39,6 +39,7 @@ function readEditorDraft(){
   const board=decodeEditorDraft(JSON.parse(encoded));
   if(!board)return false;
   state.editor=board;state.editorStatus='SAVED V1 DRAFT LOADED';
+   state.editorUndo=[];state.editorRedo=[];
   return true;
  }catch(_){return false;}
 }
@@ -393,7 +394,7 @@ function editor(){
    ${state.editorPlayMessage?'<p class="panel" role="status">'+state.editorPlayMessage+'</p>':''}
   <div class="board-wrap"><div class="board" style="--cols:${w};--rows:${h}" role="group" aria-label="Editable Nutbuster board">${g.cells.map((c,i)=>cellMarkup(c,i,w,g.cfg)).join('')}</div></div>
  <div class="boosters" role="group" aria-label="Paint nut palette">${palette}</div>
- <div class="actions"><button class="btn green" data-action="editor-save">SAVE DRAFT</button><button class="btn secondary" data-action="editor-load">RELOAD SAVED DRAFT</button><button class="btn green" data-action="editor-play">PLAY LEVEL</button><button class="btn secondary" data-action="editor-back">RETURN TO GAME</button></div></section>`;
+ <div class="actions"><button class="btn secondary" data-action="editor-undo" ${state.editorUndo.length?'':'disabled'}>UNDO</button><button class="btn secondary" data-action="editor-redo" ${state.editorRedo.length?'':'disabled'}>REDO</button><button class="btn green" data-action="editor-save">SAVE DRAFT</button><button class="btn secondary" data-action="editor-load">RELOAD SAVED DRAFT</button><button class="btn green" data-action="editor-play">PLAY LEVEL</button><button class="btn secondary" data-action="editor-back">RETURN TO GAME</button></div></section>`;
 }
 // Playtest state is a disposable clone of a validated editor draft, not campaign progression.
 function startEditorPlay(){
@@ -418,8 +419,24 @@ function returnEditorPlay(result=''){
 function editorCell(i){
  if(state.page!=='editor'||!P.hasLevelEditor(saved)||!state.editor)return;
  const c=state.editor.cells[i],t=state.editorNut;
- if(!c||!Number.isInteger(t)||t<0||t>=E.TYPES.length||E.RETIRED_NUTS.includes(E.TYPES[t]))return;
-  c.type=t;state.editorStatus='UNSAVED EDITS';state.editorPlayMessage='';render();
+ if(!c||!Number.isInteger(t)||t<0||t>=E.TYPES.length||E.RETIRED_NUTS.includes(E.TYPES[t])||c.type===t)return;
+ const before=c.type;
+ c.type=t;
+ state.editorUndo.push({i,before,after:t});
+ if(state.editorUndo.length>100)state.editorUndo.shift();
+ state.editorRedo=[];
+ state.editorStatus='UNSAVED EDITS';state.editorPlayMessage='';render();
+}
+function stepEditorHistory(undo){
+ if(state.page!=='editor'||!P.hasLevelEditor(saved)||!state.editor)return false;
+ const from=undo?state.editorUndo:state.editorRedo,to=undo?state.editorRedo:state.editorUndo;
+ if(!from.length)return false;
+ const change=from[from.length-1],cell=state.editor.cells[change.i];
+ if(!cell||cell.type!==(undo?change.after:change.before))return false;
+ cell.type=undo?change.before:change.after;
+ from.pop();to.push(change);
+ state.editorStatus='UNSAVED EDITS';state.editorPlayMessage='';render();
+ return true;
 }
 function paintCells(cells){
  if(state.page!=='game')return;
@@ -1160,6 +1177,8 @@ function cell(i){if(!state.game||state.game.won||state.game.lost||state.animatin
 function action(a,button){
  if(a==='editor-return'&&state.editorPlay){returnEditorPlay();return;}
  if(a==='editor-play'&&state.page==='editor'){startEditorPlay();return;}
+ if(a==='editor-undo'&&state.page==='editor'){stepEditorHistory(true);return;}
+ if(a==='editor-redo'&&state.page==='editor'){stepEditorHistory(false);return;}
  if(a==='editor-save'&&state.page==='editor'){
   const ok=writeEditorDraft();
   if(ok)state.editorStatus='SAVED V1 DRAFT';
