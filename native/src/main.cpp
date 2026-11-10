@@ -1,6 +1,7 @@
 #include "core.hpp"
 #include "mine.hpp"
 #include <ctime>
+#include <cstdint>
 #include <SDL3/SDL.h>
 #include <array>
 #include <algorithm>
@@ -127,6 +128,9 @@ struct Game {
   int editorNut=0;
   bool editorDraftLoaded=false;
   std::string editorDraftStatus="NOT SAVED";
+  static constexpr uint64_t EDITOR_AUTOSAVE_IDLE_MS=900;
+  bool editorDirty=false;
+  uint64_t editorClockMs=0,editorLastEditMs=0;
   struct EditorStroke{int index,before,after;};
   std::vector<EditorStroke> editorUndo,editorRedo; // Session-local; never mixed with campaign saves.
   int pendingPurchase=0; // confirmation required: 1 Butter, 2 Jam
@@ -228,6 +232,7 @@ struct Game {
     }
     editorBoard=std::move(candidate); // all-or-nothing; never touch campaign board
     editorUndo.clear();editorRedo.clear(); // Loaded drafts start a fresh editing session.
+    editorDirty=false; // Reload discards the pending autosave of the old draft.
     return true;
   }
   fs::path draftStagePath()const{return fs::path(draftPath().string()+".staging");}
@@ -285,7 +290,30 @@ struct Game {
     if(!replaceDraftFile(stage,primary))return false;
     editorDraftStatus=playableEditorDraft()?"SAVED V1 DRAFT":
       "SAVED V1 DRAFT - PLAYTEST NOT READY";
+    editorDirty=false; // Only the successfully installed, validated draft is clean.
     return true;
+  }
+  void markEditorEdited(){
+    editorDirty=true;
+    editorLastEditMs=editorClockMs;
+    editorDraftStatus="UNSAVED EDITS";
+  }
+  bool flushEditorAutosave(){
+    if(!editorDirty)return true; // No initial or repeated no-op writes.
+    if(!saveEditorDraft()){
+      editorDraftStatus="DRAFT AUTOSAVE FAILED - RETRYING";
+      return false; // Preserve dirty state for bounded retry or manual Save.
+    }
+    editorDraftStatus="AUTO"+editorDraftStatus;
+    return true;
+  }
+  // Production passes SDL's monotonic ticks; tests pass explicit timestamps.
+  // Failed attempts back off instead of hammering an unavailable disk at 60 FPS.
+  void pollEditorAutosave(uint64_t nowMs){
+    editorClockMs=nowMs;
+    if(!editorDirty||nowMs<editorLastEditMs||
+       nowMs-editorLastEditMs<EDITOR_AUTOSAVE_IDLE_MS)return;
+    if(!flushEditorAutosave())editorLastEditMs=nowMs;
   }
   void onCampaignWin(){
     wallet.win();
@@ -309,7 +337,7 @@ struct Game {
     if(before==type||!editorBoard.paintCell(i,type))return false;
     editorUndo.push_back({i,before,type});
     if(editorUndo.size()>100)editorUndo.erase(editorUndo.begin());
-    editorRedo.clear();selected=i;editorDraftStatus="UNSAVED EDITS";
+    editorRedo.clear();selected=i;markEditorEdited();
     return true;
   }
   bool stepEditorHistory(bool undo){
@@ -323,7 +351,7 @@ struct Game {
        editorBoard.tile(stroke.index)!=(undo?stroke.after:stroke.before)||
        !editorBoard.paintCell(stroke.index,undo?stroke.before:stroke.after))return false;
     from.pop_back();to.push_back(stroke);
-    selected=stroke.index;editorDraftStatus="UNSAVED EDITS";
+    selected=stroke.index;markEditorEdited();
     return true;
   }
   // Validate a real scoring move using the same native Board::swap implementation.
@@ -342,6 +370,7 @@ struct Game {
     if(!playableEditorDraft()){
       editorDraftStatus="DRAFT NOT PLAYABLE: FIX MATCHES/MOVES";return false;
     }
+    if(editorDirty&&!smoke&&!savePath.empty()&&!flushEditorAutosave())return false;
     playtestBoard=editorBoard;selected=-1;holdMode=HoldMode::Swap;
     scene=Scene::Playtest;return true;
   }
@@ -459,7 +488,11 @@ struct Game {
       }
       return;
     }
-    if(within(x,y,24,20,145,46)) {scene=scene==Scene::Playtest?Scene::Editor:Scene::Menu;selected=-1;return;}
+    if(within(x,y,24,20,145,46)) {
+      if(scene==Scene::Editor&&!flushEditorAutosave())return;
+      scene=scene==Scene::Playtest?Scene::Editor:Scene::Menu;
+      selected=-1;return;
+    }
     if(scene==Scene::Mine){
       if(within(x,y,175,111,180,42)){mineTab=MineTab::Dig;return;}
       if(within(x,y,365,111,180,42)){mineTab=MineTab::Equipment;return;}
@@ -1157,6 +1190,150 @@ bool editorProgressionSelfTest(std::string& report){
     report=std::string("FAIL native editor progression: ")+e.what();return false;
   }
 }
+
+bool editorAutosaveSelfTest(std::string& report){
+  try{
+    Game g;
+    g.levelEditorUnlocked=true;
+    g.savePath=fs::temp_directory_path()/
+      ("nutbuster-autosave-"+std::to_string(std::time(nullptr))+"-"+
+       std::to_string(std::clock())+".progress");
+    if(!g.openEditor())throw std::runtime_error("earned editor failed to open");
+    int idx=-1;
+    for(int i=0;i<g.editorBoard.size();++i)
+      if(g.editorBoard.cell(i).exists()){idx=i;break;}
+    if(idx<0)throw std::runtime_error("missing editor tile");
+    const int baseline=g.editorBoard.tile(idx);
+    const auto next=[](int nut){int n=(nut+1)%19;return n==12?13:n;};
+    const int first=next(baseline),second=next(first),third=next(second);
+    g.pollEditorAutosave(1000);
+    g.pollEditorAutosave(1000+2*Game::EDITOR_AUTOSAVE_IDLE_MS);
+    if(g.editorDirty||fs::exists(g.draftPath())||fs::exists(g.savePath))
+      throw std::runtime_error("untouched editor unexpectedly persisted a file");
+    // This sentinel stands in for ordinary campaign progress; autosave must
+    // never read, modify or replace the campaign progression container.
+    {
+      std::ofstream progress(g.savePath,std::ios::binary);
+      progress<<"CAMPAIGN_SENTINEL\n";
+      if(!progress)throw std::runtime_error("campaign sentinel fixture");
+    }
+    g.pollEditorAutosave(3000);
+    if(!g.paintEditorCell(idx,first)||!g.editorDirty)
+      throw std::runtime_error("paint failed to schedule an autosave");
+    g.pollEditorAutosave(3000+Game::EDITOR_AUTOSAVE_IDLE_MS-1);
+    if(fs::exists(g.draftPath())||!g.editorDirty)
+      throw std::runtime_error("debounce persisted before idle deadline");
+    g.pollEditorAutosave(3000+Game::EDITOR_AUTOSAVE_IDLE_MS);
+    if(g.editorDirty||!fs::exists(g.draftPath())||
+       g.editorDraftStatus.find("AUTOSAVED V1 DRAFT")!=0)
+      throw std::runtime_error("first painted draft did not autosave");
+    Game restarted;
+    restarted.levelEditorUnlocked=true;restarted.savePath=g.savePath;
+    if(!restarted.openEditor()||restarted.editorBoard.tile(idx)!=first||
+       restarted.editorDirty||restarted.board.tile(idx)!=baseline)
+      throw std::runtime_error("autopersisted painted draft did not survive restart");
+    // Undo and Redo use exactly the same dirty schedule as a fresh paint.
+    g.pollEditorAutosave(5000);
+    if(!g.stepEditorHistory(true)||g.editorBoard.tile(idx)!=baseline||!g.editorDirty)
+      throw std::runtime_error("undo failed to schedule autosave");
+    g.pollEditorAutosave(5000+Game::EDITOR_AUTOSAVE_IDLE_MS);
+    Game undone;undone.levelEditorUnlocked=true;undone.savePath=g.savePath;
+    if(!undone.loadEditorDraft()||undone.editorBoard.tile(idx)!=baseline)
+      throw std::runtime_error("autosaved undo did not survive restart");
+    g.pollEditorAutosave(7000);
+    if(!g.stepEditorHistory(false)||g.editorBoard.tile(idx)!=first||!g.editorDirty)
+      throw std::runtime_error("redo failed to schedule autosave");
+    g.pollEditorAutosave(7000+Game::EDITOR_AUTOSAVE_IDLE_MS);
+    Game redone;redone.levelEditorUnlocked=true;redone.savePath=g.savePath;
+    if(!redone.loadEditorDraft()||redone.editorBoard.tile(idx)!=first)
+      throw std::runtime_error("autosaved redo did not survive restart");
+    // Two quick paints must coalesce into one final replacement; an earlier
+    // deadline cannot write the intermediate draft when a later edit occurs.
+    g.pollEditorAutosave(9000);
+    if(!g.paintEditorCell(idx,second))
+      throw std::runtime_error("first burst paint failed");
+    g.pollEditorAutosave(9000+Game::EDITOR_AUTOSAVE_IDLE_MS-10);
+    if(!g.paintEditorCell(idx,third))
+      throw std::runtime_error("second burst paint failed");
+    g.pollEditorAutosave(9000+Game::EDITOR_AUTOSAVE_IDLE_MS);
+    Game early;early.levelEditorUnlocked=true;early.savePath=g.savePath;
+    if(!early.loadEditorDraft()||early.editorBoard.tile(idx)!=first||
+       !g.editorDirty)
+      throw std::runtime_error("editing burst saved before last idle deadline");
+    g.pollEditorAutosave(9000+2*Game::EDITOR_AUTOSAVE_IDLE_MS-10);
+    Game latest;latest.levelEditorUnlocked=true;latest.savePath=g.savePath;
+    if(!latest.loadEditorDraft()||latest.editorBoard.tile(idx)!=third||
+       g.editorDirty)
+      throw std::runtime_error("coalesced autosave failed to persist final paint");
+    // Manual Save clears the timer; idle polling may not rotate backups again.
+    g.pollEditorAutosave(12000);
+    if(!g.paintEditorCell(idx,second)||!g.saveEditorDraft()||g.editorDirty)
+      throw std::runtime_error("manual save failed to cancel autosave");
+    const fs::path backup=g.draftBackupPath();
+    const auto lastWrite=fs::last_write_time(backup);
+    g.pollEditorAutosave(15000);
+    if(fs::last_write_time(backup)!=lastWrite)
+      throw std::runtime_error("idle polling rewrote an already saved draft");
+    // Recovery after autosaved/edit-saved corruption still uses last-good.
+    {
+      std::ofstream corrupt(g.draftPath(),std::ios::binary|std::ios::trunc);
+      corrupt<<"BROKEN PRIMARY\n";
+      if(!corrupt)throw std::runtime_error("could not inject corrupt autosave");
+    }
+    Game recovered;recovered.levelEditorUnlocked=true;recovered.savePath=g.savePath;
+    if(!recovered.openEditor()||recovered.editorBoard.tile(idx)!=third||
+       recovered.editorDraftStatus!="RECOVERED LAST GOOD DRAFT - SAVE TO RESTORE")
+      throw std::runtime_error("autosave corrupt-primary recovery failed");
+    // Exit before the idle deadline flushes immediately without losing edits.
+    recovered.pollEditorAutosave(20000);
+    if(!recovered.paintEditorCell(idx,first))
+      throw std::runtime_error("exit-pending paint failed");
+    recovered.click(40,40); // Real editor back button.
+    Game exited;exited.levelEditorUnlocked=true;exited.savePath=g.savePath;
+    if(recovered.scene!=Game::Scene::Menu||recovered.editorDirty||
+       !exited.loadEditorDraft()||exited.editorBoard.tile(idx)!=first)
+      throw std::runtime_error("editor exit lost pending autosave");
+    {
+      std::ifstream progress(g.savePath,std::ios::binary);
+      std::string sentinel;
+      std::getline(progress,sentinel);
+      if(sentinel!="CAMPAIGN_SENTINEL")
+        throw std::runtime_error("editor autosave modified campaign progress");
+    }
+    // Failed writes retain the dirty flag, with bounded retry after the idle
+    // interval; they never silently claim the edit was committed.
+    Game unavailable;unavailable.levelEditorUnlocked=true;
+    if(!unavailable.openEditor())throw std::runtime_error("failure fixture editor");
+    unavailable.pollEditorAutosave(1000);
+    if(!unavailable.paintEditorCell(idx,first))
+      throw std::runtime_error("failure fixture edit");
+    unavailable.pollEditorAutosave(1000+Game::EDITOR_AUTOSAVE_IDLE_MS);
+    if(!unavailable.editorDirty||
+       unavailable.editorDraftStatus!="DRAFT AUTOSAVE FAILED - RETRYING")
+      throw std::runtime_error("failed autosave was falsely marked clean");
+    unavailable.savePath=fs::path(g.savePath.string()+".retry");
+    unavailable.pollEditorAutosave(1000+2*Game::EDITOR_AUTOSAVE_IDLE_MS-1);
+    if(fs::exists(unavailable.draftPath()))
+      throw std::runtime_error("failed autosave retried before backoff");
+    unavailable.pollEditorAutosave(1000+2*Game::EDITOR_AUTOSAVE_IDLE_MS);
+    if(unavailable.editorDirty||!fs::exists(unavailable.draftPath()))
+      throw std::runtime_error("failed autosave did not retry after backoff");
+    std::error_code cleanupError;
+    for(const auto& p:{g.draftPath(),g.draftStagePath(),g.draftBackupPath(),
+         fs::path(g.draftBackupPath().string()+".staging"),g.savePath,
+         unavailable.draftPath(),unavailable.draftStagePath(),
+         unavailable.draftBackupPath()}){
+      fs::remove(p,cleanupError);
+      if(cleanupError)throw std::runtime_error("autosave test cleanup failed");
+    }
+    report="PASS native editor no-edit/debounce, real paint/undo/redo/relaunch, "
+           "burst coalescing, manual Save cancellation, corrupt-primary recovery, "
+           "immediate exit flush, bounded failed-write retry and campaign isolation";
+    return true;
+  }catch(const std::exception& e){
+    report=std::string("FAIL native editor autosave: ")+e.what();return false;
+  }
+}
 }
 int main(int argc,char** argv){
   std::string screenshot,fixtureFile;int previewStage=0;bool self=false,previewMine=false,previewBoard=false,previewCampaign=false,smokeDig=false,smokeShop=false,previewEquip=false,previewRefinery=false;
@@ -1190,8 +1367,11 @@ int main(int argc,char** argv){
     bool boardOk=nut::selfTest(boardReport),mineOk=nut::mineSelfTest(mineReport);
     bool holdOk=holdUiSelfTest(holdReport),shopOk=shopUiSelfTest(shopReport);
     bool editorOk=editorProgressionSelfTest(editorReport);
-    std::cout<<boardReport<<"\n"<<mineReport<<"\n"<<holdReport<<"\n"<<shopReport<<"\n"<<editorReport<<"\n";
-    return boardOk&&mineOk&&holdOk&&shopOk&&editorOk?0:1;
+    std::string autosaveReport;
+    bool autosaveOk=editorAutosaveSelfTest(autosaveReport);
+    std::cout<<boardReport<<"\n"<<mineReport<<"\n"<<holdReport<<"\n"
+             <<shopReport<<"\n"<<editorReport<<"\n"<<autosaveReport<<"\n";
+    return boardOk&&mineOk&&holdOk&&shopOk&&editorOk&&autosaveOk?0:1;
   }
   if(!fixtureFile.empty()){
     std::ifstream fixtures(fixtureFile);
@@ -1286,12 +1466,19 @@ int main(int argc,char** argv){
   }
   bool running=true;
   while(running){
+    game.pollEditorAutosave(SDL_GetTicks());
     SDL_Event event;
     while(SDL_PollEvent(&event)){
-      if(event.type==SDL_EVENT_QUIT)running=false;
+      if(event.type==SDL_EVENT_QUIT){
+        if(!game.flushEditorAutosave())
+          std::cerr<<"Native editor draft autosave failed during quit\n";
+        running=false;
+      }
       if(event.type==SDL_EVENT_KEY_DOWN&&event.key.key==SDLK_ESCAPE){
-        game.scene=game.scene==Game::Scene::Playtest?Game::Scene::Editor:Game::Scene::Menu;
-        game.selected=-1;
+        if(game.scene!=Game::Scene::Editor||game.flushEditorAutosave()){
+          game.scene=game.scene==Game::Scene::Playtest?Game::Scene::Editor:Game::Scene::Menu;
+          game.selected=-1;
+        }
       }
       if(event.type==SDL_EVENT_MOUSE_BUTTON_DOWN&&event.button.button==SDL_BUTTON_LEFT){
         game.down=(game.scene==Game::Scene::Playtest)?game.cellAt(event.button.x,event.button.y,game.playtestBoard):
@@ -1321,6 +1508,8 @@ int main(int argc,char** argv){
     SDL_RenderPresent(renderer);
     SDL_Delay(16);
   }
+  if(!game.flushEditorAutosave())
+    std::cerr<<"Native editor draft remains unsaved after quit\n";
   for(auto& entry:game.images)SDL_DestroyTexture(entry.second);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(win);
