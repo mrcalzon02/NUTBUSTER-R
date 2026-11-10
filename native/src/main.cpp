@@ -13,6 +13,12 @@
 #include <string>
 #include <vector>
 #include <utility>
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 
 namespace fs=std::filesystem;
 namespace {
@@ -42,6 +48,18 @@ void button(SDL_Renderer* r,int x,int y,int w,int h,const std::string& txt){
 }
 bool within(float x,float y,float bx,float by,float w,float h){
   return x>=bx&&x<bx+w&&y>=by&&y<by+h;
+}
+// Both paths are on one volume. The existing committed draft is never
+// truncated or deleted before the fully validated successor is installed.
+bool replaceDraftFile(const fs::path& stage,const fs::path& destination){
+#ifdef _WIN32
+  return MoveFileExW(stage.c_str(),destination.c_str(),
+    MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)!=0;
+#else
+  std::error_code error;
+  fs::rename(stage,destination,error);
+  return !error;
+#endif
 }
 uint32_t h32(uint32_t x){x^=x>>16;x*=0x7feb352dU;x^=x>>15;x*=0x846ca68bU;return x^(x>>16);}
 int roll(uint32_t seed,int x,int y,uint32_t salt){
@@ -212,21 +230,59 @@ struct Game {
     editorUndo.clear();editorRedo.clear(); // Loaded drafts start a fresh editing session.
     return true;
   }
+  fs::path draftStagePath()const{return fs::path(draftPath().string()+".staging");}
+  fs::path draftBackupPath()const{return fs::path(draftPath().string()+".backup");}
+  bool validDraftFile(const fs::path& path)const{
+    std::ifstream in(path,std::ios::binary);
+    if(!in)return false;
+    Game check;
+    check.levelEditorUnlocked=true;
+    return check.loadEditorDraftFrom(in);
+  }
   bool loadEditorDraft(){
     if(!levelEditorUnlocked||savePath.empty())return false;
-    std::ifstream in(draftPath());
-    if(!in){editorDraftStatus="NO SAVED DRAFT";return false;}
-    if(!loadEditorDraftFrom(in))return false;
-    editorDraftStatus="SAVED V1 DRAFT LOADED";
-    return true;
+    std::ifstream in(draftPath(),std::ios::binary);
+    const bool primaryPresent=bool(in);
+    if(in&&loadEditorDraftFrom(in)){
+      editorDraftStatus="SAVED V1 DRAFT LOADED";
+      return true;
+    }
+    std::ifstream backup(draftBackupPath(),std::ios::binary);
+    const bool backupPresent=bool(backup);
+    if(backup&&loadEditorDraftFrom(backup)){
+      editorDraftStatus="RECOVERED LAST GOOD DRAFT - SAVE TO RESTORE";
+      return true;
+    }
+    editorDraftStatus=primaryPresent||backupPresent?
+      "DRAFT RECOVERY FAILED":"NO SAVED DRAFT";
+    return false;
   }
-  bool saveEditorDraft(){
+  // Test-only interruption seam: stop after staging but before any committed
+  // file changes. Production UI always calls the default non-injected path.
+  bool saveEditorDraft(bool interruptBeforeReplace=false){
     if(!levelEditorUnlocked||smoke||savePath.empty())return false;
-    // A dedicated file prevents corruption or overwrite of campaign progress.
-    std::ofstream out(draftPath(),std::ios::trunc);
-    if(!out||!saveEditorDraftTo(out))return false;
-    out.flush();
-    if(!out)return false;
+    const fs::path primary=draftPath(),stage=draftStagePath();
+    {
+      std::ofstream out(stage,std::ios::binary|std::ios::trunc);
+      if(!out||!saveEditorDraftTo(out))return false;
+      out.flush();
+      if(!out)return false;
+      out.close();
+      if(!out)return false;
+    }
+    if(!validDraftFile(stage))return false;
+    if(interruptBeforeReplace)return false;
+    std::error_code error;
+    if(fs::exists(primary,error)&&!error&&validDraftFile(primary)){
+      // Copy current valid primary to a staged backup; an interrupted
+      // backup rotation also leaves the previous last-good backup intact.
+      const fs::path backup=draftBackupPath();
+      const fs::path backupStage=fs::path(backup.string()+".staging");
+      if(!fs::copy_file(primary,backupStage,fs::copy_options::overwrite_existing,error)||
+         error||!validDraftFile(backupStage)||
+         !replaceDraftFile(backupStage,backup))return false;
+    }else if(error)return false;
+    if(!replaceDraftFile(stage,primary))return false;
     editorDraftStatus=playableEditorDraft()?"SAVED V1 DRAFT":
       "SAVED V1 DRAFT - PLAYTEST NOT READY";
     return true;
@@ -1013,9 +1069,69 @@ bool editorProgressionSelfTest(std::string& report){
        diskRestart.editorBoard.tile(idx)!=earnedReload.editorNut||
        diskRestart.board.tile(idx)!=base)
       throw std::runtime_error("native disk save/restart/open did not restore draft");
+    const int firstSavedTile=earnedReload.editorNut;
+    int secondSavedTile=(firstSavedTile+1)%19;
+    if(secondSavedTile==12)secondSavedTile=13;
+    if(!diskAuthor.editorBoard.paintCell(idx,secondSavedTile))
+      throw std::runtime_error("cannot prepare interrupted replacement");
+    if(diskAuthor.saveEditorDraft(true)||!fs::exists(diskAuthor.draftStagePath()))
+      throw std::runtime_error("injected interruption failed to leave staging file");
+    Game interruptedRestart;
+    interruptedRestart.levelEditorUnlocked=true;
+    interruptedRestart.savePath=diskAuthor.savePath;
+    if(!interruptedRestart.loadEditorDraft()||
+       interruptedRestart.editorBoard.tile(idx)!=firstSavedTile)
+      throw std::runtime_error("interrupted draft write destroyed previous valid save");
+    if(!diskAuthor.saveEditorDraft())
+      throw std::runtime_error("subsequent valid draft replacement failed");
+    Game secondRestart;
+    secondRestart.levelEditorUnlocked=true;
+    secondRestart.savePath=diskAuthor.savePath;
+    if(!secondRestart.loadEditorDraft()||
+       secondRestart.editorBoard.tile(idx)!=secondSavedTile)
+      throw std::runtime_error("atomic replacement did not survive restart");
+    Game lastGood;
+    lastGood.levelEditorUnlocked=true;
+    {
+      std::ifstream backup(diskAuthor.draftBackupPath(),std::ios::binary);
+      if(!backup||!lastGood.loadEditorDraftFrom(backup)||
+         lastGood.editorBoard.tile(idx)!=firstSavedTile)
+        throw std::runtime_error("last-good draft backup was not preserved");
+    }
+    {
+      std::ofstream corrupt(diskAuthor.draftPath(),std::ios::trunc);
+      corrupt<<"NUTBUSTER_EDITOR_DRAFT_V1 broken and incomplete\\n";
+      if(!corrupt)throw std::runtime_error("cannot inject corrupt primary");
+    }
+    Game recovered;
+    recovered.levelEditorUnlocked=true;
+    recovered.savePath=diskAuthor.savePath;
+    if(!recovered.loadEditorDraft()||
+       recovered.editorBoard.tile(idx)!=firstSavedTile||
+       recovered.editorDraftStatus!="RECOVERED LAST GOOD DRAFT - SAVE TO RESTORE"||
+       recovered.board.tile(idx)!=base)
+      throw std::runtime_error("corrupt draft did not recover last good version");
+    {
+      std::ofstream corruptBackup(diskAuthor.draftBackupPath(),std::ios::trunc);
+      corruptBackup<<"CORRUPT BACKUP\\n";
+    }
+    Game rejectBoth;
+    rejectBoth.levelEditorUnlocked=true;
+    rejectBoth.savePath=diskAuthor.savePath;
+    const int originalInMemory=rejectBoth.editorBoard.tile(idx);
+    if(rejectBoth.loadEditorDraft()||
+       rejectBoth.editorDraftStatus!="DRAFT RECOVERY FAILED"||
+       rejectBoth.editorBoard.tile(idx)!=originalInMemory)
+      throw std::runtime_error("two corrupt draft files were wrongly accepted");
+    if(fs::exists(diskAuthor.savePath))
+      throw std::runtime_error("draft recovery wrote campaign progress");
     std::error_code draftCleanupError;
-    fs::remove(diskAuthor.draftPath(),draftCleanupError);
-    if(draftCleanupError)throw std::runtime_error("could not clean native draft test file");
+    for(const fs::path& path:{diskAuthor.draftPath(),diskAuthor.draftStagePath(),
+        diskAuthor.draftBackupPath(),
+        fs::path(diskAuthor.draftBackupPath().string()+".staging")}){
+      fs::remove(path,draftCleanupError);
+      if(draftCleanupError)throw std::runtime_error("could not clean native draft test file");
+    }
     std::stringstream legacyV4;
     legacyV4<<"NUTBUSTER_NATIVE_PREVIEW_V4 1000\n";
     if(!reached.mine.save(legacyV4)||!reached.stock.write(legacyV4)||
@@ -1035,7 +1151,7 @@ bool editorProgressionSelfTest(std::string& report){
     if(preserved.loadFrom(damaged)||preserved.unlocked!=23||
        !preserved.levelEditorUnlocked)
       throw std::runtime_error("corrupt V5 entitlement accepted or partially loaded");
-    report="PASS native editor entitlement, paint Undo/Redo, redo invalidation, real Play Level/quit isolation, V1 draft stream/disk restart, malformed isolation, V4 migration, V5 progression";
+    report="PASS native editor entitlement, paint Undo/Redo, redo invalidation, real Play Level/quit isolation, V1 draft stream/disk restart, atomic interrupted-write recovery, last-good backup, corrupt primary and backup rejection, V4 migration, V5 progression";
     return true;
   }catch(const std::exception& e){
     report=std::string("FAIL native editor progression: ")+e.what();return false;
