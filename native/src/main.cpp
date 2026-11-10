@@ -1017,11 +1017,21 @@ bool editorProgressionSelfTest(std::string& report){
     earnedReload.click(900,733);
     if(earnedReload.editorBoard.tile(idx)!=earnedReload.editorNut)
       throw std::runtime_error("invalidated native Redo changed current draft");
+    // The editor exit now persists pending edits. Exercise that path with a
+    // real temporary draft file, not an unsaveable in-memory Game.
+    earnedReload.savePath=fs::temp_directory_path()/
+      ("nutbuster-editor-return-"+std::to_string(std::time(nullptr))+"-"+
+       std::to_string(std::clock())+".progress");
     earnedReload.click(40,40);
     if(earnedReload.scene!=Game::Scene::Menu)throw std::runtime_error("editor return");
     earnedReload.click(340,450);
     if(earnedReload.scene!=Game::Scene::Editor||earnedReload.editorBoard.tile(idx)!=earnedReload.editorNut)
       throw std::runtime_error("editor draft lost after returning");
+    Game returnRestart;
+    returnRestart.levelEditorUnlocked=true;returnRestart.savePath=earnedReload.savePath;
+    if(!returnRestart.loadEditorDraft()||
+       returnRestart.editorBoard.tile(idx)!=earnedReload.editorNut)
+      throw std::runtime_error("native editor Back flush did not survive restart");
     std::stringstream draft;
     if(!earnedReload.saveEditorDraftTo(draft))
       throw std::runtime_error("won user cannot serialize editor draft");
@@ -1161,7 +1171,10 @@ bool editorProgressionSelfTest(std::string& report){
     std::error_code draftCleanupError;
     for(const fs::path& path:{diskAuthor.draftPath(),diskAuthor.draftStagePath(),
         diskAuthor.draftBackupPath(),
-        fs::path(diskAuthor.draftBackupPath().string()+".staging")}){
+        fs::path(diskAuthor.draftBackupPath().string()+".staging"),
+        earnedReload.draftPath(),earnedReload.draftStagePath(),
+        earnedReload.draftBackupPath(),
+        fs::path(earnedReload.draftBackupPath().string()+".staging")}){
       fs::remove(path,draftCleanupError);
       if(draftCleanupError)throw std::runtime_error("could not clean native draft test file");
     }
