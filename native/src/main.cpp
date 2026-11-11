@@ -12,6 +12,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <utility>
 #ifdef _WIN32
@@ -111,6 +112,83 @@ struct GemWallet {
   bool write(std::ostream& out)const{
     if(gems<0||gems>max)return false;
     out<<"GEM_WALLET_V1 "<<gems<<"\n";return bool(out);
+  }
+};
+// Native's JSON share format is the same V1 fields and tile semantics used by
+// web/game.js. This bounded parser deliberately rejects unknown/duplicate keys,
+// escaped keys, floats, negative tiles, and trailing content instead of accepting
+// a permissive or partially interpreted custom board.
+struct EditorShareJson {
+  int version=-1,width=-1,height=-1;
+  std::vector<int> tiles;
+  std::string_view data;
+  size_t at=0;
+  void whitespace(){
+    while(at<data.size()&&(data[at]==' '||data[at]=='\n'||
+          data[at]=='\r'||data[at]=='\t'))++at;
+  }
+  bool take(char c){whitespace();if(at>=data.size()||data[at]!=c)return false;++at;return true;}
+  bool key(std::string& name){
+    if(!take('"'))return false;
+    while(at<data.size()){
+      const unsigned char c=static_cast<unsigned char>(data[at++]);
+      if(c=='"')return !name.empty();
+      if(c=='\\'||c<0x20||c>0x7e||name.size()>=16)return false;
+      name.push_back(char(c));
+    }
+    return false;
+  }
+  bool number(int& value){
+    whitespace();
+    if(at>=data.size()||data[at]<'0'||data[at]>'9')return false;
+    if(data[at]=='0'&&at+1<data.size()&&data[at+1]>='0'&&data[at+1]<='9')
+      return false; // JSON does not permit leading-zero integer tokens.
+    value=0;
+    while(at<data.size()&&data[at]>='0'&&data[at]<='9'){
+      if(value>100000)return false; // Bound integer size before arithmetic.
+      value=value*10+(data[at++]-'0');
+    }
+    return value<=1000000;
+  }
+  bool tileArray(){
+    if(!take('['))return false;
+    if(take(']'))return true;
+    while(true){
+      whitespace();
+      int tile=-1;
+      if(data.substr(at,4)=="null")at+=4;
+      else if(!number(tile))return false;
+      if(tiles.size()>=256)return false;
+      tiles.push_back(tile);
+      if(take(']'))return true;
+      if(!take(','))return false;
+    }
+  }
+  bool parse(std::string_view input){
+    data=input;at=0;
+    if(!take('{')||take('}'))return false;
+    std::array<bool,4> seen{false,false,false,false};
+    while(true){
+      std::string name;
+      if(!key(name)||!take(':'))return false;
+      int field=name=="version"?0:name=="width"?1:name=="height"?2:
+        name=="tiles"?3:-1;
+      if(field<0||seen[size_t(field)])return false;
+      seen[size_t(field)]=true;
+      if(field==3){if(!tileArray())return false;}
+      else {
+        int value=0;
+        if(!number(value))return false;
+        if(field==0)version=value;
+        else if(field==1)width=value;
+        else height=value;
+      }
+      if(take('}'))break;
+      if(!take(','))return false;
+    }
+    whitespace();
+    return at==data.size()&&
+      std::all_of(seen.begin(),seen.end(),[](bool present){return present;});
   }
 };
 struct Game {
@@ -234,6 +312,81 @@ struct Game {
     editorUndo.clear();editorRedo.clear(); // Loaded drafts start a fresh editing session.
     editorDirty=false; // Reload discards the pending autosave of the old draft.
     return true;
+  }
+  // A portable share file, not campaign progress, the automatic recovery file,
+  // or the native whitespace V1 draft. Web uses null for engine void cells.
+  fs::path editorSharePath()const{
+    return savePath.parent_path()/"NUTBUSTER-custom-level-v1.json";
+  }
+  bool saveEditorJsonTo(std::ostream& out)const{
+    std::ostringstream verifiedDraft;
+    if(!saveEditorDraftTo(verifiedDraft))return false;
+    const auto& b=editorBoard;
+    out<<"{\"version\":1,\"width\":"<<b.width()<<",\"height\":"<<b.height()
+       <<",\"tiles\":[";
+    for(int i=0;i<b.size();++i){
+      if(i)out<<',';
+      if(!b.cell(i).exists())out<<"null";
+      else out<<b.tile(i);
+    }
+    out<<"]}\n";
+    return bool(out);
+  }
+  bool loadEditorJsonFrom(std::istream& in){
+    if(!levelEditorUnlocked)return false;
+    // Refuse unbounded files before building any in-memory board or mutating state.
+    std::array<char,16385> bytes{};
+    in.read(bytes.data(),std::streamsize(bytes.size()));
+    const auto count=in.gcount();
+    if(count<=0||count>16384||in.bad()){
+      editorDraftStatus="JSON REJECTED: EMPTY OR TOO LARGE";return false;
+    }
+    EditorShareJson json;
+    if(!json.parse(std::string_view(bytes.data(),size_t(count)))){
+      editorDraftStatus="JSON REJECTED: INVALID V1 SCHEMA";return false;
+    }
+    if(json.version!=1){
+      editorDraftStatus="JSON REJECTED: UNSUPPORTED VERSION";return false;
+    }
+    nut::Board expected(1,7919);
+    if(json.width!=expected.width()||json.height!=expected.height()||
+       json.tiles.size()!=size_t(expected.size())){
+      editorDraftStatus="JSON REJECTED: INVALID BOARD DIMENSIONS";return false;
+    }
+    // The existing guarded V1 loader owns engine objective, void-mask, retired
+    // nut and all-or-nothing board validation. Do not fork those game rules.
+    std::ostringstream draft;
+    draft<<"NUTBUSTER_EDITOR_DRAFT_V1 "<<json.width<<" "<<json.height<<" "
+         <<json.tiles.size()<<"\n";
+    for(size_t i=0;i<json.tiles.size();++i)
+      draft<<json.tiles[i]<<(i+1==json.tiles.size()?'\n':' ');
+    std::istringstream validated(draft.str());
+    if(!loadEditorDraftFrom(validated))return false;
+    markEditorEdited(); // Imported changes are pending until explicitly saved/auto-flushed.
+    editorDraftStatus="IMPORTED JSON V1 - SAVE DRAFT";
+    return true;
+  }
+  bool exportEditorJsonFile(const fs::path& target)const{
+    if(!levelEditorUnlocked||smoke||savePath.empty()||target.empty())return false;
+    const fs::path stage=fs::path(target.string()+".staging");
+    {
+      std::ofstream out(stage,std::ios::binary|std::ios::trunc);
+      if(!out||!saveEditorJsonTo(out))return false;
+      out.flush();if(!out)return false;
+      out.close();if(!out)return false;
+    }
+    Game check;check.levelEditorUnlocked=true;
+    std::ifstream input(stage,std::ios::binary);
+    if(!input||!check.loadEditorJsonFrom(input))return false;
+    return replaceDraftFile(stage,target); // Do not truncate a previous good share.
+  }
+  bool importEditorJsonFile(const fs::path& source){
+    if(!levelEditorUnlocked||smoke||savePath.empty()||source.empty())return false;
+    // Preserve unsaved work as a native draft before replacing its in-memory board.
+    if(editorDirty&&!flushEditorAutosave())return false;
+    std::ifstream in(source,std::ios::binary);
+    if(!in){editorDraftStatus="JSON IMPORT FAILED: FILE MISSING";return false;}
+    return loadEditorJsonFrom(in);
   }
   fs::path draftStagePath()const{return fs::path(draftPath().string()+".staging");}
   fs::path draftBackupPath()const{return fs::path(draftPath().string()+".backup");}
@@ -548,6 +701,14 @@ struct Game {
       return;
     }
     if(scene==Scene::Editor){
+      if(within(x,y,760,215,230,40)){
+        editorDraftStatus=exportEditorJsonFile(editorSharePath())?
+          "JSON EXPORTED - SHARE FILE READY":"JSON EXPORT FAILED";
+        return;
+      }
+      if(within(x,y,760,265,230,40)){
+        importEditorJsonFile(editorSharePath());return;
+      }
       if(within(x,y,720,646,240,44)){startEditorPlay();return;}
       if(within(x,y,180,646,260,44)){
         if(!saveEditorDraft())editorDraftStatus="DRAFT SAVE FAILED";
@@ -742,6 +903,9 @@ struct Game {
       label(r,190,114,"LEVEL EDITOR - LOCAL DRAFT V1",2);
       label(r,190,147,editorDraftStatus+" / REAL ENGINE",2);
       renderBoardCells(r,editorBoard);
+      button(r,760,215,230,40,"EXPORT JSON");
+      button(r,760,265,230,40,"IMPORT JSON");
+      label(r,761,314,"FILE: NUTBUSTER-custom-level-v1.json",1);
       button(r,180,646,260,44,"SAVE DRAFT");
       button(r,452,646,260,44,"RELOAD DRAFT");
       button(r,720,646,240,44,"PLAY LEVEL");
@@ -1347,6 +1511,139 @@ bool editorAutosaveSelfTest(std::string& report){
     report=std::string("FAIL native editor autosave: ")+e.what();return false;
   }
 }
+bool editorJsonShareSelfTest(std::string& report){
+  try{
+    Game author;
+    author.levelEditorUnlocked=true;
+    author.savePath=fs::temp_directory_path()/
+      ("nutbuster-json-share-"+std::to_string(std::time(nullptr))+"-"+
+       std::to_string(std::clock())+".progress");
+    const fs::path share=author.editorSharePath();
+    // Test against a unique temporary directory-independent filename, never
+    // the real user's pref-path share file.
+    const fs::path fixture=fs::path(author.savePath.string()+".custom-share.json");
+    const fs::path staged=fs::path(fixture.string()+".staging");
+    int idx=-1;
+    for(int i=0;i<author.editorBoard.size();++i)
+      if(author.editorBoard.cell(i).exists()){idx=i;break;}
+    if(idx<0)throw std::runtime_error("missing authored nut");
+    const int baseline=author.editorBoard.tile(idx);
+    int changed=(baseline+1)%19;if(changed==12)changed=13;
+    if(!author.editorBoard.paintCell(idx,changed))
+      throw std::runtime_error("cannot paint exported sample");
+    std::ostringstream json;
+    if(!author.saveEditorJsonTo(json))throw std::runtime_error("JSON writer failed");
+    const std::string good=json.str();
+    if(good.find("{\"version\":1,\"width\":")!=0||
+       good.find("\"tiles\":[")==std::string::npos)
+      throw std::runtime_error("share JSON fields diverged from web V1");
+    Game imported;imported.levelEditorUnlocked=true;
+    std::istringstream input(good);
+    if(!imported.loadEditorJsonFrom(input)||imported.editorBoard.tile(idx)!=changed||
+       imported.board.tile(idx)!=baseline||!imported.editorDirty||
+       imported.editorDraftStatus!="IMPORTED JSON V1 - SAVE DRAFT")
+      throw std::runtime_error("web-compatible JSON did not round-trip");
+    for(int i=0;i<author.editorBoard.size();++i)
+      if(author.editorBoard.cell(i).exists()!=imported.editorBoard.cell(i).exists()||
+         (author.editorBoard.cell(i).exists()&&
+          author.editorBoard.tile(i)!=imported.editorBoard.tile(i)))
+        throw std::runtime_error("JSON import changed real tile/void geometry");
+    // JSON object key order is not significant, including ordinary whitespace.
+    std::ostringstream reversed;
+    reversed<<"{ \"tiles\": [";
+    for(int i=0;i<author.editorBoard.size();++i){
+      if(i)reversed<<", ";
+      if(!author.editorBoard.cell(i).exists())reversed<<"null";
+      else reversed<<author.editorBoard.tile(i);
+    }
+    reversed<<"], \"height\": "<<author.editorBoard.height()
+            <<", \"version\": 1, \"width\": "<<author.editorBoard.width()<<" }";
+    std::istringstream shuffled(reversed.str());
+    if(!imported.loadEditorJsonFrom(shuffled)||imported.editorBoard.tile(idx)!=changed)
+      throw std::runtime_error("reordered standards-compliant JSON rejected");
+    auto reject=[&](const std::string& payload,const char* reason){
+      std::istringstream bad(payload);
+      const size_t undoSize=imported.editorUndo.size();
+      if(imported.loadEditorJsonFrom(bad)||imported.editorBoard.tile(idx)!=changed||
+         imported.board.tile(idx)!=baseline||imported.editorUndo.size()!=undoSize||
+         imported.editorDraftStatus.find("REJECTED")==std::string::npos)
+        throw std::runtime_error(reason);
+    };
+    auto substituted=[](std::string value,const std::string& old,const std::string& next){
+      const auto at=value.find(old);
+      if(at==std::string::npos)throw std::runtime_error("missing JSON fixture field");
+      value.replace(at,old.size(),next);return value;
+    };
+    reject(substituted(good,"\"version\":1","\"version\":2"),"new version accepted");
+    reject(substituted(good,"\"width\":"+std::to_string(author.editorBoard.width()),
+        "\"width\":999"),"wrong size accepted");
+    reject(substituted(good,"\"tiles\":[","\"tiles\":[] , \"unused\":1, \"fake\":["),
+      "unknown or invalid tile schema accepted");
+    reject(substituted(good,"\"version\":1","\"version\":1,\"version\":1"),
+      "duplicate property accepted");
+    reject(good+"junk","trailing bytes accepted");
+    reject("{\"version\":1,\"width\":5,\"height\":4,\"tiles\":[null,]}",
+      "trailing tile comma accepted");
+    reject(std::string(16385,'x'),"oversized JSON accepted");
+    std::ostringstream invalidNut;
+    invalidNut<<"{\"version\":1,\"width\":"<<author.editorBoard.width()
+              <<",\"height\":"<<author.editorBoard.height()<<",\"tiles\":[";
+    for(int i=0;i<author.editorBoard.size();++i){
+      if(i)invalidNut<<',';
+      if(i==idx)invalidNut<<12;
+      else if(!author.editorBoard.cell(i).exists())invalidNut<<"null";
+      else invalidNut<<author.editorBoard.tile(i);
+    }
+    invalidNut<<"]}";
+    reject(invalidNut.str(),"retired nut accepted");
+    Game locked;
+    std::istringstream lockedInput(good);std::ostringstream lockedOutput;
+    if(locked.loadEditorJsonFrom(lockedInput)||locked.saveEditorJsonTo(lockedOutput))
+      throw std::runtime_error("locked profile imported or exported");
+    {
+      std::ofstream campaign(author.savePath,std::ios::binary);
+      campaign<<"CAMPAIGN_SENTINEL\n";
+    }
+    if(!author.exportEditorJsonFile(fixture)||!fs::exists(fixture)||
+       fs::exists(staged)||share==fixture)
+      throw std::runtime_error("atomic share file export failed");
+    Game disk;disk.levelEditorUnlocked=true;disk.savePath=author.savePath;
+    if(!disk.importEditorJsonFile(fixture)||disk.editorBoard.tile(idx)!=changed||
+       !disk.editorDirty||!disk.saveEditorDraft())
+      throw std::runtime_error("on-disk import/save failed");
+    Game restored;restored.levelEditorUnlocked=true;restored.savePath=author.savePath;
+    if(!restored.loadEditorDraft()||restored.editorBoard.tile(idx)!=changed||
+       restored.board.tile(idx)!=baseline)
+      throw std::runtime_error("imported share did not persist as independent draft");
+    // Rejected share must not replace the valid draft or campaign sentinel.
+    {
+      std::ofstream corrupt(fixture,std::ios::binary|std::ios::trunc);
+      corrupt<<"{\"version\":2}\n";
+    }
+    if(restored.importEditorJsonFile(fixture)||
+       restored.editorBoard.tile(idx)!=changed)
+      throw std::runtime_error("bad disk import destroyed existing draft");
+    {
+      std::ifstream campaign(author.savePath,std::ios::binary);
+      std::string sentinel;std::getline(campaign,sentinel);
+      if(sentinel!="CAMPAIGN_SENTINEL")
+        throw std::runtime_error("JSON sharing overwrote official campaign progress");
+    }
+    std::error_code error;
+    for(const fs::path& p:{fixture,staged,author.savePath,disk.draftPath(),
+        disk.draftStagePath(),disk.draftBackupPath()}){
+      fs::remove(p,error);
+      if(error)throw std::runtime_error("JSON fixture cleanup failed");
+    }
+    report="PASS native desktop Web V1 JSON export/import, reordered keys, "
+           "strict dimensions/version/tiles/nuts, atomic file round-trip, "
+           "relaunch draft and official campaign isolation";
+    return true;
+  }catch(const std::exception& e){
+    report=std::string("FAIL native editor JSON share: ")+e.what();return false;
+  }
+}
+
 }
 int main(int argc,char** argv){
   std::string screenshot,fixtureFile;int previewStage=0;bool self=false,previewMine=false,previewBoard=false,previewCampaign=false,smokeDig=false,smokeShop=false,previewEquip=false,previewRefinery=false;
@@ -1380,11 +1677,12 @@ int main(int argc,char** argv){
     bool boardOk=nut::selfTest(boardReport),mineOk=nut::mineSelfTest(mineReport);
     bool holdOk=holdUiSelfTest(holdReport),shopOk=shopUiSelfTest(shopReport);
     bool editorOk=editorProgressionSelfTest(editorReport);
-    std::string autosaveReport;
+    std::string autosaveReport,jsonReport;
     bool autosaveOk=editorAutosaveSelfTest(autosaveReport);
+    bool jsonOk=editorJsonShareSelfTest(jsonReport);
     std::cout<<boardReport<<"\n"<<mineReport<<"\n"<<holdReport<<"\n"
-             <<shopReport<<"\n"<<editorReport<<"\n"<<autosaveReport<<"\n";
-    return boardOk&&mineOk&&holdOk&&shopOk&&editorOk&&autosaveOk?0:1;
+             <<shopReport<<"\n"<<editorReport<<"\n"<<autosaveReport<<"\n"<<jsonReport<<"\n";
+    return boardOk&&mineOk&&holdOk&&shopOk&&editorOk&&autosaveOk&&jsonOk?0:1;
   }
   if(!fixtureFile.empty()){
     std::ifstream fixtures(fixtureFile);
