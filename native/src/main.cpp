@@ -378,6 +378,8 @@ struct Game {
     Game check;check.levelEditorUnlocked=true;
     std::ifstream input(stage,std::ios::binary);
     if(!input||!check.loadEditorJsonFrom(input))return false;
+    // Windows MoveFileEx cannot replace a stage still held by our own reader.
+    input.close();
     return replaceDraftFile(stage,target); // Do not truncate a previous good share.
   }
   bool importEditorJsonFile(const fs::path& source){
