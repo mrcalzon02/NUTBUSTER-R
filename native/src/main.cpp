@@ -206,6 +206,10 @@ struct Game {
   int editorNut=0;
   bool editorDraftLoaded=false;
   std::string editorDraftStatus="NOT SAVED";
+  bool editorSharePickerOpen=false;
+  size_t editorShareSelection=0;
+  std::vector<std::string> editorShareCandidates;
+  static constexpr size_t EDITOR_SHARE_PAGE=6;
   static constexpr uint64_t EDITOR_AUTOSAVE_IDLE_MS=900;
   bool editorDirty=false;
   uint64_t editorClockMs=0,editorLastEditMs=0;
@@ -390,6 +394,72 @@ struct Game {
     if(!in){editorDraftStatus="JSON IMPORT FAILED: FILE MISSING";return false;}
     return loadEditorJsonFrom(in);
   }
+  // The chooser only addresses plain regular files directly in the SDL pref folder.
+  // It does not grant arbitrary filesystem browsing or alter campaign persistence.
+  static bool safeEditorShareName(const std::string& name){
+    if(name.size()<6||name.size()>56||name.front()=='.'||
+       name.substr(name.size()-5)!=".json"||
+       name.find("..")!=std::string::npos)return false;
+    const fs::path part(name);
+    if(part.is_absolute()||part.has_parent_path()||part.filename().string()!=name)
+      return false;
+    for(unsigned char c:name)
+      if(!((c>='a'&&c<='z')||(c>='A'&&c<='Z')||
+           (c>='0'&&c<='9')||c=='-'||c=='_'||c=='.'))return false;
+    return true;
+  }
+  bool openEditorSharePicker(){
+    if(!levelEditorUnlocked||savePath.empty())return false;
+    std::error_code err;
+    fs::directory_iterator it(savePath.parent_path(),err),end;
+    if(err){editorDraftStatus="JSON FILE LIST UNAVAILABLE";return false;}
+    std::vector<std::string> candidates;
+    for(;it!=end&&!err;it.increment(err)){
+      const std::string name=it->path().filename().string();
+      if(!safeEditorShareName(name))continue;
+      std::error_code typeError;
+      if(fs::is_regular_file(it->symlink_status(typeError))&&!typeError)
+        candidates.push_back(name);
+    }
+    if(err){editorDraftStatus="JSON FILE LIST FAILED";return false;}
+    std::sort(candidates.begin(),candidates.end());
+    candidates.erase(std::unique(candidates.begin(),candidates.end()),candidates.end());
+    if(candidates.size()>48)candidates.resize(48);
+    editorShareCandidates=std::move(candidates);
+    editorShareSelection=0;editorSharePickerOpen=true;
+    editorDraftStatus=editorShareCandidates.empty()?
+      "NO LOCAL JSON FILES":"SELECT LOCAL JSON V1 SHARE FILE";
+    return true;
+  }
+  bool importSelectedEditorShare(){
+    if(!editorSharePickerOpen||editorShareSelection>=editorShareCandidates.size()||
+       savePath.empty())return false;
+    const std::string name=editorShareCandidates[editorShareSelection];
+    if(!safeEditorShareName(name)){
+      editorDraftStatus="JSON IMPORT FAILED: UNSAFE FILE";return false;
+    }
+    const fs::path target=savePath.parent_path()/name;
+    std::error_code err;
+    if(!fs::is_regular_file(fs::symlink_status(target,err))||err){
+      editorDraftStatus="JSON IMPORT FAILED: INVALID FILE";return false;
+    }
+    if(!importEditorJsonFile(target))return false;
+    editorSharePickerOpen=false;editorShareCandidates.clear();
+    return true;
+  }
+  bool editorSharePickerKey(SDL_Keycode key){
+    if(!editorSharePickerOpen||scene!=Scene::Editor)return false;
+    if(key==SDLK_ESCAPE){editorSharePickerOpen=false;return true;}
+    if(!editorShareCandidates.empty()&&(key==SDLK_UP||key==SDLK_DOWN)){
+      editorShareSelection=(editorShareSelection+editorShareCandidates.size()+
+        (key==SDLK_UP?editorShareCandidates.size()-1:1))%editorShareCandidates.size();
+      return true;
+    }
+    if(key==SDLK_RETURN||key==SDLK_KP_ENTER){
+      importSelectedEditorShare();return true;
+    }
+    return false;
+  }
   fs::path draftStagePath()const{return fs::path(draftPath().string()+".staging");}
   fs::path draftBackupPath()const{return fs::path(draftPath().string()+".backup");}
   bool validDraftFile(const fs::path& path)const{
@@ -483,6 +553,7 @@ struct Game {
   bool openEditor(){
     if(!levelEditorUnlocked)return false;
     if(!editorDraftLoaded){editorDraftLoaded=true;loadEditorDraft();}
+    editorSharePickerOpen=false;
     selected=-1;scene=Scene::Editor;return true;
   }
   bool paintEditorCell(int i,int type){
@@ -607,6 +678,28 @@ struct Game {
   }
   int cellAt(float x,float y)const{return cellAt(x,y,board);}
   void click(float x,float y){
+    if(scene==Scene::Editor&&editorSharePickerOpen){
+      if(within(x,y,24,20,145,46)||within(x,y,540,553,230,40)){
+        editorSharePickerOpen=false;return;
+      }
+      const size_t page=editorShareSelection/EDITOR_SHARE_PAGE;
+      if(within(x,y,675,262,60,35)&&page>0){
+        editorShareSelection=(page-1)*EDITOR_SHARE_PAGE;return;
+      }
+      if(within(x,y,745,262,60,35)&&
+         (page+1)*EDITOR_SHARE_PAGE<editorShareCandidates.size()){
+        editorShareSelection=(page+1)*EDITOR_SHARE_PAGE;return;
+      }
+      for(size_t row=0;row<EDITOR_SHARE_PAGE;++row){
+        const size_t index=page*EDITOR_SHARE_PAGE+row;
+        if(index<editorShareCandidates.size()&&
+           within(x,y,260,float(315+row*38),500,32)){
+          editorShareSelection=index;return;
+        }
+      }
+      if(within(x,y,270,553,240,40))importSelectedEditorShare();
+      return; // No paint, undo, play or save through the modal.
+    }
     if(scene==Scene::Menu){
       if(within(x,y,324,238,376,66)){selectedLevel=std::clamp(selectedLevel,1,unlocked);scene=Scene::Campaign;}
       else if(within(x,y,324,332,376,66)&&unlocked>500)makeMine();
@@ -709,7 +802,7 @@ struct Game {
         return;
       }
       if(within(x,y,760,265,230,40)){
-        importEditorJsonFile(editorSharePath());return;
+        openEditorSharePicker();return;
       }
       if(within(x,y,720,646,240,44)){startEditorPlay();return;}
       if(within(x,y,180,646,260,44)){
@@ -918,6 +1011,27 @@ struct Game {
       sprite(r,std::string("nuts/")+NUTS.at(size_t(editorNut)),890,115,40,40);
       label(r,834,167,"NUT "+std::to_string(editorNut+1),1);
       label(r,720,184,"UNDO "+std::to_string(editorUndo.size())+" / REDO "+std::to_string(editorRedo.size()),1);
+      if(editorSharePickerOpen){
+        fill(r,214,218,610,385,{24,13,31,255});
+        fill(r,220,224,598,373,{48,27,50,255});
+        label(r,255,243,"LOCAL JSON V1 SHARE FILES",2);
+        label(r,255,273,"FILES "+std::to_string(editorShareCandidates.size())+
+          " PAGE "+std::to_string(editorShareSelection/EDITOR_SHARE_PAGE+1),1);
+        button(r,675,262,60,35,"<");
+        button(r,745,262,60,35,">");
+        label(r,255,296,editorDraftStatus,1);
+        const size_t first=editorShareSelection/EDITOR_SHARE_PAGE*EDITOR_SHARE_PAGE;
+        for(size_t row=0;row<EDITOR_SHARE_PAGE;++row){
+          const size_t item=first+row;
+          if(item>=editorShareCandidates.size())break;
+          fill(r,260,float(315+row*38),500,32,item==editorShareSelection?
+            SDL_Color{121,79,91,255}:SDL_Color{64,38,65,255});
+          label(r,270,float(325+row*38),
+            std::string(item==editorShareSelection?"> ":"  ")+editorShareCandidates[item],1);
+        }
+        button(r,270,553,240,40,"LOAD SELECTED");
+        button(r,540,553,230,40,"CANCEL");
+      }
     } else if(scene==Scene::Mine){
       button(r,175,111,180,42,"EXCAVATE");
       button(r,365,111,180,42,"EQUIPMENT");
@@ -1646,6 +1760,91 @@ bool editorJsonShareSelfTest(std::string& report){
   }
 }
 
+bool editorJsonPickerSelfTest(std::string& report){
+  try{
+    const fs::path folder=fs::temp_directory_path()/
+      ("nutbuster-picker-"+std::to_string(std::time(nullptr))+"-"+std::to_string(std::clock()));
+    if(!fs::create_directory(folder))throw std::runtime_error("fixture folder creation");
+    Game sample;sample.levelEditorUnlocked=true;sample.savePath=folder/"progress.txt";
+    int index=-1;
+    for(int i=0;i<sample.editorBoard.size();++i)
+      if(sample.editorBoard.cell(i).exists()){index=i;break;}
+    if(index<0)throw std::runtime_error("no valid fixture tile");
+    const int baseline=sample.editorBoard.tile(index);
+    auto next=[](int value){int t=(value+1)%19;return t==12?13:t;};
+    const int alpha=next(baseline),bravo=next(alpha);
+    auto writeJson=[&](const std::string& name,int tile){
+      Game source;source.levelEditorUnlocked=true;
+      if(!source.editorBoard.paintCell(index,tile))throw std::runtime_error("fixture paint");
+      std::ofstream output(folder/name,std::ios::binary);
+      if(!output||!source.saveEditorJsonTo(output))throw std::runtime_error("fixture JSON");
+      output.close();if(!output)throw std::runtime_error("fixture close");
+    };
+    writeJson("alpha-level.json",alpha);writeJson("bravo-level.json",bravo);
+    {std::ofstream bad(folder/"bad-level.json");bad<<"{\"version\":2}\n";}
+    {std::ofstream ignored(folder/"ignore.txt");ignored<<"ignored";}
+    {std::ofstream hidden(folder/".hidden.json");hidden<<"ignored";}
+    fs::create_directory(folder/"folder.json");
+    {std::ofstream campaign(sample.savePath);campaign<<"CAMPAIGN_SENTINEL\n";}
+    if(Game::safeEditorShareName("../escape.json")||
+       Game::safeEditorShareName("bad\\name.json")||
+       Game::safeEditorShareName("/absolute.json")||
+       Game::safeEditorShareName(".hidden.json")||
+       Game::safeEditorShareName("bad.json.staging"))
+      throw std::runtime_error("unsafe basename/extension accepted");
+    Game picker;picker.levelEditorUnlocked=true;picker.savePath=sample.savePath;
+    picker.scene=Game::Scene::Editor;
+    picker.click(800,282); // Real mouse target opens file picker.
+    if(!picker.editorSharePickerOpen||picker.editorShareCandidates.size()!=3||
+       picker.editorShareCandidates[0]!="alpha-level.json"||
+       picker.editorShareCandidates[1]!="bad-level.json"||
+       picker.editorShareCandidates[2]!="bravo-level.json")
+      throw std::runtime_error("chooser omitted/sorted unsafe files");
+    picker.click(290,325);picker.click(360,569); // Mouse select and load alpha.
+    if(picker.editorSharePickerOpen||picker.editorBoard.tile(index)!=alpha||
+       picker.board.tile(index)!=baseline||!picker.editorDirty)
+      throw std::runtime_error("mouse chooser failed to import alpha");
+    picker.click(800,282);
+    picker.editorSharePickerKey(SDLK_DOWN); // Select invalid version.
+    picker.editorSharePickerKey(SDLK_RETURN);
+    if(!picker.editorSharePickerOpen||picker.editorBoard.tile(index)!=alpha||
+       picker.board.tile(index)!=baseline||
+       picker.editorDraftStatus.find("REJECTED")==std::string::npos)
+      throw std::runtime_error("corrupt share replaced valid draft");
+    picker.click(600,440);
+    if(picker.editorBoard.tile(index)!=alpha)
+      throw std::runtime_error("modal click repainted board");
+    picker.editorSharePickerKey(SDLK_DOWN); // Move to bravo.
+    picker.editorSharePickerKey(SDLK_KP_ENTER);
+    if(picker.editorSharePickerOpen||picker.editorBoard.tile(index)!=bravo||
+       picker.board.tile(index)!=baseline||!picker.editorDirty||
+       !picker.editorUndo.empty()||!picker.editorRedo.empty())
+      throw std::runtime_error("keyboard chooser failed to import bravo");
+    if(!picker.flushEditorAutosave())throw std::runtime_error("selected JSON autosave");
+    Game restarted;restarted.levelEditorUnlocked=true;restarted.savePath=sample.savePath;
+    if(!restarted.loadEditorDraft()||restarted.editorBoard.tile(index)!=bravo||
+       restarted.board.tile(index)!=baseline)
+      throw std::runtime_error("selected JSON draft missing after restart");
+    picker.click(800,282);picker.editorSharePickerKey(SDLK_ESCAPE);
+    if(picker.editorSharePickerOpen||picker.scene!=Game::Scene::Editor)
+      throw std::runtime_error("Escape did not cancel just picker");
+    picker.click(800,282);picker.click(580,570);
+    if(picker.editorSharePickerOpen||picker.editorBoard.tile(index)!=bravo)
+      throw std::runtime_error("Cancel mutated draft");
+    {std::ifstream saved(sample.savePath);std::string sentinel;
+     std::getline(saved,sentinel);
+     if(sentinel!="CAMPAIGN_SENTINEL")
+       throw std::runtime_error("chooser modified official campaign save");}
+    std::error_code err;fs::remove_all(folder,err);
+    if(err)throw std::runtime_error("fixture cleanup");
+    report="PASS native JSON selector mouse/keyboard two-file import, corrupt rejection, "
+           "safe local paths, modal isolation, autosave/restart, campaign separation";
+    return true;
+  }catch(const std::exception& e){
+    report=std::string("FAIL native JSON selector: ")+e.what();return false;
+  }
+}
+
 }
 int main(int argc,char** argv){
   std::string screenshot,fixtureFile;int previewStage=0;bool self=false,previewMine=false,previewBoard=false,previewCampaign=false,smokeDig=false,smokeShop=false,previewEquip=false,previewRefinery=false;
@@ -1679,12 +1878,14 @@ int main(int argc,char** argv){
     bool boardOk=nut::selfTest(boardReport),mineOk=nut::mineSelfTest(mineReport);
     bool holdOk=holdUiSelfTest(holdReport),shopOk=shopUiSelfTest(shopReport);
     bool editorOk=editorProgressionSelfTest(editorReport);
-    std::string autosaveReport,jsonReport;
+    std::string autosaveReport,jsonReport,pickerReport;
     bool autosaveOk=editorAutosaveSelfTest(autosaveReport);
     bool jsonOk=editorJsonShareSelfTest(jsonReport);
+    bool pickerOk=editorJsonPickerSelfTest(pickerReport);
     std::cout<<boardReport<<"\n"<<mineReport<<"\n"<<holdReport<<"\n"
-             <<shopReport<<"\n"<<editorReport<<"\n"<<autosaveReport<<"\n"<<jsonReport<<"\n";
-    return boardOk&&mineOk&&holdOk&&shopOk&&editorOk&&autosaveOk&&jsonOk?0:1;
+             <<shopReport<<"\n"<<editorReport<<"\n"<<autosaveReport<<"\n"
+             <<jsonReport<<"\n"<<pickerReport<<"\n";
+    return boardOk&&mineOk&&holdOk&&shopOk&&editorOk&&autosaveOk&&jsonOk&&pickerOk?0:1;
   }
   if(!fixtureFile.empty()){
     std::ifstream fixtures(fixtureFile);
@@ -1787,10 +1988,14 @@ int main(int argc,char** argv){
           std::cerr<<"Native editor draft autosave failed during quit\n";
         running=false;
       }
-      if(event.type==SDL_EVENT_KEY_DOWN&&event.key.key==SDLK_ESCAPE){
-        if(game.scene!=Game::Scene::Editor||game.flushEditorAutosave()){
-          game.scene=game.scene==Game::Scene::Playtest?Game::Scene::Editor:Game::Scene::Menu;
-          game.selected=-1;
+      if(event.type==SDL_EVENT_KEY_DOWN){
+        if(game.scene==Game::Scene::Editor&&game.editorSharePickerOpen)
+          game.editorSharePickerKey(event.key.key);
+        else if(event.key.key==SDLK_ESCAPE){
+          if(game.scene!=Game::Scene::Editor||game.flushEditorAutosave()){
+            game.scene=game.scene==Game::Scene::Playtest?Game::Scene::Editor:Game::Scene::Menu;
+            game.selected=-1;
+          }
         }
       }
       if(event.type==SDL_EVENT_MOUSE_BUTTON_DOWN&&event.button.button==SDL_BUTTON_LEFT){
