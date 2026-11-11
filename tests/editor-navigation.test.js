@@ -3,19 +3,41 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const E=require('../web/engine.js'),P=require('../web/progression.js');
 const source=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
 function boot(store){
- let html='',listeners={};
+ let html='',listeners={},windowEvents={},documentEvents={},nextTimer=0,now=0,recoveryWritable=true;
+ const timers=new Map(),recoveryKey='nutbuster.custom-level.recovery.v1';
  const screen={classList:{toggle(){}},addEventListener:(k,fn)=>listeners[k]=fn,
   set innerHTML(s){html=s;},get innerHTML(){return html;},querySelectorAll:()=>[],querySelector:()=>null};
  const toast={textContent:'',classList:{add(){},remove(){}}};
- const document={getElementById:k=>k==='screen'?screen:k==='toast'?toast:null,querySelectorAll:()=>[],querySelector:()=>null};
- const localStorage={getItem:k=>store[k]||null,setItem:(k,v)=>{store[k]=v;}};
+ const document={visibilityState:'visible',getElementById:k=>k==='screen'?screen:k==='toast'?toast:null,
+  querySelectorAll:()=>[],querySelector:()=>null,addEventListener:(k,fn)=>documentEvents[k]=fn};
+ const localStorage={getItem:k=>store[k]??null,setItem:(k,v)=>{
+  if(k===recoveryKey&&!recoveryWritable)throw new Error('simulated WebView quota/storage failure');
+  store[k]=v;
+ },removeItem:k=>{delete store[k];}};
  const window={NutEngine:E,NutProgress:P,NutDailyMoves:require('../web/daily-moves.js'),
   NutBenefits:require('../web/benefits.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),
   NutElementalRewards:require('../web/elemental-rewards.js'),NutCampaignMaps:require('../web/campaign-maps.js'),
   NutHomestead:require('../web/homestead.js'),NutAvatarArt:require('../web/avatar-art.js'),
-  NutPurchases:require('../web/purchase-disclosures.js'),addEventListener(){}};
- vm.runInNewContext(source,{window,document,localStorage,console,setTimeout:()=>1,clearTimeout:()=>{}});
- return {app:window.NutbusterApp,html:()=>html,click:dataset=>listeners.click({target:{closest:()=>({dataset})}})};
+  NutPurchases:require('../web/purchase-disclosures.js'),addEventListener:(k,fn)=>windowEvents[k]=fn};
+ const setTimeout=(fn,delay)=>{const id=++nextTimer;timers.set(id,{fn,at:now+delay});return id;};
+ const clearTimeout=id=>timers.delete(id);
+ vm.runInNewContext(source,{window,document,localStorage,console,setTimeout,clearTimeout});
+ return {
+  app:window.NutbusterApp,html:()=>html,click:dataset=>listeners.click({target:{closest:()=>({dataset})}}),
+  advance(ms){
+   const end=now+ms;
+   while(true){
+    let due=null;
+    for(const [id,timer] of timers)if(timer.at<=end&&(!due||timer.at<due.timer.at))due={id,timer};
+    if(!due)break;
+    now=due.timer.at;timers.delete(due.id);due.timer.fn();
+   }
+   now=end;
+  },
+  background(){document.visibilityState='hidden';documentEvents.visibilitychange?.();},
+  pagehide(){windowEvents.pagehide?.();},
+  recoveryWritable(value){recoveryWritable=value;}
+ };
 }
 const locked=boot({});
 assert.match(locked.html(),/LEVEL EDITOR · CLEAR 1000 TO UNLOCK/);
@@ -59,9 +81,17 @@ app.click({action:'editor-back'});assert.equal(app.app.getState().page,'home');
 app.click({nav:'editor'});assert.equal(app.app.getState().editor.cells[i].type,next);
 const draftKey='nutbuster.custom-level.draft.v1';
 assert.equal(store[draftKey],undefined,'painting must not silently overwrite a saved draft');
+const recoveryKey='nutbuster.custom-level.recovery.v1';
+app.advance(899);
+assert.equal(store[recoveryKey],undefined,'debounce must not save before 900ms');
+app.advance(1);
+assert.equal(JSON.parse(store[recoveryKey]).tiles[i],next,'painted nut must autosave after idle');
+assert.equal(app.app.getState().editorStatus,'AUTOSAVED V1 DRAFT');
+assert.equal(store[draftKey],undefined,'autosave must not overwrite explicit SAVE DRAFT');
 const campaignBytes=store['nutbuster.v1'];
 app.click({action:'editor-save'});
 assert.ok(store[draftKey],'explicit save must write an independent local draft');
+assert.equal(store[recoveryKey],undefined,'explicit Save clears superseded recovery');
 const valid=JSON.parse(store[draftKey]);
 assert.equal(valid.version,1);
 assert.equal(valid.width,g.cfg.width);assert.equal(valid.height,g.cfg.height);
@@ -71,7 +101,10 @@ const draftOnDisk=store[draftKey];
 app.click({action:'editor-select',type:String(before)});
 app.click({cell:String(i)});
 assert.equal(app.app.getState().editor.cells[i].type,before);
+app.advance(900);
+assert.equal(JSON.parse(store[recoveryKey]).tiles[i],before,'new paint autosaves a separate working copy');
 app.click({action:'editor-load'});
+assert.equal(store[recoveryKey],undefined,'manual Reload discards superseded recovery');
 assert.equal(app.app.getState().editor.cells[i].type,next,'load should restore real painted cells');
 assert.equal(app.app.getState().editorUndo.length,0,'successful reload clears obsolete Undo history');
 assert.equal(app.app.getState().editorRedo.length,0,'successful reload clears obsolete Redo history');
@@ -108,6 +141,47 @@ lockedWithDraft.app.nav('editor');
 assert.equal(lockedWithDraft.app.getState().page,'home');
 assert.equal(lockedWithDraft.app.getState().editor,null);
 assert.equal(store[draftKey],draftOnDisk,'corruption probes must not alter the saved draft');
+// Validated autosave recovery across restart, exit, page lifecycle, corruption and failed writes.
+const autosaveStore={'nutbuster.v1':JSON.stringify({unlocked:1000,stars:{1000:1}})};
+const automatic=boot(autosaveStore);automatic.app.nav('editor');
+const autoIndex=automatic.app.getState().editor.cells.findIndex(Boolean);
+const oldType=automatic.app.getState().editor.cells[autoIndex].type,newType=oldType===0?1:0;
+const originalCampaign=autosaveStore['nutbuster.v1'];
+automatic.click({action:'editor-select',type:String(newType)});automatic.click({cell:String(autoIndex)});
+automatic.advance(900);
+assert.equal(JSON.parse(autosaveStore[recoveryKey]).tiles[autoIndex],newType);
+assert.equal(autosaveStore[draftKey],undefined,'autosave must not invent explicit manual save');
+assert.equal(autosaveStore['nutbuster.v1'],originalCampaign,'autosave cannot alter campaign');
+const recovered=boot(autosaveStore);recovered.app.nav('editor');
+assert.equal(recovered.app.getState().editor.cells[autoIndex].type,newType,'relaunch must recover idle edits');
+assert.equal(recovered.app.getState().editorStatus,'AUTOSAVED V1 DRAFT RECOVERED');
+assert.equal(recovered.app.getState().editorUndo.length,0,'recovery starts fresh undo history');
+const exitStore={'nutbuster.v1':originalCampaign},exitApp=boot(exitStore);exitApp.app.nav('editor');
+exitApp.click({action:'editor-select',type:String(newType)});exitApp.click({cell:String(autoIndex)});
+exitApp.click({action:'editor-back'});
+assert.equal(JSON.parse(exitStore[recoveryKey]).tiles[autoIndex],newType,'editor exit flushes before 900ms');
+const backgroundStore={'nutbuster.v1':originalCampaign},backgroundApp=boot(backgroundStore);
+backgroundApp.app.nav('editor');backgroundApp.click({action:'editor-select',type:String(newType)});
+backgroundApp.click({cell:String(autoIndex)});backgroundApp.background();
+assert.equal(JSON.parse(backgroundStore[recoveryKey]).tiles[autoIndex],newType,'WebView background flushes');
+const hideStore={'nutbuster.v1':originalCampaign},hideApp=boot(hideStore);
+hideApp.app.nav('editor');hideApp.click({action:'editor-select',type:String(newType)});
+hideApp.click({cell:String(autoIndex)});hideApp.pagehide();
+assert.equal(JSON.parse(hideStore[recoveryKey]).tiles[autoIndex],newType,'pagehide flushes');
+const failureStore={'nutbuster.v1':originalCampaign},failed=boot(failureStore);
+failed.app.nav('editor');failed.recoveryWritable(false);
+failed.click({action:'editor-select',type:String(newType)});failed.click({cell:String(autoIndex)});
+failed.advance(900);
+assert.match(failed.app.getState().editorStatus,/AUTOSAVE FAILED/);
+assert.equal(failureStore[recoveryKey],undefined,'failed write cannot be reported as durable');
+failed.recoveryWritable(true);failed.advance(4000);
+assert.equal(JSON.parse(failureStore[recoveryKey]).tiles[autoIndex],newType,'bounded retry preserves edits');
+const corruptedStore={'nutbuster.v1':originalCampaign,[draftKey]:draftOnDisk,[recoveryKey]:'{broken'};
+const corrupted=boot(corruptedStore);corrupted.app.nav('editor');
+assert.equal(corrupted.app.getState().editor.cells[i].type,next,'corrupt recovery falls back to manual save');
+assert.match(corrupted.app.getState().editorStatus,/AUTO-RECOVERY DRAFT REJECTED/);
+assert.equal(corruptedStore[draftKey],draftOnDisk,'corrupt recovery never destroys manual save');
+assert.equal(corruptedStore['nutbuster.v1'],originalCampaign);
 // Run a valid authored board through the real engine and return mid-cascade without side effects.
 const playStore={'nutbuster.v1':JSON.stringify({unlocked:1000,stars:{1000:1}})};
 const play=boot(playStore);play.click({nav:'editor'});
@@ -157,4 +231,4 @@ play.click({action:'editor-save'});
 assert.match(play.html(),/PLAYTEST NOT READY/,'invalid playable state may be saved as an editable draft, with a visible warning');
 assert.ok(playStore[draftKey],'an unplayable draft must remain editable after save');
 assert.equal(playStore['nutbuster.v1'],campaignBefore,'warning must not change official progress');
-console.log('PASS Level Editor: entitlement, real paint, Undo/Redo, invalid dimension/void warnings, safe V1 draft persistence, pre-match save warning, campaign isolation, reversible real-engine playtest');
+console.log('PASS Level Editor: entitlement, real paint, Undo/Redo, WebView idle/background/crash recovery, bounded storage retry, manual save isolation, invalid drafts, reversible engine playtest');

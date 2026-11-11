@@ -455,6 +455,20 @@
         "linux": "The native C++17 SDL3 Linux preview likewise has no WebView animation promise or DOM nut visual to unlock. Its independent rendering and outstanding gameplay parity gaps are unchanged; native production remains blocked pending separate feature verification."
       },
       "decision": "Four-target review for a mobile WebView-only animation-lifecycle deadlock repair, not a change to matching, scoring, gravity, saved state, assets or native C++ logic. UI regression verifies bounded cancellation and every playable nut's sprite/fallback markup after recovery; the independent native preview remains partial, and actual Android/Fire installed-device proof is still required before closing #1."
+    },
+    {
+      "id": "webview-editor-autosave-recovery-2026-11-10",
+      "sourceChange": [
+        "web/game.js"
+      ],
+      "test": "tests/editor-navigation.test.js",
+      "targetImpact": {
+        "android": "The Android WebView Level Editor gains a separate validated local recovery draft after 900 ms idle, on pagehide/background or editor exit, with bounded storage retry and no overwrite of manually saved draft or campaign progress. Node tests verify simulated lifecycle and restart; physical-device editor input remains unverified.",
+        "fire_os": "The signed Android/Fire OS APK shares precisely the same WebView JavaScript recovery path. API30 AOSP tablet is only a Fire compatibility proxy, not physical Fire OS or power-loss certification.",
+        "windows": "Independent Windows SDL3 native editor already implements its own 900 ms edit autosave and restart persistence, verified in prior native CI. The new WebView localStorage implementation does not change SDL3 code, native save formats or preview-only parity status.",
+        "linux": "Independent Linux SDL3 editor already has native edit autosave; the WebView working-copy recovery is not used in the C++ runtime. No new Linux code or production parity claim; native feature status remains preview-partial."
+      },
+      "decision": "Four-target accountability review of mobile-only WebView draft autosave, complementing previously tested native desktop autosave. Maintain separate explicit V1 manual Save, campaign isolation, native preview gaps, existing release gates and outstanding physical Android/Fire OS acceptance."
     }
   ]
 }

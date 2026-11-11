@@ -4,11 +4,11 @@ const icons=['🥜','🌰','🌰','🥜','🌰','🟢','🌟'];
 const D=window.NutDailyMoves, B=window.NutBenefits, T=window.NutElementalChallenges, R=window.NutElementalRewards;
 if(!D||!T||!R)throw new Error('Daily moves and elemental reward modules must load before gameplay');
 const Mines=window.NutvaleMines, MineUI=window.NutvaleMinesUI, Comp=window.NutCompanions, CompUI=window.NutCompanionsUI, Crates=window.NutCrates;
- const key='nutbuster.v1',editorDraftKey='nutbuster.custom-level.draft.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,announcerVoice:'original',levels:{voice:.9,music:.28,reactions:.38,sfx:.48},effects:true,completed:0};
+ const key='nutbuster.v1',editorDraftKey='nutbuster.custom-level.draft.v1',editorRecoveryKey='nutbuster.custom-level.recovery.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,announcerVoice:'original',levels:{voice:.9,music:.28,reactions:.38,sfx:.48},effects:true,completed:0};
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);R.ensure(saved);H.ensure(saved);A.ensure(saved);if(Comp)Comp.ensure(saved);if(!['original','auditor','diva'].includes(saved.announcerVoice))saved.announcerVoice='original';D.ensure(saved,Date.now(),E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,crateReveal:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null,editor:null,editorNut:0,editorBack:'home',editorStatus:'NOT SAVED',editorPlay:false,editorPlayMessage:'',editorUndo:[],editorRedo:[]};let toastHandle;
+let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,crateReveal:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null,editor:null,editorNut:0,editorBack:'home',editorStatus:'NOT SAVED',editorPlay:false,editorPlayMessage:'',editorUndo:[],editorRedo:[]};let toastHandle,editorAutosaveTimer=null,editorDirty=false,editorAutosaveFailures=0;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});window.NutAudio.setAnnouncerVoice?.(saved.announcerVoice);}
 if(window.NutSFX){window.NutSFX.setEnabled(state.effects);window.NutSFX.setVolume(saved.levels.sfx);}
 function playSFX(name,opts){window.NutSFX?.play(name,opts);}
@@ -40,21 +40,22 @@ function decodeEditorDraft(raw){
  }
  return board;
 }
-function readEditorDraft(){
+function readEditorDraft(storageKey=editorDraftKey){
  if(!P.hasLevelEditor(saved))return false;
  try{
-  const encoded=localStorage.getItem(editorDraftKey);
+  const encoded=localStorage.getItem(storageKey);
   if(encoded===null){state.editorStatus='NO SAVED DRAFT';return false;}
   const raw=JSON.parse(encoded),problem=editorDraftIssue(raw);
   if(problem){state.editorStatus='DRAFT REJECTED · '+problem;return false;}
   const board=decodeEditorDraft(raw);
   if(!board){state.editorStatus='DRAFT REJECTED · INVALID NUT OR VOID MASK';return false;}
-  state.editor=board;state.editorStatus='SAVED V1 DRAFT LOADED';
-   state.editorUndo=[];state.editorRedo=[];
+  state.editor=board;
+  state.editorStatus=storageKey===editorRecoveryKey?'AUTOSAVED V1 DRAFT RECOVERED':'SAVED V1 DRAFT LOADED';
+  state.editorUndo=[];state.editorRedo=[];
   return true;
  }catch(_){state.editorStatus='DRAFT REJECTED · MALFORMED JSON';return false;}
 }
-function writeEditorDraft(){
+function writeEditorDraft(storageKey=editorDraftKey){
  if(!P.hasLevelEditor(saved)||!state.editor)return false;
  const board=state.editor;
  const draft={version:1,width:board.cfg.width,height:board.cfg.height,
@@ -62,9 +63,43 @@ function writeEditorDraft(){
  if(!decodeEditorDraft(draft))return false;
  try{
   const encoded=JSON.stringify(draft);
-  localStorage.setItem(editorDraftKey,encoded);
-  return localStorage.getItem(editorDraftKey)===encoded;
+  localStorage.setItem(storageKey,encoded);
+  return localStorage.getItem(storageKey)===encoded;
  }catch(_){return false;}
+}
+// Auto-recovery is a working copy; SAVE DRAFT remains an explicit, separate slot.
+function cancelEditorAutosave(){
+ if(editorAutosaveTimer!==null){clearTimeout(editorAutosaveTimer);editorAutosaveTimer=null;}
+}
+function clearEditorRecovery(){
+ try{localStorage.removeItem(editorRecoveryKey);return localStorage.getItem(editorRecoveryKey)===null;}
+ catch(_){return false;}
+}
+function flushEditorAutosave(){
+ cancelEditorAutosave();
+ if(!editorDirty)return true;
+ const ok=writeEditorDraft(editorRecoveryKey);
+ if(ok){
+  editorDirty=false;editorAutosaveFailures=0;state.editorStatus='AUTOSAVED V1 DRAFT';
+ }else{
+  state.editorStatus='AUTOSAVE FAILED · DRAFT STILL IN MEMORY';
+  if(editorAutosaveFailures<3){
+   const delay=4000*Math.pow(2,editorAutosaveFailures++);
+   editorAutosaveTimer=setTimeout(flushEditorAutosave,delay);
+  }
+ }
+ const status=screen.querySelector?.('.play-title span');
+ if(state.page==='editor'&&status)status.textContent=state.editorStatus+' · REAL BOARD';
+ return ok;
+}
+function queueEditorAutosave(){
+ editorDirty=true;editorAutosaveFailures=0;cancelEditorAutosave();
+ editorAutosaveTimer=setTimeout(flushEditorAutosave,900);
+}
+function settleEditorRecoveryAfterExplicitLoad(){
+ cancelEditorAutosave();editorDirty=false;editorAutosaveFailures=0;
+ // If deletion fails, replace stale working-copy content with the current draft.
+ return clearEditorRecovery()||writeEditorDraft(editorRecoveryKey);
 }
 function dailyCap(){return E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves;}
 function syncDaily(now=Date.now()){
@@ -134,11 +169,18 @@ function notice(message){const n=document.getElementById('toast');n.textContent=
 function announce(txt,clip){state.announcer=clip?(window.NutAudio?.caption?.(clip,txt)||txt):txt;const el=document.getElementById('announcer');if(el)el.textContent=state.announcer;if(state.sound&&clip)window.NutAudio?.voice(clip);}
 const $=(selector)=>document.querySelector(selector);
 function nav(page){
+ if(state.page==='editor'&&page!=='editor'&&editorDirty)flushEditorAutosave();
  if(state.editorPlay){if(page==='editor')returnEditorPlay();return;}
  if(page==='editor'){
   if(!P.hasLevelEditor(saved)){notice('COMPLETE LEVEL 1000 TO UNLOCK THE LEVEL EDITOR');return;}
   if(state.page!=='editor')state.editorBack=state.page;
-  if(!state.editor){if(!readEditorDraft())state.editor=E.create(1,7919);}
+  if(!state.editor){
+   if(!readEditorDraft(editorRecoveryKey)){
+    const rejected=state.editorStatus.startsWith('DRAFT REJECTED')?state.editorStatus:'';
+    if(!readEditorDraft())state.editor=E.create(1,7919);
+    if(rejected)state.editorStatus='AUTO-RECOVERY '+rejected;
+   }
+  }
  }
  // Header currency buttons and bottom tabs may target the page already on screen.
  // Replacing #screen.innerHTML for a no-op navigation reloads sprites and visibly flashes on Android.
@@ -409,6 +451,7 @@ function editor(){
 }
 // Playtest state is a disposable clone of a validated editor draft, not campaign progression.
 function startEditorPlay(){
+ if(editorDirty)flushEditorAutosave();
  if(state.page!=='editor'||!P.hasLevelEditor(saved)||!state.editor)return false;
  const b=state.editor;
  const draft={version:1,width:b.cfg.width,height:b.cfg.height,tiles:b.cells.map(c=>c?c.type:null)};
@@ -436,7 +479,7 @@ function editorCell(i){
  state.editorUndo.push({i,before,after:t});
  if(state.editorUndo.length>100)state.editorUndo.shift();
  state.editorRedo=[];
- state.editorStatus='UNSAVED EDITS';state.editorPlayMessage='';render();
+ state.editorStatus='UNSAVED EDITS';state.editorPlayMessage='';queueEditorAutosave();render();
 }
 function stepEditorHistory(undo){
  if(state.page!=='editor'||!P.hasLevelEditor(saved)||!state.editor)return false;
@@ -446,7 +489,7 @@ function stepEditorHistory(undo){
  if(!cell||cell.type!==(undo?change.after:change.before))return false;
  cell.type=undo?change.before:change.after;
  from.pop();to.push(change);
- state.editorStatus='UNSAVED EDITS';state.editorPlayMessage='';render();
+ state.editorStatus='UNSAVED EDITS';state.editorPlayMessage='';queueEditorAutosave();render();
  return true;
 }
 function paintCells(cells){
@@ -1191,18 +1234,21 @@ function action(a,button){
  if(a==='editor-undo'&&state.page==='editor'){stepEditorHistory(true);return;}
  if(a==='editor-redo'&&state.page==='editor'){stepEditorHistory(false);return;}
  if(a==='editor-save'&&state.page==='editor'){
-  const ok=writeEditorDraft();
-  const ready=ok&&E.matches(state.editor).hit.size===0&&E.hasMove(state.editor);
-  if(ok)state.editorStatus=ready?'SAVED V1 DRAFT':'SAVED V1 DRAFT · PLAYTEST NOT READY';
-  notice(ok?(ready?'CUSTOM DRAFT SAVED':'DRAFT SAVED · FIX MATCHES/MOVES BEFORE PLAY'):'DRAFT SAVE FAILED · ORIGINAL KEPT');
-  render();return;
- }
- if(a==='editor-load'&&state.page==='editor'){
-  const ok=readEditorDraft();
-  notice(ok?'CUSTOM DRAFT LOADED':'NO VALID LOCAL DRAFT · CURRENT BOARD KEPT');
-  render();return;
- }
- if(a==='editor-back'&&state.page==='editor'){nav(state.editorBack&&state.editorBack!=='editor'?state.editorBack:'home');return;}
+   const ok=writeEditorDraft();
+   const recoveryOk=ok?settleEditorRecoveryAfterExplicitLoad():false;
+   const ready=ok&&E.matches(state.editor).hit.size===0&&E.hasMove(state.editor);
+   if(ok)state.editorStatus=(ready?'SAVED V1 DRAFT':'SAVED V1 DRAFT · PLAYTEST NOT READY')+(recoveryOk?'':' · RECOVERY CLEANUP FAILED');
+   notice(ok?(recoveryOk?(ready?'CUSTOM DRAFT SAVED':'DRAFT SAVED · FIX MATCHES/MOVES BEFORE PLAY'):'DRAFT SAVED · RECOVERY CLEANUP FAILED'):'DRAFT SAVE FAILED · ORIGINAL KEPT');
+   render();return;
+  }
+  if(a==='editor-load'&&state.page==='editor'){
+   const ok=readEditorDraft();
+   const recoveryOk=ok?settleEditorRecoveryAfterExplicitLoad():false;
+   if(ok&&!recoveryOk)state.editorStatus='SAVED V1 DRAFT LOADED · RECOVERY CLEANUP FAILED';
+   notice(ok?(recoveryOk?'CUSTOM DRAFT LOADED':'DRAFT LOADED · RECOVERY CLEANUP FAILED'):'NO VALID LOCAL DRAFT · CURRENT BOARD KEPT');
+   render();return;
+  }
+  if(a==='editor-back'&&state.page==='editor'){nav(state.editorBack&&state.editorBack!=='editor'?state.editorBack:'home');return;}
  if(a==='editor-select'&&state.page==='editor'&&P.hasLevelEditor(saved)){
   const t=Number(button?.dataset?.type);
   if(Number.isInteger(t)&&t>=0&&t<E.TYPES.length&&!E.RETIRED_NUTS.includes(E.TYPES[t])){state.editorNut=t;render();}
@@ -1591,5 +1637,7 @@ window.addEventListener('keydown',e=>{
  }
  if(e.key==='Escape'&&state.page==='fake-ad'){const back=state.adReturn||'rewards';cancelFakeAd();state.page=back;render();}
  else if(e.key==='Escape'&&state.page==='editor')action('editor-back',{});else if(e.key==='Escape'&&state.editorPlay)returnEditorPlay();else if(e.key==='Escape'&&state.page==='game'&&state.nutdexOpen)closeNutdex();else if(e.key==='Escape'&&state.page==='game')nav('campaign');else if(e.key==='Escape'&&state.page==='checkout')action('checkout-back',{});else if(e.key==='Escape'&&state.page==='codex')action('codex-back',{});});
-window.NutbusterApp={start,nav,getState:()=>state,getSave:()=>saved};render();
+window.addEventListener?.('pagehide',flushEditorAutosave);
+ document.addEventListener?.('visibilitychange',()=>{if(document.visibilityState==='hidden')flushEditorAutosave();});
+ window.NutbusterApp={start,nav,getState:()=>state,getSave:()=>saved};render();
 })();
