@@ -29,6 +29,12 @@ constexpr std::array<const char*,19> NUTS={
   "peanut","walnut","almond","cashew","hazelnut","pistachio","gold-acorn",
   "beechnut","brazil-nut","candlenut","chestnut","coconut","ginkgo-nut",
   "hickory-nut","macadamia","pecan","pili-nut","pine-nut","tiger-nut"};
+// The shipped palette omits retired engine nut #12, forbidden by Board::paintCell.
+constexpr std::array<int,18> EDITOR_NUT_IDS={
+  0,1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18};
+constexpr int EDITOR_PALETTE_X=760,EDITOR_PALETTE_Y=358;
+constexpr int EDITOR_PALETTE_COLUMNS=4,EDITOR_PALETTE_DX=57,EDITOR_PALETTE_DY=55;
+constexpr int EDITOR_PALETTE_W=52,EDITOR_PALETTE_H=50;
 constexpr std::array<const char*,17> FINDS={
   "r2c1","r2c2","r2c4","r2c5","r2c3",
   "r2c6","r3c1","r3c2","r3c5","r4c2","r4c3","r3c4",
@@ -50,6 +56,15 @@ void button(SDL_Renderer* r,int x,int y,int w,int h,const std::string& txt){
 }
 bool within(float x,float y,float bx,float by,float w,float h){
   return x>=bx&&x<bx+w&&y>=by&&y<by+h;
+}
+int editorNutAt(float x,float y){
+  for(size_t slot=0;slot<EDITOR_NUT_IDS.size();++slot){
+    const float bx=float(EDITOR_PALETTE_X+int(slot%EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DX);
+    const float by=float(EDITOR_PALETTE_Y+int(slot/EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DY);
+    if(within(x,y,bx,by,EDITOR_PALETTE_W,EDITOR_PALETTE_H))
+      return EDITOR_NUT_IDS[slot];
+  }
+  return -1;
 }
 // Both paths are on one volume. The existing committed draft is never
 // truncated or deleted before the fully validated successor is installed.
@@ -460,6 +475,22 @@ struct Game {
     }
     return false;
   }
+  // The file picker is modal; it exclusively owns arrow/Enter/Escape input.
+  bool editorPaletteKey(SDL_Keycode key){
+    if(scene!=Scene::Editor||editorSharePickerOpen)return false;
+    const auto it=std::find(EDITOR_NUT_IDS.begin(),EDITOR_NUT_IDS.end(),editorNut);
+    const int current=it==EDITOR_NUT_IDS.end()?0:int(it-EDITOR_NUT_IDS.begin());
+    int next=current;
+    if(key==SDLK_LEFT)next=std::max(0,current-1);
+    else if(key==SDLK_RIGHT)next=std::min(int(EDITOR_NUT_IDS.size())-1,current+1);
+    else if(key==SDLK_UP)next=std::max(0,current-EDITOR_PALETTE_COLUMNS);
+    else if(key==SDLK_DOWN)next=std::min(int(EDITOR_NUT_IDS.size())-1,current+EDITOR_PALETTE_COLUMNS);
+    else if(key==SDLK_HOME)next=0;
+    else if(key==SDLK_END)next=int(EDITOR_NUT_IDS.size())-1;
+    else return false;
+    editorNut=EDITOR_NUT_IDS[size_t(next)];
+    return true;
+  }
   fs::path draftStagePath()const{return fs::path(draftPath().string()+".staging");}
   fs::path draftBackupPath()const{return fs::path(draftPath().string()+".backup");}
   bool validDraftFile(const fs::path& path)const{
@@ -804,6 +835,8 @@ struct Game {
       if(within(x,y,760,265,230,40)){
         openEditorSharePicker();return;
       }
+      const int paletteNut=editorNutAt(x,y);
+      if(paletteNut>=0){editorNut=paletteNut;return;}
       if(within(x,y,720,646,240,44)){startEditorPlay();return;}
       if(within(x,y,180,646,260,44)){
         if(!saveEditorDraft())editorDraftStatus="DRAFT SAVE FAILED";
@@ -1001,6 +1034,18 @@ struct Game {
       button(r,760,215,230,40,"EXPORT JSON");
       button(r,760,265,230,40,"IMPORT JSON");
       label(r,761,314,"FILE: NUTBUSTER-custom-level-v1.json",1);
+      label(r,761,338,"NUT ASSETS - ARROW KEYS",1);
+      for(size_t slot=0;slot<EDITOR_NUT_IDS.size();++slot){
+        const int type=EDITOR_NUT_IDS[slot];
+        const int x=EDITOR_PALETTE_X+int(slot%EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DX;
+        const int y=EDITOR_PALETTE_Y+int(slot/EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DY;
+        fill(r,float(x),float(y),EDITOR_PALETTE_W,EDITOR_PALETTE_H,
+          type==editorNut?SDL_Color{235,183,81,255}:SDL_Color{100,67,99,255});
+        fill(r,float(x+3),float(y+3),EDITOR_PALETTE_W-6,EDITOR_PALETTE_H-6,
+          {43,26,51,255});
+        sprite(r,std::string("nuts/")+NUTS[size_t(type)],
+          float(x+5),float(y+4),42,42);
+      }
       button(r,180,646,260,44,"SAVE DRAFT");
       button(r,452,646,260,44,"RELOAD DRAFT");
       button(r,720,646,240,44,"PLAY LEVEL");
@@ -1484,6 +1529,73 @@ bool editorProgressionSelfTest(std::string& report){
   }
 }
 
+bool editorNutPaletteSelfTest(std::string& report){
+  try{
+    if(EDITOR_NUT_IDS.size()!=18||EDITOR_NUT_IDS.front()!=0||
+       EDITOR_NUT_IDS.back()!=18||
+       std::find(EDITOR_NUT_IDS.begin(),EDITOR_NUT_IDS.end(),12)!=EDITOR_NUT_IDS.end())
+      throw std::runtime_error("retired or missing nut palette mapping");
+    for(size_t slot=0;slot<EDITOR_NUT_IDS.size();++slot){
+      const float px=float(EDITOR_PALETTE_X+int(slot%EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DX+10);
+      const float py=float(EDITOR_PALETTE_Y+int(slot/EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DY+10);
+      if(editorNutAt(px,py)!=EDITOR_NUT_IDS[slot])
+        throw std::runtime_error("thumbnail hit test does not match sprite grid");
+    }
+    if(editorNutAt(760,715)>=0||editorNutAt(0,0)>=0)
+      throw std::runtime_error("palette steals existing toolbar input");
+    Game g;g.levelEditorUnlocked=true;
+    if(!g.openEditor())throw std::runtime_error("earned editor cannot open palette");
+    const int slot=17,type=EDITOR_NUT_IDS[size_t(slot)];
+    const float px=float(EDITOR_PALETTE_X+(slot%EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DX+10);
+    const float py=float(EDITOR_PALETTE_Y+(slot/EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DY+10);
+    g.click(px,py);
+    if(g.editorNut!=type||g.editorDirty||!g.editorUndo.empty())
+      throw std::runtime_error("mouse palette selection changed draft or picked wrong nut");
+    if(!g.editorPaletteKey(SDLK_LEFT)||g.editorNut!=17||
+       !g.editorPaletteKey(SDLK_RIGHT)||g.editorNut!=18||
+       !g.editorPaletteKey(SDLK_UP)||g.editorNut!=14||
+       !g.editorPaletteKey(SDLK_DOWN)||g.editorNut!=18)
+      throw std::runtime_error("arrow palette navigation selected wrong identity");
+    g.editorSharePickerOpen=true;
+    g.click(float(EDITOR_PALETTE_X+10),float(EDITOR_PALETTE_Y+10));
+    if(g.editorNut!=18||g.editorPaletteKey(SDLK_HOME)||
+       !g.editorSharePickerKey(SDLK_ESCAPE)||g.editorSharePickerOpen)
+      throw std::runtime_error("JSON modal leaked palette mouse/keyboard input");
+    int index=-1;
+    for(int i=0;i<g.editorBoard.size();++i)
+      if(g.editorBoard.cell(i).exists()&&g.editorBoard.tile(i)!=type){index=i;break;}
+    if(index<0)throw std::runtime_error("no paintable independent draft cell");
+    const int old=g.editorBoard.tile(index),campaign=g.board.tile(index);
+    const int tile=std::min(74,490/g.editorBoard.height());
+    const int ox=(WIDTH-tile*g.editorBoard.width())/2;
+    g.click(float(ox+(index%g.editorBoard.width())*tile+tile/2),
+            float(215+(index/g.editorBoard.width())*tile+tile/2));
+    if(g.editorBoard.tile(index)!=type||g.board.tile(index)!=campaign||
+       g.editorUndo.size()!=1||!g.editorDirty)
+      throw std::runtime_error("thumbnail did not paint isolated engine board");
+    g.click(775,733);
+    if(g.editorBoard.tile(index)!=old)throw std::runtime_error("palette Undo");
+    g.click(900,733);
+    if(g.editorBoard.tile(index)!=type)throw std::runtime_error("palette Redo");
+    g.savePath=fs::temp_directory_path()/
+      ("nutbuster-palette-"+std::to_string(std::time(nullptr))+"-"+
+       std::to_string(std::clock())+".progress");
+    if(!g.saveEditorDraft())throw std::runtime_error("palette draft save");
+    Game restored;restored.levelEditorUnlocked=true;restored.savePath=g.savePath;
+    if(!restored.loadEditorDraft()||restored.editorBoard.tile(index)!=type||
+       restored.board.tile(index)!=campaign)
+      throw std::runtime_error("palette relaunch or campaign isolation");
+    std::error_code error;
+    fs::remove(g.draftPath(),error);
+    if(error)throw std::runtime_error("palette fixture cleanup");
+    report="PASS 18 genuine nut thumbnail hits, mouse/arrow selection, "
+           "JSON modal isolation, engine paint, Undo/Redo, saved relaunch "
+           "and unchanged campaign";
+    return true;
+  }catch(const std::exception& e){
+    report=std::string("FAIL native editor nut palette: ")+e.what();return false;
+  }
+}
 bool editorAutosaveSelfTest(std::string& report){
   try{
     Game g;
@@ -1847,11 +1959,12 @@ bool editorJsonPickerSelfTest(std::string& report){
 
 }
 int main(int argc,char** argv){
-  std::string screenshot,fixtureFile;int previewStage=0;bool self=false,previewMine=false,previewBoard=false,previewCampaign=false,smokeDig=false,smokeShop=false,previewEquip=false,previewRefinery=false;
+  std::string screenshot,fixtureFile;int previewStage=0;bool self=false,previewMine=false,previewBoard=false,previewCampaign=false,smokeDig=false,smokeShop=false,smokeEditorPalette=false,previewEquip=false,previewRefinery=false;
   for(int i=1;i<argc;++i){
     std::string arg=argv[i];
     if(arg=="--self-test")self=true;
     else if(arg=="--smoke-hold-shop")smokeShop=true;
+    else if(arg=="--smoke-editor-palette")smokeEditorPalette=true;
     else if(arg=="--verify-mine-fixtures"&&i+1<argc)fixtureFile=argv[++i];
     else if(arg=="--preview-mine")previewMine=true;
     else if(arg=="--smoke-mine-dig"){previewMine=true;smokeDig=true;}
@@ -1878,14 +1991,15 @@ int main(int argc,char** argv){
     bool boardOk=nut::selfTest(boardReport),mineOk=nut::mineSelfTest(mineReport);
     bool holdOk=holdUiSelfTest(holdReport),shopOk=shopUiSelfTest(shopReport);
     bool editorOk=editorProgressionSelfTest(editorReport);
-    std::string autosaveReport,jsonReport,pickerReport;
+    std::string autosaveReport,jsonReport,pickerReport,paletteReport;
     bool autosaveOk=editorAutosaveSelfTest(autosaveReport);
     bool jsonOk=editorJsonShareSelfTest(jsonReport);
     bool pickerOk=editorJsonPickerSelfTest(pickerReport);
+    bool paletteOk=editorNutPaletteSelfTest(paletteReport);
     std::cout<<boardReport<<"\n"<<mineReport<<"\n"<<holdReport<<"\n"
              <<shopReport<<"\n"<<editorReport<<"\n"<<autosaveReport<<"\n"
-             <<jsonReport<<"\n"<<pickerReport<<"\n";
-    return boardOk&&mineOk&&holdOk&&shopOk&&editorOk&&autosaveOk&&jsonOk&&pickerOk?0:1;
+             <<jsonReport<<"\n"<<pickerReport<<"\n"<<paletteReport<<"\n";
+    return boardOk&&mineOk&&holdOk&&shopOk&&editorOk&&autosaveOk&&jsonOk&&pickerOk&&paletteOk?0:1;
   }
   if(!fixtureFile.empty()){
     std::ifstream fixtures(fixtureFile);
@@ -1956,6 +2070,30 @@ int main(int argc,char** argv){
                 "V4 reload, purchased held-nut use and consumed-stock reload\n";
     // Leave the original Game in its real Shop scene for SDL3 screenshot.
   }
+  if(smokeEditorPalette){
+    // Actual shipped-art palette selection and engine cell edit, before render.
+    if(screenshot.empty()){std::cerr<<"Palette smoke requires --smoke-render\n";return 2;}
+    game.levelEditorUnlocked=true;
+    if(!game.openEditor()){std::cerr<<"Palette smoke entitlement failed\n";return 3;}
+    const int slot=17;
+    game.click(float(EDITOR_PALETTE_X+(slot%EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DX+10),
+               float(EDITOR_PALETTE_Y+(slot/EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DY+10));
+    int target=-1;
+    for(int i=0;i<game.editorBoard.size();++i)
+      if(game.editorBoard.cell(i).exists()&&game.editorBoard.tile(i)!=18){target=i;break;}
+    if(target<0){std::cerr<<"Palette smoke has no paintable cell\n";return 3;}
+    const int campaign=game.board.tile(target);
+    const int tile=std::min(74,490/game.editorBoard.height());
+    const int ox=(WIDTH-tile*game.editorBoard.width())/2;
+    game.click(float(ox+(target%game.editorBoard.width())*tile+tile/2),
+               float(215+(target/game.editorBoard.width())*tile+tile/2));
+    if(game.editorNut!=18||game.editorBoard.tile(target)!=18||
+       game.board.tile(target)!=campaign||game.editorUndo.size()!=1){
+      std::cerr<<"Functional SDL3 palette click/paint smoke failed\n";return 3;
+    }
+    std::cout<<"PASS native SDL3 palette thumbnail 18 selected and painted real board cell "
+             <<target<<" without campaign edits\n";
+  }
   if(smokeDig){
     bool sampled=false;
     const int tile=std::min(72,440/game.mine.size());
@@ -1991,6 +2129,9 @@ int main(int argc,char** argv){
       if(event.type==SDL_EVENT_KEY_DOWN){
         if(game.scene==Game::Scene::Editor&&game.editorSharePickerOpen)
           game.editorSharePickerKey(event.key.key);
+        else if(game.scene==Game::Scene::Editor&&game.editorPaletteKey(event.key.key)){
+          // Keyboard palette consumed this event; don't exit or mutate draft.
+        }
         else if(event.key.key==SDLK_ESCAPE){
           if(game.scene!=Game::Scene::Editor||game.flushEditorAutosave()){
             game.scene=game.scene==Game::Scene::Playtest?Game::Scene::Editor:Game::Scene::Menu;
