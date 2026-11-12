@@ -715,3 +715,14 @@
 /* Home's approved artwork uses fixed footprints: image identity changes must not resize or crop buttons. */
 .home-privilege-icon{display:block;width:48px;height:48px;max-width:100%;object-fit:contain;margin:0 auto;flex:none;filter:drop-shadow(0 2px 3px #130a17)}
 .actions .ui-icon{width:26px;height:26px;object-fit:contain;flex:none}
+
+/* Android/Fire editor: real nut paint and STAR/UNSTAR are separate touch targets. */
+.editor-palette-tools{display:flex;align-items:center;gap:10px;margin:6px 0;flex-wrap:wrap}
+.editor-palette-tools .btn{min-height:44px;padding:8px 12px;font-size:12px}
+.editor-palette-tools span{font-size:11px;color:#ebd4bc}
+.editor-nut-palette{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;max-width:100%;padding:5px 2px 9px;scrollbar-width:thin}
+.editor-nut-card{flex:0 0 112px;display:flex;flex-direction:column;gap:5px;scroll-snap-align:start;padding:4px;border:1px solid #ad8356;border-radius:10px;background:#2f1e32}
+.editor-nut-card .btn{width:100%;min-height:46px;padding:5px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;line-height:1.15;white-space:normal;overflow-wrap:anywhere;font-size:12px}
+.editor-nut-card .ui-icon{width:42px;height:42px;object-fit:contain;flex-shrink:0}
+.editor-nut-card .editor-nut-star{min-height:44px;font-weight:800;font-size:12px}
+.editor-nut-palette>.panel{min-height:64px;width:100%}

@@ -4,11 +4,11 @@ const icons=['🥜','🌰','🌰','🥜','🌰','🟢','🌟'];
 const D=window.NutDailyMoves, B=window.NutBenefits, T=window.NutElementalChallenges, R=window.NutElementalRewards;
 if(!D||!T||!R)throw new Error('Daily moves and elemental reward modules must load before gameplay');
 const Mines=window.NutvaleMines, MineUI=window.NutvaleMinesUI, Comp=window.NutCompanions, CompUI=window.NutCompanionsUI, Crates=window.NutCrates;
- const key='nutbuster.v1',editorDraftKey='nutbuster.custom-level.draft.v1',editorRecoveryKey='nutbuster.custom-level.recovery.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,announcerVoice:'original',levels:{voice:.9,music:.28,reactions:.38,sfx:.48},effects:true,completed:0};
+ const key='nutbuster.v1',editorDraftKey='nutbuster.custom-level.draft.v1',editorRecoveryKey='nutbuster.custom-level.recovery.v1',editorFavoritesKey='nutbuster.custom-level.favorites.v1';let saved={unlocked:1,stars:{},coins:250,gems:25,shells:0,hearts:5,vip:false,streak:0,claimed:0,sound:true,music:true,announcerVoice:'original',levels:{voice:.9,music:.28,reactions:.38,sfx:.48},effects:true,completed:0};
 try{const o=JSON.parse(localStorage.getItem(key)||'{}');if(o&&typeof o==='object')saved={...saved,...o,stars:o.stars||{}};}catch(_){}
 P.migrate(saved);R.ensure(saved);H.ensure(saved);A.ensure(saved);if(Comp)Comp.ensure(saved);if(!['original','auditor','diva'].includes(saved.announcerVoice))saved.announcerVoice='original';D.ensure(saved,Date.now(),E.makeLevel(Math.min(1000,Math.max(1,saved.unlocked||1))).moves);saved.effects=saved.effects!==false;saved.levels={voice:.9,music:.28,reactions:.38,sfx:.48,...saved.levels};if(window.NutFishing){const previousDay=saved.nutravaganza?.day;window.NutFishing.ensure(saved);if(saved.nutravaganza.day!==previousDay)persist();}
 if(!saved.chestReadyAt)saved.chestReadyAt=Date.now()+3*60*60*1000;
-let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,crateReveal:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null,editor:null,editorNut:0,editorBack:'home',editorStatus:'NOT SAVED',editorPlay:false,editorPlayMessage:'',editorUndo:[],editorRedo:[]};let toastHandle,editorAutosaveTimer=null,editorDirty=false,editorAutosaveFailures=0;
+let state={page:'home',resetStep:0,companionNotice:'',chapter:0,world:0,mapZoom:1,game:null,selected:-1,tool:null,announcer:'',sound:saved.sound,music:saved.music,effects:saved.effects,animating:false,epoch:0,checkout:null,checkoutStep:0,checkoutFrom:'shop',outcome:null,homesteadSelection:null,homesteadEditing:false,homesteadZone:'yard',homesteadPreview:null,holdTool:null,holdOffer:null,purchasePending:null,crateReveal:null,fishBait:'worm',aquariumEditing:false,aquariumStamp:null,aquariumFishFrom:null,codexTab:'blockers',codexBack:'home',nutdexOpen:false,adSession:null,adReturn:null,adMuted:false,discountOffer:null,mineTab:'dig',mineMode:'dig',minePending:null,editor:null,editorNut:0,editorBack:'home',editorStatus:'NOT SAVED',editorPlay:false,editorPlayMessage:'',editorUndo:[],editorRedo:[],editorFavorites:[],editorFavoritesOnly:false};const favoriteSettings=readEditorFavorites();state.editorFavorites=favoriteSettings.types;state.editorFavoritesOnly=favoriteSettings.only;let toastHandle,editorAutosaveTimer=null,editorDirty=false,editorAutosaveFailures=0;
 if(window.NutAudio){window.NutAudio.setVoiceEnabled(state.sound);window.NutAudio.setMusicEnabled(state.music);window.NutAudio.setLevels?.(saved.levels||{voice:.9,music:.28,reactions:.38});window.NutAudio.setAnnouncerVoice?.(saved.announcerVoice);}
 if(window.NutSFX){window.NutSFX.setEnabled(state.effects);window.NutSFX.setVolume(saved.levels.sfx);}
 function playSFX(name,opts){window.NutSFX?.play(name,opts);}
@@ -16,6 +16,20 @@ const Ads=window.NutFakeAds, Purchases=window.NutPurchases, Promos=window.NutPro
 const lootDay=()=>Ads?.dayKey?.()||(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
 const adNow=()=>typeof performance!=='undefined'&&typeof performance.now==='function'?performance.now():Date.now();
 function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch(_){}}
+// Persist stable approved nut names, separate from campaign and authored board data.
+function readEditorFavorites(){
+ if(!P.hasLevelEditor(saved))return {types:[],only:false};
+ try{
+  const record=JSON.parse(localStorage.getItem(editorFavoritesKey)||'null');
+  if(!record||record.version!==1||!Array.isArray(record.types)||typeof record.only!=='boolean')return {types:[],only:false};
+  const types=[...new Set(record.types.filter(name=>typeof name==='string'&&E.TYPES.includes(name)&&!E.RETIRED_NUTS.includes(name)))];
+  return {types,only:record.only};
+ }catch(_){return {types:[],only:false};}
+}
+function writeEditorFavorites(types,only){
+ try{localStorage.setItem(editorFavoritesKey,JSON.stringify({version:1,types,only}));return true;}
+ catch(_){return false;}
+}
 // Local authored drafts use their own versioned key; never merge them into campaign progress.
 // V1 inherits its score objective, moves and void mask from the real level-one engine;
 // do not interpret absent custom-objective fields as corruption of older V1 saves.
@@ -439,14 +453,21 @@ function game(){
 function editor(){
  const g=state.editor;if(!P.hasLevelEditor(saved)||!g)return banner('LEVEL EDITOR LOCKED','Complete the finale first.');
  const w=g.cfg.width,h=g.cfg.height,boardHeightPercent=(100*h/w).toFixed(3),maxBoardHeight=Math.round(545*h/w);
- const palette=E.TYPES.map((name,id)=>({name,id})).filter(x=>!E.RETIRED_NUTS.includes(x.name)).map(({name,id})=>
- '<button type="button" class="btn '+(state.editorNut===id?'green':'secondary')+'" data-action="editor-select" data-type="'+id+'" aria-label="Paint '+name+'" aria-pressed="'+(state.editorNut===id)+'"><img class="ui-icon" src="art/primary/nuts/'+name+'.png" alt="" draggable="false">'+name.replace(/-/g,' ')+'</button>').join('');
+ const available=E.TYPES.map((name,id)=>({name,id})).filter(x=>!E.RETIRED_NUTS.includes(x.name));
+ const listed=available.filter(x=>!state.editorFavoritesOnly||state.editorFavorites.includes(x.name));
+ const palette=listed.map(({name,id})=>{
+  const favorite=state.editorFavorites.includes(name);
+  return '<div class="editor-nut-card">'+
+   '<button type="button" class="btn '+(state.editorNut===id?'green':'secondary')+'" data-action="editor-select" data-type="'+id+'" aria-label="Paint '+name+'" aria-pressed="'+(state.editorNut===id)+'"><img class="ui-icon" src="art/primary/nuts/'+name+'.png" alt="" draggable="false">'+name.replace(/-/g,' ')+'</button>'+
+   '<button type="button" class="btn secondary editor-nut-star" data-action="editor-favorite-toggle" data-type="'+id+'" aria-label="'+(favorite?'Unstar ':'Star ')+name+'" aria-pressed="'+favorite+'">'+(favorite?'UNSTAR':'STAR')+'</button></div>';
+ }).join('');
  return `<section class="play-layout" style="--board-w:${w};--board-h:${h};--board-vw:${boardHeightPercent}vw;--board-max-h:${maxBoardHeight}px">
  <div class="play-hud"><button class="play-back" data-action="editor-back" aria-label="Return from Level Editor">‹</button><div class="play-title"><b>LEVEL EDITOR</b><span>${state.editorStatus} · REAL BOARD</span></div></div>
  <p class="panel">Paint real nuts, SAVE DRAFT, or playtest in the actual match-three engine. Playtests spend no campaign resources. Resizing and custom objectives are not editable yet.</p>
    ${state.editorPlayMessage?'<p class="panel" role="status">'+state.editorPlayMessage+'</p>':''}
   <div class="board-wrap"><div class="board" style="--cols:${w};--rows:${h}" role="group" aria-label="Editable Nutbuster board">${g.cells.map((c,i)=>cellMarkup(c,i,w,g.cfg)).join('')}</div></div>
- <div class="boosters" role="group" aria-label="Paint nut palette">${palette}</div>
+ <div class="editor-palette-tools"><button type="button" class="btn secondary" data-action="editor-favorites-filter" aria-pressed="${state.editorFavoritesOnly}">${state.editorFavoritesOnly?'SHOW ALL NUTS':'FAVORITES ONLY'} (${state.editorFavorites.length})</button><span>SELECT NUT · STAR/UNSTAR SEPARATELY</span></div>
+ <div class="editor-nut-palette" role="group" aria-label="Paint nut palette">${palette||'<p class="panel" role="status">NO STARRED NUTS · SHOW ALL TO CHOOSE</p>'}</div>
  <div class="actions"><button class="btn secondary" data-action="editor-undo" ${state.editorUndo.length?'':'disabled'}>UNDO</button><button class="btn secondary" data-action="editor-redo" ${state.editorRedo.length?'':'disabled'}>REDO</button><button class="btn green" data-action="editor-save">SAVE DRAFT</button><button class="btn secondary" data-action="editor-load">RELOAD SAVED DRAFT</button><button class="btn green" data-action="editor-play">PLAY LEVEL</button><button class="btn secondary" data-action="editor-back">RETURN TO GAME</button></div></section>`;
 }
 // Playtest state is a disposable clone of a validated editor draft, not campaign progression.
@@ -1249,6 +1270,18 @@ function action(a,button){
    render();return;
   }
   if(a==='editor-back'&&state.page==='editor'){nav(state.editorBack&&state.editorBack!=='editor'?state.editorBack:'home');return;}
+ if((a==='editor-favorite-toggle'||a==='editor-favorites-filter')&&state.page==='editor'&&P.hasLevelEditor(saved)){
+  let types=state.editorFavorites.slice(),only=state.editorFavoritesOnly;
+  if(a==='editor-favorite-toggle'){
+   const id=Number(button?.dataset?.type);
+   if(!Number.isInteger(id)||id<0||id>=E.TYPES.length||E.RETIRED_NUTS.includes(E.TYPES[id]))return;
+   const name=E.TYPES[id];
+   types=types.includes(name)?types.filter(item=>item!==name):[...types,name];
+  }else only=!only;
+  if(writeEditorFavorites(types,only)){state.editorFavorites=types;state.editorFavoritesOnly=only;render();}
+  else notice('FAVORITES NOT SAVED · PREVIOUS SELECTION KEPT');
+  return;
+ }
  if(a==='editor-select'&&state.page==='editor'&&P.hasLevelEditor(saved)){
   const t=Number(button?.dataset?.type);
   if(Number.isInteger(t)&&t>=0&&t<E.TYPES.length&&!E.RETIRED_NUTS.includes(E.TYPES[t])){state.editorNut=t;render();}

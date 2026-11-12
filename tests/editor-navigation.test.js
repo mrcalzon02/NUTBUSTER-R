@@ -3,8 +3,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const E=require('../web/engine.js'),P=require('../web/progression.js');
 const source=fs.readFileSync(path.join(__dirname,'../web/game.js'),'utf8');
 function boot(store){
- let html='',listeners={},windowEvents={},documentEvents={},nextTimer=0,now=0,recoveryWritable=true;
- const timers=new Map(),recoveryKey='nutbuster.custom-level.recovery.v1';
+ let html='',listeners={},windowEvents={},documentEvents={},nextTimer=0,now=0,recoveryWritable=true,favoritesWritable=true;
+ const timers=new Map(),recoveryKey='nutbuster.custom-level.recovery.v1',favoritesKey='nutbuster.custom-level.favorites.v1';
  const screen={classList:{toggle(){}},addEventListener:(k,fn)=>listeners[k]=fn,
   set innerHTML(s){html=s;},get innerHTML(){return html;},querySelectorAll:()=>[],querySelector:()=>null};
  const toast={textContent:'',classList:{add(){},remove(){}}};
@@ -12,6 +12,7 @@ function boot(store){
   querySelectorAll:()=>[],querySelector:()=>null,addEventListener:(k,fn)=>documentEvents[k]=fn};
  const localStorage={getItem:k=>store[k]??null,setItem:(k,v)=>{
   if(k===recoveryKey&&!recoveryWritable)throw new Error('simulated WebView quota/storage failure');
+   if(k===favoritesKey&&!favoritesWritable)throw new Error('simulated favorites storage failure');
   store[k]=v;
  },removeItem:k=>{delete store[k];}};
  const window={NutEngine:E,NutProgress:P,NutDailyMoves:require('../web/daily-moves.js'),
@@ -36,7 +37,8 @@ function boot(store){
   },
   background(){document.visibilityState='hidden';documentEvents.visibilitychange?.();},
   pagehide(){windowEvents.pagehide?.();},
-  recoveryWritable(value){recoveryWritable=value;}
+  recoveryWritable(value){recoveryWritable=value;},
+   favoritesWritable(value){favoritesWritable=value;}
  };
 }
 const locked=boot({});
@@ -53,6 +55,42 @@ const save=JSON.stringify(app.app.getSave()),hearts=app.app.getSave().hearts;
 app.click({nav:'editor'});assert.equal(app.app.getState().page,'editor');
 assert.match(app.html(),/Editable Nutbuster board/);
 assert.match(app.html(),/art\/primary\/nuts\/peanut.png/);
+const favoriteKey='nutbuster.custom-level.favorites.v1',campaignBeforeFavorites=store['nutbuster.v1'];
+assert.match(app.html(),/data-action="editor-favorites-filter"/);
+assert.match(app.html(),/data-action="editor-favorite-toggle" data-type="0"/);
+app.click({action:'editor-favorite-toggle',type:'0'});
+app.click({action:'editor-favorite-toggle',type:'1'});
+assert.deepEqual(JSON.parse(store[favoriteKey]),{version:1,types:['peanut','walnut'],only:false});
+app.click({action:'editor-favorites-filter'});
+assert.equal(app.app.getState().editorFavoritesOnly,true);
+assert.match(app.html(),/data-action="editor-select" data-type="0"/);
+assert.match(app.html(),/data-action="editor-select" data-type="1"/);
+assert.doesNotMatch(app.html(),/data-action="editor-select" data-type="2"/);
+app.click({action:'editor-select',type:'1'});
+assert.equal(app.app.getState().editorNut,1,'touch selection uses a real nut');
+const favoriteRestart=boot(store);favoriteRestart.app.nav('editor');
+assert.equal(favoriteRestart.app.getState().editorFavoritesOnly,true,'filter survives relaunch');
+assert.match(favoriteRestart.html(),/data-action="editor-select" data-type="1"/);
+assert.doesNotMatch(favoriteRestart.html(),/data-action="editor-select" data-type="2"/);
+app.favoritesWritable(false);
+app.click({action:'editor-favorite-toggle',type:'0'});
+assert.deepEqual(Array.from(app.app.getState().editorFavorites),['peanut','walnut'],'failed storage preserves selection');
+assert.deepEqual(JSON.parse(store[favoriteKey]).types,['peanut','walnut'],'failed write preserves disk');
+app.favoritesWritable(true);
+app.click({action:'editor-favorite-toggle',type:'0'});
+assert.doesNotMatch(app.html(),/data-action="editor-select" data-type="0"/,'unstar hides filtered nut');
+app.click({action:'editor-favorite-toggle',type:'1'});
+assert.match(app.html(),/NO STARRED NUTS/);
+const emptyRestart=boot(store);emptyRestart.app.nav('editor');
+assert.match(emptyRestart.html(),/NO STARRED NUTS/,'empty filter survives relaunch');
+app.click({action:'editor-favorites-filter'});
+assert.match(app.html(),/data-action="editor-select" data-type="2"/,'Show All restores real assets');
+assert.equal(store['nutbuster.v1'],campaignBeforeFavorites,'campaign never changed by favorites');
+assert.equal(store['nutbuster.custom-level.draft.v1'],undefined,'draft never changed by favorites');
+const malformedFavorites=boot({'nutbuster.v1':campaignBeforeFavorites,[favoriteKey]:JSON.stringify({version:1,types:['ginkgo-nut','walnut','walnut','unknown'],only:true})});
+malformedFavorites.app.nav('editor');
+assert.match(malformedFavorites.html(),/data-action="editor-select" data-type="1"/);
+assert.doesNotMatch(malformedFavorites.html(),/ginkgo-nut/,'retired nut stays excluded');
 const g=app.app.getState().editor,i=g.cells.findIndex(x=>x!==null);
 assert.ok(i>=0);
 const before=g.cells[i].type,next=before===0?1:0;
@@ -230,4 +268,4 @@ play.click({action:'editor-save'});
 assert.match(play.html(),/PLAYTEST NOT READY/,'invalid playable state may be saved as an editable draft, with a visible warning');
 assert.ok(playStore[draftKey],'an unplayable draft must remain editable after save');
 assert.equal(playStore['nutbuster.v1'],campaignBefore,'warning must not change official progress');
-console.log('PASS Level Editor: entitlement, real paint, Undo/Redo, WebView idle/background/crash recovery, bounded storage retry, manual save isolation, invalid drafts, reversible engine playtest');
+console.log('PASS Level Editor: entitlement, real paint, Undo/Redo, WebView touch favorites/filter/relaunch, storage failure isolation, idle/background/crash recovery, bounded storage retry, manual save isolation, invalid drafts, reversible engine playtest');

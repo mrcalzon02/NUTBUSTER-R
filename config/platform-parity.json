@@ -469,6 +469,21 @@
         "linux": "Independent Linux SDL3 editor already has native edit autosave; the WebView working-copy recovery is not used in the C++ runtime. No new Linux code or production parity claim; native feature status remains preview-partial."
       },
       "decision": "Four-target accountability review of mobile-only WebView draft autosave, complementing previously tested native desktop autosave. Maintain separate explicit V1 manual Save, campaign isolation, native preview gaps, existing release gates and outstanding physical Android/Fire OS acceptance."
+    },
+    {
+      "id": "webview-editor-mobile-favorite-palette-2026-11-12",
+      "sourceChange": [
+        "web/game.js",
+        "web/style.css"
+      ],
+      "test": "tests/editor-navigation.test.js",
+      "targetImpact": {
+        "android": "Android WebView editor now offers actual nut paint and independent touch-size STAR/UNSTAR, favorites-only filtering, stable nut-name persistence across app relaunch. Node WebView-simulated tap and storage-failure tests apply. Physical installed touch flow still unverified.",
+        "fire_os": "Android/Fire share exactly the same packaged WebView assets. API30 AOSP tablet is only a compatibility proxy, not a physical Fire OS validation.",
+        "windows": "Native SDL3 editor already has actual nut thumbnail favorites/filter and durable relaunch state verified on Windows preview CI. Mobile-only WebView change does not modify native desktop or certify production parity.",
+        "linux": "Independent SDL3 Linux editor already has native nut favorites/filter and restart state. No native source touched, other parity gaps remain."
+      },
+      "decision": "Four-target accountability review: editor favorite key nutbuster.custom-level.favorites.v1 is separate from campaign save and V1 board draft, no relaxed gate or hardware acceptance claim."
     }
   ]
 }
