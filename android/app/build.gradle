@@ -28,6 +28,8 @@ android {
         targetSdk 36
         versionCode buildCode
         versionName buildCode > 1 ? '0.1.0-test.' + buildCode : '0.1.0-alpha'
+        // Isolated emulator-only test APK; this runner is never packaged into a player release.
+        testInstrumentationRunner 'io.github.mrcalzon02.nutbuster.EditorTouchInstrumentation'
     }
     // android/app -> ../../web. The earlier ../../../web pointed outside the repository.
     sourceSets { main { assets.srcDirs = ['../../web'] } }
