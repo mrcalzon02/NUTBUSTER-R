@@ -19,6 +19,8 @@ def playKeyPassword = (project.findProperty('playUploadKeyPassword') ?: '').toSt
 def havePlaySigning = playStore && playPassword && playKeyPassword &&
     playAlias == 'nutbuster-play-upload-v1' && file(playStore).isFile()
 
+def chrome69Assets = layout.buildDirectory.dir('generated/webview-chrome69')
+
 android {
     namespace 'io.github.mrcalzon02.nutbuster'
     compileSdk 36
@@ -32,7 +34,7 @@ android {
         testInstrumentationRunner 'io.github.mrcalzon02.nutbuster.EditorTouchInstrumentation'
     }
     // android/app -> ../../web. The earlier ../../../web pointed outside the repository.
-    sourceSets { main { assets.srcDirs = ['../../web'] } }
+    sourceSets { main { assets.srcDirs = [chrome69Assets.get().asFile] } }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     signingConfigs {
         if (haveSigning) {
@@ -68,6 +70,26 @@ android {
         }
     }
 }
+
+
+ // Keep the original web/ scripts modern for Node/desktop, but ship syntax that
+ // can be parsed by the oldest supported Android 8 / Chrome 69 WebView.
+ // The pinned compiler fails the Android build on errors; it does not relax tests.
+ def prepareChrome69Assets = tasks.register('prepareChrome69Assets', Exec) {
+     workingDir rootProject.projectDir.parentFile
+     commandLine 'node',
+         rootProject.file('../tools/build-android-webview-assets.js').absolutePath,
+         rootProject.file('../web').absolutePath,
+         chrome69Assets.get().asFile.absolutePath
+     inputs.dir rootProject.file('../web')
+     inputs.file rootProject.file('../tools/build-android-webview-assets.js')
+     outputs.dir chrome69Assets
+ }
+ tasks.configureEach { task ->
+     if (task.name.startsWith('merge') && task.name.endsWith('Assets')) {
+         task.dependsOn(prepareChrome69Assets)
+     }
+ }
 
 // Never accidentally publish a release APK signed with the debug key or without the pinned signer.
 tasks.register('validatePublisherSigning') {
