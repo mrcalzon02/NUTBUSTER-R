@@ -66,6 +66,13 @@ assert.equal((wharf.match(/class="fish-catch-entry"/g)||[]).length,80);
 // Source-set references automatically package web art into Android and desktop builds.
 const gradle=fs.readFileSync(path.join(__dirname,'../android/app/build.gradle'),'utf8');
 const desktop=fs.readFileSync(path.join(__dirname,'../desktop/package.json'),'utf8');
-assert.match(gradle,/assets\.srcDirs\s*=\s*\['\.\.\/\.\.\/web'\]/);
+// Android now copies the same web/ assets, lowering JS syntax only in the
+// generated APK tree; the original desktop source tree remains unchanged.
+assert.match(gradle,/assets\.srcDirs\s*=\s*\[chrome69Assets\.get\(\)\.asFile\]/);
+assert.match(gradle,/prepareChrome69Assets/);
+const legacy=fs.readFileSync(path.join(__dirname,'../tools/build-android-webview-assets.js'),'utf8');
+assert.match(legacy,/fs\.cpSync\(source, output/);
+assert.match(legacy,/--target=chrome69/);
+assert.match(legacy,/esbuild@0\.25\.12/);
 assert.ok(JSON.parse(desktop).build.extraResources.some(x=>x.from==='../web'));
 console.log('PASS: 80 catchable species, 1280 successful casts, outcome odds, persistence and packages');

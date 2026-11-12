@@ -11,7 +11,14 @@ const workflow=read('.github/workflows/build-and-release.yml');
 const update=read('web/update.js');
 const pinned=read('config/nutbuster-publisher.sha256').trim();
 assert.equal(pinned,'cdde49a6d72b49e50d1cf3454ebb0a1e63444640719e4afa40c6c74bd5c8b0b9','existing publisher signing identity is unchanged');
-assert.match(gradle,/assets\.srcDirs = \['\.\.\/\.\.\/web'\]/);
+// Minimum API26 WebView must receive the complete offline game through
+// the separately generated Chrome69-compatible asset source set.
+assert.match(gradle,/assets\.srcDirs\s*=\s*\[chrome69Assets\.get\(\)\.asFile\]/);
+assert.match(gradle,/prepareChrome69Assets/);
+const legacyBuild=read('tools/build-android-webview-assets.js');
+assert.match(legacyBuild,/--target=chrome69/);
+assert.match(legacyBuild,/esbuild@0\.25\.12/);
+assert.match(legacyBuild,/fs\.cpSync\(source, output/);
 assert.match(gradle,/minSdk 26/);
 assert.match(gradle,/targetSdk 36/);
 assert.match(gradle,/validatePublisherSigning/);
