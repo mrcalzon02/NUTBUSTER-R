@@ -87,6 +87,7 @@ android {
  }
  tasks.configureEach { task ->
      if ((task.name.startsWith('merge') && task.name.endsWith('Assets')) ||
+         task.name.startsWith('lint') ||
          task.name == 'generateReleaseLintVitalReportModel' ||
          task.name == 'generatePlayLintVitalReportModel') {
          task.dependsOn(prepareChrome69Assets)
