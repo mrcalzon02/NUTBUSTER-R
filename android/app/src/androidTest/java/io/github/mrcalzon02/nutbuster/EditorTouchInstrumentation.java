@@ -10,6 +10,8 @@ import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.ConsoleMessage;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,6 +35,7 @@ public final class EditorTouchInstrumentation extends Instrumentation {
     private static final String FAVORITES = "nutbuster.custom-level.favorites.v1";
     private Activity activity;
     private WebView web;
+    private final StringBuilder bootConsole = new StringBuilder();
 
     @Override public void onCreate(Bundle args) {
         super.onCreate(args);
@@ -69,12 +72,48 @@ public final class EditorTouchInstrumentation extends Instrumentation {
         View child = ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
         check(child instanceof WebView, "Expected packaged Android WebView");
         web = (WebView) child;
+        // The API26 image may ship an older WebView than the developer browser.
+        // Test-only reload captures script parse/runtime failures from page start;
+        // do not change release WebView permissions or ignore failed assertions.
+        web.post(() -> {
+            web.setWebChromeClient(new WebChromeClient() {
+                @Override public boolean onConsoleMessage(ConsoleMessage message) {
+                    synchronized (bootConsole) {
+                        if (bootConsole.length() < 6000)
+                            bootConsole.append(message.messageLevel()).append(' ')
+                                .append(message.sourceId()).append(':')
+                                .append(message.lineNumber()).append(' ')
+                                .append(message.message()).append('\n');
+                    }
+                    return true;
+                }
+            });
+            web.reload();
+        });
         long deadline = SystemClock.uptimeMillis() + 30000;
         while (SystemClock.uptimeMillis() < deadline) {
             if ("true".equals(js("!!(window.NutbusterApp && window.NutProgress && window.NutEngine)"))) return;
             SystemClock.sleep(250);
         }
-        throw new AssertionError("Packaged game JavaScript did not initialize");
+        String documentEvidence;
+        try {
+            documentEvidence = js("(function(){return JSON.stringify({url:location.href,"
+                + "ready:document.readyState,engine:!!window.NutEngine,"
+                + "progress:!!window.NutProgress,app:!!window.NutbusterApp,"
+                + "scripts:document.scripts.length,ua:navigator.userAgent});})()");
+        } catch (Exception diagnosticError) {
+            documentEvidence = "evaluation failed: " + diagnosticError;
+        }
+        android.content.pm.PackageInfo provider = WebView.getCurrentWebViewPackage();
+        String providerVersion = provider == null ? "unknown" :
+            provider.packageName + "/" + provider.versionName;
+        String console;
+        synchronized (bootConsole) {
+            console = bootConsole.toString();
+        }
+        throw new AssertionError("Packaged game JavaScript did not initialize"
+            + "; WebView=" + providerVersion
+            + "; document=" + documentEvidence + "; console=" + console);
     }
 
     private String js(String expression) throws Exception {
