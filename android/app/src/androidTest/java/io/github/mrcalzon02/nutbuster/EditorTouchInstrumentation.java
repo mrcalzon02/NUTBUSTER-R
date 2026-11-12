@@ -46,12 +46,16 @@ public final class EditorTouchInstrumentation extends Instrumentation {
         super.onStart();
         Bundle result = new Bundle();
         int exit = Activity.RESULT_CANCELED;
+        boolean editorPassed = false;
         try {
             execute();
+            editorPassed = true;
             result.putString("editor_touch", "EDITOR_TOUCH_PASS: installed API26 WebView physical taps, horizontal swipe, persistence, activity relaunch, screenshots");
+            result.putString("irregular_board", runIrregularBoardProof());
             exit = Activity.RESULT_OK;
         } catch (Throwable error) {
-            result.putString("editor_touch", "EDITOR_TOUCH_FAIL: " + error);
+            result.putString(editorPassed ? "irregular_board" : "editor_touch",
+                (editorPassed ? "IRREGULAR_BOARD_FAIL: " : "EDITOR_TOUCH_FAIL: ") + error);
             result.putString("stack", android.util.Log.getStackTraceString(error));
         } finally {
             finish(exit, result);
@@ -287,4 +291,137 @@ public final class EditorTouchInstrumentation extends Instrumentation {
             "Persistent favorites/filter did not survive installed WebView relaunch");
         screenshot("editor-touch-relaunch.png");
     }
+    /**
+     * Emulator-only visual reproduction of issue #1. No production test hooks:
+     * a fixed NutEngine seed is installed through the existing app state, then
+     * the real packaged game's two touchscreen cell handlers resolve the swap.
+     * Capture both actual Android framebuffers and inspect every visible tile.
+     */
+    private String runIrregularBoardProof() throws Exception {
+        String fixture = """
+            (function(){
+              var E=window.NutEngine,app=window.NutbusterApp,chosen=null;
+              for(var level=301;level<=500&&!chosen;level++){
+                var cfg=E.makeLevel(level),splitColumns=0;
+                for(var x=0;x<cfg.width;x++){
+                  var runs=0,inside=false;
+                  for(var y=0;y<cfg.height;y++){
+                    var filled=!!cfg.mask[y*cfg.width+x];
+                    if(filled&&!inside)runs++;
+                    inside=filled;
+                  }
+                  if(runs>1)splitColumns++;
+                }
+                if(!splitColumns)continue;
+                var seed=(74565+level*7919)>>>0;
+                var board=E.create(level,seed),w=board.cfg.width;
+                for(var a=0;a<board.cells.length&&!chosen;a++){
+                  for(var direction=0;direction<2&&!chosen;direction++){
+                    var b=a+(direction===0?1:w);
+                    if(!E.adjacent(board,a,b))continue;
+                    var probe=E.create(level,seed),turn=E.swap(probe,a,b);
+                    if(!turn.valid)continue;
+                    var falling=0,spawns=0,crossings=0;
+                    (turn.stages||[]).forEach(function(stage){
+                      if(stage.kind!=='cascade')return;
+                      (stage.falls||[]).forEach(function(fall){
+                        if(fall.from<0){spawns++;return;}
+                        falling++;
+                        if(fall.from%w!==fall.to%w){crossings++;return;}
+                        var lo=Math.min(fall.from,fall.to)/w|0;
+                        var hi=Math.max(fall.from,fall.to)/w|0;
+                        for(var yy=lo;yy<=hi;yy++){
+                          if(!probe.cfg.mask[yy*w+fall.to%w])crossings++;
+                        }
+                      });
+                    });
+                    if(!falling&&!spawns)continue;
+                    if(crossings)return {error:'Cascade crossed a void/column',level:level,a:a,b:b,crossings:crossings};
+                    chosen={level:level,seed:seed,a:a,b:b,splitColumns:splitColumns,falls:falling,spawns:spawns};
+                  }
+                }
+              }
+              if(!chosen)return {error:'No deterministic split-column board with an actual cascade in levels 301-500'};
+              app.start(chosen.level);
+              var state=app.getState();
+              if(state.page!=='game')return {error:'Production game start rejected test fixture'};
+              state.game=E.create(chosen.level,chosen.seed);
+              app.nav('home');
+              app.nav('game');
+              if(state.page!=='game'||!document.querySelector('.board'))
+                return {error:'Production game board failed to render'};
+              return chosen;
+            })()
+            """;
+        JSONObject selection = new JSONObject(js(fixture));
+        check(!selection.has("error"), "Irregular fixture failed: " + selection);
+        int a = selection.getInt("a"), b = selection.getInt("b");
+        String audit = """
+            (function(){
+              var state=window.NutbusterApp.getState(),g=state.game;
+              var board=document.querySelector('.board');
+              if(!g||!board||state.page!=='game')return {error:'Game board unavailable'};
+              var active=0,visible=0,voids=0,errors=[];
+              for(var i=0;i<g.cfg.mask.length;i++){
+                var tile=board.querySelector('[data-cell="'+i+'"]');
+                if(!g.cfg.mask[i]){voids++;if(tile)errors.push('void tile '+i);continue;}
+                active++;
+                var cell=g.cells[i];
+                if(!cell||cell.type===null){errors.push('empty playable '+i);continue;}
+                if(!tile){errors.push('missing DOM tile '+i);continue;}
+                var visual=tile.querySelector('.nut-visual');
+                if(!visual){errors.push('missing nut visual '+i);continue;}
+                var style=window.getComputedStyle(visual);
+                if(style.visibility==='hidden'||Number(style.opacity)<0.01||
+                  tile.classList.contains('nut-exploding')||
+                  tile.classList.contains('clearing')){
+                  errors.push('hidden visual '+i);continue;
+                }
+                var image=visual.querySelector('img.piece');
+                var fallback=visual.querySelector('.fallback');
+                var imageOk=!!image&&image.complete&&image.naturalWidth>0&&
+                  getComputedStyle(image).display!=='none'&&getComputedStyle(image).visibility!=='hidden';
+                var fallbackOk=!!fallback&&!!fallback.textContent.trim()&&
+                  getComputedStyle(fallback).display!=='none'&&
+                  getComputedStyle(fallback).visibility!=='hidden';
+                if(!imageOk&&!fallbackOk){errors.push('blank sprite '+i);continue;}
+                if(tile.getAttribute('data-nut-key').split(':')[0]!==String(cell.type)){
+                  errors.push('stale nut '+i);continue;
+                }
+                visible++;
+              }
+              return {active:active,visible:visible,voids:voids,errors:errors,
+                turns:g.history.length,animating:state.animating};
+            })()
+            """;
+        SystemClock.sleep(700);
+        JSONObject before = new JSONObject(js(audit));
+        check(!before.has("error") && before.getJSONArray("errors").length() == 0 &&
+              before.getInt("visible") == before.getInt("active"),
+              "Initial installed irregular board has blank cells: " + before);
+        screenshot("irregular-board-before.png");
+        tap("[data-cell='" + a + "']");
+        tap("[data-cell='" + b + "']");
+        long deadline = SystemClock.uptimeMillis() + 14000;
+        boolean resolved = false;
+        while(SystemClock.uptimeMillis() < deadline){
+            if("true".equals(js("(function(){var s=window.NutbusterApp.getState();"
+                + "return s.page==='game'&&!s.animating&&s.game.history.length>0;})()"))){
+                resolved = true;
+                break;
+            }
+            SystemClock.sleep(300);
+        }
+        check(resolved, "Real Android cascade did not settle; fixture=" + selection);
+        SystemClock.sleep(500);
+        JSONObject after = new JSONObject(js(audit));
+        screenshot("irregular-board-after.png");
+        check(!after.has("error") && after.getJSONArray("errors").length() == 0 &&
+              after.getInt("visible") == after.getInt("active") && after.getInt("turns") > 0,
+              "Irregular cascade left a blank playable nut: " + selection + " / " + after);
+        return "IRREGULAR_BOARD_PASS: real Chrome69 Android swap; selection=" + selection
+            + "; before=" + before + "; after=" + after
+            + "; actual framebuffer PNGs saved";
+    }
+
 }
