@@ -74,5 +74,8 @@ const legacy=fs.readFileSync(path.join(__dirname,'../tools/build-android-webview
 assert.match(legacy,/fs\.cpSync\(source, output/);
 assert.match(legacy,/--target=chrome69/);
 assert.match(legacy,/esbuild@0\.25\.12/);
+assert.match(legacy,/android-webview-compat\.js/);
+assert.match(legacy,/Object\.fromEntries/);
+assert.match(gradle,/generateReleaseLintVitalReportModel/);
 assert.ok(JSON.parse(desktop).build.extraResources.some(x=>x.from==='../web'));
 console.log('PASS: 80 catchable species, 1280 successful casts, outcome odds, persistence and packages');

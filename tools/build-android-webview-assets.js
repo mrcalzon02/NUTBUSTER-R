@@ -26,6 +26,25 @@ for (const entry of entries) {
 fs.rmSync(output, { recursive: true, force: true });
 fs.mkdirSync(output, { recursive: true });
 fs.cpSync(source, output, { recursive: true });
+// Syntax lowering does not provide missing Chrome 69 built-in APIs.
+const compat = '(function () {\n' +
+  '  if (typeof Object.fromEntries !== "function") {\n' +
+  '    Object.defineProperty(Object, "fromEntries", { configurable: true, writable: true, value: function(iterable) {\n' +
+  '      var result = {};\n' +
+  '      for (var entry of iterable) {\n' +
+  '        if (Object(entry) !== entry) throw new TypeError("Invalid Object.fromEntries iterator entry");\n' +
+  '        Object.defineProperty(result, entry[0], { value: entry[1], enumerable: true, configurable: true, writable: true });\n' +
+  '      }\n' +
+  '      return result;\n' +
+  '    }});\n' +
+  '  }\n' +
+  '})();\n';
+const firstTag = '<script src="' + entries[0] + '"></script>';
+if (html.split(firstTag).length !== 2) fail('unexpected first script tag');
+const compatibleHtml = html.replace(firstTag, '<script src="android-webview-compat.js"></script>' + firstTag);
+fs.writeFileSync(path.join(output, 'android-webview-compat.js'), compat);
+fs.writeFileSync(path.join(output, 'index.html'), compatibleHtml);
+
 // Pinned compiler, no bundling, no minification, no IIFE wrapper. Keep classic
 // script order and shared top-level scope; only lower unsupported syntax.
 const args = ['--yes', 'esbuild@0.25.12',
@@ -43,7 +62,7 @@ for (const entry of entries) {
   if (converted !== original) changed++;
 }
 if (changed === 0) fail('none of the modern game scripts were transpiled');
-if (fs.readFileSync(path.join(output, 'index.html'), 'utf8') !== html) {
+if (fs.readFileSync(path.join(output, 'index.html'), 'utf8') !== compatibleHtml) {
   fail('classic script order changed during build');
 }
 console.log('PASS: staged ' + entries.length + ' ordered game scripts for Chrome 69 (' +
