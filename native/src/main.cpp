@@ -219,6 +219,9 @@ struct Game {
   GemWallet wallet{};
   bool levelEditorUnlocked=false; // Earned by stage-1000 victory, not by reachability.
   int editorNut=0;
+  // User-only preferences are isolated from official campaign and custom level saves.
+  std::array<bool,19> editorFavorites{};
+  bool editorFavoritesOnly=false,editorFavoritesLoaded=false;
   bool editorDraftLoaded=false;
   std::string editorDraftStatus="NOT SAVED";
   bool editorSharePickerOpen=false;
@@ -462,6 +465,109 @@ struct Game {
     editorSharePickerOpen=false;editorShareCandidates.clear();
     return true;
   }
+  std::vector<int> visibleEditorNuts()const{
+    std::vector<int> shown;
+    for(int id:EDITOR_NUT_IDS)
+      if(!editorFavoritesOnly||editorFavorites[size_t(id)])shown.push_back(id);
+    return shown;
+  }
+  int visibleEditorNutAt(float x,float y)const{
+    const auto shown=visibleEditorNuts();
+    for(size_t slot=0;slot<shown.size();++slot){
+      const float bx=float(EDITOR_PALETTE_X+int(slot%EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DX);
+      const float by=float(EDITOR_PALETTE_Y+int(slot/EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DY);
+      if(within(x,y,bx,by,EDITOR_PALETTE_W,EDITOR_PALETTE_H))return shown[slot];
+    }
+    return -1;
+  }
+  fs::path editorFavoritesPath()const{
+    return fs::path(savePath.string()+".palette-favorites-v1");
+  }
+  bool readEditorFavorites(std::istream& in){
+    std::string signature;
+    int count=0,filtered=-1;
+    if(!(in>>signature>>count>>filtered)||
+       signature!="NUTBUSTER_PALETTE_FAVORITES_V1"||
+       count!=int(EDITOR_NUT_IDS.size())||(filtered!=0&&filtered!=1))return false;
+    std::array<bool,19> candidate{};
+    for(int id:EDITOR_NUT_IDS){
+      int flag=-1;
+      if(!(in>>flag)||(flag!=0&&flag!=1))return false;
+      candidate[size_t(id)]=flag==1;
+    }
+    in>>std::ws;
+    if(in.peek()!=std::char_traits<char>::eof())return false;
+    // Validate everything before committing; retired identity 12 remains unset.
+    editorFavorites=candidate;
+    editorFavoritesOnly=filtered==1;
+    const auto shown=visibleEditorNuts();
+    if(editorFavoritesOnly&&!shown.empty()&&
+       std::find(shown.begin(),shown.end(),editorNut)==shown.end())
+      editorNut=shown.front();
+    return true;
+  }
+  void loadEditorFavorites(){
+    if(editorFavoritesLoaded||savePath.empty())return;
+    editorFavoritesLoaded=true;
+    std::ifstream in(editorFavoritesPath(),std::ios::binary);
+    if(in&&!readEditorFavorites(in))
+      std::cerr<<"Invalid native editor palette preferences; keeping defaults\n";
+  }
+  bool saveEditorFavorites()const{
+    if(smoke)return true; // Render fixtures must never write user data.
+    if(savePath.empty())return false;
+    const fs::path target=editorFavoritesPath();
+    const fs::path stage=fs::path(target.string()+".staging");
+    {
+      std::ofstream out(stage,std::ios::binary|std::ios::trunc);
+      if(!out)return false;
+      out<<"NUTBUSTER_PALETTE_FAVORITES_V1 "<<EDITOR_NUT_IDS.size()
+         <<" "<<(editorFavoritesOnly?1:0)<<"\n";
+      for(int id:EDITOR_NUT_IDS)out<<(editorFavorites[size_t(id)]?1:0)<<" ";
+      out<<"\n";
+      out.flush();
+      if(!out){std::error_code err;fs::remove(stage,err);return false;}
+    }
+    if(!replaceDraftFile(stage,target)){
+      std::error_code err;fs::remove(stage,err);return false;
+    }
+    return true;
+  }
+  bool toggleEditorFavorite(){
+    if(scene!=Scene::Editor||editorSharePickerOpen||editorNut==12||
+       editorNut<0||editorNut>=19)return false;
+    const int oldNut=editorNut;
+    const bool previous=editorFavorites[size_t(editorNut)];
+    editorFavorites[size_t(editorNut)]=!previous;
+    const auto shown=visibleEditorNuts();
+    if(editorFavoritesOnly&&!shown.empty()&&
+       std::find(shown.begin(),shown.end(),editorNut)==shown.end())
+      editorNut=shown.front();
+    if(saveEditorFavorites())return true;
+    editorFavorites[size_t(oldNut)]=previous;editorNut=oldNut;
+    editorDraftStatus="FAVORITES SAVE FAILED";
+    return false;
+  }
+  bool toggleEditorFavoritesOnly(){
+    if(scene!=Scene::Editor||editorSharePickerOpen)return false;
+    editorFavoritesOnly=!editorFavoritesOnly;
+    const auto shown=visibleEditorNuts();
+    const int oldNut=editorNut;
+    if(!shown.empty()&&std::find(shown.begin(),shown.end(),editorNut)==shown.end())
+      editorNut=shown.front();
+    if(saveEditorFavorites())return true;
+    editorFavoritesOnly=!editorFavoritesOnly;editorNut=oldNut;
+    editorDraftStatus="FAVORITES SAVE FAILED";
+    return false;
+  }
+  bool cycleEditorNut(int delta){
+    const auto shown=visibleEditorNuts();
+    if(shown.empty())return false;
+    const auto it=std::find(shown.begin(),shown.end(),editorNut);
+    const int current=it==shown.end()?0:int(it-shown.begin());
+    editorNut=shown[size_t((current+int(shown.size())+delta)%int(shown.size()))];
+    return true;
+  }
   bool editorSharePickerKey(SDL_Keycode key){
     if(!editorSharePickerOpen||scene!=Scene::Editor)return false;
     if(key==SDLK_ESCAPE){editorSharePickerOpen=false;return true;}
@@ -475,20 +581,23 @@ struct Game {
     }
     return false;
   }
-  // The file picker is modal; it exclusively owns arrow/Enter/Escape input.
+  // The JSON picker exclusively owns keys; arrows move within visible slots.
   bool editorPaletteKey(SDL_Keycode key){
     if(scene!=Scene::Editor||editorSharePickerOpen)return false;
-    const auto it=std::find(EDITOR_NUT_IDS.begin(),EDITOR_NUT_IDS.end(),editorNut);
-    const int current=it==EDITOR_NUT_IDS.end()?0:int(it-EDITOR_NUT_IDS.begin());
+    if(key!=SDLK_LEFT&&key!=SDLK_RIGHT&&key!=SDLK_UP&&
+       key!=SDLK_DOWN&&key!=SDLK_HOME&&key!=SDLK_END)return false;
+    const auto shown=visibleEditorNuts();
+    if(shown.empty())return true; // Empty favorites view stays selectable via ALL.
+    const auto it=std::find(shown.begin(),shown.end(),editorNut);
+    const int current=it==shown.end()?0:int(it-shown.begin());
     int next=current;
     if(key==SDLK_LEFT)next=std::max(0,current-1);
-    else if(key==SDLK_RIGHT)next=std::min(int(EDITOR_NUT_IDS.size())-1,current+1);
+    else if(key==SDLK_RIGHT)next=std::min(int(shown.size())-1,current+1);
     else if(key==SDLK_UP)next=std::max(0,current-EDITOR_PALETTE_COLUMNS);
-    else if(key==SDLK_DOWN)next=std::min(int(EDITOR_NUT_IDS.size())-1,current+EDITOR_PALETTE_COLUMNS);
+    else if(key==SDLK_DOWN)next=std::min(int(shown.size())-1,current+EDITOR_PALETTE_COLUMNS);
     else if(key==SDLK_HOME)next=0;
-    else if(key==SDLK_END)next=int(EDITOR_NUT_IDS.size())-1;
-    else return false;
-    editorNut=EDITOR_NUT_IDS[size_t(next)];
+    else if(key==SDLK_END)next=int(shown.size())-1;
+    editorNut=shown[size_t(next)];
     return true;
   }
   fs::path draftStagePath()const{return fs::path(draftPath().string()+".staging");}
@@ -583,6 +692,7 @@ struct Game {
   }
   bool openEditor(){
     if(!levelEditorUnlocked)return false;
+    loadEditorFavorites();
     if(!editorDraftLoaded){editorDraftLoaded=true;loadEditorDraft();}
     editorSharePickerOpen=false;
     selected=-1;scene=Scene::Editor;return true;
@@ -835,7 +945,9 @@ struct Game {
       if(within(x,y,760,265,230,40)){
         openEditorSharePicker();return;
       }
-      const int paletteNut=editorNutAt(x,y);
+      if(within(x,y,760,311,108,37)){toggleEditorFavorite();return;}
+      if(within(x,y,878,311,112,37)){toggleEditorFavoritesOnly();return;}
+      const int paletteNut=visibleEditorNutAt(x,y);
       if(paletteNut>=0){editorNut=paletteNut;return;}
       if(within(x,y,720,646,240,44)){startEditorPlay();return;}
       if(within(x,y,180,646,260,44)){
@@ -847,10 +959,10 @@ struct Game {
         return;
       }
       if(within(x,y,180,713,260,44)){
-        editorNut=(editorNut+18)%19;if(editorNut==12)editorNut=11;return;
+        cycleEditorNut(-1);return;
       }
       if(within(x,y,452,713,260,44)){
-        editorNut=(editorNut+1)%19;if(editorNut==12)editorNut=13;return;
+        cycleEditorNut(1);return;
       }
       if(within(x,y,720,713,110,44)){stepEditorHistory(true);return;}
       if(within(x,y,840,713,120,44)){stepEditorHistory(false);return;}
@@ -1033,10 +1145,11 @@ struct Game {
       renderBoardCells(r,editorBoard);
       button(r,760,215,230,40,"EXPORT JSON");
       button(r,760,265,230,40,"IMPORT JSON");
-      label(r,761,314,"FILE: NUTBUSTER-custom-level-v1.json",1);
-      label(r,761,338,"NUT ASSETS - ARROW KEYS",1);
-      for(size_t slot=0;slot<EDITOR_NUT_IDS.size();++slot){
-        const int type=EDITOR_NUT_IDS[slot];
+      button(r,760,311,108,37,editorFavorites[size_t(editorNut)]?"UNSTAR":"STAR");
+      button(r,878,311,112,37,editorFavoritesOnly?"FAVS":"ALL");
+      const auto shown=visibleEditorNuts();
+      for(size_t slot=0;slot<shown.size();++slot){
+        const int type=shown[slot];
         const int x=EDITOR_PALETTE_X+int(slot%EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DX;
         const int y=EDITOR_PALETTE_Y+int(slot/EDITOR_PALETTE_COLUMNS)*EDITOR_PALETTE_DY;
         fill(r,float(x),float(y),EDITOR_PALETTE_W,EDITOR_PALETTE_H,
@@ -1045,7 +1158,12 @@ struct Game {
           {43,26,51,255});
         sprite(r,std::string("nuts/")+NUTS[size_t(type)],
           float(x+5),float(y+4),42,42);
+        if(editorFavorites[size_t(type)]){
+          fill(r,float(x+35),float(y+35),14,13,{235,183,81,255});
+          label(r,float(x+38),float(y+36),"F",1);
+        }
       }
+      if(shown.empty())label(r,760,390,"NO FAVORITES - SELECT ALL",1);
       button(r,180,646,260,44,"SAVE DRAFT");
       button(r,452,646,260,44,"RELOAD DRAFT");
       button(r,720,646,240,44,"PLAY LEVEL");
@@ -1596,6 +1714,68 @@ bool editorNutPaletteSelfTest(std::string& report){
     report=std::string("FAIL native editor nut palette: ")+e.what();return false;
   }
 }
+bool editorFavoritesSelfTest(std::string& report){
+  try{
+    Game g;g.levelEditorUnlocked=true;
+    g.savePath=fs::temp_directory_path()/
+      ("nutbuster-favorites-"+std::to_string(std::time(nullptr))+"-"+
+       std::to_string(std::clock())+".progress");
+    if(!g.openEditor()||g.visibleEditorNuts().size()!=18)
+      throw std::runtime_error("new editor palette must show 18 real nuts");
+    g.click(EDITOR_PALETTE_X+10,EDITOR_PALETTE_Y+10);
+    if(g.editorNut!=0)throw std::runtime_error("first nut not selectable");
+    g.click(780,328); // Star first nut, persisting separate user preferences.
+    g.click(float(EDITOR_PALETTE_X+EDITOR_PALETTE_DX+10),float(EDITOR_PALETTE_Y+10));
+    if(g.editorNut!=1)throw std::runtime_error("second nut not selectable");
+    g.click(780,328); // Star second nut.
+    g.click(900,328); // Favorites only.
+    if(!g.editorFavorites[0]||!g.editorFavorites[1]||
+       g.editorFavorites[12]||!g.editorFavoritesOnly||
+       g.visibleEditorNuts()!=std::vector<int>({0,1})||
+       g.visibleEditorNutAt(EDITOR_PALETTE_X+10,EDITOR_PALETTE_Y+10)!=0||
+       g.visibleEditorNutAt(EDITOR_PALETTE_X+EDITOR_PALETTE_DX+10,EDITOR_PALETTE_Y+10)!=1||
+       g.visibleEditorNutAt(EDITOR_PALETTE_X+2*EDITOR_PALETTE_DX+10,EDITOR_PALETTE_Y+10)!=-1)
+      throw std::runtime_error("favorites filter/display or retired nut incorrect");
+    if(!g.editorPaletteKey(SDLK_HOME)||g.editorNut!=0||
+       !g.editorPaletteKey(SDLK_RIGHT)||g.editorNut!=1||
+       !g.editorPaletteKey(SDLK_LEFT)||g.editorNut!=0||
+       !g.cycleEditorNut(1)||g.editorNut!=1)
+      throw std::runtime_error("filtered keyboard/toolbar navigation");
+    g.editorSharePickerOpen=true;g.click(780,328);
+    if(!g.editorFavorites[1]||g.editorPaletteKey(SDLK_HOME))
+      throw std::runtime_error("modal allowed favorite controls");
+    g.editorSharePickerOpen=false;
+    g.click(780,328); // Unstar currently selected nut; select survivor.
+    if(g.editorFavorites[1]||!g.editorFavorites[0]||g.editorNut!=0||
+       g.visibleEditorNuts()!=std::vector<int>({0}))
+      throw std::runtime_error("unstar did not select surviving visible nut");
+    if(!fs::exists(g.editorFavoritesPath())||
+       fs::exists(g.savePath)||fs::exists(g.draftPath())||g.editorDirty||
+       !g.editorUndo.empty())
+      throw std::runtime_error("favorite state changed campaign or level draft");
+    Game restored;restored.levelEditorUnlocked=true;restored.savePath=g.savePath;
+    if(!restored.openEditor()||!restored.editorFavoritesOnly||
+       restored.visibleEditorNuts()!=std::vector<int>({0})||
+       restored.editorFavorites[1]||restored.editorFavorites[12])
+      throw std::runtime_error("favorites did not survive relaunch");
+    restored.click(900,328);
+    if(restored.editorFavoritesOnly||restored.visibleEditorNuts().size()!=18||
+       !restored.editorFavorites[0])
+      throw std::runtime_error("ALL view lost persisted star");
+    std::stringstream bad("NUTBUSTER_PALETTE_FAVORITES_V1 18 1 0 1 bad");
+    if(restored.readEditorFavorites(bad)||!restored.editorFavorites[0]||
+       restored.editorFavoritesOnly)
+      throw std::runtime_error("invalid preferences accepted or partially applied");
+    std::error_code error;fs::remove(g.editorFavoritesPath(),error);
+    if(error)throw std::runtime_error("favorites fixture cleanup");
+    report="PASS 18 real nut favorites, filter/unstar, mouse/keyboard, "
+           "modal isolation, saved/relaunch user settings, malformed "
+           "preference rejection and unchanged campaign/draft";
+    return true;
+  }catch(const std::exception& e){
+    report=std::string("FAIL native editor favorites: ")+e.what();return false;
+  }
+}
 bool editorAutosaveSelfTest(std::string& report){
   try{
     Game g;
@@ -1959,12 +2139,13 @@ bool editorJsonPickerSelfTest(std::string& report){
 
 }
 int main(int argc,char** argv){
-  std::string screenshot,fixtureFile;int previewStage=0;bool self=false,previewMine=false,previewBoard=false,previewCampaign=false,smokeDig=false,smokeShop=false,smokeEditorPalette=false,previewEquip=false,previewRefinery=false;
+  std::string screenshot,fixtureFile;int previewStage=0;bool self=false,previewMine=false,previewBoard=false,previewCampaign=false,smokeDig=false,smokeShop=false,smokeEditorPalette=false,smokeEditorFavorites=false,previewEquip=false,previewRefinery=false;
   for(int i=1;i<argc;++i){
     std::string arg=argv[i];
     if(arg=="--self-test")self=true;
     else if(arg=="--smoke-hold-shop")smokeShop=true;
     else if(arg=="--smoke-editor-palette")smokeEditorPalette=true;
+    else if(arg=="--smoke-editor-favorites")smokeEditorFavorites=true;
     else if(arg=="--verify-mine-fixtures"&&i+1<argc)fixtureFile=argv[++i];
     else if(arg=="--preview-mine")previewMine=true;
     else if(arg=="--smoke-mine-dig"){previewMine=true;smokeDig=true;}
@@ -1991,15 +2172,17 @@ int main(int argc,char** argv){
     bool boardOk=nut::selfTest(boardReport),mineOk=nut::mineSelfTest(mineReport);
     bool holdOk=holdUiSelfTest(holdReport),shopOk=shopUiSelfTest(shopReport);
     bool editorOk=editorProgressionSelfTest(editorReport);
-    std::string autosaveReport,jsonReport,pickerReport,paletteReport;
+    std::string autosaveReport,jsonReport,pickerReport,paletteReport,favoritesReport;
     bool autosaveOk=editorAutosaveSelfTest(autosaveReport);
     bool jsonOk=editorJsonShareSelfTest(jsonReport);
     bool pickerOk=editorJsonPickerSelfTest(pickerReport);
     bool paletteOk=editorNutPaletteSelfTest(paletteReport);
+    bool favoritesOk=editorFavoritesSelfTest(favoritesReport);
     std::cout<<boardReport<<"\n"<<mineReport<<"\n"<<holdReport<<"\n"
              <<shopReport<<"\n"<<editorReport<<"\n"<<autosaveReport<<"\n"
-             <<jsonReport<<"\n"<<pickerReport<<"\n"<<paletteReport<<"\n";
-    return boardOk&&mineOk&&holdOk&&shopOk&&editorOk&&autosaveOk&&jsonOk&&pickerOk&&paletteOk?0:1;
+             <<jsonReport<<"\n"<<pickerReport<<"\n"<<paletteReport<<"\n"
+             <<favoritesReport<<"\n";
+    return boardOk&&mineOk&&holdOk&&shopOk&&editorOk&&autosaveOk&&jsonOk&&pickerOk&&paletteOk&&favoritesOk?0:1;
   }
   if(!fixtureFile.empty()){
     std::ifstream fixtures(fixtureFile);
@@ -2070,7 +2253,7 @@ int main(int argc,char** argv){
                 "V4 reload, purchased held-nut use and consumed-stock reload\n";
     // Leave the original Game in its real Shop scene for SDL3 screenshot.
   }
-  if(smokeEditorPalette){
+  if(smokeEditorPalette||smokeEditorFavorites){
     // Actual shipped-art palette selection and engine cell edit, before render.
     if(screenshot.empty()){std::cerr<<"Palette smoke requires --smoke-render\n";return 2;}
     game.levelEditorUnlocked=true;
@@ -2091,8 +2274,21 @@ int main(int argc,char** argv){
        game.board.tile(target)!=campaign||game.editorUndo.size()!=1){
       std::cerr<<"Functional SDL3 palette click/paint smoke failed\n";return 3;
     }
-    std::cout<<"PASS native SDL3 palette thumbnail 18 selected and painted real board cell "
-             <<target<<" without campaign edits\n";
+    if(smokeEditorFavorites){
+      game.click(780,328); // Star shipped nut 18, in memory only.
+      game.click(900,328); // Favorites-only view.
+      if(!game.editorFavorites[18]||!game.editorFavoritesOnly||
+         game.visibleEditorNuts()!=std::vector<int>({18})||
+         game.visibleEditorNutAt(EDITOR_PALETTE_X+10,EDITOR_PALETTE_Y+10)!=18||
+         game.board.tile(target)!=campaign){
+        std::cerr<<"Functional SDL3 favorites smoke failed\n";return 3;
+      }
+      std::cout<<"PASS native SDL3 starred/filtered real nut 18, "
+                  "painted engine board cell and unchanged campaign\n";
+    }else{
+      std::cout<<"PASS native SDL3 palette thumbnail 18 selected and painted real board cell "
+               <<target<<" without campaign edits\n";
+    }
   }
   if(smokeDig){
     bool sampled=false;
