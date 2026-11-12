@@ -255,7 +255,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          gradle -p android --no-daemon --stacktrace :app:assembleDebug
+          gradle -p android --no-daemon --stacktrace :app:assembleDebug :app:assembleDebugAndroidTest
           APK=android/app/build/outputs/apk/debug/app-debug.apk
           test -s "$APK"
           SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}/build-tools/36.0.0"
@@ -272,12 +272,17 @@ jobs:
           mkdir -p release
           cp "$APK" release/NUTBUSTER-Android-debug.apk
           sha256sum release/NUTBUSTER-Android-debug.apk > release/NUTBUSTER-Android-debug.sha256
+          # The test-only instrumentation APK is never signed/published as the player app.
+          EDITOR_TEST=android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          test -s "$EDITOR_TEST"
+          cp "$EDITOR_TEST" release/NUTBUSTER-Android-editor-test.apk
       - uses: actions/upload-artifact@v4
         with:
           name: Nutbuster-Android-debug-${{ github.run_id }}
           path: |
             release/NUTBUSTER-Android-debug.apk
             release/NUTBUSTER-Android-debug.sha256
+            release/NUTBUSTER-Android-editor-test.apk
             android/debug-badging.txt
           retention-days: 30
           if-no-files-found: error
@@ -339,6 +344,9 @@ jobs:
             validation/android26-pid.txt
             validation/android26-crashlog.txt
             validation/android26-smoke-steps.txt
+            validation/android26-editor-touch.txt
+            validation/nutbuster-editor-touch-filtered.png
+            validation/nutbuster-editor-touch-relaunch.png
           retention-days: 14
           if-no-files-found: ignore
 
