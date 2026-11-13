@@ -726,3 +726,31 @@
 .editor-nut-card .ui-icon{width:42px;height:42px;object-fit:contain;flex-shrink:0}
 .editor-nut-card .editor-nut-star{min-height:44px;font-weight:800;font-size:12px}
 .editor-nut-palette>.panel{min-height:64px;width:100%}
+
+/* API26 Chrome 69 does not support CSS min() for the six-column tactical
+   belt width. The ignored width collapsed its fractional grid tracks into
+   the center: all twelve labels/stock badges overlapped while art vanished.
+   Use equivalent classic width/max-width so compact 320px screens receive
+   six real columns, each a usable hit target. Keep original booster art. */
+#app.playing .game-active .boosters{
+  width:100%;
+  min-width:0;
+  max-width:500px;
+}
+/* Reserve up to two short text lines BELOW the illustrations. Long unbroken
+   names (including Frostbreaker) must wrap inside their own grid cell. */
+#app.playing .game-active .boosters .booster-picture{bottom:19px}
+#app.playing .game-active .boosters .hold-icon{height:calc(100% - 19px)}
+#app.playing .game-active .boosters .booster-label{
+  font-size:9px!important;
+  line-height:1;
+  max-height:19px;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  overflow:hidden;
+}
+#app.playing .game-active .boosters [data-hold-tool] .booster-label{
+  font-size:9px!important;
+  white-space:normal;
+}
