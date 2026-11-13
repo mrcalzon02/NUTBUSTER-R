@@ -349,6 +349,8 @@ jobs:
             validation/nutbuster-editor-touch-relaunch.png
             validation/nutbuster-irregular-board-before.png
             validation/nutbuster-irregular-board-after.png
+            validation/nutbuster-idle-resume-hidden.png
+            validation/nutbuster-idle-resume-recovered.png
           retention-days: 14
           if-no-files-found: ignore
 

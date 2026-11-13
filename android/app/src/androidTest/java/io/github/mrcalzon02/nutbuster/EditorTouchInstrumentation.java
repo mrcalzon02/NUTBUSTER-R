@@ -46,17 +46,19 @@ public final class EditorTouchInstrumentation extends Instrumentation {
         super.onStart();
         Bundle result = new Bundle();
         int exit = Activity.RESULT_CANCELED;
-        boolean editorPassed = false;
+        String stage = "editor_touch";
         try {
             execute();
-            editorPassed = true;
             result.putString("editor_touch", "EDITOR_TOUCH_PASS: installed API26 WebView physical taps, horizontal swipe, persistence, activity relaunch, screenshots");
+            stage = "irregular_board";
             result.putString("irregular_board", runIrregularBoardProof());
+            stage = "irregular_resume";
+            result.putString("irregular_resume", runIdleResumeProof());
+            stage = "booster_hud";
             result.putString("booster_hud", runBoosterHudProof());
             exit = Activity.RESULT_OK;
         } catch (Throwable error) {
-            result.putString(editorPassed ? "irregular_board" : "editor_touch",
-                (editorPassed ? "IRREGULAR_BOARD_FAIL: " : "EDITOR_TOUCH_FAIL: ") + error);
+            result.putString(stage, stage.toUpperCase(java.util.Locale.ROOT) + "_FAIL: " + error);
             result.putString("stack", android.util.Log.getStackTraceString(error));
         } finally {
             finish(exit, result);
@@ -423,6 +425,145 @@ public final class EditorTouchInstrumentation extends Instrumentation {
         return "IRREGULAR_BOARD_PASS: real Chrome69 Android swap; selection=" + selection
             + "; before=" + before + "; after=" + after
             + "; actual framebuffer PNGs saved";
+    }
+
+    /**
+     * Installed Android 26 lifecycle regression: deliberately conceal one
+     * existing nut on a real irregular board, send the actual Activity task to
+     * the background and bring it back without making another move. Chrome69
+     * must deliver real document visibility changes and restore only that
+     * sprite, leaving authored voids, cells, history and HUD intact.
+     */
+    private String runIdleResumeProof() throws Exception {
+        JSONObject stale = new JSONObject(js("""
+            (function(){
+              var s=window.NutbusterApp.getState(),g=s.game,board=document.querySelector('.board');
+              if(s.page!=='game'||s.animating||!g||!board)
+                return {error:'Idle playable board unavailable'};
+              var voids=0,active=0,chosen=-1;
+              for(var i=0;i<g.cfg.mask.length;i++){
+                if(!g.cfg.mask[i]){voids++;continue;}
+                active++;
+                var tile=board.querySelector('[data-cell="'+i+'"]');
+                if(tile&&tile.querySelector('.nut-visual img.piece')&&
+                   tile.querySelector('.nut-visual .fallback')&&chosen<0)chosen=i;
+              }
+              if(!voids||!active||chosen<0)return {error:'Not an irregular board with a complete sprite'};
+              var tile=board.querySelector('[data-cell="'+chosen+'"]');
+              var visual=tile.querySelector('.nut-visual');
+              var image=visual.querySelector('img.piece');
+              var fallback=visual.querySelector('.fallback');
+              // Full cell payload, all void bits and turn counters are authoritative.
+              var snapshot=function(){return JSON.stringify({
+                mask:Array.prototype.slice.call(g.cfg.mask),
+                cells:g.cells.map(function(c){return c?{
+                  type:c.type,special:c.special,elemental:c.elemental,hold:c.hold,
+                  ice:c.ice,lock:c.lock,chest:c.chest
+                }:null;}),
+                moves:g.moves,score:g.score,turns:g.history.length
+              });};
+              window.__nbIdleResume={
+                board:board,tile:tile,index:chosen,baseline:snapshot(),
+                snapshot:snapshot,events:[]
+              };
+              document.addEventListener('visibilitychange',function(){
+                window.__nbIdleResume.events.push(document.hidden?'hidden':'visible');
+              });
+              // Corrupt only the presented installed WebView sprite. The game
+              // engine and its original fixed mask are never rewritten.
+              visual.style.visibility='hidden';
+              image.style.display='none';
+              image.classList.add('loaded');
+              fallback.style.visibility='hidden';
+              tile.classList.add('nut-exploding');
+              return {index:chosen,active:active,voids:voids,
+                hidden:getComputedStyle(visual).visibility==='hidden',
+                turns:g.history.length};
+            })()
+            """));
+        check(!stale.has("error") && stale.getBoolean("hidden"),
+              "Could not reproduce the hidden nut in installed Chrome69: " + stale);
+        check(stale.getInt("active") > 0 && stale.getInt("voids") > 0,
+              "Idle resume must use an irregular masked board");
+        screenshot("idle-resume-hidden.png");
+
+        // This is an actual Android Activity lifecycle transition, not a
+        // synthetic visibilitychange dispatch in a mocked browser/DOM.
+        runOnMainSync(() -> check(activity.moveTaskToBack(true),
+              "Failed to background the installed MainActivity task"));
+        SystemClock.sleep(1300);
+        Intent resume = new Intent(Intent.ACTION_MAIN);
+        resume.setClassName(PKG, PKG + ".MainActivity");
+        resume.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP |
+                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        getTargetContext().startActivity(resume);
+        waitForIdleSync();
+        SystemClock.sleep(900);
+
+        JSONObject restored = new JSONObject(js("""
+            (function(){
+              var fixture=window.__nbIdleResume;
+              if(!fixture)return {error:'Activity replaced original WebView/board on return'};
+              var s=window.NutbusterApp.getState(),g=s.game;
+              var board=document.querySelector('.board');
+              if(!g||!board)return {error:'Playable board missing on resume'};
+              var visible=0,active=0,voids=0,errors=[];
+              for(var i=0;i<g.cfg.mask.length;i++){
+                var tile=board.querySelector('[data-cell="'+i+'"]');
+                if(!g.cfg.mask[i]){
+                  voids++;
+                  if(tile)errors.push('void tile '+i);
+                  continue;
+                }
+                active++;
+                if(!g.cells[i]||g.cells[i].type===null||!tile){
+                  errors.push('missing playable nut '+i);continue;
+                }
+                var visual=tile.querySelector('.nut-visual');
+                var img=visual&&visual.querySelector('img.piece');
+                var fallback=visual&&visual.querySelector('.fallback');
+                if(!visual||getComputedStyle(visual).visibility==='hidden'||
+                   Number(getComputedStyle(visual).opacity)<0.01||
+                   tile.classList.contains('nut-exploding')){
+                  errors.push('hidden nut '+i);continue;
+                }
+                var imgOk=img&&img.complete&&img.naturalWidth>0&&
+                  getComputedStyle(img).display!=='none';
+                var fallbackOk=fallback&&fallback.textContent.trim()&&
+                  getComputedStyle(fallback).visibility!=='hidden'&&
+                  getComputedStyle(fallback).display!=='none';
+                if(!imgOk&&!fallbackOk){errors.push('blank sprite '+i);continue;}
+                visible++;
+              }
+              return {events:fixture.events,visible:visible,active:active,
+                voids:voids,errors:errors,page:s.page,animating:s.animating,
+                sameBoard:board===fixture.board,
+                sameTile:board.querySelector('[data-cell="'+fixture.index+'"]')===fixture.tile,
+                unchanged:fixture.snapshot()===fixture.baseline,
+                nowVisible:!document.hidden,
+                turns:g.history.length};
+            })()
+            """));
+        screenshot("idle-resume-recovered.png");
+        check(!restored.has("error") &&
+              restored.getJSONArray("events").toString().contains("hidden") &&
+              restored.getJSONArray("events").toString().contains("visible") &&
+              restored.getBoolean("nowVisible"),
+              "Actual Android background/foreground visibilitychange was not delivered: " + restored);
+        check(restored.getBoolean("sameBoard") && restored.getBoolean("sameTile") &&
+              restored.getBoolean("unchanged") &&
+              "game".equals(restored.getString("page")) &&
+              !restored.getBoolean("animating") &&
+              restored.getInt("turns")==stale.getInt("turns"),
+              "Idle resume changed the original board, mask, moves or payload: " + restored);
+        check(restored.getJSONArray("errors").length()==0 &&
+              restored.getInt("visible")==restored.getInt("active") &&
+              restored.getInt("voids")==stale.getInt("voids"),
+              "Real Android resume left blank playable nuts or altered true voids: " + restored);
+        return "IRREGULAR_RESUME_PASS: Chrome69 installed Android Activity lifecycle, "
+            + "real hidden nut restored with zero new moves, unchanged payload/void masks "
+            + "and fixed board; before/after framebuffer PNGs; " + restored;
     }
 
     /**

@@ -56,19 +56,20 @@ timeout --signal=TERM --kill-after=5s 200s adb shell am instrument -w \
 cat validation/android26-editor-touch.txt
 grep -F 'EDITOR_TOUCH_PASS' validation/android26-editor-touch.txt || fail 'editor-touch-assertions'
 grep -F 'IRREGULAR_BOARD_PASS' validation/android26-editor-touch.txt || fail 'irregular-board-assertions'
+grep -F 'IRREGULAR_RESUME_PASS' validation/android26-editor-touch.txt || fail 'idle-resume-assertions'
 grep -F 'INSTRUMENTATION_CODE: -1' validation/android26-editor-touch.txt || fail 'editor-instrumentation-exit'
-for frame in editor-touch-filtered editor-touch-relaunch irregular-board-before irregular-board-after; do
+for frame in editor-touch-filtered editor-touch-relaunch irregular-board-before irregular-board-after idle-resume-hidden idle-resume-recovered; do
   timeout --signal=TERM --kill-after=5s 30s adb pull \
     "/sdcard/Android/data/$PACKAGE/files/$frame.png" "validation/nutbuster-$frame.png" ||
     fail "editor-screenshot-$frame"
 done
 python3 - <<'PY'
 from pathlib import Path
-for stage in ('filtered', 'relaunch', 'irregular-board-before', 'irregular-board-after'):
-    file = Path(f'validation/nutbuster-{stage}.png' if stage.startswith('irregular') else f'validation/nutbuster-editor-touch-{stage}.png')
+for stage in ('filtered', 'relaunch', 'irregular-board-before', 'irregular-board-after', 'idle-resume-hidden', 'idle-resume-recovered'):
+    file = Path(f'validation/nutbuster-{stage}.png' if stage.startswith(('irregular', 'idle-resume')) else f'validation/nutbuster-editor-touch-{stage}.png')
     data = file.read_bytes()
     if len(data) < 1024 or not data.startswith(b'\x89PNG\r\n\x1a\n'):
         raise SystemExit(f'::error::Missing real on-device editor screenshot: {file}')
     print(f'PASS {stage}: actual Android PNG, {len(data)} bytes')
 PY
-note 'PASS: API26 real injected touchscreen editor and deterministic split-column cascade; before/after framebuffer PNGs validated'
+note 'PASS: API26 installed editor, split-column cascade and real idle Android background/foreground sprite recovery; screenshot evidence validated'
