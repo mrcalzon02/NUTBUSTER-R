@@ -61,7 +61,71 @@ for(const id of ids){
  }
 }
 const android=read('android/app/build.gradle');
-assert.match(android,/assets\.srcDirs\s*=\s*\['\.\.\/\.\.\/web'\]/,'APK must package the exact web/ asset tree');
+// Android 8 ships a Chrome69-lowered *copy* of modern web scripts, not raw
+// web/. Verify the actual packaging wiring AND the generated files. Assets
+// other than scripts/index.html must remain byte-for-byte identical to source.
+const os=require('node:os');
+const {spawnSync}=require('node:child_process');
+assert.match(android,/def chrome69Assets = layout\\.buildDirectory\\.dir\\('generated\\/webview-chrome69'\\)/,
+ 'Android must use the dedicated generated Chrome69 asset directory');
+assert.match(android,/assets\\.srcDirs\\s*=\\s*\\[chrome69Assets\\.get\\(\\)\\.asFile\\]/,
+ 'APK must package the generated Chrome69 asset directory, never raw modern JavaScript');
+assert.match(android,/tasks\\.register\\('prepareChrome69Assets', Exec\\)/,
+ 'Android must run the compiler instead of reading stale generated files');
+assert.match(android,/inputs\\.dir rootProject\\.file\\('\\.\\.\\/web'\\)/,
+ 'Asset compiler must depend on the original web source');
+assert.match(android,/outputs\\.dir chrome69Assets/,
+ 'Gradle must track the generated asset output');
+assert.match(android,/task\\.dependsOn\\(prepareChrome69Assets\\)/,
+ 'Android asset merge must wait for the Chrome69 compiler');
+const stageTool=read('tools/build-android-webview-assets.js');
+assert.match(stageTool,/esbuild@0\\.25\\.12/,'Pin the approved compiler version');
+assert.match(stageTool,/--target=chrome69/,'Keep Android 8 WebView compatibility');
+assert.match(stageTool,/fs\\.cpSync\\(source, output, \\{ recursive: true \\}\\)/,
+ 'Compiler must first copy all non-script assets from the original game');
+
+const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'nutbuster-parity-'));
+const generated=path.join(tmp,'build','web');
+const walk=(dir,prefix='')=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{
+ const relative=path.join(prefix,entry.name);
+ return entry.isDirectory()?walk(path.join(dir,entry.name),relative):[relative];
+});
+try {
+ const run=spawnSync(process.execPath,[path.join(root,'tools/build-android-webview-assets.js'),
+   path.join(root,'web'),generated],{
+   cwd:root,encoding:'utf8',timeout:180000,maxBuffer:8*1024*1024
+ });
+ assert.equal(run.status,0,'Real Chrome69 asset build failed: '+(run.stderr||run.error||run.stdout));
+ assert.match(run.stdout,/PASS: staged \\d+ ordered game scripts for Chrome 69/,
+  'Compiler did not confirm a real transformed build');
+ const sourcePaths=walk(path.join(root,'web'));
+ const stagedPaths=walk(generated);
+ assert.deepEqual(stagedPaths.filter(p=>p!=='android-webview-compat.js').sort(),
+  sourcePaths.sort(),'Generated APK web root must have every original file and no silent asset loss');
+ let verified=0;
+ for(const relative of sourcePaths){
+  if(relative==='index.html'||relative.endsWith('.js'))continue;
+  const before=fs.readFileSync(path.join(root,'web',relative));
+  const after=fs.readFileSync(path.join(generated,relative));
+  assert.ok(before.equals(after),'Generated Android asset differs from original: '+relative);
+  verified++;
+ }
+ assert.ok(verified>50,'Expected the real non-script art/style/audio asset tree');
+ const sourceHtml=read('web/index.html');
+ const entries=[...sourceHtml.matchAll(/<script\\s+src="([^"?#]+\\.js)"\\s*><\\/script>/g)];
+ assert.ok(entries.length>=30,'Expected the ordered original game scripts');
+ const tag=entries[0][0];
+ const expectedHtml=sourceHtml.replace(tag,
+  '<script src="android-webview-compat.js"></script>'+tag);
+ assert.equal(fs.readFileSync(path.join(generated,'index.html'),'utf8'),expectedHtml,
+  'Transpilation must preserve script order and inject only the required legacy polyfill');
+ assert.match(fs.readFileSync(path.join(generated,'android-webview-compat.js'),'utf8'),
+  /Object\\.fromEntries/,'Chrome69 compatibility polyfill must be present');
+ console.log('PASS: '+verified+' non-script Android/Fire assets byte-identical; '+
+  entries.length+' ordered scripts staged and transpiled for Chrome69');
+} finally {
+ fs.rmSync(tmp,{recursive:true,force:true});
+}
 const parity=JSON.parse(read('config/platform-parity.json'));
 assert.equal(parity.targets.fire_os.sameArtifactAs,'android','Fire OS must use the same packaged art');
 assert.equal(parity.targets.windows.productionReady,false,'Native Windows artwork parity is not certified');
