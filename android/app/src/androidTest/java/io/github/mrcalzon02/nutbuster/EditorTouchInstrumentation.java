@@ -52,6 +52,7 @@ public final class EditorTouchInstrumentation extends Instrumentation {
             editorPassed = true;
             result.putString("editor_touch", "EDITOR_TOUCH_PASS: installed API26 WebView physical taps, horizontal swipe, persistence, activity relaunch, screenshots");
             result.putString("irregular_board", runIrregularBoardProof());
+            result.putString("booster_hud", runBoosterHudProof());
             exit = Activity.RESULT_OK;
         } catch (Throwable error) {
             result.putString(editorPassed ? "irregular_board" : "editor_touch",
@@ -422,6 +423,69 @@ public final class EditorTouchInstrumentation extends Instrumentation {
         return "IRREGULAR_BOARD_PASS: real Chrome69 Android swap; selection=" + selection
             + "; before=" + before + "; after=" + after
             + "; actual framebuffer PNGs saved";
+    }
+
+    /**
+     * A real installed Chrome69 WebView layout/tap regression for the former
+     * twelve-tool pileup. Exercise 320px and 360px *content* widths inside
+     * the installed game without mocking its DOM, art or CSS engine.
+     */
+    private String runBoosterHudProof() throws Exception {
+        JSONObject layout = new JSONObject(js("""
+            (function(){
+              var panel=document.querySelector('.play-layout');
+              var belt=document.querySelector('.game-active .boosters');
+              if(!panel||!belt)return {errors:['Game/booster HUD missing']};
+              var previous=panel.style.width,errors=[],evidence=[];
+              [320,360].forEach(function(width){
+                panel.style.width=width+'px';
+                var box=belt.getBoundingClientRect();
+                var buttons=Array.prototype.slice.call(belt.querySelectorAll('button'));
+                if(buttons.length!==12)errors.push(width+': expected 12 tools, got '+buttons.length);
+                if(Math.abs(box.width-width)>2)errors.push(width+': belt grid collapsed to '+box.width);
+                buttons.forEach(function(button,i){
+                  var r=button.getBoundingClientRect();
+                  var label=button.querySelector('.booster-label');
+                  var art=button.querySelector('img.booster-icon,img.hold-icon');
+                  if(r.width<44||r.height<44)errors.push(width+': small hit target '+i+' '+r.width+'x'+r.height);
+                  if(r.left<box.left-1||r.right>box.right+1)errors.push(width+': tool outside belt '+i);
+                  if(i>0&&i%6!==0){
+                    var prev=buttons[i-1].getBoundingClientRect();
+                    if(r.left<prev.right-1)errors.push(width+': overlapping tools '+(i-1)+'/'+i);
+                    if(Math.abs(r.top-prev.top)>1)errors.push(width+': broken six-column row '+i);
+                  }
+                  if(i>=6){
+                    var above=buttons[i-6].getBoundingClientRect();
+                    if(r.top<above.bottom-1)errors.push(width+': overlapping rows '+i);
+                  }
+                  if(!label)errors.push(width+': missing label '+i);
+                  else{
+                    var lr=label.getBoundingClientRect();
+                    if(lr.left<r.left-1||lr.right>r.right+1||lr.bottom>r.bottom+1)
+                      errors.push(width+': overflowing label bounds '+i);
+                    if(label.scrollHeight>label.clientHeight+1||label.scrollWidth>label.clientWidth+1)
+                      errors.push(width+': clipped label '+i+' '+label.textContent.trim());
+                  }
+                  if(!art||!art.complete||art.naturalWidth<1||art.getBoundingClientRect().width<20)
+                    errors.push(width+': missing illustrated tool '+i);
+                });
+                evidence.push({contentWidth:width,beltWidth:box.width,
+                  firstButton:buttons[0]?buttons[0].getBoundingClientRect().width:null,
+                  tools:buttons.length});
+              });
+              panel.style.width=previous;
+              return {errors:errors,evidence:evidence};
+            })()
+            """));
+        check(layout.getJSONArray("errors").length()==0,
+            "Compact installed booster HUD has overlapping, clipped or untouchable tools: " + layout);
+        // A real injected screen tap must reach the actual game tool handler.
+        tap("[data-hold-tool='butter_hold']");
+        check("true".equals(js("(function(){var s=window.NutbusterApp.getState();"
+            + "return s.page==='shop'||s.holdTool==='butter_hold';})()")),
+            "Touchscreen did not activate Butter Hold or open its offer");
+        return "BOOSTER_HUD_PASS: Chrome69 320/360px twelve-tool geometry, "
+            + "44px hitboxes, original art, readable labels and real Butter Hold tap; " + layout;
     }
 
 }
