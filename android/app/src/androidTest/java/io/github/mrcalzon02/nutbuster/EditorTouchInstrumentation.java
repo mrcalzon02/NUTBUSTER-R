@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.InputDevice;
@@ -476,15 +477,21 @@ public final class EditorTouchInstrumentation extends Instrumentation {
               image.classList.add('loaded');
               fallback.style.visibility='hidden';
               tile.classList.add('nut-exploding');
+              var r=tile.getBoundingClientRect();
               return {index:chosen,active:active,voids:voids,
                 hidden:getComputedStyle(visual).visibility==='hidden',
-                turns:g.history.length};
+                turns:g.history.length,
+                bounds:{left:r.left,top:r.top,width:r.width,height:r.height,
+                  viewportWidth:innerWidth,viewportHeight:innerHeight}};
             })()
             """));
         check(!stale.has("error") && stale.getBoolean("hidden"),
               "Could not reproduce the hidden nut in installed Chrome69: " + stale);
         check(stale.getInt("active") > 0 && stale.getInt("voids") > 0,
               "Idle resume must use an irregular masked board");
+        // Give the real Chrome69 compositor time to submit the deliberately
+        // hidden tile before taking its device framebuffer screenshot.
+        SystemClock.sleep(700);
         screenshot("idle-resume-hidden.png");
 
         // This is an actual Android Activity lifecycle transition, not a
@@ -546,6 +553,7 @@ public final class EditorTouchInstrumentation extends Instrumentation {
             })()
             """));
         screenshot("idle-resume-recovered.png");
+        checkSpriteFramebufferTransition(stale.getJSONObject("bounds"));
         check(!restored.has("error") &&
               restored.getJSONArray("events").toString().contains("hidden") &&
               restored.getJSONArray("events").toString().contains("visible") &&
@@ -564,6 +572,50 @@ public final class EditorTouchInstrumentation extends Instrumentation {
         return "IRREGULAR_RESUME_PASS: Chrome69 installed Android Activity lifecycle, "
             + "real hidden nut restored with zero new moves, unchanged payload/void masks "
             + "and fixed board; before/after framebuffer PNGs; " + restored;
+    }
+
+    /**
+     * Screenshot evidence must show the actual hidden sprite becoming visible,
+     * not merely two identical device PNGs captured before composition.
+     * Compare the center of the real selected tile in screen coordinates.
+     */
+    private void checkSpriteFramebufferTransition(JSONObject bounds) throws Exception {
+        File dir = getTargetContext().getExternalFilesDir(null);
+        check(dir != null, "No device evidence directory");
+        Bitmap hidden = BitmapFactory.decodeFile(new File(dir, "idle-resume-hidden.png").getPath());
+        Bitmap restored = BitmapFactory.decodeFile(new File(dir, "idle-resume-recovered.png").getPath());
+        check(hidden != null && restored != null, "Could not decode captured Android PNGs");
+        try {
+            check(hidden.getWidth() == restored.getWidth() &&
+                  hidden.getHeight() == restored.getHeight(),
+                  "Android screenshot dimensions changed across Activity resume");
+            int[] origin = new int[2];
+            web.getLocationOnScreen(origin);
+            double sx = web.getWidth() / bounds.getDouble("viewportWidth");
+            double sy = web.getHeight() / bounds.getDouble("viewportHeight");
+            int x0 = Math.max(0, origin[0] + (int)((bounds.getDouble("left")
+                + bounds.getDouble("width") * .2) * sx));
+            int x1 = Math.min(hidden.getWidth(), origin[0] + (int)((bounds.getDouble("left")
+                + bounds.getDouble("width") * .8) * sx));
+            int y0 = Math.max(0, origin[1] + (int)((bounds.getDouble("top")
+                + bounds.getDouble("height") * .2) * sy));
+            int y1 = Math.min(hidden.getHeight(), origin[1] + (int)((bounds.getDouble("top")
+                + bounds.getDouble("height") * .8) * sy));
+            check(x1 - x0 >= 15 && y1 - y0 >= 15,
+                  "Selected real nut has no visible screenshot comparison area");
+            int changed = 0;
+            for (int y = y0; y < y1; y += 2) {
+                for (int x = x0; x < x1; x += 2) {
+                    if (hidden.getPixel(x, y) != restored.getPixel(x, y)) changed++;
+                }
+            }
+            check(changed >= 100,
+                  "Android hidden/recovered screenshots did not visibly differ at "
+                  + "the selected nut (" + changed + " pixel samples changed)");
+        } finally {
+            hidden.recycle();
+            restored.recycle();
+        }
     }
 
     /**
