@@ -730,6 +730,7 @@
 /* API26 Chrome 69 does not support CSS min() for the six-column tactical
    belt width. The ignored width collapsed its fractional grid tracks into
    the center: all twelve labels/stock badges overlapped while art vanished.
+   Also use explicit top/left/right/bottom: Chrome69 ignores inset shorthand.
    Use equivalent classic width/max-width so compact 320px screens receive
    six real columns, each a usable hit target. Keep original booster art. */
 #app.playing .game-active .boosters{
@@ -739,7 +740,7 @@
 }
 /* Reserve up to two short text lines BELOW the illustrations. Long unbroken
    names (including Frostbreaker) must wrap inside their own grid cell. */
-#app.playing .game-active .boosters .booster-picture{bottom:19px}
+#app.playing .game-active .boosters .booster-picture{top:0;left:0;right:0;bottom:19px;height:auto}
 #app.playing .game-active .boosters .hold-icon{height:calc(100% - 19px)}
 #app.playing .game-active .boosters .booster-label{
   font-size:9px!important;
