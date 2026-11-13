@@ -1655,6 +1655,10 @@ screen.addEventListener('input',e=>{
  const id=e.target?.dataset?.volume;if(!id||!['voice','music','reactions','sfx'].includes(id))return;saved.levels={...saved.levels,[id]:Number(e.target.value)/100};window.NutAudio?.setLevels?.(saved.levels);if(id==='sfx')window.NutSFX?.setVolume(saved.levels.sfx);persist();const out=e.target.parentElement?.querySelector('output');if(out)out.textContent=e.target.value+'%';});
 document.addEventListener?.('visibilitychange',()=>{
  if(state.page==='fake-ad')Ads?.audio?.(state.sound&&!state.adMuted&&!document.hidden,saved.levels.voice);
+ // A WebView may resume with a previously failed/hidden piece while no move
+ // is in progress. Repair the fixed tiles without rebuilding the board or
+ // disturbing a live cascade (whose own completion handles reconciliation).
+ if(!document.hidden&&state.page==='game'&&!state.animating)reconcileBoardNuts();
 });
 window.addEventListener('keydown',e=>{
  if(state.purchasePending){

@@ -22,7 +22,8 @@ const currencyLinks=Array.from({length:2},()=>({dataset:{nav:'shop'},addEventLis
 const transientSprites=[];
 let stallFallAnimations=false,stallTransportAnimations=false,stallSwapAnimations=false;
 const swapAnimations=[];
-const document={getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:selector=>selector==='[data-nav]'?currencyLinks:[],createElement:()=>{
+const documentListeners={};
+const document={hidden:false,addEventListener(type,fn){(documentListeners[type]??=[]).push(fn);},getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:selector=>selector==='[data-nav]'?currencyLinks:[],createElement:()=>{
  const el={style:{},innerHTML:'',removed:false,remove(){this.removed=true;}};
  el.animate=()=>({finished:(stallFallAnimations&&el.className==='falling-nut')||
   (stallTransportAnimations&&el.className==='transport-nut')?new Promise(()=>{}):Promise.resolve(),
@@ -152,6 +153,34 @@ async function run(){
  assert.ok(g.cfg.mask[missingIndex]&&g.cells[missingIndex].type!==null,
   'Missing sprite markup is not a real void or an empty engine cell');
 
+
+ // No move is needed to reproduce a resume-only blank tile: an Android
+ // WebView can return to a playable irregular board with a failed cached image,
+ // stale .loaded, hidden fallback and a hidden nut-visual. Backgrounding must
+ // leave state alone; foregrounding while idle must restore the fixed tile.
+ const resumeIndex=g.cells.findIndex((c,i)=>c&&i!==missingIndex&&i!==pendingIndex&&i!==survivorIndex);
+ assert.ok(resumeIndex>=0,'Resume test needs an independent playable tile');
+ const resumeCell=g.cells[resumeIndex],resumeTile=boardCells[resumeIndex],resumeVisual=resumeTile.visual;
+ resumeTile.dataset.nutKey=[resumeCell.type,resumeCell.special||'',resumeCell.elemental||'',resumeCell.hold||0,
+  Number(!!(resumeCell.ice||resumeCell.lock||resumeCell.chest))].join(':');
+ resumeVisual.style.visibility='hidden';
+ resumeVisual.image={complete:true,naturalWidth:0,style:{display:'none'},classList:classes(),
+  getAttribute:()=> 'art/primary/nuts/'+E.TYPES[resumeCell.type]+'.png'};
+ resumeVisual.image.classList.add('loaded');
+ resumeVisual.fallback={style:{visibility:'hidden'}};
+ const idleRenders=renders,previousTypes=g.cells.map(c=>c?.type??null);
+ assert.equal(state().animating,false,'Visibility-resume fixture starts idle');
+ assert.ok((documentListeners.visibilitychange||[]).length>=1,'Production resume handler must be registered');
+ document.hidden=true;
+ for(const fn of documentListeners.visibilitychange)fn();
+ assert.equal(resumeVisual.style.visibility,'hidden','Background event must not interrupt the board');
+ document.hidden=false;
+ for(const fn of documentListeners.visibilitychange)fn();
+ assert.equal(resumeVisual.style.visibility,'','Foreground resume restores previously hidden playable nut');
+ assert.equal(resumeVisual.image.classList.contains('loaded'),false,'Failed cached sprite loses stale loaded class');
+ assert.equal(resumeVisual.fallback.style.visibility,'visible','Failed cached sprite fallback visible on resume');
+ assert.equal(renders,idleRenders,'Foreground recovery never remounts the irregular board');
+ assert.deepEqual(g.cells.map(c=>c?.type??null),previousTypes,'Foreground recovery cannot change game state');
 
  // A suspended Android WebView can leave Web Animations .finished unresolved.
  // The fixed grid must recover its sprites after the bounded fall watchdog,
