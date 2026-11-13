@@ -484,6 +484,20 @@
         "linux": "Independent SDL3 Linux editor already has native nut favorites/filter and restart state. No native source touched, other parity gaps remain."
       },
       "decision": "Four-target accountability review: editor favorite key nutbuster.custom-level.favorites.v1 is separate from campaign save and V1 board draft, no relaxed gate or hardware acceptance claim."
+    },
+    {
+      "id": "webview-idle-resume-nut-sprite-recovery-2026-11-13",
+      "sourceChange": [
+        "web/game.js"
+      ],
+      "test": "tests/ui.test.js",
+      "targetImpact": {
+        "android": "On foreground visibilitychange, an idle WebView board reconciles a failed or hidden cached nut sprite and its visible fallback against authoritative settled cells. It leaves active cascades untouched, does not remount fixed tiles or change saved payloads. Node simulated DOM regression passed on SHA 2720c6d; installed resume visual proof remains pending.",
+        "fire_os": "The byte-identical Android/Fire OS APK uses this same WebView visibilitychange cleanup; Fire OS physical device resumed-sprite acceptance remains unverified.",
+        "windows": "The independent native SDL3 renderer draws sprites directly, with no WebView document.visibilitychange event, CSS loaded class or DOM fallback. No C++ lifecycle change is applicable; native gameplay remains preview-partial.",
+        "linux": "The native Linux SDL3 preview likewise has no browser document lifecycle or WebView cached-image fallback. Its existing independent renderer and incomplete gameplay parity are unchanged."
+      },
+      "decision": "Mobile-only idle foreground image recovery, not a gravity/transport algorithm change or desktop parity upgrade. Retain four-target native preview restrictions, all release checks, no changes to paid-style rewards, publisher identity, game state, CSS or rendering pipeline. The regression tests no-move resume with failed cached sprite and asserts no board rebuild; actual Android/Fire OS visual acceptance still required before closing #1."
     }
   ]
 }
