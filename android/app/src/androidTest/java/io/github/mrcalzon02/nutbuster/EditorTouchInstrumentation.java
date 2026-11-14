@@ -237,9 +237,24 @@ public final class EditorTouchInstrumentation extends Instrumentation {
             + "localStorage.setItem('nutbuster.v1',JSON.stringify(s));return true;})()",
             "Real finale progression grant did not unlock the editor");
         web.post(web::reload);
-        SystemClock.sleep(900);
-        requireJs("window.NutProgress.hasLevelEditor(window.NutbusterApp.getSave())",
-                  "Editor entitlement did not survive packaged WebView reload");
+        // On a cold API26 WebView the packaged page and localStorage restore may
+        // take longer than a fixed 900ms. Wait for the *real* production page
+        // and its granted editor entitlement; never manufacture the entitlement
+        // or treat mere page readiness as a pass.
+        boolean restoredEntitlement = false;
+        long restoreDeadline = SystemClock.uptimeMillis() + 25000;
+        while (SystemClock.uptimeMillis() < restoreDeadline) {
+            if ("true".equals(js("!!(window.NutProgress && window.NutbusterApp && "
+                + "window.NutProgress.hasLevelEditor(window.NutbusterApp.getSave()))"))) {
+                restoredEntitlement = true;
+                break;
+            }
+            SystemClock.sleep(250);
+        }
+        check(restoredEntitlement, "Editor entitlement did not survive packaged WebView reload"
+              + "; persisted=" + js("(function(){return JSON.stringify({"
+              + "ready:!!(window.NutProgress&&window.NutbusterApp),"
+              + "save:!!localStorage.getItem('nutbuster.v1')});})()"));
         requireJs("(window.NutbusterApp.nav('editor'),window.NutbusterApp.getState().page==='editor')",
                   "Could not enter actual unlocked editor");
 
