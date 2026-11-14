@@ -236,25 +236,33 @@ public final class EditorTouchInstrumentation extends Instrumentation {
             + "if(!r.valid||!window.NutProgress.hasLevelEditor(s))return false;"
             + "localStorage.setItem('nutbuster.v1',JSON.stringify(s));return true;})()",
             "Real finale progression grant did not unlock the editor");
+        // A reload is asynchronous: the old page may still respond to
+        // evaluateJavascript before the new document starts. A readiness-only
+        // poll can pass against that old page and then lose the editor navigation
+        // when the actual reload replaces it. Use a volatile in-page marker to
+        // prove that the *new* document loaded before checking persistence.
+        requireJs("(window.__nbEditorReloadMarker='before-reload',true)",
+                  "Could not mark the original WebView document");
         web.post(web::reload);
-        // On a cold API26 WebView the packaged page and localStorage restore may
-        // take longer than a fixed 900ms. Wait for the *real* production page
-        // and its granted editor entitlement; never manufacture the entitlement
-        // or treat mere page readiness as a pass.
         boolean restoredEntitlement = false;
         long restoreDeadline = SystemClock.uptimeMillis() + 25000;
         while (SystemClock.uptimeMillis() < restoreDeadline) {
-            if ("true".equals(js("!!(window.NutProgress && window.NutbusterApp && "
-                + "window.NutProgress.hasLevelEditor(window.NutbusterApp.getSave()))"))) {
+            if ("true".equals(js("(function(){return "
+                + "window.__nbEditorReloadMarker!=='before-reload' "
+                + "&&document.readyState==='complete' "
+                + "&&!!(window.NutProgress&&window.NutbusterApp) "
+                + "&&window.NutProgress.hasLevelEditor(window.NutbusterApp.getSave());})()"))) {
                 restoredEntitlement = true;
                 break;
             }
             SystemClock.sleep(250);
         }
-        check(restoredEntitlement, "Editor entitlement did not survive packaged WebView reload"
-              + "; persisted=" + js("(function(){return JSON.stringify({"
-              + "ready:!!(window.NutProgress&&window.NutbusterApp),"
-              + "save:!!localStorage.getItem('nutbuster.v1')});})()"));
+        check(restoredEntitlement, "New packaged WebView document did not restore real editor entitlement"
+              + "; state=" + js("(function(){return JSON.stringify({"
+              + "old:window.__nbEditorReloadMarker==='before-reload',"
+              + "ready:document.readyState,"
+              + "app:!!window.NutbusterApp,progress:!!window.NutProgress,"
+              + "saved:!!localStorage.getItem('nutbuster.v1')});})()"));
         requireJs("(window.NutbusterApp.nav('editor'),window.NutbusterApp.getState().page==='editor')",
                   "Could not enter actual unlocked editor");
 
