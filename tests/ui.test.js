@@ -250,6 +250,10 @@ async function run(){
  assert.ok(islandCount>=2,'Independent fall fixture needs at least two disconnected columns');
  const islandPair=findSwap(g,true),islandReference=E.create(36,7);
  islandReference.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
+ // Production doSwap synchronizes the board to the shared daily-move wallet.
+ // A direct engine fixture begins with a level-default budget instead.
+ const islandDailyBefore=app.getSave().dailyMoves.remaining;
+ islandReference.moves=islandDailyBefore;
  const islandResult=E.swap(islandReference,...islandPair);
  const islandCascades=islandResult.stages.filter(stage=>stage.kind==='cascade');
  const islandFalls=islandCascades.flatMap(stage=>stage.falls);
@@ -268,7 +272,7 @@ async function run(){
   if(f.from>=0)assert.equal(islandSegment(f.from),islandSegment(f.to),
    'Surviving nut must never cross a void between disconnected segments');
  }
- const islandRenders=renders,islandSprites=transientSprites.length,islandMoves=g.moves;
+ const islandRenders=renders,islandSprites=transientSprites.length;
  window.matchMedia=()=>({matches:false});stallFallAnimations=true;
  click({cell:String(islandPair[0])});click({cell:String(islandPair[1])});
  await settle();await settle();
@@ -278,7 +282,9 @@ async function run(){
   'Every cascade fall must create a real transient nut sprite');
  assert.ok(islandOverlays.every(x=>x.removed&&x.animationCancelled),
   'Every stalled gravity overlay must be canceled and removed');
- assert.equal(g.moves,islandMoves-1,'Interrupted animation cannot spend an extra move');
+ assert.equal(g.moves,islandDailyBefore-1,'Interrupted animation cannot spend an extra move');
+ assert.equal(app.getSave().dailyMoves.remaining,islandDailyBefore-1,
+  'Only one real shared daily move is charged during multi-wave gravity');
  assert.equal(state().animating,false,'Two stalled cascades must release input');
  assert.equal(renders,islandRenders,'Disconnected gravity must not rebuild the fixed board');
  assert.deepEqual(g.cells.map(c=>c?.type??null),islandReference.cells.map(c=>c?.type??null),
