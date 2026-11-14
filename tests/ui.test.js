@@ -230,6 +230,63 @@ async function run(){
  assert.ok(boardCells.every((tile,i)=>g.cfg.mask[i]?tile&&tile.visual.style.visibility!=='hidden':tile===null),
   'Transport interruption must restore every playable nut visual');
 
+ // An independent regression for gravity in a different interrupted-mask shape:
+ // level 36 / seed 7 has two split columns and two actual cascade waves, with
+ // both relocated surviving nuts and new spawns. Stalled fall animations must
+ // settle without hiding any of those fixed-grid cells or crossing real voids.
+ app.getSave().hearts++;
+ app.start(36);state().game=E.create(36,7);attach();g=state().game;
+ g.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
+ const islandCount=Array.from({length:g.cfg.width},(_,x)=>{
+  let seen=false,gap=false;
+  for(let y=0;y<g.cfg.height;y++){
+   const active=g.cfg.mask[y*g.cfg.width+x];
+   if(active&&gap)return true;
+   if(!active&&seen)gap=true;
+   if(active)seen=true;
+  }
+  return false;
+ }).filter(Boolean).length;
+ assert.ok(islandCount>=2,'Independent fall fixture needs at least two disconnected columns');
+ const islandPair=findSwap(g,true),islandReference=E.create(36,7);
+ islandReference.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
+ const islandResult=E.swap(islandReference,...islandPair);
+ const islandCascades=islandResult.stages.filter(stage=>stage.kind==='cascade');
+ const islandFalls=islandCascades.flatMap(stage=>stage.falls);
+ assert.ok(islandCascades.length>=2&&islandFalls.length>=5,
+  'Seed must execute multiple real gravity waves, not only a swap or idle resume');
+ assert.ok(islandFalls.some(f=>f.from>=0)&&islandFalls.some(f=>f.from<0),
+  'Seed must move surviving nuts AND spawn independent replacements');
+ const islandSegment=index=>{
+  const x=index%g.cfg.width;
+  let y=Math.floor(index/g.cfg.width);
+  while(y>0&&g.cfg.mask[(y-1)*g.cfg.width+x])y--;
+  return x+':'+y;
+ };
+ for(const f of islandFalls){
+  assert.ok(g.cfg.mask[f.to],'Every fall destination must be playable');
+  if(f.from>=0)assert.equal(islandSegment(f.from),islandSegment(f.to),
+   'Surviving nut must never cross a void between disconnected segments');
+ }
+ const islandRenders=renders,islandSprites=transientSprites.length,islandMoves=g.moves;
+ window.matchMedia=()=>({matches:false});stallFallAnimations=true;
+ click({cell:String(islandPair[0])});click({cell:String(islandPair[1])});
+ await settle();await settle();
+ stallFallAnimations=false;window.matchMedia=()=>({matches:true});
+ const islandOverlays=transientSprites.slice(islandSprites).filter(x=>x.className==='falling-nut');
+ assert.ok(islandOverlays.length>=islandFalls.length,
+  'Every cascade fall must create a real transient nut sprite');
+ assert.ok(islandOverlays.every(x=>x.removed&&x.animationCancelled),
+  'Every stalled gravity overlay must be canceled and removed');
+ assert.equal(g.moves,islandMoves-1,'Interrupted animation cannot spend an extra move');
+ assert.equal(state().animating,false,'Two stalled cascades must release input');
+ assert.equal(renders,islandRenders,'Disconnected gravity must not rebuild the fixed board');
+ assert.deepEqual(g.cells.map(c=>c?.type??null),islandReference.cells.map(c=>c?.type??null),
+  'Interrupted visuals cannot change the deterministic two-wave game result');
+ assert.ok(boardCells.every((tile,i)=>!g.cfg.mask[i]?tile===null:
+  tile?.visual?.style.visibility!=='hidden'&&g.cells[i]?.type!==null),
+  'No playable island tile remains blank after two canceled fall animations');
+
  // A WebView suspended during the initial swap can leave both .finished
  // promises unresolved, preventing all subsequent cascades and input forever.
  // Exercise the real game event path on an irregular level with two stalled
