@@ -51,6 +51,14 @@ EDITOR_TEST_APK=validation/release/NUTBUSTER-Android-editor-test.apk
 test -s "$EDITOR_TEST_APK" || fail 'missing-editor-test-apk'
 timeout --signal=TERM --kill-after=5s 60s adb shell am force-stop "$PACKAGE" || fail 'instrumentation-reset'
 timeout --signal=TERM --kill-after=5s 120s adb install -r "$EDITOR_TEST_APK" || fail 'test-apk-install'
+# The emulator action disables system animations globally for boot/smoke speed.
+# Level-36 must execute and cancel *real* Web Animations, not silently pass
+# a reduced/zero-duration animation path. Restore the disposable test device's
+# native animator duration before instrumentation; keep failure explicit.
+timeout 10s adb shell settings put global animator_duration_scale 1.0 || fail 'enable-native-animations'
+SCALE="$(timeout 10s adb shell settings get global animator_duration_scale)" || fail 'read-native-animation-scale'
+[[ "$SCALE" == "1.0" ]] || fail 'native-animation-scale-not-enabled'
+note "Enabled native animator scale=$SCALE for genuine interrupted-cascade proof"
 timeout --signal=TERM --kill-after=5s 200s adb shell am instrument -w \
   "$PACKAGE.test/$PACKAGE.EditorTouchInstrumentation" > validation/android26-editor-touch.txt || fail 'editor-instrumentation'
 cat validation/android26-editor-touch.txt
