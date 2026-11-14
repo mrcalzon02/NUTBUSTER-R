@@ -57,6 +57,8 @@ public final class EditorTouchInstrumentation extends Instrumentation {
             result.putString("irregular_resume", runIdleResumeProof());
             stage = "booster_hud";
             result.putString("booster_hud", runBoosterHudProof());
+            stage = "two_cascade";
+            result.putString("two_cascade", runTwoCascadeProof());
             exit = Activity.RESULT_OK;
         } catch (Throwable error) {
             result.putString(stage, stage.toUpperCase(java.util.Locale.ROOT) + "_FAIL: " + error);
@@ -623,6 +625,229 @@ public final class EditorTouchInstrumentation extends Instrumentation {
      * twelve-tool pileup. Exercise 320px and 360px *content* widths inside
      * the installed game without mocking its DOM, art or CSS engine.
      */
+
+    /**
+     * Real installed API26 WebView: level 36 / seed 7 / first swap 8,9.
+     * Cancel the *native* Web Animations on both gravity waves in the
+     * instrumentation-only page context. No game hooks, saves or engine logic
+     * are shipped with this test APK. Measure actual playable/void mask counts
+     * instead of borrowing counts from the older level-306 screenshot.
+     */
+    private String runTwoCascadeProof() throws Exception {
+        JSONObject fixture = new JSONObject(js("""
+            (function(){
+              var E=window.NutEngine,app=window.NutbusterApp,s=app.getState();
+              if(s.animating||app.getSave().hearts<1||app.getSave().dailyMoves.remaining<2)
+                return {error:'Isolated emulator account needs a heart and two daily moves'};
+              if(!Element.prototype.animate||matchMedia('(prefers-reduced-motion: reduce)').matches)
+                return {error:'Installed WebView must support enabled native Web Animations'};
+              var preview=E.create(36,7),w=preview.cfg.width,mask=preview.cfg.mask;
+              var split=0;
+              for(var x=0;x<w;x++){
+                var inside=false,runs=0;
+                for(var y=0;y<preview.cfg.height;y++){
+                  var present=!!mask[y*w+x];
+                  if(present&&!inside)runs++;
+                  inside=present;
+                }
+                if(runs>1)split++;
+              }
+              if(split<2||!E.adjacent(preview,8,9))
+                return {error:'Level 36 no longer contains the authored split-column / 8,9 fixture'};
+              var wallet=app.getSave().dailyMoves.remaining;
+              preview.moves=wallet;
+              preview.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
+              var result=E.swap(preview,8,9);
+              if(!result.valid)return {error:'8,9 must be a valid actual engine swap'};
+              var cascades=result.stages.filter(function(stage){return stage.kind==='cascade';});
+              var falls=cascades.reduce(function(all,stage){return all.concat(stage.falls||[]);},[]);
+              if(cascades.length<2||cascades.some(function(stage){return !(stage.falls||[]).length;})||
+                 falls.length<5||!falls.some(function(f){return f.from<0;})||
+                 !falls.some(function(f){return f.from>=0;}))
+                return {error:'Two real gravity waves with moved and spawned nuts are required',
+                  cascades:cascades.length,falls:falls.length};
+              for(var k=0;k<falls.length;k++){
+                var f=falls[k],col=f.to%w;
+                if(!mask[f.to])return {error:'Fall target is void',fall:k};
+                if(f.from<0)continue;
+                if(f.from%w!==col)return {error:'Cross-column gravity',fall:k};
+                var lo=Math.min(Math.floor(f.from/w),Math.floor(f.to/w));
+                var hi=Math.max(Math.floor(f.from/w),Math.floor(f.to/w));
+                for(var yy=lo;yy<=hi;yy++){
+                  if(!mask[yy*w+col])return {error:'Cross-void gravity',fall:k};
+                }
+              }
+              app.start(36);s=app.getState();
+              if(s.page!=='game')return {error:'Production game start failed'};
+              s.game=E.create(36,7);
+              s.game.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
+              app.nav('home');app.nav('game');
+              var board=document.querySelector('.board');
+              if(s.page!=='game'||!board)return {error:'Installed board did not render'};
+              var originalAnimate=Element.prototype.animate;
+              window.__nb36={
+                originalAnimate:originalAnimate,board:board,
+                wallet:wallet,expected:preview.cells.map(function(c){return c?c.type:null;}),
+                waves:cascades.length,falls:falls.length,
+                started:0,canceled:0,batches:0
+              };
+              Element.prototype.animate=function(){
+                var animation=originalAnimate.apply(this,arguments);
+                if(this.classList&&this.classList.contains('falling-nut')){
+                  var proof=window.__nb36;
+                  proof.started++;
+                  if(board.querySelectorAll('.falling-nut').length===1)proof.batches++;
+                  setTimeout(function(){
+                    // Deliberately interrupt real Chrome Web Animations; the
+                    // game must still release overlays and restore nut sprites.
+                    if(animation.playState!=='finished'){
+                      animation.cancel();
+                      proof.canceled++;
+                    }
+                  },30);
+                }
+                return animation;
+              };
+              board.scrollIntoView({block:'center',inline:'center'});
+              return {level:36,seed:7,a:8,b:9,
+                active:mask.filter(Boolean).length,
+                voids:mask.filter(function(x){return !x;}).length,
+                splitColumns:split,waves:cascades.length,falls:falls.length,
+                walletBefore:wallet};
+            })()
+            """));
+        check(!fixture.has("error") && fixture.getInt("active") > 0 &&
+              fixture.getInt("voids") > 0 && fixture.getInt("splitColumns") >= 2 &&
+              fixture.getInt("waves") >= 2 && fixture.getInt("falls") >= 5,
+              "Level-36 two-wave installed fixture invalid: " + fixture);
+
+        String audit = """
+            (function(){
+              var s=window.NutbusterApp.getState(),g=s.game,proof=window.__nb36;
+              var board=document.querySelector('.board');
+              if(!proof||!g||!board)return {error:'Installed game state missing'};
+              var active=0,visible=0,voids=0,errors=[];
+              for(var i=0;i<g.cfg.mask.length;i++){
+                var tile=board.querySelector('[data-cell="'+i+'"]');
+                if(!g.cfg.mask[i]){
+                  voids++;if(tile)errors.push('void has a tile '+i);continue;
+                }
+                active++;
+                var cell=g.cells[i];
+                if(!cell||cell.type===null||!tile){
+                  errors.push('missing playable nut '+i);continue;
+                }
+                var visual=tile.querySelector('.nut-visual');
+                if(!visual||getComputedStyle(visual).visibility==='hidden'||
+                  Number(getComputedStyle(visual).opacity)<.01||
+                  tile.classList.contains('nut-exploding')||
+                  tile.classList.contains('clearing')){
+                  errors.push('hidden sprite '+i);continue;
+                }
+                var img=visual.querySelector('img.piece');
+                var fallback=visual.querySelector('.fallback');
+                var imageOk=img&&img.complete&&img.naturalWidth>0&&
+                  getComputedStyle(img).display!=='none'&&
+                  getComputedStyle(img).visibility!=='hidden';
+                var fallbackOk=fallback&&fallback.textContent.trim()&&
+                  getComputedStyle(fallback).visibility!=='hidden'&&
+                  getComputedStyle(fallback).display!=='none';
+                if(!imageOk&&!fallbackOk){
+                  errors.push('blank image and fallback '+i);continue;
+                }
+                if(!tile.getAttribute('data-nut-key')||
+                   tile.getAttribute('data-nut-key').split(':')[0]!==String(cell.type)){
+                  errors.push('stale nut type '+i);continue;
+                }
+                visible++;
+              }
+              var expected=proof.expected,actual=g.cells.map(function(c){return c?c.type:null;});
+              return {active:active,visible:visible,voids:voids,errors:errors,
+                page:s.page,animating:s.animating,turns:g.history.length,
+                walletBefore:proof.wallet,walletAfter:window.NutbusterApp.getSave().dailyMoves.remaining,
+                expectedMatches:JSON.stringify(expected)===JSON.stringify(actual),
+                sameBoard:board===proof.board,overlays:board.querySelectorAll('.falling-nut').length,
+                waves:proof.waves,falls:proof.falls,started:proof.started,
+                canceled:proof.canceled,batches:proof.batches};
+            })()
+            """;
+        SystemClock.sleep(600);
+        JSONObject before = new JSONObject(js(audit));
+        check(before.getJSONArray("errors").length() == 0 &&
+              before.getInt("visible") == fixture.getInt("active") &&
+              before.getInt("voids") == fixture.getInt("voids") &&
+              before.getInt("turns") == 0,
+              "Installed two-cascade initial mask or sprite mismatch: " + before);
+        screenshot("two-cascade-before.png");
+
+        // Actual injected touchscreen events, not .click() or test-only doSwap.
+        tap("[data-cell='8']");
+        tap("[data-cell='9']");
+        boolean resolved = false;
+        long deadline = SystemClock.uptimeMillis() + 16000;
+        while(SystemClock.uptimeMillis() < deadline){
+            if("true".equals(js("(function(){var s=window.NutbusterApp.getState();"
+                + "return s.page==='game'&&!s.animating&&s.game.history.length===1;})()"))){
+                resolved = true;
+                break;
+            }
+            SystemClock.sleep(180);
+        }
+        check(resolved, "Two real interrupted WebView cascades failed to release input");
+        requireJs("(document.querySelector('.board').scrollIntoView({block:'center',inline:'center'}),true)",
+                  "Cannot center the installed board for framebuffer evidence");
+        SystemClock.sleep(700);
+        JSONObject after = new JSONObject(js(audit));
+        screenshot("two-cascade-after.png");
+        check(after.getJSONArray("errors").length() == 0 &&
+              after.getInt("visible") == fixture.getInt("active") &&
+              after.getInt("voids") == fixture.getInt("voids") &&
+              after.getInt("turns") == 1 &&
+              !after.getBoolean("animating") &&
+              "game".equals(after.getString("page")) &&
+              after.getBoolean("sameBoard") && after.getBoolean("expectedMatches") &&
+              after.getInt("walletBefore") - after.getInt("walletAfter") == 1 &&
+              after.getInt("overlays") == 0 &&
+              after.getInt("started") >= fixture.getInt("falls") &&
+              after.getInt("canceled") >= fixture.getInt("falls") &&
+              after.getInt("batches") >= 2,
+              "Installed two-cascade interruption, sprite or daily-wallet regression: " + after);
+        checkTwoCascadeFramebuffers();
+        requireJs("(Element.prototype.animate=window.__nb36.originalAnimate,true)",
+                  "Could not restore original native animation method");
+        return "TWO_CASCADE_PASS: installed Chrome69 level36 seed7 first swap 8,9; "
+            + "native fall Web Animations canceled; authentic before/after PNGs; "
+            + "no void crossings, every playable sprite visible, exactly one daily move; "
+            + "fixture=" + fixture + "; before=" + before + "; after=" + after;
+    }
+
+    private void checkTwoCascadeFramebuffers() throws Exception {
+        File dir = getTargetContext().getExternalFilesDir(null);
+        check(dir != null, "Installed framebuffer evidence directory missing");
+        Bitmap before = BitmapFactory.decodeFile(new File(dir, "two-cascade-before.png").getPath());
+        Bitmap after = BitmapFactory.decodeFile(new File(dir, "two-cascade-after.png").getPath());
+        check(before != null && after != null, "Missing actual Android two-cascade framebuffers");
+        try {
+            check(before.getWidth()==after.getWidth() && before.getHeight()==after.getHeight(),
+                  "Installed screen dimensions changed between two-cascade frames");
+            // Compare genuine device pixels, not in-memory DOM markup.
+            // The puzzle occupies the center of this installed screen; the
+            // same board is re-centered before each framebuffer capture.
+            int changed=0;
+            for(int y=after.getHeight()/4;y<after.getHeight()*3/4;y+=3){
+                for(int x=after.getWidth()/6;x<after.getWidth()*5/6;x+=3){
+                    if(before.getPixel(x,y)!=after.getPixel(x,y))changed++;
+                }
+            }
+            check(changed>=100,
+                  "Installed two-cascade before/after display did not change enough ("
+                  + changed + " sampled pixels)");
+        } finally {
+            before.recycle();
+            after.recycle();
+        }
+    }
+
     private String runBoosterHudProof() throws Exception {
         JSONObject layout = new JSONObject(js("""
             (function(){

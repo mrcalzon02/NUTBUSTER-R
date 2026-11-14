@@ -17,6 +17,22 @@ for(const [name,pattern] of Object.entries({
   crash:/FATAL EXCEPTION/,
   diagnostics:/android26-smoke-steps\.txt/,
 })) assert.match(script,pattern,name+' gate must exist');
+// Ensure the newly assigned real installed two-wave regression can never be
+// reported as passed without both explicit instrumentation and framebuffer evidence.
+const instrumentation=fs.readFileSync(path.join(root,
+ 'android/app/src/androidTest/java/io/github/mrcalzon02/nutbuster/EditorTouchInstrumentation.java'),'utf8');
+assert.match(instrumentation,/TWO_CASCADE_PASS: installed Chrome69 level36 seed7 first swap 8,9/,
+ 'genuine installed deterministic two-cascade checkpoint');
+assert.match(instrumentation,/checkTwoCascadeFramebuffers\(\)/,
+ 'real screenshot pixel comparison must run');
+assert.match(script,/grep -F 'TWO_CASCADE_PASS'/,
+ 'emulator shell must reject missing exact two-cascade pass marker');
+for(const suffix of ['before','after']){
+ assert.ok(script.includes('two-cascade-'+suffix),
+  'emulator must pull and verify two-cascade-'+suffix+' actual screenshots');
+ assert.ok(block.includes('validation/nutbuster-two-cascade-'+suffix+'.png'),
+  'workflow must retain genuine two-cascade-'+suffix+' PNG artifact');
+}
 const fire=fs.readFileSync(path.join(root,'scripts/fireos-tablet-smoke.sh'),'utf8');
 assert.match(fire,/timeout[^\n]*150s adb install/,'Fire proxy retains bounded APK installation');
 assert.match(fire,/adb install --no-streaming -r/,'Fire proxy avoids flaky streamed package-install transport');

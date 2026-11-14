@@ -351,6 +351,8 @@ jobs:
             validation/nutbuster-irregular-board-after.png
             validation/nutbuster-idle-resume-hidden.png
             validation/nutbuster-idle-resume-recovered.png
+            validation/nutbuster-two-cascade-before.png
+            validation/nutbuster-two-cascade-after.png
           retention-days: 14
           if-no-files-found: ignore
 
