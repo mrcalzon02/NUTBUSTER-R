@@ -20,14 +20,20 @@ const screen={classList:classes(),addEventListener:(k,f)=>{if(k==='click')clickH
 };
 const currencyLinks=Array.from({length:2},()=>({dataset:{nav:'shop'},addEventListener(type,fn){if(type==='click')this.tap=fn;}}));
 const transientSprites=[];
+// Count actual production calls to the injected Web Animations boundary; a
+// mocked Element.animate is not proof that Android WebView starts native hooks.
+const animationStarts=[];
 let stallFallAnimations=false,stallTransportAnimations=false,stallSwapAnimations=false;
 const swapAnimations=[];
 const documentListeners={};
 const document={hidden:false,addEventListener(type,fn){(documentListeners[type]??=[]).push(fn);},getElementById:id=>id==='screen'?screen:refs[id],querySelectorAll:selector=>selector==='[data-nav]'?currencyLinks:[],createElement:()=>{
  const el={style:{},innerHTML:'',removed:false,remove(){this.removed=true;}};
- el.animate=()=>({finished:(stallFallAnimations&&el.className==='falling-nut')||
-  (stallTransportAnimations&&el.className==='transport-nut')?new Promise(()=>{}):Promise.resolve(),
-  cancel(){el.animationCancelled=true;}});
+ el.animate=(frames,options)=>{
+  animationStarts.push({kind:el.className,frames,options,hiddenAtStart:document.hidden});
+  return {finished:(stallFallAnimations&&el.className==='falling-nut')||
+   (stallTransportAnimations&&el.className==='transport-nut')?new Promise(()=>{}):Promise.resolve(),
+   cancel(){el.animationCancelled=true;}};
+ };
  transientSprites.push(el);return el;
 }};
 const window={NutDailyMoves:require('../web/daily-moves.js'),NutElementalChallenges:require('../web/elemental-challenges.js'),NutElementalRewards:require('../web/elemental-rewards.js'),NutEngine:E,NutBenefits:require('../web/benefits.js'),NutPurchases:require('../web/purchase-disclosures.js'),NutProgress:P,NutHomestead:H,NutAvatarArt:require('../web/avatar-art.js'),NutCampaignMaps:M,addEventListener:()=>{},matchMedia:()=>({matches:true})};
@@ -272,12 +278,28 @@ async function run(){
   if(f.from>=0)assert.equal(islandSegment(f.from),islandSegment(f.to),
    'Surviving nut must never cross a void between disconnected segments');
  }
- const islandRenders=renders,islandSprites=transientSprites.length;
+ const islandRenders=renders,islandSprites=transientSprites.length,islandAnimStarts=animationStarts.length;
  window.matchMedia=()=>({matches:false});stallFallAnimations=true;
  click({cell:String(islandPair[0])});click({cell:String(islandPair[1])});
+ // The page backgrounds during an in-flight Web Animations cascade. The
+ // mocked promises stall, but real game.js must still request the animation.
+ document.hidden=true;
+ for(const listener of documentListeners.visibilitychange||[])listener();
+ assert.equal(state().animating,true,'Backgrounding during a live swap must not falsely finish the turn');
  await settle();await settle();
+ document.hidden=false;
+ for(const listener of documentListeners.visibilitychange||[])listener();
  stallFallAnimations=false;window.matchMedia=()=>({matches:true});
  const islandOverlays=transientSprites.slice(islandSprites).filter(x=>x.className==='falling-nut');
+ const islandNativeStarts=animationStarts.slice(islandAnimStarts).filter(x=>x.kind==='falling-nut');
+ assert.equal(islandNativeStarts.length,islandFalls.length,
+  'Normal-motion two-wave game.js must call Element.animate for every actual fall, even across a hidden-page interruption');
+ assert.ok(islandNativeStarts.every(x=>x.frames.length===2&&
+  x.frames[0].transform.startsWith('translateY(')&&x.frames[1].transform==='translateY(0)'&&
+  x.options.duration>=360&&x.options.duration<=760),
+  'Each native call receives the real gravity-trajectory keyframes and bounded duration');
+ assert.ok(islandNativeStarts.some(x=>x.hiddenAtStart),
+  'Background transition must have occurred before some real fall animation requests');
  assert.ok(islandOverlays.length>=islandFalls.length,
   'Every cascade fall must create a real transient nut sprite');
  assert.ok(islandOverlays.every(x=>x.removed&&x.animationCancelled),
@@ -292,6 +314,33 @@ async function run(){
  assert.ok(boardCells.every((tile,i)=>!g.cfg.mask[i]?tile===null:
   tile?.visual?.style.visibility!=='hidden'&&g.cells[i]?.type!==null),
   'No playable island tile remains blank after two canceled fall animations');
+
+ // The same deterministic two-wave game must remain playable under reduced
+ // motion. Its real game.js invocation must suppress Element.animate, not
+ // merely suppress a reporting counter while leaving invisible fixed tiles.
+ app.getSave().hearts++;
+ app.start(36);state().game=E.create(36,7);attach();g=state().game;
+ g.cfg.objectives=[{kind:'score',target:Number.MAX_SAFE_INTEGER}];
+ const reducedPair=findSwap(g,true);
+ assert.deepEqual(reducedPair,islandPair,'Reduced-motion fixture must use the identical seeded move');
+ const reducedStarts=animationStarts.length,reducedSprites=transientSprites.length;
+ const reducedRenders=renders,reducedDaily=app.getSave().dailyMoves.remaining;
+ window.matchMedia=()=>({matches:true});
+ click({cell:String(reducedPair[0])});click({cell:String(reducedPair[1])});
+ await settle();await settle();
+ const reducedFallStarts=animationStarts.slice(reducedStarts).filter(x=>x.kind==='falling-nut');
+ const reducedFallOverlays=transientSprites.slice(reducedSprites).filter(x=>x.className==='falling-nut');
+ assert.equal(reducedFallStarts.length,0,'Reduced-motion preference must suppress native fall animation calls');
+ assert.ok(reducedFallOverlays.length>=islandFalls.length&&reducedFallOverlays.every(x=>x.removed),
+  'Reduced-motion still resolves all physical fall overlays and removes them');
+ assert.equal(state().animating,false,'Reduced-motion two-wave resolution must release input');
+ assert.equal(renders,reducedRenders,'Reduced-motion must not rerender the board');
+ assert.equal(app.getSave().dailyMoves.remaining,reducedDaily-1,'Reduced-motion still spends only one move');
+ assert.deepEqual(g.cells.map(c=>c?.type??null),islandReference.cells.map(c=>c?.type??null),
+  'Reduced-motion and interrupted full-motion paths converge on identical seeded board state');
+ assert.ok(boardCells.every((tile,i)=>!g.cfg.mask[i]?tile===null:
+  tile?.visual?.style.visibility!=='hidden'&&g.cells[i]?.type!==null),
+  'Reduced-motion must leave every playable disconnected island visible');
 
  // A WebView suspended during the initial swap can leave both .finished
  // promises unresolved, preventing all subsequent cascades and input forever.
